@@ -1,0 +1,8 @@
+% wst
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\New\wst0_5
+data wst0Fixed.data
+resp wst0Inv5_resp.02
+raw C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\Old\j2
+list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\New\wst0_1\cull5.lst
+% all
+list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\Old\j2\all.lst

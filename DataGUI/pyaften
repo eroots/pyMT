@@ -1,0 +1,6 @@
+% aften
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\aften\aften0_1
+list cull1.lst
+data cull1_1.data
+resp out_resp.01_03
+raw  C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\aften\j2
