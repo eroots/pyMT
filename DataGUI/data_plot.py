@@ -373,6 +373,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.draw_map()
 
     def print_periods(self):
+        print('HIHIHIHI')
         periods = list(self.dataset.raw_data.narrow_periods.keys())
         periods.sort()
         pretty_periods = [(per, self.dataset.raw_data.narrow_periods[per]) for
