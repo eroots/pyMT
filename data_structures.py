@@ -2,9 +2,9 @@
 """
 import numpy as np
 import os
-from wsinv3dmt.WSExceptions import WSFileError
-import wsinv3dmt.utils as utils
-import wsinv3dmt.IO as WS_io
+from pyMT.WSExceptions import WSFileError
+import pyMT.utils as utils
+import pyMT.IO as WS_io
 
 
 # ==========TODO=========== #

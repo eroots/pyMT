@@ -8,7 +8,7 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 import sys
 import os
-from wsinv3dmt import gplot, utils, data_structures
+from pyMT import gplot, utils, data_structures
 
 path = os.path.dirname(os.path.realpath(__file__))
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
