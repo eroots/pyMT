@@ -1,10 +1,10 @@
-import wsinv3dmt.data_structures as WSDS
-import wsinv3dmt.IO as WSIO
-import wsinv3dmt.utils as utils
+import pyMT.data_structures as WSDS
+import pyMT.IO as WSIO
+import pyMT.utils as utils
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from wsinv3dmt.WSExceptions import WSFileError
+from pyMT.WSExceptions import WSFileError
 
 
 def greetings():

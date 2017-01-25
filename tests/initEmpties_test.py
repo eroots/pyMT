@@ -1,6 +1,6 @@
-from wsinv3dmt.data_structures import RawData
-from wsinv3dmt.data_structures import Data
-from wsinv3dmt.data_structures import Site
+from pyMT.data_structures import RawData
+from pyMT.data_structures import Data
+from pyMT.data_structures import Site
 from nose.tools import assert_equal
 
 

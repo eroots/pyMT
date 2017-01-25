@@ -1,7 +1,7 @@
-from wsinv3dmt import IO
-from wsinv3dmt.data_structures import Dataset
-from wsinv3dmt.data_structures import Data
-from wsinv3dmt.WSExceptions import WSFileError
+from pyMT import IO
+from pyMT.data_structures import Dataset
+from pyMT.data_structures import Data
+from pyMT.WSExceptions import WSFileError
 from nose.tools import assert_equal
 from nose.tools import assert_raises
 import copy

@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib.figure import Figure
-import wsinv3dmt.utils as utils
+import pyMT.utils as utils
 # import matplotlib.pyplot as plt
 
 
