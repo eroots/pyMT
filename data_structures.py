@@ -5,8 +5,7 @@ import os
 from wsinv3dmt.WSExceptions import WSFileError
 import wsinv3dmt.utils as utils
 import wsinv3dmt.IO as WS_io
-from collections import namedtuple
-import operator
+
 
 # ==========TODO=========== #
 # Model implementation
@@ -104,8 +103,8 @@ class Dataset(object):
             print('data: {}, raw_data: {}, response: {}'.format(self.data.azimuth,
                                                                 self.raw_data.azimuth,
                                                                 self.response.azimuth))
-            self.azimuth = self.response.azimuth = self.raw_data.azimuth = self.data.azimuth
-            self.rotate_sites(azi=self.azimuth)
+            self.rotate_sites(azi=self.data.azimuth)
+            self.azimuth = self.data.azimuth
 
     def has_dType(self, dType):
         if dType in self.data_types:
@@ -217,13 +216,16 @@ class Dataset(object):
         return site_list
 
     def rotate_sites(self, azi=0):
+        self.azimuth = azi
         if self.has_dType('data'):
             self.data.rotate_sites(azi=azi)
+            assert (self.azimuth == self.data.azimuth)
         if self.has_dType('raw_data'):
             self.raw_data.rotate_sites(azi=azi)
+            assert (self.azimuth == self.raw_data.azimuth)
         if self.has_dType('response'):
             self.response.rotate_sites(azi=azi)
-        self.azimuth = azi
+            assert (self.azimuth == self.response.azimuth)
 
     def remove_sites(self, sites):
         """
@@ -392,7 +394,6 @@ class Data(object):
         for site in self.site_names:
             self.sites[site].detect_outliers(self.OUTLIER_MAP)
 
-
     def apply_XXYY_map(self):
         for site in self.site_names:
             for comp in self.components:
@@ -403,7 +404,7 @@ class Data(object):
         idx = np.where(self.periods <= 1 / 1000)
         for site in self.site_names:
             for comp in self.components:
-                self.sites[site].errmap[comp][ind] *= self.HIGHFREQ_MAP
+                self.sites[site].errmap[comp][idx] *= self.HIGHFREQ_MAP
 
     @property
     def NP(self):

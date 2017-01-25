@@ -373,20 +373,21 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.draw_map()
 
     def print_periods(self):
-        print('HIHIHIHI')
         periods = list(self.dataset.raw_data.narrow_periods.keys())
         periods.sort()
         pretty_periods = [(per, self.dataset.raw_data.narrow_periods[per]) for
                           per in periods]
+        print('{:>15} {:>15} {:>15}'.format('Period', 'Log(Period)', 'Perc'))
         for t in pretty_periods:
             k, v = t
+            log_k = np.log10(k)
             if k in utils.truncate(self.dataset.data.periods):
                 yn = '*'
             else:
                 yn = ''
             if k < 1:
                 k = -1 / k
-            print('{}: {}    {}'.format(k, v, yn))
+            print('{:15.5} {:15.5} {:15.5}   {}'.format(k, log_k, v, yn))
         for t in self.dataset.data.periods:
             if t < 1:
                 t = -1 / t
@@ -779,7 +780,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
             if self.DEBUG:
                 print('No action for response click.')
             return
-        
         if mec == 0:
             israw = True
         if mec > 0:
@@ -1013,41 +1013,40 @@ class MyPopupDialog(UiPopupMain, QPopupWindow):
         return file, ret
 
 
-# If this is run directly, launch the GUI
-def main():
-    app = QtGui.QApplication(sys.argv)  # Starts GUI event loop
-    start_file = ''
-    # These 3 options are mutually exclusive, as they all decide how to get the files
+def parse_commandline(args):
+    start_file = None
     if '-d' in sys.argv:
         start_file = 'pystart'
     elif '-b' in sys.argv:
-        pass  # Allow user to browse for files
+        start_file, response = FileInputParser.get_files_dialog()
     elif '-n' in sys.argv:
         idx = sys.argv.index('-n')
         try:
             start_file = sys.argv[idx + 1]
         except IndexError:
             print('You must name your pystart file when using the -n option!')
+            return None
     elif '-h' in sys.argv:
         print('Options include: \n\t -d : Use default startup file "pystart"' +
               '\n\t -b : Browse for start file or data files (Not yet implemented)' +
               '\n\t -n : Specify the start file you wish to use' +
               '\n\t -l : List the dataset names present in the start file you have chosen' +
               '\n\t -c : Choose a specific dataset listed within the start file you have chosen')
-        return
-    # If no option is specified, or if you tried one and it failed
-    if start_file == '':
-        start_file, response = FileInputParser.get_files_dialog()
-    elif isinstance(start_file, str):
+        return None
+    else:
+        files, response = FileInputParser.get_files_dialog()
+    # if start_file == '':
+    #     start_file, response = FileInputParser.get_files_dialog()
+    if isinstance(start_file, str):
         files = FileInputParser.read_pystart(start_file)
     if files is False:
-        return
+        return None
     # If you made it this far, I assume you have a good starting file.
     if '-c' in sys.argv:
         idx = sys.argv.index('-c')
         if len(sys.argv) == idx + 1:
             print('You need to specify the model you want with the -c option.')
-            return
+            return None
         dnames = sys.argv[idx + 1].split(':')
         dset = {dname: dataset for dname, dataset in files.items() if dname in dnames}
         if not dset:
@@ -1060,7 +1059,7 @@ def main():
         while True:
             user_input = input()
             if user_input.lower() == 'n':
-                return
+                return None
             elif user_input.lower() == 'y':
                 break
             elif user_input in files.keys():
@@ -1068,6 +1067,17 @@ def main():
                 break
             else:
                 print('That was not one of the options...')
+    return files
+
+
+# If this is run directly, launch the GUI
+def main():
+    app = QtGui.QApplication(sys.argv)  # Starts GUI event loop
+    # These 3 options are mutually exclusive, as they all decide how to get the files
+    files = parse_commandline(sys.argv)
+    if files is None:
+        return
+    # If no option is specified, or if you tried one and it failed
     verify = FileInputParser.verify_files(files)
     if verify:
         # Because files is a dictionary, the plotter may not load the same dataset first every time.

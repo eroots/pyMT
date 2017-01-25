@@ -17,3 +17,8 @@ path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\center
 list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\j2\center.lst
 data center_1.data
 resp out4_resp.01
+% center_more
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\center0_redo
+list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\j2\center.lst
+data center0_more.data
+resp outMore2_resp.02_03
