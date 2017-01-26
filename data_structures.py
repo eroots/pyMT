@@ -604,6 +604,8 @@ class Model(object):
         self._dz = []
         self.vals = []
         self.file = modelfile
+        self.origin = (0, 0)
+        self.UTM_zone = None
         self.__read__(modelfile=modelfile)
 
     def __read__(self, modelfile=''):
@@ -617,6 +619,12 @@ class Model(object):
             self.xCS = mod['xCS']
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
+
+    def to_vtk(self, outfile=None):
+        if not outfile:
+            print('Must specify output file name')
+            return
+        WS_io.model_to_vtk(self, outfile=outfile)
 
     def is_half_space(self):
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))

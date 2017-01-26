@@ -313,7 +313,7 @@ def write_data(data, outfile=None):
                     f.write('\n')
 
 
-def write_to_vtk(model, outfile=None, data=None, origin=None, UTM=None):
+def model_to_vtk(model, outfile=None, origin=None, UTM=None):
     """
     Write model to VTK ascii format
     VTK format has X running west-east, Y running south-north, so model dimensions
@@ -345,7 +345,7 @@ def write_to_vtk(model, outfile=None, data=None, origin=None, UTM=None):
         try:
             ox, oy = origin
         except:
-            errms = '\n'.join(errmsg,'Model origin must be properly specified.')
+            errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
     if not UTM:
         try:
             UTM = model.UTM
@@ -359,38 +359,82 @@ def write_to_vtk(model, outfile=None, data=None, origin=None, UTM=None):
     version = '# vtk DataFile Version 3.0\n'
     modname = os.path.basename(model.file)
     if not outfile:
-        outfile = ''.join([modname, '.vtr'])
+        outfile = ''.join([modname, '.vtk'])
     values = copy.deepcopy(model)
     tmp = values.vals
-    print(values.vals.shape)
     values.vals = np.swapaxes(np.flipud(tmp), 0, 1)
-    print(values.vals.shape)
     NX, NY, NZ = values.vals.shape
     values.dx, values.dy = values.dy, values.dx
     values.dx = [x + ox for x in values.dx]
     values.dy = [y + oy for y in values.dy]
     values.dz = [-z for z in values.dz]
-    values.vals = np.reshape(values.vals, [NX * NY * NZ], order='F')
+    # values.vals = np.reshape(values.vals, [NX * NY * NZ], order='F')
     with open(outfile, 'w') as f:
         f.write(version)
         f.write('{}   UTM: {} \n'.format(modname, UTM))
         f.write('ASCII\n')
         f.write('DATASET RECTILINEAR_GRID\n')
-        f.write('DIMENSIONS {} {} {}\n'.format(NX, NY, NZ))
+        f.write('DIMENSIONS {} {} {}\n'.format(NX + 1, NY + 1, NZ + 1))
         for dim in ('x', 'y', 'z'):
-            f.write('{}_COORDINATES {} float\n'.format(dim.upper(),
+            f.write('{}_COORDINATES {} float\n'.format(dim.upper(), 1 +
                                                        getattr(values, ''.join(['n', dim]))))
             gridlines = getattr(values, ''.join(['d', dim]))
-            for ii in range(getattr(values, ''.join(['n', dim]))):
-                midpoint = (gridlines[ii] + gridlines[ii + 1]) / 2
-                f.write('{} '.format(str(midpoint)))
+            for edge in gridlines:
+                f.write('{} '.format(str(edge)))
             f.write('\n')
-        f.write('POINT_DATA {}\n'.format(NX * NY * NZ))
+            # for ii in range(getattr(values, ''.join(['n', dim]))):
+            #     midpoint = (gridlines[ii] + gridlines[ii + 1]) / 2
+            #     f.write('{} '.format(str(midpoint)))
+            # f.write('\n')
+        f.write('POINT_DATA {}\n'.format((NX + 1) * (NY + 1) * (NZ + 1)))
         f.write('SCALARS Resistivity float\n')
         f.write('LOOKUP_TABLE default\n')
         # print(len())
-        for ii in values.vals:
-            f.write('{}\n'.format(ii))
+        for iz in range(NZ + 1):
+            for iy in range(NY + 1):
+                for ix in range(NX + 1):
+                        xx = min([ix, NX - 1])
+                        yy = min([iy, NY - 1])
+                        zz = min([iz, NZ - 1])
+                        f.write('{}\n'.format(values.vals[xx, yy, zz]))
+
+
+def sites_to_vtk(data, origin=None, outfile=None, UTM=None):
+    errmsg = ''
+    ox, oy = (0, 0)
+    if isinstance(origin, str):
+        pass
+    else:
+        try:
+            ox, oy = origin
+        except:
+            errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
+    if not UTM:
+        errmsg.append(['ERROR: UTM must be specified either in function call or in model'])
+    if errmsg:
+        print('\n'.join(errmsg))
+        return
+    version = '# vtk DataFile Version 3.0\n'
+    if not outfile:
+        print('You must specify the output file name')
+        return
+    xlocs = data.locations[:, 1] + origin[0]
+    ylocs = data.locations[:, 0] + origin[1]
+    ns = len(xlocs)
+    with open(outfile, 'w') as f:
+        f.write(version)
+        f.write('UTM: {} \n'.format(UTM))
+        f.write('ASCII\n')
+        f.write('DATASET POLYDATA\n')
+        # f.write('DIMENSIONS {} {} {} \n'.format(ns, ns, 1))
+        f.write('POINTS {} float\n'.format(ns))
+        for ix, iy in zip(xlocs, ylocs):
+            f.write('{} {} {}\n'.format(ix, iy, 0))
+        f.write('POINT_DATA {}\n'.format(ns))
+        f.write('SCALARS dummy float\n')
+        f.write('LOOKUP_TABLE default\n')
+        for ii in range(ns):
+            f.write('{}\n'.format(-999999))
 
 
 def read_freqset(freqset='freqset'):
@@ -409,13 +453,4 @@ def read_freqset(freqset='freqset'):
                     break
 
 
-# def sens2bin(periods, output)
-
-
-# def write_to_pointset(model, origin=(0, 0), outfile=None, data=None):
-#     if isinstance(model, str):
-#         model = WS
-#     try:
-#     except AttributeError:
-#         model = 
 
