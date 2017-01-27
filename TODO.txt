@@ -1,0 +1,2 @@
+Bugs to fix:
+	Sites plot in wrong places when reading just raw data. Must be an issue with conversion of site Lat/Longs to UTM coordinates.
