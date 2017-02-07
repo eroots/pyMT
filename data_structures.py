@@ -519,6 +519,7 @@ class Data(object):
             try:
                 del self.sites[name]
                 self.site_names.remove(name)
+                self.locations = self.get_locs()
             except KeyError as e:
                 print('Site {} does not exist'.format(name))
         return self

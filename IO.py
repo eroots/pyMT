@@ -308,7 +308,7 @@ def write_data(data, outfile=None):
                                 to_print = data.NO_COMP_MAP
                             f.write('{:<5}'.format(min(9999, int(to_print))))
                         else:
-                            f.write('{:>11.4E}  '.format(to_print))
+                            f.write('{:>14.7E}  '.format(to_print))
                         # for point in getattr(site, that)[comp]:
                     f.write('\n')
 

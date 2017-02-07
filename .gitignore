@@ -1,3 +1,5 @@
 # Ignore these
 __pycache__/
 *.vtk
+*.pyc
+DataGUI/py*
