@@ -1243,13 +1243,34 @@ class RawData(object):
         if dummy_sites:
             self.remove_components(sites=dummy_sites,
                                    components=['TZXR', 'TZXI', 'TZYR', 'TZYI'])
+        #  Check this. It looks like more periods are being removed than should be?
+        #  Take out the call to 'remove_periods' and manually check what it wants to take out.
+        dummy_periods = self.check_dummy_periods()
+        if dummy_periods:
+            self.remove_periods(site_dict=dummy_periods)
         self.locations = Data.get_locs(self)
         self.datpath = datpath
         self.listfile = listfile
 
+    def remove_periods(self, site_dict):
+        for site, periods in site_dict.items():
+            self.sites[site].remove_periods(periods=periods)
+
     def remove_components(self, sites=None, components=None):
         for site in sites:
             self.sites[site].remove_components(components=components)
+
+    def check_dummy_periods(self, threshold=1e-10):
+        sites = {}
+        for site in self.sites.values():
+            periods = []
+            for ii, p in enumerate(site.periods):
+                vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'Z']
+                if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
+                    periods.append(p)
+            if periods:
+                sites.update({site.name: periods})
+        return sites
 
     def check_dummy_data(self, threshold=0.001):
         # for comp in ('TZXR', 'TZXI', 'TZYR', 'TZYI'):

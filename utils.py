@@ -3,6 +3,7 @@
 import numpy as np
 import os
 from math import log10, floor
+MU = 4 * np.pi * 1e-7
 
 
 def percdiff(val1, val2):
@@ -525,65 +526,105 @@ def compute_rho(site, calc_comp=None, errtype='none'):
         site (Site): wsinv3dmt.data_structures Site object containing impedance data to be converted
         calc_comp (string, optional): Type of apparent resistivity to calculate.
         (Rxx, Rxy, Ryy, Ryx, Rdet {Default})
-    
+
     Returns:
         np.array: Apparent resistivity of the chosen type
         np.array: Associated errors. Note that the errors are set to 0 for the determinant apparent
                   resistivities (Proper calculatation not implemented yet)
     """
-    COMPS = ('RHOXX', 'RHOXY',
-             'RHOYY', 'RHOYX',
-             'RHODET')
+    COMPS = ('XX', 'XY',
+             'YY', 'YX',
+             'DET', 'GAV', 'AAV')
+    if not calc_comp:
+        calc_comp = 'det'
+    calc_comp = calc_comp.lower()
+    if 'rho' in calc_comp:
+        calc_comp = calc_comp.replace('rho', '')
     if calc_comp.upper() not in COMPS:
         print('{} not a valid option'.format(calc_comp))
         return
-    mu = 0.2 / (4 * np.pi * 1e-7)
-    if calc_comp is None:
-        calc_comp = 'rhodet'
-    if calc_comp.lower() == 'rhodet':
-        det = compute_MT_determinant(site)
-        rho_data = det * np.conj(det) * mu * site.periods
+    # mu = 0.2 / (4 * np.pi * 1e-7)
+    if calc_comp.upper() not in COMPS[:4]:
+        if calc_comp.lower() == 'det':
+            det = compute_MT_determinant(site)
+        elif calc_comp == 'gav':
+            det = compute_gav(site)
+        elif calc_comp == 'aav':
+            det = compute_aav(site)
+        rho_data = det * np.conj(det) * 0.2 * site.periods / MU
         rho_error = rho_log10Err = rho_data * 0
         # Do errors here...
     else:
-        comp = ''.join(['Z', calc_comp[3:]])
-        z = site.data[''.join([comp, 'R'])] -1j * site.data[''.join([comp, 'I'])]
-        rho_data = z * np.conj(z) * mu * site.periods
+        comp = ''.join(['Z', calc_comp.upper()])
+        z = site.data[''.join([comp, 'R'])] - 1j * site.data[''.join([comp, 'I'])]
+        rho_data = z * np.conj(z) * 0.2 * site.periods / MU
         if errtype.lower() != 'none':
             zeR = getattr(site, errtype)[''.join([comp, 'R'])]
             zeI = getattr(site, errtype)[''.join([comp, 'I'])]
             if len(zeR) == 0:
                 zeR = zeI = z * 0
-            C = 2 * site.periods * mu
+            C = 2 * site.periods * 0.2 / MU
             rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
-            rho_log10Err = ( rho_error * np.sqrt(2) /
-                             ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)) )
+            rho_log10Err = (rho_error * np.sqrt(2) /
+                            ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
         else:
             rho_error = rho_log10Err = rho_data * 0
     return np.real(rho_data), np.real(rho_error), np.real(rho_log10Err)
 
 
 def compute_phase(site, calc_comp=None, errtype='none'):
-    COMPS = ('PHAXX', 'PHAXY',
-             'PHAYY', 'PHAYX',
-             'PHADET')
+    COMPS = ('XX', 'XY',
+             'YY', 'YX',
+             'DET', 'GAV', 'AAV')
+    if not calc_comp:
+        calc_comp = 'det'
+    calc_comp = calc_comp.lower()
+    if 'pha' in calc_comp:
+        calc_comp = calc_comp.replace('pha', '')
     if calc_comp.upper() not in COMPS:
         print('{} not a valid option'.format(calc_comp))
         return
-    if calc_comp is None:
-        calc_comp = 'phadet'
-    if calc_comp.lower() == 'phadet':
-        det = compute_MT_determinant(site)
+    if calc_comp.upper() not in COMPS[:4]:
+        if calc_comp == 'det':
+            det = compute_MT_determinant(site)
+        elif calc_comp == 'gav':
+            det = compute_gav(site)
+        elif calc_comp == 'aav':
+            det = compute_aav(site)
         pha_data = np.angle(det, deg=True) + 90
+        if calc_comp == 'aav':
+            pha_data = pha_data % 90
         pha_error = pha_data * 0
     else:
-        comp = ''.join(['Z', calc_comp[3:]])
-        z = site.data[''.join([comp, 'R'])] -1j * site.data[''.join([comp, 'I'])]
+        comp = ''.join(['Z', calc_comp.upper()])
+        z = site.data[''.join([comp, 'R'])] - 1j * site.data[''.join([comp, 'I'])]
         pha_data = np.angle(z, deg=True)
         if comp[1:] == 'YX':
             pha_data = 180 + pha_data
         pha_error = pha_data * 0
     return pha_data, pha_error
+
+
+def compute_gav(site):
+    try:
+        gav = np.sqrt((site.data['ZXYR'] - 1j * site.data['ZXYI']) *
+                      (site.data['ZYXR'] - 1j * site.data['ZYXI']))
+    except KeyError as e:
+        print('Missing component needed for computation')
+        raise e
+    else:
+        return gav
+
+
+def compute_aav(site):
+    try:
+        aav = ((abs(site.data['ZXYR']) + 1j * abs(site.data['ZXYI'])) +
+               (abs(site.data['ZYXR']) + 1j * abs(site.data['ZYXI']))) / 2
+    except KeyError as e:
+        print('Missing component needed for computation')
+        raise e
+    else:
+        return aav
 
 
 def compute_MT_determinant(site):
@@ -599,7 +640,116 @@ def compute_MT_determinant(site):
         return det
 
 
+def geotools_filter(x, y, fwidth=1, use_log=True):
+
+    RTD = 180 / np.pi
+    DIFLIMIT = 0.1
+    DSLLIMIT = 90.0
+    logx = np.log10(x)
+    if use_log:
+        logy = np.log10(y)
+        if any(np.isnan(logx)) or any(np.isnan(logy)):
+            logx = x
+            logy = y
+            use_log = False
+    else:
+        # logx = x
+        logy = y
+    hfwidth = fwidth / 2
+    min_x = min(logx)
+    min_y = min(logy)
+    max_x = max(logx)
+    max_y = max(logy)
+    X = np.maximum(np.minimum((logx - min_x) / (max_x - min_x), 1), 0)
+    Y = np.maximum(np.minimum((logy - min_y) / (max_y - min_y), 1), 0)
+
+    ldif = np.zeros(X.shape)
+    lslope = np.zeros(X.shape)
+    rslope = np.zeros(X.shape)
+    rdif = np.zeros(X.shape)
+    ret_y = np.zeros(X.shape)
+    score = np.zeros(X.shape)
+    # Left and right differences
+    for ii, (x, y) in enumerate(zip(X, Y)):
+        if ii > 0:
+            ldif[ii] = Y[ii] - Y[ii - 1]
+            if ldif[ii] == 0 and X[ii] == X[ii - 1]:
+                lslope[ii] = 0
+            else:
+                lslope[ii] = RTD * np.arctan2(ldif[ii], X[ii] - X[ii - 1])
+
+        if ii < len(X) - 1:
+            rdif[ii] = Y[ii + 1] - Y[ii]
+            if rdif[ii] == 0 and X[ii + 1] == X[ii]:
+                rslope[ii] = 0
+            else:
+                rslope[ii] = RTD * np.arctan2(rdif[ii], X[ii + 1] - X[ii])
+    ldif[0] = ldif[1]
+    rdif[-1] = rdif[-2]
+    lslope[0] = lslope[1]
+    rslope[-1] = rslope[-2]
+
+    # Generate score for each point
+
+    for ii in range(len(X)):
+        pen1 = 0
+        pen2 = 0
+        totaldif = abs(ldif[ii]) + abs(rdif[ii])
+        if (((abs(ldif[ii]) > DIFLIMIT) and (abs(rdif[ii]) > DIFLIMIT) and
+                (ldif[ii] * rdif[ii] < 0)) or (totaldif > 4 * DIFLIMIT)):
+            pen1 = abs(ldif[ii]) - DIFLIMIT + abs(rdif[ii]) - DIFLIMIT
+        dslope = rslope[ii] - lslope[ii]
+        if (abs(dslope > DSLLIMIT)):
+            pen2 = 0.01 * (abs(dslope) - DSLLIMIT)
+        score[ii] = np.maximum(np.minimum(1 - pen1 - pen2, 1), 0.1)
+
+    # Convolve filter with weighted, normalized Y data
+    for ii in range(len(X)):
+        point = 0
+        WTSUM = 0
+        for jj in range(len(X)):
+            if (abs(X[ii] - X[jj]) <= fwidth):
+                FILTER = max(min((hfwidth - abs(X[ii] - X[jj]) / hfwidth), 1), 0)
+                WTSUM += FILTER * score[jj]
+                point += FILTER * score[jj] * Y[jj]
+        ret_y[ii] = (point / WTSUM) * (max_y - min_y) + min_y
+    if use_log:
+        ret_y = 10 ** ret_y
+    return ret_y
 
 
+def compute_bost1D(site, method='phase', comp=None, filter_width=1):
+
+    rho = compute_rho(site, calc_comp=comp)[0]
+    # Flag bad points
+    idx = rho != 0
+    rho = rho[idx]
+    periods = site.periods[idx]
+    # coefs = np.polyfit(np.log10(periods), np.log10(rho), 4)
+    # f = np.poly1d(coefs)
+    # rhofit = 10 ** f(np.log10(periods))
+    rhofit = geotools_filter(periods, rho, fwidth=filter_width)
+    log_rho = np.log10(rhofit)
+    log_freq = np.log10(1 / periods)
+    depth = np.sqrt(rhofit * periods / (2 * np.pi * MU)) / 1000
+    if method.lower() == 'bostick':
+        slope = np.diff(log_rho) / abs(np.diff(log_freq))
+        slope = list(slope)
+        slope.append((log_rho[-1] - log_rho[-2]) / abs(log_freq[-1] - log_freq[-2]))
+        slope = np.array(slope)
+        slope[abs(slope) > 0.95] = np.sign(slope[abs(slope) > 0.95]) * 0.95
+        bostick = rhofit * ((1 + slope) / (1 - slope))
+    elif method.lower() == 'phase-bostick':
+        phase = compute_phase(site, calc_comp=comp)[0]
+        phase = phase[idx]
+        phase = geotools_filter(periods, phase, use_log=False, fwidth=filter_width)
+        slope = 1 - phase / 45
+        bostick = rho * ((1 + slope) / (1 - slope))
+    elif method.lower() == 'phase':
+        phase = compute_phase(site, calc_comp=comp)[0]
+        phase = phase[idx]
+        phase = geotools_filter(periods, phase, use_log=False, fwidth=filter_width)
+        bostick = rho * ((np.pi / (2 * np.deg2rad(phase % 90))) - 1)
+    return bostick, depth, rhofit, phase
 
 
