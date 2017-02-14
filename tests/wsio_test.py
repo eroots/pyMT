@@ -18,6 +18,8 @@ datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion' \
 datpath = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\Old\j2'
 
 outfile = r'D:\pythonProgs\Inversion\testfile.data'
+datafile_mistmatch = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion' \
+                     r'\Regions\abi-gren\Old\abi0_7\abi0_7.data'
 
 
 # Can create a subclass from this later and just modify the setup to also add or subtract something
@@ -191,20 +193,23 @@ class TestIOWithBadFiles(object):
         with assert_raises(WSFileError):
             IO.read_sites('this_is_not_a_file.lst')
 
-    def test_readDirect_data_nonexistant_data(object):
+    def test_readDirect_data_nonexistant_data(self):
         with assert_raises(WSFileError):
             IO.read_data(datafile='this_is_not_a_file.lst')
 
-    def test_readDirect_raw_data_nonexistant_data(object):
+    def test_readDirect_raw_data_nonexistant_data(self):
         sites = IO.read_sites('badlist.lst')
         with assert_raises(WSFileError):
             IO.read_raw_data(site_names=sites)
 
-    def test_readFromObj_raw_data_nonexistant_data(object):
+    def test_readFromObj_raw_data_nonexistant_data(self):
         with assert_raises(WSFileError):
             RawData(listfile='badlist.lst')
 
-    def test_readFromObj_data_nonexistant_data(object):
+    def test_readFromObj_data_nonexistant_data(self):
         with assert_raises(WSFileError):
             Data(datafile='this_is_not_a_file.lst')
 
+    def test_read_mismatched_files(self):
+        with assert_raises(WSFileError):
+            Data(datafile=datafile_mistmatch, listfile=testlist)

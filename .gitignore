@@ -3,3 +3,4 @@ __pycache__/
 *.vtk
 *.pyc
 DataGUI/py*
+*.data

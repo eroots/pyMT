@@ -129,29 +129,29 @@ def generate_mesh(site_locs, min_x, model=None,
 
 def enforce_input(**types):
     """Summary
-    
+
     Args:
         **types (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
     def decorator(func):
         """Summary
-        
+
         Args:
             func (TYPE): Description
-        
+
         Returns:
             TYPE: Description
         """
         def new_func(*args, **kwargs):
             """Summary
-            
+
             Args:
                 *args (TYPE): Description
                 **kwargs (TYPE): Description
-            
+
             Returns:
                 TYPE: Description
             """
@@ -174,29 +174,29 @@ def enforce_input(**types):
 
 def enforce_output(*types):
     """Summary
-    
+
     Args:
         *types (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
     def decorator(func):
         """Summary
-        
+
         Args:
             func (TYPE): Description
-        
+
         Returns:
             TYPE: Description
         """
         def new_outputs(*args, **kwargs):
             """Summary
-            
+
             Args:
                 *args (TYPE): Description
                 **kwargs (TYPE): Description
-            
+
             Returns:
                 TYPE: Description
             """
@@ -219,11 +219,11 @@ def enforce_output(*types):
 
 def closest_periods(available_p, wanted_p):
     """Summary
-    
+
     Args:
         available_p (TYPE): Description
         wanted_p (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -239,19 +239,19 @@ def closest_periods(available_p, wanted_p):
 
 def list_or_numpy(func):
     """Summary
-    
+
     Args:
         func (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
     def inner(obj):
         """Summary
-        
+
         Args:
             obj (TYPE): Description
-        
+
         Returns:
             TYPE: Description
         """
@@ -268,10 +268,10 @@ def list_or_numpy(func):
 
 def check_file(outfile):
     """Summary
-    
+
     Args:
         outfile (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -285,19 +285,19 @@ def check_file(outfile):
 
 def row_or_col(func):
     """Summary
-    
+
     Args:
         func (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
     def inner(vec):
         """Summary
-        
+
         Args:
             vec (TYPE): Description
-        
+
         Returns:
             TYPE: Description
         """
@@ -312,13 +312,21 @@ def row_or_col(func):
     return inner
 
 
-def geo2utm(Lat, Long):
+def compute_origin(Long=0, long_origin=999):
+    if Long == 0:
+        origin = -3
+    else:
+        origin = float(int(Long / 6) * 6) + 3 * int(Long / 6) / abs(int(Long / 6))
+    return origin
+
+
+def geo2utm(Lat, Long, long_origin=999):
     """Summary
-    
+
     Args:
         Lat (TYPE): Description
         Long (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -327,14 +335,13 @@ def geo2utm(Lat, Long):
     AA = 6378137
     ECC2 = 0.00669438
     K0 = 0.9996
-    origin = 999
-    if Long == 0:
-        origin = -3
+    if long_origin == 999:
+        origin = compute_origin(Long)
     else:
-        origin = float(int(Long / 6) * 6) + 3 * int(Long / 6) / abs(int(Long / 6))
+        origin = long_origin
     LatR, LongR = np.deg2rad([Lat, Long])
     eccPrimeSquared = ECC2 / (1 - ECC2)
-    N = AA / (np.sqrt(1 - ECC2 * np.sin(Lat) ** 2.0))
+    N = AA / (np.sqrt(1 - ECC2 * np.sin(LatR) ** 2.0))
     T = np.tan(LatR) ** 2
     C = eccPrimeSquared * np.cos(LatR) ** 2
     A = np.cos(LatR) * np.deg2rad((Long - origin))
@@ -358,15 +365,15 @@ def geo2utm(Lat, Long):
         (M + N * np.tan(LatR) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * ((A ** 4) / 24)) +
          (61 - 58 * T + T * T + 600 * C -
           330 * eccPrimeSquared) * ((A ** 6) / 720))
-    return Easting, Northing
+    return Easting, Northing, origin
 
 
 def to_list(obj):
     """Summary
-    
+
     Args:
         obj (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -380,10 +387,10 @@ def to_list(obj):
 
 def fileparts(filename):
     """Summary
-    
+
     Args:
         filename (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -396,13 +403,13 @@ def fileparts(filename):
 @list_or_numpy
 def truncate(nums):
     """Summary
-    
+
     Args:
         nums (TYPE): Description
-    
+
     Returns:
         TYPE: Description
-    
+
     Deleted Parameters:
         sig (int, optional): Description
     """
@@ -427,10 +434,10 @@ def truncate(nums):
 
 def center_locs(locations):
     """Summary
-    
+
     Args:
         locations (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -442,11 +449,11 @@ def center_locs(locations):
 
 def rotate_locs(locs, azi=0):
     """Summary
-    
+
     Args:
         locs (TYPE): Description
         azi (int, optional): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -460,10 +467,10 @@ def rotate_locs(locs, azi=0):
 
 def list2np(data):
     """Summary
-    
+
     Args:
         data (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -478,10 +485,10 @@ def list2np(data):
 
 def np2list(data):
     """Summary
-    
+
     Args:
         data (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -490,10 +497,10 @@ def np2list(data):
 
 def flatten_list(List):
     """Summary
-    
+
     Args:
         List (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -502,11 +509,11 @@ def flatten_list(List):
 
 def validate_input(inval, expected_type):
     """Summary
-    
+
     Args:
         inval (TYPE): Description
         expected_type (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """

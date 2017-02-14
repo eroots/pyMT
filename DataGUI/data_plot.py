@@ -1031,7 +1031,8 @@ def parse_commandline(args):
               '\n\t -b : Browse for start file or data files (Not yet implemented)' +
               '\n\t -n : Specify the start file you wish to use' +
               '\n\t -l : List the dataset names present in the start file you have chosen' +
-              '\n\t -c : Choose a specific dataset listed within the start file you have chosen')
+              '\n\t -c : Choose a specific dataset(s) listed within the start file you have chosen' +
+              '\n\t\t For multiple datasets, separate names with a colon (:)')
         return None
     else:
         files, response = FileInputParser.get_files_dialog()

@@ -86,6 +86,7 @@ def read_raw_data(site_names, datpath=''):
         path = datpath + connector
     else:
         path = './'
+    long_origin = 999
     for site in site_names:
         file = ''.join([path, site, '.dat'])
         try:
@@ -110,7 +111,7 @@ def read_raw_data(site_names, datpath=''):
                         L = next(f)
                     else:
                         break
-                Y, X = utils.geo2utm(Lat, Long)
+                Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
                 siteLoc_dict.update({'X': X, 'Y': Y})
                 siteLoc_dict.update({'Lat': Lat, 'Long': Long})
                 next(f)  # Another unused line (site name and a 0)
@@ -193,6 +194,9 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
             NP = int(NP)
             if not site_names:
                 site_names = [str(x) for x in list(range(1, NS + 1))]
+            if NS != len(site_names):
+                raise(WSFileError(ID='int', offender=datafile,
+                                  extra='Number of sites in data file not equal to list file'))
             # Components is a pair of (compType, Nth item to grab)
             components = get_components(invType, NR)
             # next(f)  # skip the next line
@@ -313,7 +317,7 @@ def write_data(data, outfile=None):
                     f.write('\n')
 
 
-def model_to_vtk(model, outfile=None, origin=None, UTM=None):
+def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0):
     """
     Write model to VTK ascii format
     VTK format has X running west-east, Y running south-north, so model dimensions
@@ -339,16 +343,16 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None):
     """
     errmsg = ''
     ox, oy = (0, 0)
-    if isinstance(origin, str):
-        pass
-    else:
+    if origin:
         try:
             ox, oy = origin
         except:
             errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
+    else:
+        ox, oy = model.origin
     if not UTM:
         try:
-            UTM = model.UTM
+            UTM = model.UTM_zone
         except AttributeError:
             errmsg.append(['ERROR: UTM must be specified either in function call or in model'])
     if errmsg:
@@ -368,6 +372,13 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None):
     values.dx = [x + ox for x in values.dx]
     values.dy = [y + oy for y in values.dy]
     values.dz = [-z for z in values.dz]
+    # if azi:
+    #     use_rot = True
+    #     X, Y = np.meshgrid(values.dx, values.dy)
+    #     locs = np.transpose(np.array((np.ndarray.flatten(X), np.ndarray.flatten(Y))))
+    #     locs = utils.rotate_locs(locs, azi=-azi)
+    # else:
+    # use_rot = False
     # values.vals = np.reshape(values.vals, [NX * NY * NZ], order='F')
     with open(outfile, 'w') as f:
         f.write(version)
@@ -410,7 +421,7 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None):
         except:
             errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
     if not UTM:
-        errmsg.append(['ERROR: UTM must be specified either in function call or in model'])
+        errmsg = '\n'.join(['ERROR: UTM must be specified either in function call or in model'])
     if errmsg:
         print('\n'.join(errmsg))
         return
@@ -434,7 +445,7 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None):
         f.write('SCALARS dummy float\n')
         f.write('LOOKUP_TABLE default\n')
         for ii in range(ns):
-            f.write('{}\n'.format(-999999))
+            f.write('{}\n'.format(999999))
 
 
 def read_freqset(freqset='freqset'):

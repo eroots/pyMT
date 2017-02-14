@@ -10,6 +10,11 @@ Submodules:
 	tests: Contains modules used to test the various parts of the project
 
 == CHANGELOG ==
+13/02/17:
+ - pyMT.IO now issues WSFileError if datafile and listfile are mismatched (unequal number of sites)
+11/02/17:
+ - Fixed bug in utils.geo2utm where a new origin was being computed for each Lat/Long pair rather than having a single origin for all sites. This also fixed the error in data_plot.py where sites read from raw data were not plotted properly on the map.
+ - Fixed IO.model_to_vtk to read model origin from the model object if available.
 10/02/17 - Added a few tools to utils, including a filtering operation that can be used, for example, to smooth rho or phase prior to bostick transform.
 	 - Added options for geometric / arithmetic average (gav/aav) calculations to the compute_rho/phase functions in utils.
 	 - Added compute_bost1D to utils, which calculates the 1-D Bostick-Niblett transform for a given site.

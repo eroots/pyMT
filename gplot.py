@@ -78,13 +78,13 @@ class DataPlotManager(object):
     @property
     def units(self):
         # Might have to add a setter later if I want some way to plot RMS or something
-        if self.components[0][0] == 'Z':
+        if self.components[0][0].upper() == 'Z':
             units = 'mV/nT'
-        elif self.components[0][0] == 'T':
+        elif self.components[0][0].upper() == 'T':
             units = 'Unitless'
-        elif self.components[0][0] == 'R':
+        elif self.components[0][0].upper() == 'R':
             units = r'${\Omega}$-m'
-        elif self.components[0][0] == 'P':
+        elif self.components[0][0].upper() == 'P':
             units = 'Degrees'
         if self.scale.lower() == 'periods' and not any(sub in self.components[0].lower() for sub in ('rho', 'pha')):
             units = ''.join(['s*', units])
