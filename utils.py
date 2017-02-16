@@ -583,6 +583,24 @@ def compute_rho(site, calc_comp=None, errtype='none'):
 
 
 def compute_phase(site, calc_comp=None, errtype=None):
+    def compute_phase_error(phase_data, r_error, im_err):
+        # Phase error is calculated by first calculating the phase at
+        # the 8 possible points when considering the complex errors,
+        # and then averaging the results. This is probably not strictly speaking correct,
+        # but it makes sense as an approximation at least. Overestimates phase errors
+        # when impedance errors are large
+        pha_error = np.zeros(pha_data.shape, dtype=np.complex128)
+        zE = np.zeros((len(pha_error), 8))
+        zE[:, 0] = np.angle(zR - zeR + (zI + zeI), deg=True)
+        zE[:, 1] = np.angle(zR + zeR + (zI + zeI), deg=True)
+        zE[:, 2] = np.angle(zR + zeR + (zI - zeI), deg=True)
+        zE[:, 3] = np.angle(zR - zeR + (zI - zeI), deg=True)
+        zE[:, 4] = np.angle(zR + (zI - zeI), deg=True)
+        zE[:, 5] = np.angle(zR + (zI + zeI), deg=True)
+        zE[:, 6] = np.angle(zR + zeR + zI, deg=True)
+        zE[:, 7] = np.angle(zR - zeR + zI, deg=True)
+        pha_error = np.mean(abs(pha_data[:, np.newaxis] - zE), 1)
+        return pha_error
     COMPS = ('XX', 'XY',
              'YY', 'YX',
              'DET', 'GAV', 'AAV')
@@ -622,29 +640,8 @@ def compute_phase(site, calc_comp=None, errtype=None):
         if errtype.lower() != 'none':
             zeR = getattr(site, errtype)[''.join([comp, 'R'])]
             zeI = -1j * getattr(site, errtype)[''.join([comp, 'I'])]
-    if errtype.lower() != 'none':
-        
-        pha_error = np.zeros(pha_data.shape, dtype=np.complex128)
-        quad = np.zeros(pha_error.shape)
-        ang = np.copy(pha_data)
-        ang[ang < 0] = ang[ang < 0] + 360
-        quad[(ang > 0) & (ang <= 90)] = 1
-        quad[(ang > 90) & (ang <= 180)] = 2
-        quad[(ang > 180) & (ang <= 270)] = 3
-        quad[(ang > 270) & (ang <= 360)] = 4
-        I1 = (quad == 1)
-        I2 = (quad == 2)
-        I3 = (quad == 3)
-        I4 = (quad == 4)
-        zE = np.zeros(quad.shape)
-        zE[I1] = np.angle(zR[I1] - zeR[I1] + (zI[I1] + zeI[I1]), deg=True)
-        zE[I2] = np.angle(zR[I2] + zeR[I2] + (zI[I2] + zeI[I2]), deg=True)
-        zE[I3] = np.angle(zR[I3] + zeR[I3] + (zI[I3] - zeI[I3]), deg=True)
-        zE[I4] = np.angle(zR[I4] - zeR[I4] + (zI[I4] - zeI[I4]), deg=True)
-        # pha_error[I1] = zR[I1] + 1j * (-zI[I1] - zeI[I1])
-        # pha_error[I2] = zR[I2] + 1j * (-zI[I2] - zeI[I2])
-        # pha_error = zR + 1j * (-np.sign(pha_data) * zI + zeI)
-        pha_error = abs(pha_data - zE)
+            pha_error = compute_phase_error(pha_data, zeR, zeI)
+
     return pha_data, pha_error
 
 

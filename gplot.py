@@ -51,7 +51,7 @@ class DataPlotManager(object):
         self.linestyle = '-'
         self.scale = 'sqrt(periods)'
         self.mec = 'k'
-        self.markersize = 10
+        self.markersize = 5
         self.edgewidth = 2
         self.sites = None
         self.tiling = [0, 0]

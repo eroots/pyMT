@@ -635,6 +635,27 @@ class Data(object):
         site_comp_check = all([set(site_comps[0]) == set(comps) for comps in site_comps])
         return name_check, comp_check, site_per_check, site_comp_check
 
+    def check_compromised_data(self, threshold=0.75):
+        positive = ('ZXYR', 'ZYXI')
+        negative = ('ZXYI', 'ZYXR')
+        flagged_sites = {}
+        for site in self.sites.values():
+            comps = {'ZXYR': False, 'ZXYI': False,
+                     'ZYXR': False, 'ZYXI': False}
+            NP = len(site.periods)
+            for comp in positive:
+                if ((sum(site.data[comp] < 0) / NP) > threshold):
+                    comps[comp] = True
+            for comp in negative:
+                if ((sum(site.data[comp] > 0) / NP) > threshold):
+                    comps[comp] = True
+            if any(comps.values()):
+                flagged_comps = [comp for (comp, flag) in comps.items() if flag]
+                flagged_sites.update({site.name: flagged_comps})
+                print('Flagging site {}'.format(site.name))
+                print('Inverted data at {}'.format(flagged_comps))
+        return flagged_sites
+
 
 class Model(object):
     """Summary
@@ -1439,3 +1460,6 @@ class RawData(object):
         self.site_names.append(site.name)
         self.master_periods = self.master_period_list()
         self.narrow_periods = self.narrow_period_list()
+
+    def check_compromised_data(self, threshold=0.75):
+        return Data.check_compromised_data(self, threshold=threshold)

@@ -10,8 +10,17 @@ Submodules:
 	tests: Contains modules used to test the various parts of the project
 
 == CHANGELOG ==
+16/02/17:
+ - Added a 'check_compromised_data' method to Data and RawData that checks for impedance data with suspect signs, i.e. negative ZXYR when it should be positive. This does not necessarily mean the data is bad, but just that it should be checked (particularly the phases)
+ - Changed the default marker size in gplot to be smaller, so that small error bars could actually be seen.
+ - Changed the way phase errors are calculated. Now errors are an average of the phases taken from all possible combinations of data + error. Not exact but good enough for these purposes.
+15/02/17:
+ - Added 'Write List' and 'Write Data' options in the top menu of data plot GUI.
+ - Relevent methods added to data_structures and IO.
+ - Added / fixed phase plotting methods in gplot.
+ - compute_phase in pyMT.utilss now calculates errors. Keep an eye to make sure if its right. Errors are still not calculated for determinant rho or phase, need to do that later.
 13/02/17:
- - pyMT.IO now issues WSFileError if datafile and listfile are mismatched (unequal number of sites)
+ - pyMT.IO now issues WSFileError if datafile and listfile are mismatched (unequal number of sites). Also added relevant test case unit tests.
 11/02/17:
  - Fixed bug in utils.geo2utm where a new origin was being computed for each Lat/Long pair rather than having a single origin for all sites. This also fixed the error in data_plot.py where sites read from raw data were not plotted properly on the map.
  - Fixed IO.model_to_vtk to read model origin from the model object if available.
