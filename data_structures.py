@@ -159,6 +159,16 @@ class Dataset(object):
             # self.data = Data()
             print(e.message)
 
+    def write_list(self, outfile='', overwrite=False):
+        if not outfile:
+            print('You should probably name your output file...')
+            return False
+        if not utils.check_file(outfile) or overwrite:
+            self.data.write_list(outfile)
+        else:
+            print('File already exists')
+            return False
+
     def write_data(self, outfile='', overwrite=False):
         if outfile == '':
             print('You should probably name your output first...')
@@ -169,6 +179,37 @@ class Dataset(object):
         else:
             print('File already exists')
             return False
+
+    def to_vtk(self, origin=None, UTM=None, outfile=None, sea_level=0):
+        if origin is None:
+            if self.model.origin == (0, 0):
+                print('Using model origin as calculated by site locations...')
+                min_x, max_x = (min(self.raw_data.locations[:, 1]), max(self.raw_data.locations[:, 1]))
+                min_y, max_y = (min(self.raw_data.locations[:, 0]), max(self.raw_data.locations[:, 0]))
+                origin = (min_x + (max_x - min_x) / 2,
+                          min_y + (max_y - min_y) / 2)
+            if self.data.sites:
+                try:
+                    assert all(np.isclose(self.data.locations[:, 0] + origin[1],
+                                          self.raw_data.locations[:, 0]))
+                    assert all(np.isclose(self.data.locations[:, 1] + origin[0],
+                                          self.raw_data.locations[:, 1]))
+                except AssertionError:
+                    print('Data site locations do not match raw data site locations!')
+                    return
+            if not UTM and not self.model.UTM_zone:
+                print('UTM zone must be set to something!')
+                return
+            elif not UTM:
+                UTM = self.model.UTM_zone
+            if not outfile:
+                print('Need to specify outfile!')
+                return
+            outfile = os.path.splitext(outfile)[0]
+            mod_outfile = ''.join([outfile, '_model.vtk'])
+            site_outfile = ''.join([outfile, '_sites.vtk'])
+            WS_io.model_to_vtk(self.model, outfile=mod_outfile, origin=origin, UTM=UTM)
+            WS_io.sites_to_vtk(self.data, outfile=site_outfile, UTM=UTM, origin=origin)
 
     def read_raw_data(self, listfile='', datpath=''):
         """Summary
@@ -437,6 +478,9 @@ class Data(object):
 
     def write(self, outfile):
         WS_io.write_data(data=self, outfile=outfile)
+
+    def write_list(self, outfile):
+        WS_io.write_list(data=self, outfile=outfile)
 
     def rotate_sites(self, azi):
         if DEBUG:

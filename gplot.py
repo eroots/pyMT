@@ -295,6 +295,7 @@ class DataPlotManager(object):
             errtype = 'none'
         if Type.lower() == 'response':
             Err = toplotErr = None
+            errtype = 'none'
         for ii, comp in enumerate(self.components):
             try:
                 if 'rho' in comp.lower():

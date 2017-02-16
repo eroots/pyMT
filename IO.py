@@ -267,6 +267,8 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
 
 
 def write_data(data, outfile=None):
+    if '.data' not in outfile:
+        outfile = ''.join([outfile, '.data'])
     comps_to_write = data.used_components
     NP = data.NP
     NR = data.NR
@@ -419,7 +421,7 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None):
         try:
             ox, oy = origin
         except:
-            errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
+            errmsg = '\n'.join([errmsg, 'Model origin must be properly specified.'])
     if not UTM:
         errmsg = '\n'.join(['ERROR: UTM must be specified either in function call or in model'])
     if errmsg:
@@ -464,4 +466,11 @@ def read_freqset(freqset='freqset'):
                     break
 
 
-
+def write_list(data, outfile):
+    if '.lst' not in outfile:
+        outfile = ''.join([outfile, '.lst'])
+    with open(outfile, 'w') as f:
+        f.write('{}\n'.format(len(data.site_names)))
+        for site in data.site_names[:-1]:
+            f.write('{}\n'.format(''.join([site, '.dat'])))
+        f.write('{}'.format(''.join([data.site_names[-1], '.dat'])))

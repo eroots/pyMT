@@ -65,8 +65,17 @@
      <string>Display Options</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuWrite">
+    <property name="title">
+     <string>Write</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionList_File"/>
+    <addaction name="actionData_File"/>
+   </widget>
    <addaction name="menuWS_Data_Plot"/>
    <addaction name="menuDisplay_Options"/>
+   <addaction name="menuWrite"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dock">
@@ -106,7 +115,7 @@
      <item row="1" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -672,6 +681,16 @@
     </layout>
    </widget>
   </widget>
+  <action name="actionList_File">
+   <property name="text">
+    <string>List File</string>
+   </property>
+  </action>
+  <action name="actionData_File">
+   <property name="text">
+    <string>Data File</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

@@ -218,6 +218,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                  'South-North', 'Clustering'])
         self.sortSites.currentIndexChanged.connect(self.sort_sites)
         self.showOutliers.clicked.connect(self.toggle_outliers)
+        self.actionList_File.triggered.connect(self.WriteList)
+        self.actionData_File.triggered.connect(self.WriteData)
 
     def sort_sites(self, index):
         self.dataset.sort_sites(self.sortSites.itemText(index))
@@ -487,6 +489,24 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                 if reply == QtGui.QMessageBox.Yes:
                     self.dataset.write_data(outfile=outfile, overwrite=True)
+                    break
+
+    def WriteList(self):
+        keep_going = True
+        while keep_going:
+            outfile, ret = MyPopupDialog.get_file()
+            if not ret or not outfile:
+                break
+            if ret and outfile:
+                retval = self.dataset.write_list(outfile=outfile)
+            if retval:
+                break
+            else:
+                reply = QtGui.QMessageBox.question(self, 'Message',
+                                                   'File already Exists. Overwrite?',
+                                                   QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                if reply == QtGui.QMessageBox.Yes:
+                    self.dataset.write_list(outfile=outfile, overwrite=True)
                     break
 
     def Back(self):

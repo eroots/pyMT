@@ -312,7 +312,10 @@ def row_or_col(func):
     return inner
 
 
-def compute_origin(Long=0, long_origin=999):
+# def model_origin
+
+
+def compute_longorigin(Long=0, long_origin=999):
     if Long == 0:
         origin = -3
     else:
@@ -336,7 +339,7 @@ def geo2utm(Lat, Long, long_origin=999):
     ECC2 = 0.00669438
     K0 = 0.9996
     if long_origin == 999:
-        origin = compute_origin(Long)
+        origin = compute_longorigin(Long)
     else:
         origin = long_origin
     LatR, LongR = np.deg2rad([Lat, Long])
@@ -579,10 +582,12 @@ def compute_rho(site, calc_comp=None, errtype='none'):
     return np.real(rho_data), np.real(rho_error), np.real(rho_log10Err)
 
 
-def compute_phase(site, calc_comp=None, errtype='none'):
+def compute_phase(site, calc_comp=None, errtype=None):
     COMPS = ('XX', 'XY',
              'YY', 'YX',
              'DET', 'GAV', 'AAV')
+    if not errtype:
+        errtype = 'none'
     if not calc_comp:
         calc_comp = 'det'
     calc_comp = calc_comp.lower()
@@ -602,13 +607,44 @@ def compute_phase(site, calc_comp=None, errtype='none'):
         if calc_comp == 'aav':
             pha_data = pha_data % 90
         pha_error = pha_data * 0
+        zR = np.real(det)
+        zI = -np.imag(det)
     else:
         comp = ''.join(['Z', calc_comp.upper()])
-        z = site.data[''.join([comp, 'R'])] - 1j * site.data[''.join([comp, 'I'])]
+        zR = site.data[''.join([comp, 'R'])]
+        zI = -1j * site.data[''.join([comp, 'I'])]
+        z = zR + zI
         pha_data = np.angle(z, deg=True)
-        if comp[1:] == 'YX':
-            pha_data = 180 + pha_data
         pha_error = pha_data * 0
+        # if comp[1:] == 'YX':
+        #     print('hi')
+        #     pha_data = pha_data
+        if errtype.lower() != 'none':
+            zeR = getattr(site, errtype)[''.join([comp, 'R'])]
+            zeI = -1j * getattr(site, errtype)[''.join([comp, 'I'])]
+    if errtype.lower() != 'none':
+        
+        pha_error = np.zeros(pha_data.shape, dtype=np.complex128)
+        quad = np.zeros(pha_error.shape)
+        ang = np.copy(pha_data)
+        ang[ang < 0] = ang[ang < 0] + 360
+        quad[(ang > 0) & (ang <= 90)] = 1
+        quad[(ang > 90) & (ang <= 180)] = 2
+        quad[(ang > 180) & (ang <= 270)] = 3
+        quad[(ang > 270) & (ang <= 360)] = 4
+        I1 = (quad == 1)
+        I2 = (quad == 2)
+        I3 = (quad == 3)
+        I4 = (quad == 4)
+        zE = np.zeros(quad.shape)
+        zE[I1] = np.angle(zR[I1] - zeR[I1] + (zI[I1] + zeI[I1]), deg=True)
+        zE[I2] = np.angle(zR[I2] + zeR[I2] + (zI[I2] + zeI[I2]), deg=True)
+        zE[I3] = np.angle(zR[I3] + zeR[I3] + (zI[I3] - zeI[I3]), deg=True)
+        zE[I4] = np.angle(zR[I4] - zeR[I4] + (zI[I4] - zeI[I4]), deg=True)
+        # pha_error[I1] = zR[I1] + 1j * (-zI[I1] - zeI[I1])
+        # pha_error[I2] = zR[I2] + 1j * (-zI[I2] - zeI[I2])
+        # pha_error = zR + 1j * (-np.sign(pha_data) * zI + zeI)
+        pha_error = abs(pha_data - zE)
     return pha_data, pha_error
 
 
