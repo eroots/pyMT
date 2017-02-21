@@ -165,6 +165,7 @@ class Dataset(object):
             return False
         if not utils.check_file(outfile) or overwrite:
             self.data.write_list(outfile)
+            return True
         else:
             print('File already exists')
             return False
@@ -183,33 +184,29 @@ class Dataset(object):
     def to_vtk(self, origin=None, UTM=None, outfile=None, sea_level=0):
         if origin is None:
             if self.model.origin == (0, 0):
-                print('Using model origin as calculated by site locations...')
-                min_x, max_x = (min(self.raw_data.locations[:, 1]), max(self.raw_data.locations[:, 1]))
-                min_y, max_y = (min(self.raw_data.locations[:, 0]), max(self.raw_data.locations[:, 0]))
-                origin = (min_x + (max_x - min_x) / 2,
-                          min_y + (max_y - min_y) / 2)
-            if self.data.sites:
-                try:
-                    assert all(np.isclose(self.data.locations[:, 0] + origin[1],
-                                          self.raw_data.locations[:, 0]))
-                    assert all(np.isclose(self.data.locations[:, 1] + origin[0],
-                                          self.raw_data.locations[:, 1]))
-                except AssertionError:
-                    print('Data site locations do not match raw data site locations!')
-                    return
-            if not UTM and not self.model.UTM_zone:
-                print('UTM zone must be set to something!')
+                origin = self.raw_data.origin()
+        if self.data.sites:
+            try:
+                assert all(np.isclose(self.data.locations[:, 0] + origin[1],
+                                      self.raw_data.locations[:, 0]))
+                assert all(np.isclose(self.data.locations[:, 1] + origin[0],
+                                      self.raw_data.locations[:, 1]))
+            except AssertionError:
+                print('Data site locations do not match raw data site locations!')
                 return
-            elif not UTM:
-                UTM = self.model.UTM_zone
-            if not outfile:
-                print('Need to specify outfile!')
-                return
-            outfile = os.path.splitext(outfile)[0]
-            mod_outfile = ''.join([outfile, '_model.vtk'])
-            site_outfile = ''.join([outfile, '_sites.vtk'])
-            WS_io.model_to_vtk(self.model, outfile=mod_outfile, origin=origin, UTM=UTM)
-            WS_io.sites_to_vtk(self.data, outfile=site_outfile, UTM=UTM, origin=origin)
+        if not UTM and not self.model.UTM_zone:
+            print('UTM zone must be set to something!')
+            return
+        elif not UTM:
+            UTM = self.model.UTM_zone
+        if not outfile:
+            print('Need to specify outfile!')
+            return
+        outfile = os.path.splitext(outfile)[0]
+        mod_outfile = ''.join([outfile, '_model.vtk'])
+        site_outfile = ''.join([outfile, '_sites.vtk'])
+        self.model.model_to_vtk(self.model, outfile=mod_outfile, origin=origin, UTM=UTM, sea_level=sea_level)
+        self.data.sites_to_vtk(self.data, outfile=site_outfile, UTM=UTM, origin=origin, sea_level=sea_level)
 
     def read_raw_data(self, listfile='', datpath=''):
         """Summary
@@ -353,6 +350,7 @@ class Data(object):
         self._runErrors = []
         self.periods = []
         self.inv_type = None
+        self.azimuth = 0
         self.__read__(listfile=listfile, datafile=datafile)
         if self.sites:
             self.components = self.sites[self.site_names[0]].components
@@ -481,6 +479,12 @@ class Data(object):
 
     def write_list(self, outfile):
         WS_io.write_list(data=self, outfile=outfile)
+
+    def to_vtk(self, outfile, UTM, origin=None, sea_level=0):
+        if not origin:
+            print('Using origin = (0, 0)')
+            origin = (0, 0)
+        WS_io.sites_to_vtk(self, outfile=outfile, origin=origin, UTM=UTM, sea_level=sea_level)
 
     def rotate_sites(self, azi):
         if DEBUG:
@@ -686,11 +690,15 @@ class Model(object):
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
 
-    def to_vtk(self, outfile=None):
+    def to_vtk(self, outfile=None, sea_level=0, origin=None, UTM=None):
+        if origin:
+            self.origin = origin
+        if UTM:
+            self.UTM_zone = UTM
         if not outfile:
             print('Must specify output file name')
             return
-        WS_io.model_to_vtk(self, outfile=outfile)
+        WS_io.model_to_vtk(self, outfile=outfile, sea_level=sea_level)
 
     def is_half_space(self):
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
@@ -980,6 +988,7 @@ class Site(object):
             errors (None, optional): Description
             errmap (None, optional): Description
         """
+        shift = 0
         data = site.data
         new_periods = site.periods
         errors = site.errors
@@ -1004,11 +1013,13 @@ class Site(object):
                     ind = ind[0]
                 except IndexError:
                     ind = len(current_periods)
-                new_data[comp].insert(ind - 1, data[comp][ii])
-                new_errors[comp].insert(ind - 1, errors[comp][ii])
-                new_errmap[comp].insert(ind - 1, errmap[comp][ii])
+                print(ind, comp)
+                new_data[comp].insert(ind - shift, data[comp][ii])
+                new_errors[comp].insert(ind - shift, errors[comp][ii])
+                new_errmap[comp].insert(ind - shift, errmap[comp][ii])
                 if period not in current_periods:
                     current_periods.insert(ind, period)
+                    shift = 1
         self.data = {comp: utils.list2np(new_data[comp]) for comp in self.components}
         self.errors = {comp: utils.list2np(new_errors[comp]) for comp in self.components}
         self.errmap = {comp: utils.list2np(new_errmap[comp]) for comp in self.components}
@@ -1169,8 +1180,7 @@ class Site(object):
         return retval
 
     @utils.enforce_input(periods=list, components=list, lTol=float, hTol=float)
-    def get_data(self, periods=None, components=None,
-                 lTol=0.02, hTol=0.10):
+    def get_data(self, periods=None, components=None, lTol=0.02, hTol=0.10):
         if periods is None:
             periods = self.periods
         if components is None:
@@ -1279,6 +1289,14 @@ class RawData(object):
         self.azimuth = 0
         for site_name in self.site_names:
             self.sites[site_name].rotate_data(azi=0)
+
+    @property
+    def origin(self):
+        min_x, max_x = (min(self.locations[:, 1]), max(self.locations[:, 1]))
+        min_y, max_y = (min(self.locations[:, 0]), max(self.locations[:, 0]))
+        origin = (min_x + (max_x - min_x) / 2,
+                  min_y + (max_y - min_y) / 2)
+        return origin
 
     def __read__(self, listfile, datpath=''):
         """Summary
@@ -1463,3 +1481,8 @@ class RawData(object):
 
     def check_compromised_data(self, threshold=0.75):
         return Data.check_compromised_data(self, threshold=threshold)
+
+    def to_vtk(self, outfile, UTM, origin=None, sea_level=0):
+        if not origin:
+            origin = self.origin
+        Data.to_vtk(self, outfile=outfile, origin=origin, UTM=UTM, sea_level=sea_level)

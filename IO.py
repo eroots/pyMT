@@ -262,7 +262,7 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
                               }
                               })
     except FileNotFoundError as e:
-        raise(WSFileError(ID='fnf', offender=datafile))
+        raise(WSFileError(ID='fnf', offender=datafile)) from None
     return sites
 
 
@@ -319,7 +319,7 @@ def write_data(data, outfile=None):
                     f.write('\n')
 
 
-def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0):
+def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0):
     """
     Write model to VTK ascii format
     VTK format has X running west-east, Y running south-north, so model dimensions
@@ -373,7 +373,7 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0):
     values.dx, values.dy = values.dy, values.dx
     values.dx = [x + ox for x in values.dx]
     values.dy = [y + oy for y in values.dy]
-    values.dz = [-z for z in values.dz]
+    values.dz = [-z + sea_level for z in values.dz]
     # if azi:
     #     use_rot = True
     #     X, Y = np.meshgrid(values.dx, values.dy)
@@ -412,7 +412,7 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0):
                         f.write('{}\n'.format(values.vals[xx, yy, zz]))
 
 
-def sites_to_vtk(data, origin=None, outfile=None, UTM=None):
+def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
     errmsg = ''
     ox, oy = (0, 0)
     if isinstance(origin, str):
@@ -442,7 +442,7 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None):
         # f.write('DIMENSIONS {} {} {} \n'.format(ns, ns, 1))
         f.write('POINTS {} float\n'.format(ns))
         for ix, iy in zip(xlocs, ylocs):
-            f.write('{} {} {}\n'.format(ix, iy, 0))
+            f.write('{} {} {}\n'.format(ix, iy, sea_level))
         f.write('POINT_DATA {}\n'.format(ns))
         f.write('SCALARS dummy float\n')
         f.write('LOOKUP_TABLE default\n')

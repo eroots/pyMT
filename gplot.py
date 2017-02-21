@@ -38,6 +38,15 @@ import pyMT.utils as utils
 # from the data that is plotted.
 # ========================= #
 
+def format_coords(x, y):
+    freq = np.log10(1 / 10**x)
+    return '\n'.join(['Log10: period={}, frequency={}, y={}',
+                      'period={}, frequency={}']).format(utils.truncate(x),
+                                                         utils.truncate(freq),
+                                                         utils.truncate(y),
+                                                         utils.truncate(10**x),
+                                                         utils.truncate(10**freq))
+
 
 class DataPlotManager(object):
 
@@ -86,9 +95,11 @@ class DataPlotManager(object):
             units = r'${\Omega}$-m'
         elif self.components[0][0].upper() == 'P':
             units = 'Degrees'
-        if self.scale.lower() == 'periods' and not any(sub in self.components[0].lower() for sub in ('rho', 'pha')):
+        if self.scale.lower() == 'periods' and not any(
+                sub in self.components[0].lower() for sub in ('rho', 'pha')):
             units = ''.join(['s*', units])
-        elif self.scale.lower() == 'sqrt(periods)' and not any(sub in self.components[0].lower() for sub in ('rho', 'pha')):
+        elif self.scale.lower() == 'sqrt(periods)' and not any(
+                sub in self.components[0].lower() for sub in ('rho', 'pha')):
             units = ''.join([r'$\sqrt{s}$*', units])
         return units
 
@@ -204,7 +215,8 @@ class DataPlotManager(object):
         rows = self.tiling[0]
         cols = self.tiling[1]
         if axnum % cols == 0:
-            self.axes[axnum].set_ylabel('{} ({})'.format(self.y_labels[self.components[0][0].lower()], self.units))
+            self.axes[axnum].set_ylabel('{} ({})'.format(
+                self.y_labels[self.components[0][0].lower()], self.units))
         if axnum + 1 > cols * (rows - 1):
             self.axes[axnum].set_xlabel('log10 of Period (s)')
 
@@ -343,6 +355,7 @@ class DataPlotManager(object):
                 ax.aname = 'data'
             elif Type == 'raw_data':
                 ax.aname = 'raw_data'
+        ax.format_coord = format_coords
         # ax.set_title(site.name)
         return ax, max(ma), min(mi), artist
 

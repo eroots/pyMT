@@ -1,3 +1,26 @@
+# Main module for inversion data / response plotting. GUI is launched using 'python data_plot.py'.
+# Currently a flagless launch looks for a file 'pystart' which contains the paths of the files to use.
+# Format of the 'pystart' file is as follows:
+# % Dataset_name  <--- '%' sign indicates that this line contains the dataset name.
+# path /path/to/files   <--- a line containing the common path to the files that follow. Not needed,
+#                            but if it is not specified then the path must be given for each file.
+# list list_file_name   <--- Name of the file containing the site names for the given dataset.
+#                            Same file as used for input to j2ws3d
+# data data_file_name   <--- Name of the file containing the data as used for input to wsinv3dmt
+# resp resp_file_name   <--- Name of the file containing the model responses, as output from wsinv3dmt
+# raw  /path/to/dat/files <--- if the .dat files used are not in the same folder as the list file,
+#                              this option tells the the program where to find them.
+#
+# Multiple datasets may be specified in a single startup file.
+# Any combination of data / raw data / response may be used, as long as at least one is present.
+# This module is callable with several flags, including a help flag, -h
+# call 'python data_plot.py -h' for information on the other flags.
+# EXAMPLE USAGE (command line entry)
+# python data_plot.py -n abi-gren -c abi0:abi45:abi90
+# |_________________  ||_________| |_________________|
+#    Calls module   Specifies startup With startup file, selects datasets
+#                    file 'abi-gren'     abi0, abi45 and abi90. If this 
+#                                    flag is not given, all datasets are selected
 import numpy as np
 import re
 from PyQt4.uic import loadUiType
@@ -14,38 +37,6 @@ path = os.path.dirname(os.path.realpath(__file__))
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
 UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
 
-# ==========TODO=========== #
-
-# Also want buttons to auto-set maps based on some flags. Need to make a better
-# way to penalize outliers based on their neighbors (limit error size so that the top/bottom
-# of the bar isn't 20 units above its neighbor.)
-# It's possible that a lot of the widget callback code can just be directed straight to
-# update_dpm(), as long as that function sets all the proper variables first.
-#
-# Seems like there may be cases where the app crashes instead of closes.
-# It doesn't really affect functionality while running, but obviously it would
-# be better if it closed elegantly rather than with a boom.
-
-# Need to add button / edit field for auto-selecting periods based on the narrow list.
-# Should be able to say 'I want 12 periods between this and this', and the program will
-# pick evenly spaced periods that are shared with the most sites. Currently it just sets via the default
-# of 16 periods between the whole range of available periods. The 16 periods is hard-coded into the
-# raw_data.get_data method right now.
-
-# Need to be able to set data floors as well. This is especially important when plotting results. Since
-# data comes from the j2 output data file, error floors in the inversion are not represented. Should
-# use defaults, as 99% of the time the floors are set to 5% and 15%, but this should be edittable.
-
-# Need a good way to add/remove sites from an already existing data file.
-
-# Error table doesn't properly update the plot when using raw data only.
-
-# Adding data points (periods) seems to still be broken.
-
-# What happens if I make the list of currently plotted sites, as well as the all the available
-# sites (those not removed) properties? Then whenever there are changes to them, I could call
-# all the relevent methods (like updating the map). What are the side-effects? Is there a better
-# way to implement this?
 
 # ========================= #
 
@@ -221,7 +212,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.actionList_File.triggered.connect(self.WriteList)
         self.actionData_File.triggered.connect(self.WriteData)
 
-    def sort_sites(self, index):
+    def sort_sites(self, index=None):
+        if index is None:
+            index = self.sortSites.currentIndex()
         self.dataset.sort_sites(self.sortSites.itemText(index))
         self.siteList.clear()
         self.siteList.addItems(self.dataset.data.site_names)
@@ -279,6 +272,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.dpm.toggles['response'] = False
 
     def change_dataset(self, index):
+        print(self.dataset.data.site_names[:6])
         dset = self.currentDataset.itemText(index)
         self.current_dataset = dset
         self.dataset = self.stored_datasets[dset]
@@ -286,8 +280,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
         # self.error_tree.itemChanged.disconnect()
         self.update_error_tree()
+        self.sort_sites()
         self.back_or_forward_button(shift=0)
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
+
         # self.error_tree.itemChanged.connect(self.post_edit_error)
 
     def num_subplots(self):
@@ -527,8 +523,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if set(self.site_names) == set(self.dpm.site_names) and shift != 0:
             return
         sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
-        self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
         self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
+        self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
         self.dpm.fig.canvas.draw()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
 
@@ -636,11 +632,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
         return retval
 
     def update_error_tree(self):
-        tree_connected = True
         try:
             self.error_tree.itemChanged.disconnect()
         except TypeError:
             tree_connected = False
+        else:
+            tree_connected = True
         self.error_tree.clear()
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
@@ -788,7 +785,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         event = pick_event.mouseevent
         ax_index = next(ii for ii, ax in enumerate(self.dpm.axes) if ax == event.inaxes)
         site_name = self.dpm.site_names[ax_index]
-        ind = pick_event.ind
+        ind = pick_event.ind[0]
         # period = 10 ** xdata
         isdata = False
         israw = False
@@ -807,10 +804,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if event.button == 1:
             if isdata:
                 if self.DEBUG:
-                    print('This is definitely a data point (mew > 0)')
+                    print('No action defined for data point')
                 return
             if israw:
-                print(ind)
                 period = float(raw_site.periods[ind])
                 npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
                 if utils.percdiff(npd, period) < self.pick_tol:
@@ -823,22 +819,32 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                            lTol=None, hTol=None)
                     self.dataset.data.add_periods(toadd)
                     if self.DEBUG:
-                        print('Adding period {}'.format(period))
+                        print('Adding period {}, freq {}'.format(period, 1 / period))
                     self.update_dpm(updated_sites=self.dpm.site_names,
                                     updated_comp=self.dataset.data.components)
-        # if event.button == 2:
-        #     print('Middle Mouse')
+        if event.button == 2:
+            if israw:
+                print(ind)
+                period = float(raw_site.periods[ind])
+                freq = 1 / period
+                perc = self.dataset.raw_data.master_periods[period] * 100
+                print('Period {} (Frequency {}) is available at {}% of sites'.format(
+                      utils.truncate(period), utils.truncate(freq), utils.truncate(perc)))
+
         if event.button == 3:
             if israw:
                 if self.DEBUG:
-                    print('That is a raw data point')
+                    print('No action defined for raw data point')
+                return
+            if len(data_site.periods) == 1:
+                print('Data must have at least one period in it!')
                 return
             if isdata:
                 period = float(data_site.periods[ind])
                 npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
                 self.dataset.data.remove_periods(periods=period)
                 if self.DEBUG:
-                    print('Removing period {}'.format(period))
+                    print('Removing period {}, freq {}'.format(period, 1 / period))
                 self.update_dpm()
         #     print('Right Mouse')
         # if self.dpm.axes[ax_index].lines[2].contains(event):
