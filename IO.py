@@ -3,6 +3,44 @@ import pyMT.utils as utils
 import numpy as np
 import os
 import copy
+import re
+
+
+def verify_input(message, expected, default=None):
+        while True:
+            ret = input(' '.join([message, '[Default: {}] > '.format(default)]))
+            if ret == '' and default is not None:
+                ret = default
+            if expected == 'read':
+                if utils.check_file(ret):
+                    return ret
+                else:
+                    print('File not found. Try again.')
+            elif expected == 'write':
+                if not utils.check_file(ret):
+                    return ret
+                else:
+                    resp = verify_input('File exists, overwrite?', default='y', expected='yn')
+                    if resp == 'y':
+                        return ret
+                    else:
+                        return False
+            elif expected == 'numtuple':
+                try:
+                    ret = [float(x) for x in re.split(', | ', ret)]
+                    return ret
+                except ValueError:
+                    print('Could not convert {} to tuple'.format(ret))
+            elif isinstance(expected, str):
+                if ret.lower() not in expected:
+                    print('That is not an option. Try again.')
+                else:
+                    return ret.lower()
+            else:
+                try:
+                    return expected(ret)
+                except ValueError:
+                    print('Format error. Try again')
 
 
 def get_components(invType=None, NR=None):
@@ -365,7 +403,7 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     version = '# vtk DataFile Version 3.0\n'
     modname = os.path.basename(model.file)
     if not outfile:
-        outfile = ''.join([modname, '.vtk'])
+        outfile = ''.join([modname, '_model.vtk'])
     values = copy.deepcopy(model)
     tmp = values.vals
     values.vals = np.swapaxes(np.flipud(tmp), 0, 1)
@@ -432,7 +470,7 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
         print('You must specify the output file name')
         return
     if '.vtk' not in outfile:
-        outfile = ''.join([outfile, '.vtk'])
+        outfile = ''.join([outfile, '_sites.vtk'])
     xlocs = data.locations[:, 1] + origin[0]
     ylocs = data.locations[:, 0] + origin[1]
     ns = len(xlocs)

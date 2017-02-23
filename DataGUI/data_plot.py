@@ -395,7 +395,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                    if x in self.dataset.data.site_names]))
         if intersect:
             max_idx = len(self.dataset.data.site_names) - 1
+            # If any of the plotted sites remain
             if idx_plotted:
+                # If we are at the end of the list
                 if idx_plotted[-1] == max_idx:
                     direction = -1
                     start = idx_plotted[-1]
@@ -404,6 +406,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     direction = 1
                     start = idx_plotted[0]
                     end = max_idx
+            # if you removed all the plotted sites
             else:
                 start = 0
                 end = max_idx

@@ -60,37 +60,6 @@ def MTU_data_types(data, dType=''):
     return retval
 
 
-def verify_input(message, expected, default=None):
-        while True:
-            ret = input(' '.join([message, '[Default: {}] >'.format(default)]))
-            if ret == '' and default is not None:
-                ret = default
-            if expected == 'read':
-                if utils.check_file(ret):
-                    return ret
-                else:
-                    print('File not found. Try again.')
-            elif expected == 'write':
-                if not utils.check_file(ret):
-                    return ret
-                else:
-                    resp = verify_input('File exists, overwrite?', default='y', expected='yn')
-                    if resp == 'y':
-                        return ret
-                    else:
-                        return False
-            elif isinstance(expected, str):
-                if ret.lower() not in expected:
-                    print('That is not an option. Try again.')
-                else:
-                    return ret.lower()
-            else:
-                try:
-                    return expected(ret)
-                except ValueError:
-                    print('Format error. Try again')
-
-
 def main_data(args):
     defaults = {'azimuth': 0.0, 'flag_outliers': 'y', 'outlier_errmap': 10,
                 'lowTol': 2.0, 'highTol': 10.0, 'use_TF': 'y', 'period_choice': 'n',
@@ -103,7 +72,7 @@ def main_data(args):
         interactive = True
     interactive = True
     # Get list file
-    list_file = verify_input('Enter list file name:', expected='read')
+    list_file = WSIO.verify_input('Enter list file name:', expected='read')
     try:
         site_names = WSIO.read_sites(list_file)
     except WSFileError as e:  # Error is raised if something is wrong with the file.
@@ -112,28 +81,28 @@ def main_data(args):
         return
     dataset = WSDS.Dataset(listfile=list_file)
     # Get desired azimuth
-    azimuth = verify_input('Desired azimuth (deg. from True North)',
-                           expected=float, default=defaults['azimuth'])
-    flag_outliers = verify_input('Adjust error map for outliers?',
-                                 default=defaults['flag_outliers'], expected='yn')
+    azimuth = WSIO.verify_input('Desired azimuth (deg. from True North)',
+                                expected=float, default=defaults['azimuth'])
+    flag_outliers = WSIO.verify_input('Adjust error map for outliers?',
+                                      default=defaults['flag_outliers'], expected='yn')
     if flag_outliers == 'y':
-        dataset.data.OUTLIER_MAP = verify_input('Set outlier error map',
-                                                default=defaults['outlier_errmap'], expected=int)
+        dataset.data.OUTLIER_MAP = WSIO.verify_input('Set outlier error map',
+                                                     default=defaults['outlier_errmap'], expected=int)
     else:
         dataset.data.OUTLIER_MAP = 1
-    dataset.data.HIGHFREQ_MAP = verify_input('Error map on high frequencies (>1000Hz)',
-                                             default=defaults['hfreq_errmap'], expected=int)
-    dataset.data.XXYY_MAP = verify_input('XXYY error map',
-                                         default=defaults['XXYY_errmap'],
-                                         expected=int)
-    dataset.data.NO_PERIOD_MAP = verify_input('Missing period error map',
-                                              default=defaults['no_period_errmap'],
+    dataset.data.HIGHFREQ_MAP = WSIO.verify_input('Error map on high frequencies (>1000Hz)',
+                                                  default=defaults['hfreq_errmap'], expected=int)
+    dataset.data.XXYY_MAP = WSIO.verify_input('XXYY error map',
+                                              default=defaults['XXYY_errmap'],
                                               expected=int)
-    lowTol = verify_input('High frequency (>1Hz) matching tolerance %-age',
-                          default=defaults['lowTol'], expected=float)
+    dataset.data.NO_PERIOD_MAP = WSIO.verify_input('Missing period error map',
+                                                   default=defaults['no_period_errmap'],
+                                                   expected=int)
+    lowTol = WSIO.verify_input('High frequency (>1Hz) matching tolerance %-age',
+                               default=defaults['lowTol'], expected=float)
     lowTol /= 100
-    highTol = verify_input('High frequency (>=10s) matching tolerance %-age',
-                           default=defaults['highTol'], expected=float)
+    highTol = WSIO.verify_input('High frequency (>=10s) matching tolerance %-age',
+                                default=defaults['highTol'], expected=float)
     highTol /= 100
 
     raw_data = dataset.raw_data
@@ -142,18 +111,18 @@ def main_data(args):
         if 'TZXR' in site.components:
             num_TF += 1
     print('{} sites out of {} have tipper data'.format(num_TF, len(site_names)))
-    use_TF = verify_input('Would you like to include TF data?',
-                          default=defaults['use_TF'], expected='yn')
+    use_TF = WSIO.verify_input('Would you like to include TF data?',
+                               default=defaults['use_TF'], expected='yn')
     if use_TF:
         defaults.update({'inv_type': 5})
     else:
         defaults.update({'inv_type': 1})
-    dType = verify_input('Which periods would you like to choose from?\n'
-                         'Options are MTU-5, MTU-A, both, freqset, all, or program selected '
-                         '(5/A/b/o/m/n)', default=defaults['period_choice'], expected='5aboan')
+    dType = WSIO.verify_input('Which periods would you like to choose from?\n'
+                              'Options are MTU-5, MTU-A, both, freqset, all, or program selected '
+                              '(5/A/b/o/m/n)', default=defaults['period_choice'], expected='5aboan')
     # if dType == 'n':
-    cTol = verify_input('Required fraction of sites containing each period?',
-                        default=defaults['cTol'], expected=float)
+    cTol = WSIO.verify_input('Required fraction of sites containing each period?',
+                             default=defaults['cTol'], expected=float)
     if cTol > 1:
         cTol /= 100
     period_set = raw_data.narrow_period_list(periods=MTU_data_types(data=raw_data, dType=dType),
@@ -165,15 +134,15 @@ def main_data(args):
     # Want user to be able to decide between interactive (plotting) mode, and just
     # straight command line input.
     chosen = pick_periods(sorted_periods, period_set, interactive)
-    inv_type = int(verify_input('Inversion Type?', default=defaults['inv_type'],
-                                expected='12345'))
+    inv_type = int(WSIO.verify_input('Inversion Type?', default=defaults['inv_type'],
+                                     expected='12345'))
     # Still have to make sure this method also applies the error map properly.
     dataset.get_data_from_raw(lTol=lowTol, hTol=highTol, periods=chosen,
                               components=WSIO.get_components(invType=inv_type))
     if azimuth != 0:
         dataset.rotate_sites(azimuth)
     while True:
-        outdata = verify_input('Output file name?', default='.data', expected='write')
+        outdata = WSIO.verify_input('Output file name?', default='.data', expected='write')
         if outdata:
             if outdata[-5:] != '.data':
                 outdata = ''.join([outdata, '.data'])
@@ -211,12 +180,12 @@ def pick_periods(sorted_periods, period_set, interactive):
     chosen = []
     print('Select periods by entering the corresponding integers. Enter 0 when done.')
     while True:
-        chosen.append(verify_input('Enter period number', expected=int, default=0))
+        chosen.append(WSIO.verify_input('Enter period number', expected=int, default=0))
         if chosen[-1] == 0:
             print('Selected Periods:')
             for idx in chosen:
                 print('{}\n'.format(sorted_periods[idx]))
-            resp = verify_input('Continue with these?', default='y', expected='yn')
+            resp = WSIO.verify_input('Continue with these?', default='y', expected='yn')
             if resp == 'y':
                 break
             else:
@@ -227,7 +196,7 @@ def pick_periods(sorted_periods, period_set, interactive):
 
 def main_mesh(args, data=None):
     if data is None:
-        datafile = verify_input('Data file to use?', expected='read')
+        datafile = WSIO.verify_input('Data file to use?', expected='read')
 
 
 if __name__ == '__main__':
