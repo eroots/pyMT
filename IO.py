@@ -404,6 +404,8 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     modname = os.path.basename(model.file)
     if not outfile:
         outfile = ''.join([modname, '_model.vtk'])
+    else:
+        outfile = '_'.join([outfile, 'model.vtk'])
     values = copy.deepcopy(model)
     tmp = values.vals
     values.vals = np.swapaxes(np.flipud(tmp), 0, 1)
