@@ -115,7 +115,7 @@
      <item row="1" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="currentIndex">
-        <number>3</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -514,8 +514,8 @@
         <widget class="QDoubleSpinBox" name="xMeshMin">
          <property name="geometry">
           <rect>
-           <x>540</x>
-           <y>110</y>
+           <x>1060</x>
+           <y>160</y>
            <width>62</width>
            <height>22</height>
           </rect>
@@ -530,8 +530,8 @@
         <widget class="QDoubleSpinBox" name="yMeshMin">
          <property name="geometry">
           <rect>
-           <x>610</x>
-           <y>110</y>
+           <x>1060</x>
+           <y>130</y>
            <width>62</width>
            <height>22</height>
           </rect>
@@ -558,6 +558,27 @@
          <property name="checked">
           <bool>true</bool>
          </property>
+        </widget>
+        <widget class="QTreeWidget" name="comp_tree">
+         <property name="geometry">
+          <rect>
+           <x>370</x>
+           <y>10</y>
+           <width>351</width>
+           <height>192</height>
+          </rect>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::CurrentChanged</set>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::ExtendedSelection</enum>
+         </property>
+         <column>
+          <property name="text">
+           <string notr="true">1</string>
+          </property>
+         </column>
         </widget>
        </widget>
        <widget class="QWidget" name="ErrorMap">

@@ -431,6 +431,8 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
     if not outfile:
         print('You must specify the output file name')
         return
+    if '.vtk' not in outfile:
+        outfile = ''.join([outfile, '.vtk'])
     xlocs = data.locations[:, 1] + origin[0]
     ylocs = data.locations[:, 0] + origin[1]
     ns = len(xlocs)

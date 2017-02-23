@@ -1365,8 +1365,25 @@ class RawData(object):
                     sites.append(site.name)
         return sites
 
-    def get_locs(self, sites=None):
-        return Data.get_locs(self, sites)
+    def get_locs(self, sites=None, azi=0, mode=None):
+        if not mode:
+            mode = 'utm'
+        if mode.lower() == 'utm' or mode.lower() == 'centered':
+            X = 'X'
+            Y = 'Y'
+        elif mode.lower() == 'latlong':
+            X = 'Lat'
+            Y = 'Long'
+        if sites is None:
+            sites = self.site_names
+        locs = np.array([[self.sites[name].locations[X],
+                          self.sites[name].locations[Y]]
+                         for name in sites])
+        if azi != 0:
+            locs = utils.rotate_locs(locs, azi)
+        if mode.lower() == 'centered':
+            locs = utils.center_locs(locs)
+        return locs
 
     def master_period_list(self):
         """Summary

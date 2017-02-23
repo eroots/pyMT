@@ -73,22 +73,27 @@ def get_inputs():
                     # Otherwise just get the data file
                     elif '.data' in datafile:
                         args.update({'datafile': datafile})
-                        while True:
-                            origin = input('Input model origin as Easting, Northing\n' +
-                                           '[Default: 0, 0] > ')
-                            if not origin:
-                                origin = '0, 0'
-                            try:
-                                origin = [float(x) for x in re.split(', | ', origin)]
-                            except ValueError:
-                                print('Could not convert {} to tuple'.format(origin))
-                            else:
-                                break
+                        break
+        while True:
+            origin = input('Input model origin as Easting, Northing\n' +
+                           '[Default: 0, 0] > ')
+            if not origin:
+                origin = '0, 0'
+            try:
+                origin = [float(x) for x in re.split(', | ', origin)]
+            except ValueError:
+                print('Could not convert {} to tuple'.format(origin))
+            else:
+                break
 
         args.update({'UTM': input('UTM Zone {Default: dummy}')})
         while True:
             try:
-                sea_level = float(input('Sea level adjustment [Default: 0]'))
+                sea_level = input('Sea level adjustment [Default: 0]')
+                if sea_level == '':
+                    sea_level = 0
+                else:
+                    sea_level = float(sea_level)
                 break
             except ValueError:
                 print('Could not convert {} to float'.format(sea_level))

@@ -19,7 +19,7 @@
 # python data_plot.py -n abi-gren -c abi0:abi45:abi90
 # |_________________  ||_________| |_________________|
 #    Calls module   Specifies startup With startup file, selects datasets
-#                    file 'abi-gren'     abi0, abi45 and abi90. If this 
+#                    file 'abi-gren'     abi0, abi45 and abi90. If this
 #                                    flag is not given, all datasets are selected
 import numpy as np
 import re
@@ -82,6 +82,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # Connect the error tree after so it doesn't run during it's init
         self.error_tree.itemChanged.connect(self.post_edit_error)
         self.update_comp_list()
+        self.update_comp_tree()
         self.stored_key_presses = []
 
     @property
@@ -102,6 +103,64 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self._site_names = names
         if self.map['fig']:
             self.draw_map()
+
+    def update_comp_tree(self):
+        ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
+                         if comp in self.dataset.data.components]
+        c = 0
+        rho = []
+        phase = []
+        bostick = []
+        if 'ZXXR' in ordered_comps:
+            rho.append('RhoXX')
+            phase.append('PhaXX')
+            bostick.append('BostXX')
+            c += 1
+        if 'ZXYR' in ordered_comps:
+            rho.append('RhoXY')
+            phase.append('PhaXY')
+            bostick.append('BostXY')
+            c += 1
+        if 'ZYYR' in ordered_comps:
+            rho.append('RhoYY')
+            phase.append('PhaYY')
+            bostick.append('BostYY')
+            c += 1
+        if 'ZYXR' in ordered_comps:
+            rho.append('RhoYX')
+            phase.append('PhaYX')
+            bostick.append('BostYX')
+            c += 1
+        if c == 4:
+            rho.append('RhoDet')
+            phase.append('PhaDet')
+            bostick.append('BostDet')
+        header = ['Impedance', 'App. Rho', 'Phase', 'Bostick']
+        if 'TZXR' in ordered_comps:
+            header.insert(1, 'Tipper')
+
+        self.comp_tree.setColumnCount(len(header))
+        self.comp_tree.setHeaderItem(QtGui.QTreeWidgetItem(header))
+        shift = 0
+        for dtype in header:
+            if dtype == 'Impedance':
+                for comp in ordered_comps:
+                    if comp[0].upper() != 'T':
+                        self.comp_tree.insertTopLevelItem(0, QtGui.QTreeWidgetItem([comp]))
+            elif dtype == 'Tipper':
+                for comp in ordered_comps:
+                    if comp[0].upper() == 'T':
+                        self.comp_tree.insertTopLevelItem(1, QtGui.QTreeWidgetItem([comp]))
+                        shift = 1
+            elif dtype == 'App. Rho':
+                for comp in rho:
+                    self.comp_tree.insertTopLevelItem(1 + shift, QtGui.QTreeWidgetItem([comp]))
+            elif dtype == 'Phase':
+                for comp in phase:
+                    self.comp_tree.insertTopLevelItem(2 + shift, QtGui.QTreeWidgetItem([comp]))
+            elif dtype == 'Bostick':
+                for comp in bostick:
+                    self.comp_tree.insertTopLevelItem(3 + shift, QtGui.QTreeWidgetItem([comp]))
 
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -336,14 +395,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                    if x in self.dataset.data.site_names]))
         if intersect:
             max_idx = len(self.dataset.data.site_names) - 1
-            if idx_plotted[-1] == max_idx:
-                direction = -1
-                start = idx_plotted[-1]
-                end = 0
+            if idx_plotted:
+                if idx_plotted[-1] == max_idx:
+                    direction = -1
+                    start = idx_plotted[-1]
+                    end = 0
+                else:
+                    direction = 1
+                    start = idx_plotted[0]
+                    end = max_idx
             else:
-                direction = 1
-                start = idx_plotted[0]
+                start = 0
                 end = max_idx
+                direction = 1
             to_add = []
             new_sites = []
             for ii, site in enumerate(intersect):

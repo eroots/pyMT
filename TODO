@@ -1,0 +1,35 @@
+TODO
+
+Overall:
+    - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
+
+
+
+data_plot.py:
+    - If you remove all the currently plotted sites, the sorting resets to the beginning of the list. Should probably fill in from where it left off.
+    - Better options for adding / removing periods in bulk. Automatic selection good (i.e. high % availability) periods between selected period range.
+    - 'Sort Sites' doesn't work as intended when using non-zero azimuth. Map is shown at 0 degrees regardless, but it seems as though the locations used in sorting are considered in the rotated state.
+    - Bug when loading data at non-zero azimuths. Raw data is auto-rotated to 0, but if azimuth isn't set in data file, it is assumed to be zero, which leads to unfixable differences between raw and used data. I guess not a bug, you just have to make sure the azimuth is set.
+    - Need to work on the file entry portion of this. Pystarts works for me, but need to make sure other options are available if others are gonna use it. Also, -c flag should accept multiple inputs (right now it just takes the first). CORRECTION, -c flag does take multiple inputs if they are separated by ':', i.e. -c d1:d2:d3. This should be made clear in any readmes, or in the -h
+    - Add Bostick calculation and plotting
+    - Separate plottables into Data (Impedances), Rho, Phase, and Bostick. Separate them in the GUI using tabs or something so that you can't mix units.
+    - Should have a button to 'dump plots', i.e. iterate through all the pages with the current plot settings and save each page to a file.
+    - Refactor some things.
+        - Should have a class based on QMessageBox that handles accepting output files. This is a common part of pretty much any GUI I'll end up writing, so this is something that should be done once (maybe in a module just for this kinds of commom buttons). See method WriteData for what the functionality. (Right now this is also just copy and pasted into dump_list)
+    - Should have an option to cache any changes that are made to the dataset. Would be useful to be able to see which sites were removed, which periods removed / added, which error maps changed.
+    - Plot options (marker colors sizes, shapes), with a config file to set up personal startup preferences.
+    - Phase wrapping on/off (i.e. wrap YX phase [which is typically negative] back over to positive side)
+    - Better error map handling. Need to be able to set all the different error map flags, including smart mapping (automatically set error map based on criteria such as, if it's technically a missing data point, don't just set the error map to 9999).
+    - Option to plot map in rotated or unrotated coordinates.
+    - Give info on the misfit data. Don't want to have to keep going back to matlab to get info like RMS per component, station, period, etc.
+data_structures.py:
+    - If a dataset is read without a response, but the data is at 0 degrees, things work fine. If azimuth is non-zero, errors are thrown about azimuth not being an attribute.
+    short term solution is to set azimuth to 0 prior to __read__. This suppresses the error, but some output should be given so that you know what the issue is.
+    - Add calculate_misfit method to Dataset
+
+bost1D.py:
+    - Query points are automatically sorted south-north, which might not make sense for west-east profiles. Need to either ask for user input, or automatically look through the points and decide which way to sort them.
+
+utils.py
+    - check_file should just be given the 'overwrite' flag so that it can handle the whole file checking process internally. Right now it just checks if the file exists, and every file writing method has to call it, then also make sure that outfile isn't blank. One function should handle everything.
+    - Add calculation of rho and phase errors for determinate, geometric, and arithmetic averages.
