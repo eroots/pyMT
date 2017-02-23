@@ -6,6 +6,10 @@ Overall:
 
 
 data_plot.py:
+    - Error tree branches don't expand and collapse properly when flipping through site pages.
+    - Better ways to set error maps. Intelligent outlier settings and error map caps based on deviation from the rest of the data (don't allow practically infinite error just to ignore a point, set it to keep the response curve reasonable.)
+    - If you add or remove periods rapidly, an error occurs as the program tries to put in or remove the new period before it's done working with the old one.
+    - Stop the list from resetting it's position when removing sites. Gets really annoying if you're removing many sites.
     - If you remove all the currently plotted sites, the sorting resets to the beginning of the list. Should probably fill in from where it left off.
     - Better options for adding / removing periods in bulk. Automatic selection good (i.e. high % availability) periods between selected period range.
     - 'Sort Sites' doesn't work as intended when using non-zero azimuth. Map is shown at 0 degrees regardless, but it seems as though the locations used in sorting are considered in the rotated state.

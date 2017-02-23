@@ -1,5 +1,7 @@
 == CHANGELOG ==
 22/02/17:
+ - Fixed bug where removing a site in data_plot.py would cause an error if only using a list file. Data.site_names was pointing directly to Raw.site_names rather than getting its own copy, and therefore the site would already be removed when RawData.remove_site was called.
+22/02/17:
  - Added input 'mode' in RawData.get_locs that takes 'utm', 'latlong', or 'centered' to specify which type of site locations you want.
 20/02/17:
  - Fixed bug where adding a period in data_plot would insert the period correctly for all components except one (whichever one was first through the loop in Site.add_periods).

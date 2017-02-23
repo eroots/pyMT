@@ -118,7 +118,7 @@ class Dataset(object):
         self.data.sites = self.raw_data.get_data(sites=sites, periods=periods,
                                                  components=components, lTol=lTol,
                                                  hTol=hTol)
-        self.data.site_names = self.raw_data.site_names
+        self.data.site_names = [site for site in self.raw_data.site_names]
         for site in self.data.sites.keys():
             self.data.sites[site].detect_outliers(self.data.OUTLIER_MAP)
         self.data._runErrors = []
@@ -1013,7 +1013,6 @@ class Site(object):
                     ind = ind[0]
                 except IndexError:
                     ind = len(current_periods)
-                print(ind, comp)
                 new_data[comp].insert(ind - shift, data[comp][ii])
                 new_errors[comp].insert(ind - shift, errors[comp][ii])
                 new_errmap[comp].insert(ind - shift, errmap[comp][ii])
