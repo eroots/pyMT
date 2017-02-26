@@ -372,19 +372,6 @@
           </item>
          </layout>
         </widget>
-        <widget class="QLabel" name="label_5">
-         <property name="geometry">
-          <rect>
-           <x>240</x>
-           <y>0</y>
-           <width>81</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Components</string>
-         </property>
-        </widget>
         <widget class="QLabel" name="label_6">
          <property name="geometry">
           <rect>
@@ -424,9 +411,12 @@
          </item>
         </widget>
         <widget class="QListWidget" name="comp_list">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
-           <x>230</x>
+           <x>620</x>
            <y>20</y>
            <width>91</width>
            <height>171</height>
@@ -559,26 +549,21 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QTreeWidget" name="comp_tree">
+        <widget class="QTableWidget" name="comp_table">
          <property name="geometry">
           <rect>
-           <x>370</x>
+           <x>230</x>
            <y>10</y>
-           <width>351</width>
+           <width>371</width>
            <height>192</height>
           </rect>
          </property>
          <property name="editTriggers">
           <set>QAbstractItemView::CurrentChanged</set>
          </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
+         <property name="dragDropOverwriteMode">
+          <bool>false</bool>
          </property>
-         <column>
-          <property name="text">
-           <string notr="true">1</string>
-          </property>
-         </column>
         </widget>
        </widget>
        <widget class="QWidget" name="ErrorMap">

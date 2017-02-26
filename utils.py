@@ -759,7 +759,8 @@ def geotools_filter(x, y, fwidth=1, use_log=True):
 
 
 def compute_bost1D(site, method='phase', comp=None, filter_width=1):
-
+    if 'bost' in comp.lower():
+        comp = comp.lower().replace('bost', '')
     rho = compute_rho(site, calc_comp=comp)[0]
     # Flag bad points
     idx = rho != 0

@@ -49,7 +49,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def __init__(self, dataset_dict):
         super(DataMain, self).__init__()
         self.pick_tol = 0.15
-        self.DEBUG = True
+        self.DEBUG = False
         self.setupUi(self)
         self.cid = {'DataSelect': []}
         # Holds the data for any sites that are removed during GUI execution so they can be added later.
@@ -81,8 +81,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         # Connect the error tree after so it doesn't run during it's init
         self.error_tree.itemChanged.connect(self.post_edit_error)
-        self.update_comp_list()
-        self.update_comp_tree()
+        # self.update_comp_list()
+        self.update_comp_table()
         self.stored_key_presses = []
 
     @property
@@ -104,63 +104,67 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if self.map['fig']:
             self.draw_map()
 
-    def update_comp_tree(self):
+    def update_comp_table(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
         c = 0
-        rho = []
-        phase = []
-        bostick = []
+        all_comps = {'Impedance': ordered_comps,
+                     'Rho': [],
+                     'Phase': [],
+                     'Bostick': []}
+        if 'TZXR' in ordered_comps:
+            all_comps.update({'Tipper': [comp for comp in ordered_comps if comp[0].upper() == 'T']})
+            ordered_comps.remove('TZXR')
+            ordered_comps.remove('TZXI')
+            ordered_comps.remove('TZYR')
+            ordered_comps.remove('TZYI')
         if 'ZXXR' in ordered_comps:
-            rho.append('RhoXX')
-            phase.append('PhaXX')
-            bostick.append('BostXX')
+            all_comps['Rho'].append('RhoXX')
+            all_comps['Phase'].append('PhaXX')
+            all_comps['Bostick'].append('BostXX')
             c += 1
         if 'ZXYR' in ordered_comps:
-            rho.append('RhoXY')
-            phase.append('PhaXY')
-            bostick.append('BostXY')
+            all_comps['Rho'].append('RhoXY')
+            all_comps['Phase'].append('PhaXY')
+            all_comps['Bostick'].append('BostXY')
             c += 1
         if 'ZYYR' in ordered_comps:
-            rho.append('RhoYY')
-            phase.append('PhaYY')
-            bostick.append('BostYY')
+            all_comps['Rho'].append('RhoYY')
+            all_comps['Phase'].append('PhaYY')
+            all_comps['Bostick'].append('BostYY')
             c += 1
         if 'ZYXR' in ordered_comps:
-            rho.append('RhoYX')
-            phase.append('PhaYX')
-            bostick.append('BostYX')
+            all_comps['Rho'].append('RhoYX')
+            all_comps['Phase'].append('PhaYX')
+            all_comps['Bostick'].append('BostYX')
             c += 1
         if c == 4:
-            rho.append('RhoDet')
-            phase.append('PhaDet')
-            bostick.append('BostDet')
-        header = ['Impedance', 'App. Rho', 'Phase', 'Bostick']
-        if 'TZXR' in ordered_comps:
+            all_comps['Rho'].append('RhoDet')
+            all_comps['Rho'].append('RhoAAV')
+            all_comps['Rho'].append('RhoGAV')
+            all_comps['Phase'].append('PhaDet')
+            all_comps['Phase'].append('PhaAAV')
+            all_comps['Phase'].append('PhaGAV')
+            all_comps['Bostick'].append('BostDet')
+            all_comps['Bostick'].append('BostAAV')
+            all_comps['Bostick'].append('BostGAV')
+        header = ['Impedance', 'Rho', 'Phase', 'Bostick']
+        if 'Tipper' in all_comps.keys():
             header.insert(1, 'Tipper')
-
-        self.comp_tree.setColumnCount(len(header))
-        self.comp_tree.setHeaderItem(QtGui.QTreeWidgetItem(header))
-        shift = 0
-        for dtype in header:
-            if dtype == 'Impedance':
-                for comp in ordered_comps:
-                    if comp[0].upper() != 'T':
-                        self.comp_tree.insertTopLevelItem(0, QtGui.QTreeWidgetItem([comp]))
-            elif dtype == 'Tipper':
-                for comp in ordered_comps:
-                    if comp[0].upper() == 'T':
-                        self.comp_tree.insertTopLevelItem(1, QtGui.QTreeWidgetItem([comp]))
-                        shift = 1
-            elif dtype == 'App. Rho':
-                for comp in rho:
-                    self.comp_tree.insertTopLevelItem(1 + shift, QtGui.QTreeWidgetItem([comp]))
-            elif dtype == 'Phase':
-                for comp in phase:
-                    self.comp_tree.insertTopLevelItem(2 + shift, QtGui.QTreeWidgetItem([comp]))
-            elif dtype == 'Bostick':
-                for comp in bostick:
-                    self.comp_tree.insertTopLevelItem(3 + shift, QtGui.QTreeWidgetItem([comp]))
+        self.comp_table.setColumnCount(len(header))
+        max_len = max([len(comp) for comp in all_comps.values()])
+        self.comp_table.setRowCount(max_len)
+        for ii, label in enumerate(header):
+            self.comp_table.setHorizontalHeaderItem(ii, QtGui.QTableWidgetItem(label))
+        for col, dtype in enumerate(header):
+            for row, comp in enumerate(all_comps[dtype]):
+                node = QtGui.QTableWidgetItem(all_comps[dtype][row])
+                node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                self.comp_table.setItem(row, col, node)
+        for ii in range(len(header)):
+            self.comp_table.horizontalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
+        for ii in range(max_len):
+            self.comp_table.verticalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
 
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -190,6 +194,23 @@ class DataMain(QMainWindow, Ui_MainWindow):
         labels = [self.comp_list.item(x) for x in range(self.comp_list.count())]
         labels = next(label for label in labels if label.text() in self.dpm.components)
         self.comp_list.setItemSelected(labels, True)
+
+    def comp_table_click(self):
+        comps = [x.text() for x in self.comp_table.selectedItems()]
+        if not all([x[0] == comps[0][0] for x in comps]):
+            QtGui.QMessageBox.question(self, 'Message',
+                                             'Can\'t mix components with different units',
+                                             QtGui.QMessageBox.Ok)
+            comps = self.dpm.components
+            items = self.comp_table.selectedItems()
+            for item in items:
+                if item.text() not in comps:
+                    self.comp_table.setItemSelected(item, False)
+            return
+        else:
+            self.dpm.components = comps
+            self.update_dpm(updated_sites=self.dpm.site_names,
+                            updated_comps=self.dpm.components)
 
     def list_click(self):
         # This doesn't delete comps that are removed from the list
@@ -238,6 +259,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.ForwardButton.clicked.connect(self.Forward)
         self.WriteDataButton.clicked.connect(self.WriteData)
         self.comp_list.itemSelectionChanged.connect(self.list_click)
+        self.comp_table.itemSelectionChanged.connect(self.comp_table_click)
         self.toggleRaw.clicked.connect(self.toggle_raw)
         self.toggleData.clicked.connect(self.toggle_data)
         self.toggleResponse.clicked.connect(self.toggle_response)
@@ -628,12 +650,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             updated_comps = self.dpm.components
         dpm_sites = self.dpm.site_names
         updated_sites = list(set(updated_sites).intersection(set(dpm_sites)))  # Sites to be updated
-
-        # print(updated_sites)
-        # print([site.name for site in self.dpm.sites['data']])
         for site_name in updated_sites:
-            # ind = next(ii for ii, site in
-            #            enumerate(self.dpm.sites['data']) if site.name == site_name)
             ind = next(ii for ii, site in
                        enumerate(self.dpm.site_names) if site == site_name)
             self.dpm.sites['data'][ind] = self.dataset.data.sites[site_name]
@@ -885,8 +902,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                            components=self.dataset.data.components,
                                                            lTol=None, hTol=None)
                     self.dataset.data.add_periods(toadd)
-                    if self.DEBUG:
-                        print('Adding period {}, freq {}'.format(period, 1 / period))
+                    print('Adding period {}, freq {}'.format(period, 1 / period))
                     self.update_dpm(updated_sites=self.dpm.site_names,
                                     updated_comp=self.dataset.data.components)
         if event.button == 2:
@@ -910,8 +926,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 period = float(data_site.periods[ind])
                 npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
                 self.dataset.data.remove_periods(periods=period)
-                if self.DEBUG:
-                    print('Removing period {}, freq {}'.format(period, 1 / period))
+                print('Removing period {}, freq {}'.format(period, 1 / period))
                 self.update_dpm()
         #     print('Right Mouse')
         # if self.dpm.axes[ax_index].lines[2].contains(event):

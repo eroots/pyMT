@@ -68,7 +68,7 @@ class DataPlotManager(object):
         self.outlier_thresh = 2
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.y_labels = {'r': 'Apparent Resistivity', 'z': 'Impedance',
-                         't': 'Transfer Function', 'p': 'Phase'}
+                         't': 'Transfer Function', 'p': 'Phase', 'b': 'Apparent Resistivity'}
         if fig is None:
             self.new_figure()
         else:
@@ -91,7 +91,7 @@ class DataPlotManager(object):
             units = 'mV/nT'
         elif self.components[0][0].upper() == 'T':
             units = 'Unitless'
-        elif self.components[0][0].upper() == 'R':
+        elif self.components[0][0].upper() == 'R' or self.components[0][0].upper() == 'B':
             units = r'${\Omega}$-m'
         elif self.components[0][0].upper() == 'P':
             units = 'Degrees'
@@ -218,7 +218,10 @@ class DataPlotManager(object):
             self.axes[axnum].set_ylabel('{} ({})'.format(
                 self.y_labels[self.components[0][0].lower()], self.units))
         if axnum + 1 > cols * (rows - 1):
-            self.axes[axnum].set_xlabel('log10 of Period (s)')
+            if 'bost' in self.components[0].lower():
+                self.axes[axnum].set_xlabel('log10 Depth (m)')
+            else:
+                self.axes[axnum].set_xlabel('log10 of Period (s)')
 
     def plot_data(self, sites=None):
         # print('Don''t use this method anymore, use draw_all instead')
@@ -322,6 +325,9 @@ class DataPlotManager(object):
                         toplotErr = log10_e
                 elif 'pha' in comp.lower():
                     toplot, toplotErr = utils.compute_phase(site, calc_comp=comp, errtype=errtype)
+                elif 'bost' in comp.lower():
+                    toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
+                    toplot = np.log10(toplot)
                 else:
                     toplot = site.data[comp]
                     if Err is not None:
@@ -334,11 +340,18 @@ class DataPlotManager(object):
                         toplot = toplot * site.periods
                         if Err:
                             toplotErr = Err[comp] * site.periods
-                artist = ax.errorbar(np.log10(site.periods), toplot, xerr=None,
-                                     yerr=toplotErr, marker=marker,
-                                     linestyle=linestyle, color=self.colour[ii],
-                                     mec=self.mec, markersize=self.markersize,
-                                     mew=edgewidth, picker=3)
+                if 'bost' in comp.lower():
+                    artist = ax.errorbar(np.log10(depth), toplot, xerr=None,
+                                         yerr=None, marker=marker,
+                                         linestyle=linestyle, color=self.colour[ii],
+                                         mec=self.mec, markersize=self.markersize,
+                                         mew=edgewidth, picker=3)
+                else:
+                    artist = ax.errorbar(np.log10(site.periods), toplot, xerr=None,
+                                         yerr=toplotErr, marker=marker,
+                                         linestyle=linestyle, color=self.colour[ii],
+                                         mec=self.mec, markersize=self.markersize,
+                                         mew=edgewidth, picker=3)
                 if self.show_outliers:
                     ma.append(max(toplot))
                     mi.append(min(toplot))
