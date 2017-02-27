@@ -10,10 +10,12 @@ def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
     if not outfile:
         print('Output file required!')
         return
-    dataset = WSDS.Dataset(modelfile=modelfile,
-                           datafile=datafile,
-                           listfile=listfile,
-                           datpath=datpath)
+    if listfile or datafile:
+        dataset = WSDS.Dataset(modelfile=modelfile,
+                               datafile=datafile,
+                               listfile=listfile,
+                               datpath=datpath)
+    model = WSDS.Model(modelfile=modelfile)
     if not origin and not listfile:
         print('You must either specify the origin, or the list file to calculate it from.')
         return
@@ -24,10 +26,10 @@ def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
         print('Using dummy UTM zone')
         UTM = '999'
     if modelfile:
-        dataset.model.origin = origin
-        dataset.model.UTM_zone = UTM
+        model.origin = origin
+        model.UTM_zone = UTM
         print('Writing model to {}'.format('_'.join([outfile, 'model.vtk'])))
-        dataset.model.to_vtk(outfile, sea_level=sea_level)
+        model.to_vtk(outfile, sea_level=sea_level)
     if listfile:
         print('Writing model to {}'.format('_'.join([outfile, 'sites.vtk'])))
         dataset.raw_data.locations = dataset.raw_data.get_locs(mode='centered')[0]
