@@ -97,8 +97,8 @@ def read_model(modelfile=''):
             mod['vals'] = np.ones([NX, NY, NZ]) * lines[NX + NY + NZ]
         else:
             # vals = lines[NX + NY + NZ: ]
-            mod['vals'] = np.reshape(np.array(lines[NX + NY + NZ: NX + NY + NZ + NX * NY * NZ]),
-                                     [NX, NY, NZ], order='F')
+            mod['vals'] = np.flipud(np.reshape(np.array(lines[NX + NY + NZ: NX + NY + NZ + NX * NY * NZ]),
+                                               [NX, NY, NZ], order='F'))
         return mod
 
 
@@ -408,7 +408,7 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
         outfile = '_'.join([outfile, 'model.vtk'])
     values = copy.deepcopy(model)
     tmp = values.vals
-    values.vals = np.swapaxes(np.flipud(tmp), 0, 1)
+    values.vals = np.swapaxes(tmp, 0, 1)
     NX, NY, NZ = values.vals.shape
     values.dx, values.dy = values.dy, values.dx
     values.dx = [x + ox for x in values.dx]

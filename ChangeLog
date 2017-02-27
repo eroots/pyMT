@@ -1,6 +1,7 @@
 == CHANGELOG ==
 27/02/17:
  - Fixed bug in to_vtk.py script where Dataset was created even if no datafile or listfile were specified, which created an error.
+ - read_model didn't flip the X (north-south) coordinates as they should. Changed that, and changed model_to_vtk accordingly.
 24/02/17:
  - Changed the components list in data_plot to a table, with each type (e.g. impedance, tipper, phase, etc.) as headers.
  - Added bostick plotting to gplot and data_plot.
