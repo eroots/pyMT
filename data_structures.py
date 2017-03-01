@@ -305,6 +305,25 @@ class Dataset(object):
         else:
             print('Order {} not recognized.'.format(order))
 
+    def regulate_errors(self, multiplier=5, fwidth=1):
+        for site in self.raw_data.site_names:
+            raw_site = self.raw_data.sites[site]
+            data_site = self.data.sites[site]
+            for comp in self.data.sites[site].components:
+                if comp[0].lower() == 'z':
+                    error_map = np.zeros(data_site.data[comp].shape)
+                    smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
+                                                          np.sqrt(raw_site.periods) * raw_site.data[comp],
+                                                          fwidth=fwidth)
+                    for ii, p in enumerate(data_site.periods):
+                        ind = np.argmin(abs(raw_site.periods - p))
+                        max_error = multiplier * abs(np.sqrt(p) * data_site.data[comp][ii] -
+                                                     smoothed_data[ind])
+                        error_map[ii] = min([data_site.errmap[comp][ii],
+                                             np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
+                    self.data.sites[site].errmap[comp] = error_map
+            self.data.sites[site].calculate_used_errors()
+
 
 class Data(object):
     """Container for data used in a WS inversion, including data points, errors, and error maps.
@@ -703,11 +722,11 @@ class Model(object):
     def is_half_space(self):
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
 
-    def update_vals(self, old_vals, new_vals, axis):
+    def update_vals(self, old_vals=None, new_vals=None, axis=None):
         if self.is_half_space():
             bg = self.vals[0, 0, 0]
+            print('Changing values')
             self.vals = np.ones([self.nx, self.ny, self.nz]) * bg
-            return
         else:
             print('Changing mesh on non-half-space model not implemented yet.')
 
@@ -739,6 +758,7 @@ class Model(object):
     def dx(self, vals):
         self._dx = vals
         self._xCS = list(np.diff(self._dx))
+        self.update_vals()
 
     @property
     def dy(self):
@@ -748,6 +768,7 @@ class Model(object):
     def dy(self, vals):
         self._dy = vals
         self._yCS = list(np.diff(self._dy))
+        self.update_vals()
 
     @property
     def dz(self):
@@ -757,6 +778,7 @@ class Model(object):
     def dz(self, vals):
         self._dz = vals
         self._zCS = list(np.diff(self._dz))
+        self.update_vals()
 
     @property
     def xCS(self):
@@ -766,6 +788,7 @@ class Model(object):
     def xCS(self, vals):
         self._xCS = vals
         self._dx = list(np.cumsum([0, *vals]) - np.sum(vals) / 2)
+        self.update_vals()
 
     @property
     def yCS(self):
@@ -775,6 +798,7 @@ class Model(object):
     def yCS(self, vals):
         self._yCS = vals
         self._dy = list(np.cumsum([0, *vals]) - np.sum(vals) / 2)
+        self.update_vals()
 
     @property
     def zCS(self):
@@ -784,6 +808,7 @@ class Model(object):
     def zCS(self, vals):
         self._zCS = vals
         self._dz = list(np.cumsum([0, *vals]))
+        self.update_vals()
 
 
 class Response(Data):

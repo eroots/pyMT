@@ -17,14 +17,17 @@ def verify_input(message, expected, default=None):
                 else:
                     print('File not found. Try again.')
             elif expected == 'write':
-                if not utils.check_file(ret):
-                    return ret
-                else:
-                    resp = verify_input('File exists, overwrite?', default='y', expected='yn')
-                    if resp == 'y':
+                if ret:
+                    if not utils.check_file(ret):
                         return ret
                     else:
-                        return False
+                        resp = verify_input('File exists, overwrite?', default='y', expected='yn')
+                        if resp == 'y':
+                            return ret
+                        else:
+                            return False
+                else:
+                    print('Output file name required!')
             elif expected == 'numtuple':
                 try:
                     ret = [float(x) for x in re.split(', | ', ret)]
@@ -81,10 +84,11 @@ def read_model(modelfile=''):
 
     with open(modelfile, 'r') as f:
         mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': []}
-        while True:
-            header = next(f)
-            if header[0] != '#':
-                break
+        # while True:
+        header = next(f)
+        header = next(f)
+        # if header[0] != '#':
+        # break
         NX, NY, NZ, MODTYPE = [int(h) for h in header.split()]
         lines = f.readlines()
         lines = [x.split() for x in lines]

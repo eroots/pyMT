@@ -19,10 +19,43 @@ def percdiff(val1, val2):
     return abs(val1 - val2) / (0.5 * (val1 + val2))
 
 
-def generate_mesh(site_locs, min_x, model=None,
-                  num_pads=None, pad_mult=None, DEBUG=True):
+def skin_depth(resistivity, period):
+    return 500 * np.sqrt(resistivity * period)
+
+
+def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
+    num_decade = int(np.ceil(np.log10(max_depth)) - floor(np.log10(min_depth)))
+    try:
+        if num_decade != len(NZ):
+            print('Number of decades is: {}'.format(num_decade))
+            print('Number of parameters (NZ) given is: {}'.format(len(NZ)))
+            print('Length of NZ must be equal to the number of decades.')
+            return
+        decade = np.log10(min_depth)
+        depths = []
+        for n in NZ:
+            dDecade = np.logspace(decade, min(np.floor(decade + 1), np.log10(max_depth)), n)
+            decade = floor(decade + 1)
+            depths.append(dDecade)
+        depths = flatten_list(depths)
+        depths = np.array(np.unique(depths))
+    except TypeError:
+        depths = np.logspace(np.log10(min_depth), np.log10(max_depth), NZ)
+    ddz = np.diff(np.diff(depths))
+    if any(ddz < 0):
+        print('Warning! Second derivative of depths is not always positive.')
+    zCS = np.diff(depths)
+    zCS = list(zCS)
+    depths = list(depths)
+    depths.insert(0, 0)
+    zCS.insert(0, depths[1])
+    return depths, zCS, ddz
+
+
+def generate_lateral_mesh(site_locs, min_x=None, model=None,
+                          num_pads=None, pad_mult=None, DEBUG=True):
     """Summary
-    
+
     Args:
         site_locs (TYPE): Description
         min_x (TYPE): Description
@@ -30,7 +63,7 @@ def generate_mesh(site_locs, min_x, model=None,
         num_pads (None, optional): Description
         pad_mult (None, optional): Description
         DEBUG (bool, optional): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -47,6 +80,8 @@ def generate_mesh(site_locs, min_x, model=None,
     # median_seperation = np.median(x_seperation)
     avg_sep = np.mean(x_seperation)
     max_xmin = 3 * avg_sep
+    if not min_x:
+        min_x = max_xmin / 2
     if min_x > max_xmin:
         print('Minimum cell size shouldn\'t be more than {}'.format(max_xmin))
         return

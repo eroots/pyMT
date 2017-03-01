@@ -1,4 +1,7 @@
 == CHANGELOG ==
+01/03/17:
+ - Finished generate_lateral_mesh and generate_zmesh in utils.
+ - IO.read_model now just assumes 1 dummy line at the top, and that the 2nd line contains NZ, NX, NZ
 27/02/17:
  - Fixed bug in to_vtk.py script where Dataset was created even if no datafile or listfile were specified, which created an error.
  - read_model didn't flip the X (north-south) coordinates as they should. Changed that, and changed model_to_vtk accordingly.

@@ -3,9 +3,11 @@ TODO
 Overall:
     - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
 
-
+j2ws3d.py:
+    - Make interactive period selection more interactive (pickable table for periods)
 
 data_plot.py:
+    - Should change the behavior of phase, rho, and bostick plotting to lazy calculation, but so that it retains that knowledge, i.e. calculate when called upon, but store the result so that it doesn't have to be calculated again.
     - Error tree branches don't expand and collapse properly when flipping through site pages.
     - Better ways to set error maps. Intelligent outlier settings and error map caps based on deviation from the rest of the data (don't allow practically infinite error just to ignore a point, set it to keep the response curve reasonable.)
     - If you add or remove periods rapidly, an error occurs as the program tries to put in or remove the new period before it's done working with the old one.
