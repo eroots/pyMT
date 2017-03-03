@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1322</width>
+    <height>841</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="mplwindow">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="mplvl">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetNoConstraint</enum>
+      </property>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>500</height>
+    </size>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>11</y>
+       <width>229</width>
+       <height>209</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Padding</string>
+     </property>
+     <widget class="QCheckBox" name="padTop">
+      <property name="geometry">
+       <rect>
+        <x>124</x>
+        <y>125</y>
+        <width>47</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Top</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="padLeft">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>91</y>
+        <width>48</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Left</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="padRight">
+      <property name="geometry">
+       <rect>
+        <x>124</x>
+        <y>91</y>
+        <width>56</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Right</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="padBottom">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>125</y>
+        <width>67</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Bottom</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="addPad">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>42</y>
+        <width>93</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Add Pad</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="removePad">
+      <property name="geometry">
+       <rect>
+        <x>124</x>
+        <y>42</y>
+        <width>93</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Remove Pad</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>152</y>
+        <width>105</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pad Size Multiplier</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="padMult">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>175</y>
+        <width>54</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="meshGen">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>230</y>
+       <width>231</width>
+       <height>211</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Mesh Reset Parameters</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="0">
+       <widget class="QLineEdit" name="minY"/>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QPushButton" name="regenMesh_2">
+        <property name="text">
+         <string>Regenerate Mesh</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Minimum X Cell Size</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Minimum Y Cell Size</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLineEdit" name="minX"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLineEdit" name="maxY"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLineEdit" name="maxX"/>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Maximum X Cell Size</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Maximum Y Cell Size</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1322</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuWrite_Model">
+    <property name="title">
+     <string>Save / Revert</string>
+    </property>
+    <addaction name="writeModel"/>
+    <addaction name="saveProgress"/>
+    <addaction name="revertProgress"/>
+   </widget>
+   <addaction name="menuWrite_Model"/>
+  </widget>
+  <action name="writeModel">
+   <property name="text">
+    <string>Write Model</string>
+   </property>
+  </action>
+  <action name="regenMesh">
+   <property name="text">
+    <string>Regenerate mesh</string>
+   </property>
+  </action>
+  <action name="addPads">
+   <property name="text">
+    <string>Add pads</string>
+   </property>
+  </action>
+  <action name="saveProgress">
+   <property name="text">
+    <string>Save progress</string>
+   </property>
+  </action>
+  <action name="revertProgress">
+   <property name="text">
+    <string>Revert Progress</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
