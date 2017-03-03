@@ -8,9 +8,9 @@ import sys
 
 def do_the_bosticks(listfile=None, datafile=None, comp=None,
                     N_interp=None, z_bounds=None, filter_width=1, sites_slice=None):
-    if listfile is None:
-        print('Listfile is None')
-        listfile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\j2\allsites.lst'
+    # if listfile is None:
+    #     print('Listfile is None')
+    #     listfile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\j2\allsites.lst'
     if datafile is None:
         print('datafile is None')
         datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\j2\allsites_1.data'

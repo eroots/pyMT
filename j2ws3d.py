@@ -5,6 +5,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 from pyMT.WSExceptions import WSFileError
+from pyMT.ModelGUI import mesh_designer as meshview
 
 
 def greetings():
@@ -70,7 +71,6 @@ def main_data(args):
         WSDS.DEBUG = True
     if set(('i', '-i')).intersection(set([x.lower() for x in args])):
         interactive = True
-    interactive = True
     # Get list file
     list_file = WSIO.verify_input('Enter list file name:', expected='read')
     try:
@@ -164,6 +164,7 @@ def pick_periods(sorted_periods, period_set, interactive):
         col_labels = ("Number", "Period", "Log10(Period)", "Percentage of sites")
         fig, ax = plt.subplots(1, 1)
         ax.axis('off')
+        # Make this table clickable for true interactive period selection.
         ax.table(cellText=data,
                  colLabels=col_labels,
                  loc='center')
@@ -197,18 +198,69 @@ def pick_periods(sorted_periods, period_set, interactive):
 def main_mesh(args, data=None):
     if data is None:
         datafile = WSIO.verify_input('Data file to use?', expected='read')
+        data = WSDS.Data(datafile=datafile)
+    avg_rho = np.mean([utils.compute_rho(site, calc_comp='det', errtype='none')
+                       for site in data.sites.values()])
+    print('Average determinant apparent resistivity is {}'.format(avg_rho))
+    bg_resistivity = WSIO.verify_input('Background resistivity?', expected=float, default=avg_rho)
+    xmesh = utils.generate_lateral_mesh(site_locs=data.locations[:, 0])
+    ymesh = utils.generate_lateral_mesh(site_locs=data.locations[:, 1])
+    max_depth = min([500, utils.skin_depth(bg_resistivity, data.periods[-1])])
+    min_depth = min([1, utils.skin_depth(bg_resistivity, data.periods[0])])
+    print('Note: Default min and max depths are based on skin depth of lowest and highest periods.')
+    min_depth = WSIO.verify_input('Depth of first layer?', expected=float, default=min_depth)
+    max_depth = WSIO.verify_input('Depth of last layer?', expected=float, default=max_depth)
+    NZ = WSIO.verify_input('Total # of layers or # of layers per decade?', expected='numtuple', default=60)
+    zmesh = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=NZ)
+    model = WSDS.Model()
+    model.dx = xmesh
+    model.dy = ymesh
+    model.dz = zmesh
+    model.vals = bg_resistivity * np.ones((model.nx, model.ny, model.nz))
+    if '-i' in args:
+        viewer = meshview(model, data)
+        viewer.show()
+    else:
+        nxpads = WSIO.verify_input('Number of pads in X direction', expected=int, default=5)
+        nypads = WSIO.verify_input('Number of pads in y direction', expected=int, default=5)
+        xpads = [model.xCS[0]]
+        ypads = [model.yCS[0]]
+        for ii in range(nxpads):
+            xpads.append(WSIO.verify_input('Pad size', expected=float, default=xpads[ii] * 1.2))
+            xpads = xpads[1:]
+        for ii in range(nypads):
+            ypads.append(WSIO.verify_input('Pad size', expected=float, default=ypads[ii] * 1.2))
+            ypads = ypads[:1]
+        model.dx = xpads[-1::-1] + model.dx + xpads
+        model.dy = ypads[-1::-1] + model.dy + ypads
+        modelname = WSIO.verify_input('Model name', expected='write', default='mod')
+        if '.model' not in modelname:
+            modelname = ''.join([modelname, '.model'])
+        model.write(modelname)
+    return
+
+
+def print_help():
+    print('-- Data and Model generation --')
+    print('Input flags:')
+    print('\t-data: Run data generation only')
+    print('\t-mesh: Run mesh generation only')
+    print('\t-i: Interactive mode')
+    print('\t-dbg: Debug mode')
 
 
 if __name__ == '__main__':
     greetings()
     try:
-        if '-data' in sys.argv:
-            data = main_data(sys.argv[1::])
+        if '-h' in sys.argv:
+            print_help()
+        elif '-data' in sys.argv:
+            dataset = main_data(sys.argv[1::])
         elif '-mesh' in sys.argv:
             mesh = main_mesh(sys.argv[1::])
         else:
-            data = main_data(sys.argv[1:])
-            mesh = main_mesh(sys.argv[1:], data=data)
+            dataset = main_data(sys.argv[1:])
+            mesh = main_mesh(sys.argv[1:], data=dataset.data)
     except KeyboardInterrupt:
         print('\nExiting...')
     except OSError:

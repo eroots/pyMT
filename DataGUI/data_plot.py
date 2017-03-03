@@ -292,6 +292,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.showOutliers.clicked.connect(self.toggle_outliers)
         self.actionList_File.triggered.connect(self.WriteList)
         self.actionData_File.triggered.connect(self.WriteData)
+        self.regErrors.clicked.connect(self.regulate_errors)
+
+    def regulate_errors(self):
+        print('Recalculating error maps...')
+        self.dataset.regulate_errors()
+        print('Updating error tree...')
+        self.update_error_tree()
+        print('Done!')
+        self.update_dpm()
 
     def sort_sites(self, index=None):
         if index is None:

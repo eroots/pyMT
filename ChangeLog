@@ -1,4 +1,11 @@
 == CHANGELOG ==
+02/03/17:
+ - mesh_designer is more or less up and running. Changes to data_structures.Model to accomadate.
+ - Fixed bug in compute_bost1D where comp was not being set if no argument was passed.
+ - Changed bost1D script so that listfile is not needed.
+ - Added a bit more to j2ws3d. Should be able to use it now, although still not tested.
+ - Added most of the base functionality to mesh_designer. Can now save and revert progress, and write out model file.
+ - Added GUI_common module that contains some of the common functions and classes used in the GUIs.
 01/03/17:
  - Finished generate_lateral_mesh and generate_zmesh in utils.
  - IO.read_model now just assumes 1 dummy line at the top, and that the 2nd line contains NZ, NX, NZ

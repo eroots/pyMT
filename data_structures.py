@@ -305,7 +305,8 @@ class Dataset(object):
         else:
             print('Order {} not recognized.'.format(order))
 
-    def regulate_errors(self, multiplier=5, fwidth=1):
+    def regulate_errors(self, multiplier=2.5, fwidth=1):
+        use_log = False
         for site in self.raw_data.site_names:
             raw_site = self.raw_data.sites[site]
             data_site = self.data.sites[site]
@@ -314,7 +315,7 @@ class Dataset(object):
                     error_map = np.zeros(data_site.data[comp].shape)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
                                                           np.sqrt(raw_site.periods) * raw_site.data[comp],
-                                                          fwidth=fwidth)
+                                                          fwidth=fwidth, use_log=use_log)
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))
                         max_error = multiplier * abs(np.sqrt(p) * data_site.data[comp][ii] -
@@ -722,20 +723,89 @@ class Model(object):
     def is_half_space(self):
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
 
-    def update_vals(self, old_vals=None, new_vals=None, axis=None):
+    def update_vals(self, new_vals=None, axis=None, index=None, mode=None):
         if self.is_half_space():
             bg = self.vals[0, 0, 0]
             print('Changing values')
             self.vals = np.ones([self.nx, self.ny, self.nz]) * bg
         else:
-            print('Changing mesh on non-half-space model not implemented yet.')
+            if index is not None and axis is not None:
+                index = max((min((index, np.size(self.vals, axis=axis) - 1)), 0))
+                if mode is None or mode == 'insert':
+                    self.vals = np.insert(self.vals, index,
+                                          new_vals, axis)
+                elif mode == 'delete':
+                    self.vals = np.delete(self.vals, index, axis)
+                else:
+                    print('Mode {} not understood'.format(mode))
 
-    # Not super necessary but we'll see.
-    def insert_mesh(self, dim, idx, val):
-        getattr(self, dim).insert(idx, val)
+    def generate_mesh(self, site_locs, min_x=None, min_y=None,
+                      max_x=None, max_y=None, num_pads=None, pad_mult=None):
+        xmesh = list(utils.generate_lateral_mesh(site_locs[:, 1], min_x=min_x, max_x=max_x)[0])
+        ymesh = list(utils.generate_lateral_mesh(site_locs[:, 0], min_x=min_y, max_x=max_y)[0])
+        if not self.is_half_space():
+            print('Mesh generation not setup for non-half-spaces. Converting to half space...')
+            self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.vals[0, 0, 0]
+        self.dy = xmesh
+        self.dx = ymesh
 
-    def generate_mesh(self, site_locs, min_x, min_y, num_pads, pad_mult):
-        pass
+    def check_new_mesh(self, attr, index, value):
+        mesh = getattr(self, attr)
+        if index > 0:
+            if value <= mesh[index - 1]:
+                print('Unable to add mesh: Mesh locations must be strictly increasing')
+                return False
+        else:
+            if value >= mesh[index]:
+                print('Unable to add mesh: Mesh locations must be strictly increasing')
+                return False
+        return True
+
+    # def insert_mesh(self, dim, index, value):
+    #     ACCEPTED_DIMENSIONS = {'dx': 0, 'dy': 1, 'dz': 2,
+    #                            'xcs': 0, 'ycs': 1, 'zcs': 2}
+    #     if dim.lower() not in ACCEPTED_DIMENSIONS.keys():
+    #         print('Dimension not recognized.')
+    #     else:
+    #         getattr(self,)
+    def dx_delete(self, index):
+        del self._dx[index]
+        self._xCS = list(np.diff(self._dx))
+        self.update_vals(axis=0, index=index, mode='delete')
+
+    def dy_delete(self, index):
+        del self._dy[index]
+        self._yCS = list(np.diff(self._dy))
+        self.update_vals(axis=1, index=index, mode='delete')
+
+    def dz_delete(self, index):
+        del self._dz[index]
+        self._zCS = list(np.diff(self._dz))
+        self.update_vals(axis=2, index=index, mode='delete')
+
+    def dx_insert(self, index, value):
+        if self.check_new_mesh('dx', index, value):
+            mod_idx = max((min((index, self.nx - 1)), 0))
+            new_vals = self.vals[max((mod_idx - 1, 0)), :, :]
+            self._dx = self._dx[:index] + [value] + self._dx[index:]
+            self._xCS = list(np.diff(self._dx))
+            self.update_vals(axis=0, index=mod_idx, new_vals=new_vals)
+
+    def dy_insert(self, index, value):
+        if self.check_new_mesh('dy', index, value):
+            mod_idx = max((min((index, self.ny - 1)), 0))
+            new_vals = self.vals[:, max((mod_idx - 1, 0)), :]
+            self._dy = self._dy[:index] + [value] + self._dy[index:]
+            self._yCS = list(np.diff(self._dy))
+            self.update_vals(axis=1, index=mod_idx, new_vals=new_vals)
+
+    def dz_insert(self, index, value):
+        if self.check_new_mesh('dz', index, value):
+            mod_idx = max((min((index, self.nz - 1)), 0))
+            new_vals = self.vals[:, :, max((mod_idx - 1, 0))]
+            self._dz = self._dz[:index] + [value] + self._dz[index:]
+            self._zCS = list(np.diff(self._dz))
+            self.update_vals(axis=2, index=mod_idx, new_vals=new_vals)
 # start Properties
 
     @property
@@ -809,6 +879,9 @@ class Model(object):
         self._zCS = vals
         self._dz = list(np.cumsum([0, *vals]))
         self.update_vals()
+
+    def write(self, outfile):
+        WS_io.write_model(self, outfile)
 
 
 class Response(Data):

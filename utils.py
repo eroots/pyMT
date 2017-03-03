@@ -8,11 +8,11 @@ MU = 4 * np.pi * 1e-7
 
 def percdiff(val1, val2):
     """Summary
-    
+
     Args:
         val1 (TYPE): Description
         val2 (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -52,7 +52,7 @@ def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
     return depths, zCS, ddz
 
 
-def generate_lateral_mesh(site_locs, min_x=None, model=None,
+def generate_lateral_mesh(site_locs, min_x=None, model=None, max_x=None,
                           num_pads=None, pad_mult=None, DEBUG=True):
     """Summary
 
@@ -82,6 +82,8 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None,
     max_xmin = 3 * avg_sep
     if not min_x:
         min_x = max_xmin / 2
+    if not max_x:
+        max_x = min_x * 2
     if min_x > max_xmin:
         print('Minimum cell size shouldn\'t be more than {}'.format(max_xmin))
         return
@@ -100,7 +102,7 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None,
         ifact -= ifact
         if ifact >= 2:
             if (imesh + ifact * 2 + 1 > MAX_X):
-                resp = input('Number of cells in X direction exceeds {}. Continue? (y/n)'.format(MAX_X))
+                resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
                 if resp == 'n':
                     return
             for jj in range(1, max(ifact - 2, 1) + 1):
@@ -121,7 +123,7 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None,
             if DEBUG:
                 print('Gap is small, splitting sites')
             if (imesh + 1 >= MAX_X):
-                resp = input('Number of cells in X direction exceeds {}. Continue? (y/n)'.format(MAX_X))
+                resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
                 if resp == 'n':
                     return
             imesh += 1
@@ -133,7 +135,7 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None,
             if DEBUG:
                 print('Sites too close, splitting mesh')
             dist_without_mesh = xloc_sort[ii + 1] - xmesh[imesh - 1]
-        if dist_without_mesh > 2 * min_x:
+        if dist_without_mesh > max_x:
             if DEBUG:
                 print("Gone too far without adding mesh")
             max_sep = 0
@@ -145,7 +147,7 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None,
                     is_save = is_check
                     max_sep = check_sep
             if imesh + 1 > MAX_X:
-                resp = input('Number of cells in X direction exceeds {}. Continue? (y/n)'.format(MAX_X))
+                resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
                 if resp == 'n':
                     return
             imesh += 1
@@ -154,7 +156,7 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None,
             is_right_ofmesh = is_save + 1
     imesh += 1
     if imesh > MAX_X:
-        resp = input('Number of cells in X direction exceeds {}. Continue? (y/n)'.format(MAX_X))
+        resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
         if resp == 'n':
             return
     xmesh[imesh - 1] = xloc_sort[-1] + xloc_sort[-1] - xmesh[imesh - 2]
@@ -720,7 +722,11 @@ def geotools_filter(x, y, fwidth=1, use_log=True):
     RTD = 180 / np.pi
     DIFLIMIT = 0.1
     DSLLIMIT = 90.0
-    logx = np.log10(x)
+    # print(use_log)
+    if any(x < 0):
+        logx = x
+    else:
+        logx = np.log10(x)
     if use_log:
         logy = np.log10(y)
         if any(np.isnan(logx)) or any(np.isnan(logy)):
@@ -794,6 +800,8 @@ def geotools_filter(x, y, fwidth=1, use_log=True):
 
 
 def compute_bost1D(site, method='phase', comp=None, filter_width=1):
+    if not comp:
+        comp = 'det'
     if 'bost' in comp.lower():
         comp = comp.lower().replace('bost', '')
     rho = compute_rho(site, calc_comp=comp)[0]
@@ -827,5 +835,3 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
         phase = geotools_filter(periods, phase, use_log=False, fwidth=filter_width)
         bostick = rho * ((np.pi / (2 * np.deg2rad(phase % 90))) - 1)
     return bostick, depth, rhofit, phase
-
-

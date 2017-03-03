@@ -115,7 +115,7 @@
      <item row="1" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="currentIndex">
-        <number>1</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -610,9 +610,9 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="regErrors">
               <property name="text">
-               <string>Reset Errors</string>
+               <string>Regulate Errors</string>
               </property>
              </widget>
             </item>

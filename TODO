@@ -2,11 +2,13 @@ TODO
 
 Overall:
     - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
+    - Refactor some code (esp. from data_plot) to use GUI_common rather than internal methods / functions.
 
 j2ws3d.py:
     - Make interactive period selection more interactive (pickable table for periods)
 
 data_plot.py:
+    - BIG BUG: I think that if you write a datafile after changing the sort order, something messes up with the written data files. Either the site locations are staying the same but the data is being moved, or vice versa, either way, the data is not right.
     - Should change the behavior of phase, rho, and bostick plotting to lazy calculation, but so that it retains that knowledge, i.e. calculate when called upon, but store the result so that it doesn't have to be calculated again.
     - Error tree branches don't expand and collapse properly when flipping through site pages.
     - Better ways to set error maps. Intelligent outlier settings and error map caps based on deviation from the rest of the data (don't allow practically infinite error just to ignore a point, set it to keep the response curve reasonable.)
@@ -32,6 +34,7 @@ data_structures.py:
     - If a dataset is read without a response, but the data is at 0 degrees, things work fine. If azimuth is non-zero, errors are thrown about azimuth not being an attribute.
     short term solution is to set azimuth to 0 prior to __read__. This suppresses the error, but some output should be given so that you know what the issue is.
     - Add calculate_misfit method to Dataset
+    - Add functionality to allow models and data locations to be plotted in latlong, UTM or local coordinates. Data and Models could have a 'coord_system' attribute which tells get_locs which locations to get by default. Model grid lines would have to be converted accordingly (latlong coords would only be available if RawData were available)
 
 bost1D.py:
     - Query points are automatically sorted south-north, which might not make sense for west-east profiles. Need to either ask for user input, or automatically look through the points and decide which way to sort them.

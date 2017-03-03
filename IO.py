@@ -520,3 +520,28 @@ def write_list(data, outfile):
         for site in data.site_names[:-1]:
             f.write('{}\n'.format(''.join([site, '.dat'])))
         f.write('{}'.format(''.join([data.site_names[-1], '.dat'])))
+
+
+def write_model(model, outfile):
+    if '.model' not in outfile:
+        outfile = ''.join([outfile, '.model'])
+    is_half_space = int(model.is_half_space())
+    with open(outfile, 'w') as f:
+        f.write('{}\n'.format(outfile))
+        f.write('{} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space))
+        for x in model.xCS:
+            f.write('{:<10.7E}  '.format(x))
+        f.write('\n')
+        for y in model.yCS:
+            f.write('{:<10.7E}  '.format(y))
+        f.write('\n')
+        for z in model.zCS:
+            f.write('{:<10.7E}  '.format(z))
+        f.write('\n')
+        if is_half_space:
+            f.write(model.vals[0, 0, 0])
+        else:
+            for zz in range(model.nz):
+                for yy in range(model.ny):
+                    for xx in range(model.nx):
+                        f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
