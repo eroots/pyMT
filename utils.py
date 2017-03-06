@@ -23,6 +23,17 @@ def skin_depth(resistivity, period):
     return 500 * np.sqrt(resistivity * period)
 
 
+def dms_to_dd(dms_string):
+    degrees, minutes, seconds = str.split(dms_string, ':')
+    degrees = float(degrees)
+    minutes = float(minutes)
+    try:
+        seconds = float(seconds)
+    except ValueError:
+        seconds = float(seconds[:-1])
+    return degrees + minutes / 60 + seconds / 3600
+
+
 def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
     num_decade = int(np.ceil(np.log10(max_depth)) - floor(np.log10(min_depth)))
     try:
@@ -835,3 +846,17 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
         phase = geotools_filter(periods, phase, use_log=False, fwidth=filter_width)
         bostick = rho * ((np.pi / (2 * np.deg2rad(phase % 90))) - 1)
     return bostick, depth, rhofit, phase
+
+
+@enforce_input(files=list)
+def sort_files(files):
+    ret_dict = {}
+    types = ('model', 'resp', 'lst', 'data')
+    for file in files:
+        try:
+            file_type = (next(x for x in types if x in file))
+        except StopIteration:
+            print('{} does not correspond to a recognized file type'.format(file))
+        else:
+            ret_dict.update({file_type: file})
+    return ret_dict

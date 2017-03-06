@@ -1,4 +1,7 @@
 == CHANGELOG ==
+06/03/17:
+ - Made mesh_designer callable as a script. Takes model and data file names as command line inputs.
+ - Added 'sort_files' to utils, which goes through a given list of files and sorts them into a dictionary where the keys are file types (model, resp, data, lst)
 02/03/17:
  - mesh_designer is more or less up and running. Changes to data_structures.Model to accomadate.
  - Fixed bug in compute_bost1D where comp was not being set if no argument was passed.

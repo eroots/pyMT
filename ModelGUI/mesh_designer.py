@@ -1,18 +1,8 @@
-# License: Creative Commons Zero (almost public domain) http://scpyce.org/cc0
-
-"""
-Example usage of matplotlibs widgets: Build a small 2d Data viewer.
-
-Shows 2d-data as a pcolormesh, a click on the image shows the crossection
-(x or y, depending on the mouse button) and draws a corresponding line in
-the image, showing the location of the crossections. A reset button deletes all
-crossections plots.
-
-Works with matplotlib 1.0.1.
-"""
-
+#!/usr/bin/env python3
 from matplotlib.widgets import Cursor
 import matplotlib.pyplot as plt
+import pyMT.utils as utils
+import pyMT.data_structures as WSDS
 import numpy as np
 import copy
 from PyQt4.uic import loadUiType
@@ -217,22 +207,20 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         pass
 
 
+def main():
+    files = sys.argv
+    for file in files:
+        if not utils.check_file(file):
+            print('File {} not found.'.format(file))
+            return
+    files = utils.sort_files(files=files)
+    model = WSDS.Model(files['model'])
+    data = WSDS.Data(datafile=files['data'])
+    viewer = model_viewer_2d(model=model, data=data)
+    viewer.show()
+
+
 if __name__ == '__main__':
     # Build some strange looking data:
-    x = np.linspace(-3, 3, 300)
-    y = np.linspace(-4, 4, 400)
-    X, Y = np.meshgrid(x, y)
-    z = np.sqrt(X**2 + Y**2) + np.sin(X**2 + Y**2)
-    w, h = 512, 512
-    from matplotlib import cbook
-    datafile = cbook.get_sample_data('ct.raw', asfileobj=False)
-    print('loading', datafile)
-    s = open(datafile, 'rb').read()
-    A = np.fromstring(s, np.uint16).astype(float)
-    A *= 1.0 / max(A)
-    A.shape = w, h
-    # Put it in the viewer
-    fig_v = model_viewer_2d(z, x, y)
-    fig_v2 = model_viewer_2d(A)
-    # Show it
-    plt.show()
+    main()
+
