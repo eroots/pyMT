@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 from matplotlib.widgets import Cursor
 import matplotlib.pyplot as plt
 import pyMT.utils as utils
@@ -208,7 +208,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
 
 
 def main():
-    files = sys.argv
+    app = QtGui.QApplication(sys.argv)
+    files = sys.argv[1:]
     for file in files:
         if not utils.check_file(file):
             print('File {} not found.'.format(file))
@@ -218,6 +219,9 @@ def main():
     data = WSDS.Data(datafile=files['data'])
     viewer = model_viewer_2d(model=model, data=data)
     viewer.show()
+    ret = app.exec_()
+    sys.exit(ret)
+    viewer.disconnect_mpl_events()
 
 
 if __name__ == '__main__':
