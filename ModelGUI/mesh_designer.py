@@ -76,6 +76,11 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.maxX.setText(str(max(self.model.xCS)))
         self.maxY.setText(str(max(self.model.yCS)))
 
+    def update_dimension_labels(self):
+        self.nxLabel.setText(' : '.join(['NX', str(self.model.nx)]))
+        self.nyLabel.setText(' : '.join(['NY', str(self.model.ny)]))
+        self.nzLabel.setText(' : '.join(['NZ', str(self.model.nz)]))
+
     def min_depth(self):
         try:
             min_depth = float(self.minDepth.text())
@@ -221,6 +226,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                                self.site_locations[:, 0],
                                self.site_marker)
         self.canvas.draw()
+        self.update_dimension_labels()
 
     def click(self, event):
         """

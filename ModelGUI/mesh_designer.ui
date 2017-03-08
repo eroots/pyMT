@@ -75,21 +75,21 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="2" column="0">
-      <widget class="QLabel" name="label_11">
+      <widget class="QLabel" name="nzLabel">
        <property name="text">
         <string>NZ:</string>
        </property>
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label_9">
+      <widget class="QLabel" name="nxLabel">
        <property name="text">
         <string>NX: </string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="label_10">
+      <widget class="QLabel" name="nyLabel">
        <property name="text">
         <string>NY:</string>
        </property>
@@ -127,6 +127,12 @@
               <height>20</height>
              </rect>
             </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Top</string>
             </property>
@@ -142,6 +148,12 @@
               <width>48</width>
               <height>20</height>
              </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="text">
              <string>Left</string>
@@ -159,6 +171,12 @@
               <height>20</height>
              </rect>
             </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Right</string>
             </property>
@@ -174,6 +192,12 @@
               <width>67</width>
               <height>20</height>
              </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="text">
              <string>Bottom</string>
@@ -274,6 +298,12 @@
                <height>16</height>
               </rect>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>First Depth (meters)</string>
              </property>
@@ -286,6 +316,12 @@
                <width>107</width>
                <height>16</height>
               </rect>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
              <property name="text">
               <string>Depths per decade</string>
@@ -306,7 +342,7 @@
               <rect>
                <x>12</x>
                <y>50</y>
-               <width>107</width>
+               <width>91</width>
                <height>151</height>
               </rect>
              </property>
@@ -335,6 +371,12 @@
                <height>16</height>
               </rect>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Last Depth (meters)</string>
              </property>
@@ -347,6 +389,12 @@
                <width>261</width>
                <height>151</height>
               </rect>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
              <property name="title">
               <string>Messages</string>
