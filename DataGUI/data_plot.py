@@ -473,7 +473,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         periods.sort()
         pretty_periods = [(per, self.dataset.raw_data.narrow_periods[per]) for
                           per in periods]
-        print('{:>15} {:>15} {:>15}'.format('Period', 'Log(Period)', 'Perc'))
+        print('{:>21} {:>15} {:>15}'.format('Period', 'Log(Period)', 'Perc'))
+        print('-' * 56)
         for t in pretty_periods:
             k, v = t
             log_k = np.log10(k)
@@ -483,11 +484,16 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 yn = ''
             if k < 1:
                 k = -1 / k
-            print('{:15.5} {:15.5} {:15.5}   {}'.format(k, log_k, v, yn))
-        for t in self.dataset.data.periods:
-            if t < 1:
-                t = -1 / t
-            print('{}\n'.format(utils.truncate(t)))
+            if self.dataset.freqset:
+                cp = utils.closest_periods(self.dataset.freqset, [k])[0]
+                idx = self.dataset.freqset.index(cp)
+            else:
+                idx = ''
+            print('{:>2} {:>2} {:15.5} {:15.5} {:15.5} {:<2}'.format(yn, idx, k, log_k, v, yn))
+        # for t in self.dataset.data.periods:
+        #     if t < 1:
+        #         t = -1 / t
+        #     print('{}\n'.format(utils.truncate(t)))
 
     def DEBUG_METHOD(self):
         # print(self.dpm.scale)
@@ -1090,6 +1096,10 @@ class FileInputParser(object):
         except FileNotFoundError:
             print('File not found: {}'.format(startup))
             retval = False
+        if 'raw' in retval.keys():
+            if 'list' not in retval.keys():
+                print('Cannt read raw data with a list file!')
+                return False
         return retval
 
 

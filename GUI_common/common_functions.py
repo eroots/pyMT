@@ -48,7 +48,9 @@ class FileDialog(QtGui.QInputDialog):
         # self.rejected.connect(self.reject)
 
     @staticmethod
-    def write_file(parent=None, default=None, label='Input'):
+    def write_file(parent=None, default=None, label='Input', ext=None):
+        if ext is None:
+            ext = ''
         while True:
             dialog = FileDialog(parent)
             dialog.setTextValue(default)
@@ -56,7 +58,7 @@ class FileDialog(QtGui.QInputDialog):
             ret = dialog.exec_()
             file = dialog.textValue()
             if ret and file:
-                if utils.check_file(file):
+                if utils.check_file(file) or utils.check_file(''.join([file, ext])):
                     reply = QtGui.QMessageBox.question(parent, 'Message',
                                                        'File already exists. Overwrite?',
                                                        QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)

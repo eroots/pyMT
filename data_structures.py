@@ -105,6 +105,14 @@ class Dataset(object):
                                                                 self.response.azimuth))
             self.rotate_sites(azi=self.data.azimuth)
             self.azimuth = self.data.azimuth
+        if self.raw_data.initialized:
+            try:
+                self.freqset = WS_io.read_freqset(self.raw_data.datpath)
+            except FileNotFoundError:
+                print('Freqset not found')
+                self.freqset = None
+        else:
+            self.freqset = None
 
     def has_dType(self, dType):
         if dType in self.data_types:
@@ -324,6 +332,21 @@ class Dataset(object):
                                              np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
                     self.data.sites[site].errmap[comp] = error_map
             self.data.sites[site].calculate_used_errors()
+
+    def calculate_RMS(self):
+        NP = self.data.NP
+        NS = self.data.NS
+        # NR = self.data.NR
+        misfit = {comp: np.array((NS, NP)) for comp in self.data.components}
+        comp_misfit = {comp: 0 for comp in self.data.components}
+        station_misfit = {comp: np.array((NS, 1)) for comp in self.data.components}
+        period_misfit = {comp: np.array((NP, 1)) for comp in self.data.components}
+        total_rms = 0
+        for ii, site in enumerate(self.data.site_names):
+            for comp in self.data.components:
+                misfit[comp][ii, :] = (np.abs(self.response.sites[site].data[comp] -
+                                              self.data.sites[site].data[comp]) /
+                                       self.data.sites[site].used_error[comp]) ** 2
 
 
 class Data(object):
@@ -739,6 +762,14 @@ class Model(object):
                 else:
                     print('Mode {} not understood'.format(mode))
 
+    def generate_zmesh(self, min_z, max_z, NZ):
+
+        zmesh = utils.generate_zmesh(min_z, max_z, NZ)[0]
+        if not self.is_half_space():
+            self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.vals[0, 0, 0]
+            print('Mesh generation not setup for non-half-spaces. Converting to half space...')
+        self.dz = zmesh
+
     def generate_mesh(self, site_locs, min_x=None, min_y=None,
                       max_x=None, max_y=None, num_pads=None, pad_mult=None):
         xmesh = list(utils.generate_lateral_mesh(site_locs[:, 1], min_x=min_x, max_x=max_x)[0])
@@ -774,6 +805,8 @@ class Model(object):
         self.update_vals(axis=0, index=index, mode='delete')
 
     def dy_delete(self, index):
+        print(index)
+        print(self.ny)
         del self._dy[index]
         self._yCS = list(np.diff(self._dy))
         self.update_vals(axis=1, index=index, mode='delete')
@@ -887,6 +920,9 @@ class Model(object):
 class Response(Data):
     """Summary
     """
+
+    def write(self, outfile):
+        WS_io.write_response(self, outfile)
 
 
 class Site(object):
@@ -1373,11 +1409,13 @@ class RawData(object):
         self.listfile = listfile
         if listfile:
             self.__read__(listfile, datpath)
+            self.initialized = True
         else:
             self.sites = {}
             self.datpath = ''
             self.site_names = []
             self.locations = []
+            self.initialized = False
         self.low_tol = 0.02
         self.high_tol = 0.1
         self.count_tol = 0.5

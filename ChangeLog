@@ -1,4 +1,6 @@
 == CHANGELOG ==
+08/03/17:
+ - Added z-mesh generation to mesh_designer. Bulk changes to mesh (either in Z or XY) will result in the model being changed to a half-space if it wasn't already.
 06/03/17:
  - Made mesh_designer callable as a script. Takes model and data file names as command line inputs.
  - Added 'sort_files' to utils, which goes through a given list of files and sorts them into a dictionary where the keys are file types (model, resp, data, lst)

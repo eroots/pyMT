@@ -84,24 +84,10 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_4">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="3">
-      <widget class="QPushButton" name="ReadDataButton">
-       <property name="text">
-        <string>Read Data</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QPushButton" name="BackButton">
        <property name="text">
         <string>Back</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QPushButton" name="ForwardButton">
-       <property name="text">
-        <string>Forward</string>
        </property>
       </widget>
      </item>
@@ -112,10 +98,24 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="ForwardButton">
+       <property name="text">
+        <string>Forward</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QPushButton" name="ReadDataButton">
+       <property name="text">
+        <string>Read Data</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="currentIndex">
-        <number>3</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -329,8 +329,8 @@
           <rect>
            <x>10</x>
            <y>0</y>
-           <width>106</width>
-           <height>114</height>
+           <width>131</width>
+           <height>151</height>
           </rect>
          </property>
          <property name="title">
@@ -370,13 +370,23 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="showOutliers">
+            <property name="text">
+             <string>Show Outliers</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
         <widget class="QLabel" name="label_6">
          <property name="geometry">
           <rect>
-           <x>30</x>
-           <y>130</y>
+           <x>40</x>
+           <y>160</y>
            <width>53</width>
            <height>16</height>
           </rect>
@@ -388,8 +398,8 @@
         <widget class="QComboBox" name="scalingBox">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>150</y>
+           <x>20</x>
+           <y>180</y>
            <width>91</width>
            <height>22</height>
           </rect>
@@ -410,27 +420,11 @@
           </property>
          </item>
         </widget>
-        <widget class="QListWidget" name="comp_list">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="geometry">
-          <rect>
-           <x>620</x>
-           <y>20</y>
-           <width>91</width>
-           <height>171</height>
-          </rect>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
-         </property>
-        </widget>
         <widget class="QLineEdit" name="numSubplots">
          <property name="geometry">
           <rect>
-           <x>30</x>
-           <y>200</y>
+           <x>200</x>
+           <y>190</y>
            <width>41</width>
            <height>22</height>
           </rect>
@@ -439,9 +433,9 @@
         <widget class="QLabel" name="label_7">
          <property name="geometry">
           <rect>
-           <x>20</x>
-           <y>180</y>
-           <width>71</width>
+           <x>180</x>
+           <y>170</y>
+           <width>81</width>
            <height>16</height>
           </rect>
          </property>
@@ -452,10 +446,10 @@
         <widget class="QGroupBox" name="groupBox_3">
          <property name="geometry">
           <rect>
-           <x>110</x>
+           <x>140</x>
            <y>0</y>
-           <width>119</width>
-           <height>114</height>
+           <width>151</width>
+           <height>131</height>
           </rect>
          </property>
          <property name="title">
@@ -491,9 +485,9 @@
         <widget class="QPushButton" name="showMap">
          <property name="geometry">
           <rect>
-           <x>130</x>
-           <y>130</y>
-           <width>81</width>
+           <x>180</x>
+           <y>140</y>
+           <width>91</width>
            <height>21</height>
           </rect>
          </property>
@@ -501,58 +495,10 @@
           <string>Show Map</string>
          </property>
         </widget>
-        <widget class="QDoubleSpinBox" name="xMeshMin">
-         <property name="geometry">
-          <rect>
-           <x>1060</x>
-           <y>160</y>
-           <width>62</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="minimum">
-          <double>1000.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>999999.000000000000000</double>
-         </property>
-        </widget>
-        <widget class="QDoubleSpinBox" name="yMeshMin">
-         <property name="geometry">
-          <rect>
-           <x>1060</x>
-           <y>130</y>
-           <width>62</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="minimum">
-          <double>1000.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>9999999.000000000000000</double>
-         </property>
-        </widget>
-        <widget class="QCheckBox" name="showOutliers">
-         <property name="geometry">
-          <rect>
-           <x>20</x>
-           <y>110</y>
-           <width>111</width>
-           <height>20</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Show Outliers</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
         <widget class="QTableWidget" name="comp_table">
          <property name="geometry">
           <rect>
-           <x>230</x>
+           <x>320</x>
            <y>10</y>
            <width>371</width>
            <height>192</height>

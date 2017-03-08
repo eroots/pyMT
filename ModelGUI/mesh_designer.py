@@ -6,7 +6,7 @@ import pyMT.data_structures as WSDS
 import numpy as np
 import copy
 from PyQt4.uic import loadUiType
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from pyMT.GUI_common.common_functions import check_key_presses, FileDialog
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
@@ -57,18 +57,77 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self._widgets = [cursor]
         self.connect_mpl_events()
         self.setup_widgets()
-        self.minX.setText(str(min(self.model.xCS)))
-        self.minY.setText(str(min(self.model.yCS)))
-        self.maxX.setText(str(max(self.model.xCS)))
-        self.maxY.setText(str(max(self.model.yCS)))
+        self.update_decade_list()
 
     def setup_widgets(self):
+        self.minDepth.setText(str(self.model.dz[1]))
+        self.maxDepth.setText(str(self.model.dz[-1]))
         self.writeModel.triggered.connect(self.write_model)
         self.saveProgress.triggered.connect(self.save_progress)
         self.revertProgress.triggered.connect(self.revert_progress)
         self.regenMesh_2.clicked.connect(self.regenerate_mesh)
         self.addPad.clicked.connect(self.add_pads)
         self.removePad.clicked.connect(self.remove_pads)
+        self.minDepth.textChanged.connect(self.min_depth)
+        self.maxDepth.textChanged.connect(self.max_depth)
+        self.genDepths.clicked.connect(self.generate_depths)
+        self.minX.setText(str(min(self.model.xCS)))
+        self.minY.setText(str(min(self.model.yCS)))
+        self.maxX.setText(str(max(self.model.xCS)))
+        self.maxY.setText(str(max(self.model.yCS)))
+
+    def min_depth(self):
+        try:
+            min_depth = float(self.minDepth.text())
+        except ValueError:
+            min_depth = self.model.dz[1]
+            self.minDepth.setText(str(min_depth))
+        self.update_decade_list(direction='top')
+
+    def max_depth(self):
+        try:
+            max_depth = float(self.minDepth.text())
+        except ValueError:
+            max_depth = self.model.dz[-1]
+            self.maxDepth.setText(str(max_depth))
+        self.update_decade_list(direction='bottom')
+
+    def update_decade_list(self, direction=None):
+        print(self.minDepth.text())
+        print(self.maxDepth.text())
+        min_depth = float(self.minDepth.text())
+        max_depth = float(self.maxDepth.text())
+        if direction is None or direction == 'top':
+            idx = 0
+        else:
+            idx = self.zPerDecade.count()
+        num_decade = int(np.ceil(np.log10(max_depth)) - np.floor(np.log10(min_depth)))
+        while num_decade != self.zPerDecade.count():
+            if num_decade < self.zPerDecade.count():
+                self.zPerDecade.takeItem(idx)
+            elif num_decade > self.zPerDecade.count():
+                item = QtGui.QListWidgetItem('10')
+                item.setFlags(QtCore.Qt.ItemIsEditable |
+                              QtCore.Qt.ItemIsSelectable |
+                              QtCore.Qt.ItemIsEnabled)
+                self.zPerDecade.insertItem(idx, item)
+            idx = self.zPerDecade.count()
+
+    def generate_depths(self):
+        min_depth = float(self.minDepth.text())
+        max_depth = float(self.maxDepth.text())
+        depths_per_decade = [float(self.zPerDecade.item(ii).text())
+                             for ii in range(self.zPerDecade.count())]
+        depths, zCS, ddz = utils.generate_zmesh(min_depth, max_depth, depths_per_decade)
+        if any(ddz < 0):
+            # idx = np.where(ddz)[0][0]
+            self.messages.setText('Warning!\n Second derivative of depths is not always positive.')
+        else:
+            self.messages.setText('Z mesh generation complete.')
+        self.model.generate_zmesh(min_depth, max_depth, depths_per_decade)
+        self.redraw_pcolor()
+
+        # print(ddz)
 
     def add_pads(self):
         print('Adding pads')
@@ -93,7 +152,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         if self.padLeft.checkState():
             self.model.dy_delete(0)
         if self.padRight.checkState():
-            self.model.dy_delete(self.model.nx)
+            self.model.dy_delete(self.model.ny)
         if self.padBottom.checkState():
             self.model.dx_delete(0)
         if self.padTop.checkState():
@@ -118,7 +177,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.revert_model = copy.deepcopy(self.model)
 
     def write_model(self):
-        file, ret = self.file_dialog.write_file()
+        file, ret = self.file_dialog.write_file(ext='.model')
         if ret:
             self.model.write(file)
 
@@ -227,4 +286,3 @@ def main():
 if __name__ == '__main__':
     # Build some strange looking data:
     main()
-

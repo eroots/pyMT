@@ -6,6 +6,12 @@ import copy
 import re
 
 
+if os.name is 'nt':
+    PATH_CONNECTOR = '\\'
+else:
+    PATH_CONNECTOR = '/'
+
+
 def verify_input(message, expected, default=None):
         while True:
             ret = input(' '.join([message, '[Default: {}] > '.format(default)]))
@@ -308,7 +314,7 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
     return sites
 
 
-def write_data(data, outfile=None):
+def write_data(data, outfile=None, to_write=None):
     if '.data' not in outfile:
         outfile = ''.join([outfile, '.data'])
     comps_to_write = data.used_components
@@ -328,8 +334,6 @@ def write_data(data, outfile=None):
     with open(outfile, 'w') as f:
         f.write('{}  {}  {}  {}\n'.format(NS, NP, NR, azi))
         f.write('Station_Location: N-S\n')
-        print(type(data))
-        print(type(data.locations))
         for X in data.locations[:, 0]:
             f.write('{}\n'.format(X))
         f.write('Station_Locations: E-W\n')
@@ -359,6 +363,66 @@ def write_data(data, outfile=None):
                             f.write('{:>14.7E}  '.format(to_print))
                         # for point in getattr(site, that)[comp]:
                     f.write('\n')
+
+
+def write_response(data, outfile=None):
+    NP = data.NP
+    NR = data.NR
+    NS = data.NS
+    azi = int(data.azimuth)
+    ordered_comps = {key: ii for ii, key in enumerate(data.ACCEPTED_COMPONENTS)}
+    comps_to_write = data.used_components
+    comps_to_write = sorted(comps_to_write, key=lambda d: ordered_comps[d])
+    if outfile is None:
+        print('You have to specify a file!')
+        return
+    with open(outfile, 'w') as f:
+        f.write('{}  {}  {}  {}\n'.format(NS, NP, NR, azi))
+        f.write('Station_Location: N-S\n')
+        for X in data.locations[:, 0]:
+            f.write('{}\n'.format(X))
+        f.write('Station_Locations: E-W\n')
+        for Y in data.locations[:, 1]:
+            f.write('{}\n'.format(Y))
+        for idx, period in enumerate(utils.to_list(data.periods)):
+            f.write(''.join(['DATA_Period: ', '%0.5E\n' % float(period)]))
+            for site_name in data.site_names:
+                site = data.sites[site_name]
+                for comp in comps_to_write:
+                    to_print = getattr(site, 'data')[comp][idx]
+                    f.write('{:>14.7E}  '.format(to_print))
+                    # for point in getattr(site, that)[comp]:
+                f.write('\n')
+
+
+def write_errors(data, outfile=None):
+    NP = data.NP
+    NR = data.NR
+    NS = data.NS
+    azi = int(data.azimuth)
+    ordered_comps = {key: ii for ii, key in enumerate(data.ACCEPTED_COMPONENTS)}
+    comps_to_write = data.used_components
+    comps_to_write = sorted(comps_to_write, key=lambda d: ordered_comps[d])
+    if outfile is None:
+        print('You have to specify a file!')
+        return
+    with open(outfile, 'w') as f:
+        f.write('{}  {}  {}  {}\n'.format(NS, NP, NR, azi))
+        f.write('Station_Location: N-S\n')
+        for X in data.locations[:, 0]:
+            f.write('{}\n'.format(X))
+        f.write('Station_Locations: E-W\n')
+        for Y in data.locations[:, 1]:
+            f.write('{}\n'.format(Y))
+        for idx, period in enumerate(utils.to_list(data.periods)):
+            f.write(''.join(['ERROR_Period: ', '%0.5E\n' % float(period)]))
+            for site_name in data.site_names:
+                site = data.sites[site_name]
+                for comp in comps_to_write:
+                    to_print = getattr(site, 'used_error')[comp][idx]
+                    f.write('{:>14.7E}  '.format(to_print))
+                    # for point in getattr(site, that)[comp]:
+                f.write('\n')
 
 
 def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0):
@@ -496,20 +560,22 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
             f.write('{}\n'.format(999999))
 
 
-def read_freqset(freqset='freqset'):
+def read_freqset(path):
+    freqset = PATH_CONNECTOR.join([path, 'freqset'])
     with open(freqset, 'r') as f:
         lines = f.readlines()
-        nf = int(lines[0])
-        periods = [float(x) for x in lines]
-        if len(periods) != nf:
-            print('Quoted number of periods, {}, is not equal to the actual number, {}'.format(
-                  nf, len(periods)))
-            while True:
-                resp = input('Continue anyways? (y/n)')
-                if resp not in ('yn'):
-                    print('Try again.')
-                else:
-                    break
+        # nf = int(lines[0])
+        periods = [float(x) for x in lines[1:]]
+        # if len(periods) != nf:
+        #     print('Quoted number of periods, {}, is not equal to the actual number, {}'.format(
+        #           nf, len(periods)))
+        #     while True:
+        #         resp = input('Continue anyways? (y/n)')
+        #         if resp not in ('yn'):
+        #             print('Try again.')
+        #         else:
+        #             break
+    return periods
 
 
 def write_list(data, outfile):
@@ -539,7 +605,7 @@ def write_model(model, outfile):
             f.write('{:<10.7E}  '.format(z))
         f.write('\n')
         if is_half_space:
-            f.write(model.vals[0, 0, 0])
+            f.write(str(model.vals[0, 0, 0]))
         else:
             for zz in range(model.nz):
                 for yy in range(model.ny):
