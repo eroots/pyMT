@@ -113,9 +113,6 @@ def read_model(modelfile=''):
 
 
 def read_raw_data(site_names, datpath=''):
-    RAW_COMPONENTS = ('ZXX', 'ZXY',
-                      'ZYX', 'ZYY',
-                      'TZX', 'TZY')
     """Summary
 
     Args:
@@ -126,6 +123,7 @@ def read_raw_data(site_names, datpath=''):
         TYPE: Description
     """
     siteData = {}
+    long_origin = 999
     if os.name is 'nt':
         connector = '\\'
     else:
@@ -134,66 +132,78 @@ def read_raw_data(site_names, datpath=''):
         path = datpath + connector
     else:
         path = './'
-    long_origin = 999
     for site in site_names:
         file = ''.join([path, site, '.dat'])
-        try:
-            with open(file, 'r') as f:
-                siteData_dict = {}
-                siteError_dict = {}
-                siteLoc_dict = {'azi': [], 'Lat': [], 'Long': [], 'elev': []}
-                while True:
-                    L = next(f)  # Header, unused
-                    if L[0] != '#':
-                        break
-                while True:
-                    if L[0] == '>':
-                        if 'azimuth' in L.lower():
-                            siteLoc_dict.update({'azi': float(L.split('=')[1].rstrip('\n'))})
-                        elif 'latitude' in L.lower():
-                            Lat = float(L.split('=')[1].rstrip('\n'))
-                        elif 'longitude' in L.lower():
-                            Long = float(L.split('=')[1].rstrip('\n'))
-                        elif 'elevation' in L.lower():
-                            siteLoc_dict.update({'elev': float(L.split('=')[1].rstrip('\n'))})
-                        L = next(f)
-                    else:
-                        break
-                Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
-                siteLoc_dict.update({'X': X, 'Y': Y})
-                siteLoc_dict.update({'Lat': Lat, 'Long': Long})
-                next(f)  # Another unused line (site name and a 0)
-                lines = f.read().splitlines()
-                comps = [(ii, comp[:3]) for ii, comp in enumerate(lines)
-                         if comp[:3] in RAW_COMPONENTS]
-                ns = [int(lines[int(ii[0]) + 1]) for ii in comps]
-                for ii, comp in comps:
-                    ns = int(lines[ii + 1])
-                    data = [(row.split()) for row in lines[ii + 2: ii + ns + 2]]
-                    data = np.array([row for row in data])
-                    data = data.astype(np.float)
-                    periods = data[:, 0]
-                    dataReal = data[:, 1]
-                    dataImag = data[:, 2]
-                    dataErr = data[:, 3]
-                    siteData_dict.update({''.join([comp, 'R']): dataReal})
-                    siteData_dict.update({''.join([comp, 'I']): -1 * dataImag})
-                    siteError_dict.update({''.join([comp, 'R']): dataErr})
-                    siteError_dict.update({''.join([comp, 'I']): dataErr})
-
-                periods[periods < 0] = -1 / periods[periods < 0]
-
-                siteData.update({site:
-                                 {'data': siteData_dict,
-                                  'errors': siteError_dict,
-                                  'locations': siteLoc_dict,
-                                  'periods': periods,
-                                  'azimuth': siteLoc_dict['azi']
-                                  }
-                                 })
-        except FileNotFoundError as e:
-            raise(WSFileError(ID='fnf', offender=file))
+        site_dict, long_origin = read_dat(file, long_origin)
+        siteData.update({site: site_dict})
     return siteData
+
+
+def read_dat(file, long_origin=999):
+    RAW_COMPONENTS = ('ZXX', 'ZXY',
+                      'ZYX', 'ZYY',
+                      'TZX', 'TZY')
+    try:
+        with open(file, 'r') as f:
+            siteData_dict = {}
+            siteError_dict = {}
+            siteLoc_dict = {'azi': [], 'Lat': [], 'Long': [], 'elev': []}
+            while True:
+                L = next(f)  # Header, unused
+                if L[0] != '#':
+                    break
+            while True:
+                if L[0] == '>':
+                    if 'azimuth' in L.lower():
+                        siteLoc_dict.update({'azi': float(L.split('=')[1].rstrip('\n'))})
+                    elif 'latitude' in L.lower():
+                        Lat = float(L.split('=')[1].rstrip('\n'))
+                    elif 'longitude' in L.lower():
+                        Long = float(L.split('=')[1].rstrip('\n'))
+                    elif 'elevation' in L.lower():
+                        siteLoc_dict.update({'elev': float(L.split('=')[1].rstrip('\n'))})
+                    L = next(f)
+                else:
+                    break
+            Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
+            siteLoc_dict.update({'X': X, 'Y': Y})
+            siteLoc_dict.update({'Lat': Lat, 'Long': Long})
+            next(f)  # Another unused line (site name and a 0)
+            lines = f.read().splitlines()
+            comps = [(ii, comp[:3]) for ii, comp in enumerate(lines)
+                     if comp[:3] in RAW_COMPONENTS]
+            ns = [int(lines[int(ii[0]) + 1]) for ii in comps]
+            ns_cache = []
+            for ii, comp in comps:
+                ns = int(lines[ii + 1])
+                ns_cache.append(ns)
+                data = [(row.split()) for row in lines[ii + 2: ii + ns + 2]]
+                data = np.array([row for row in data])
+                data = data.astype(np.float)
+                periods = data[:, 0]
+                dataReal = data[:, 1]
+                dataImag = data[:, 2]
+                dataErr = data[:, 3]
+                siteData_dict.update({''.join([comp, 'R']): dataReal})
+                siteData_dict.update({''.join([comp, 'I']): -1 * dataImag})
+                siteError_dict.update({''.join([comp, 'R']): dataErr})
+                siteError_dict.update({''.join([comp, 'I']): dataErr})
+            periods[periods < 0] = -1 / periods[periods < 0]
+    except FileNotFoundError as e:
+        raise(WSFileError(ID='fnf', offender=file))
+    try:
+        assert len(set(ns_cache)) == 1
+    except AssertionError:
+        msg = 'Number of periods in {} is not equal for all components'.format(file)
+        print('Fatal error in pyMT.IO.read_dat')
+        raise(WSFileError(id='int', offender=file, extra=msg))
+    site_dict = {'data': siteData_dict,
+                 'errors': siteError_dict,
+                 'locations': siteLoc_dict,
+                 'periods': periods,
+                 'azimuth': siteLoc_dict['azi']
+                 }
+    return site_dict, long_origin
 
 
 def read_sites(listfile):

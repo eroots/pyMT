@@ -258,7 +258,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.BackButton.clicked.connect(self.Back)
         self.ForwardButton.clicked.connect(self.Forward)
         self.WriteDataButton.clicked.connect(self.WriteData)
-        self.comp_list.itemSelectionChanged.connect(self.list_click)
+        # self.comp_list.itemSelectionChanged.connect(self.list_click)
         self.comp_table.itemSelectionChanged.connect(self.comp_table_click)
         self.toggleRaw.clicked.connect(self.toggle_raw)
         self.toggleData.clicked.connect(self.toggle_data)
@@ -1095,7 +1095,7 @@ class FileInputParser(object):
                             dataset_files[file_type] = os.path.join(path, dataset_files[file_type])
         except FileNotFoundError:
             print('File not found: {}'.format(startup))
-            retval = False
+            return False
         if 'raw' in retval.keys():
             if 'list' not in retval.keys():
                 print('Cannt read raw data with a list file!')
