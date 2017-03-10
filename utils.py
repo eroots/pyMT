@@ -23,6 +23,16 @@ def skin_depth(resistivity, period):
     return 500 * np.sqrt(resistivity * period)
 
 
+def strike_direction(site):
+    zxx = site.data['ZXXR'] + 1j * site.data['ZXXI']
+    zxy = site.data['ZXYR'] + 1j * site.data['ZXYI']
+    zyx = site.data['ZYXR'] + 1j * site.data['ZYXI']
+    zyy = site.data['ZYYR'] + 1j * site.data['ZYYI']
+    C = ((zxx - zyy) * np.conj(zxy + zyx) + np.conj(zxx - zyy) * (zxy + zyx)) / \
+        ((zxx - zyy) * np.conj(zxx - zyy) - (zxy - zyx) * np.conj(zxy - zyx))
+    return np.rad2deg(0.25 * np.arctan(np.real(C)))
+
+
 def dms_to_dd(dms_string):
     degrees, minutes, seconds = str.split(dms_string, ':')
     degrees = float(degrees)
@@ -97,7 +107,7 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None, max_x=None,
         max_x = min_x * 2
     if min_x > max_xmin:
         print('Minimum cell size shouldn\'t be more than {}'.format(max_xmin))
-        return
+        # return
     dist_without_mesh = 0
     is_right_ofmesh = 0
     imesh = 1
@@ -112,10 +122,10 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None, max_x=None,
             dist += min_x + min_x * ifact
         ifact -= ifact
         if ifact >= 2:
-            if (imesh + ifact * 2 + 1 > MAX_X):
-                resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
-                if resp == 'n':
-                    return
+            # if (imesh + ifact * 2 + 1 > MAX_X):
+            #     resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
+            #     if resp == 'n':
+            #         return
             for jj in range(1, max(ifact - 2, 1) + 1):
                 imesh += 1
                 xmesh[imesh - 1] = xmesh[imesh - 2] + min_x * jj
@@ -133,10 +143,10 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None, max_x=None,
         elif (dist_right >= min_x) and (dist_right <= 5 * min_x):
             if DEBUG:
                 print('Gap is small, splitting sites')
-            if (imesh + 1 >= MAX_X):
-                resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
-                if resp == 'n':
-                    return
+            # if (imesh + 1 >= MAX_X):
+            #     resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
+            #     if resp == 'n':
+            #         return
             imesh += 1
             xmesh[imesh - 1] = xloc_sort[ii] + (xloc_sort[ii + 1] - xloc_sort[ii]) / 2
             dist_without_mesh = 0

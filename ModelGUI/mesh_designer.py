@@ -68,8 +68,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.regenMesh_2.clicked.connect(self.regenerate_mesh)
         self.addPad.clicked.connect(self.add_pads)
         self.removePad.clicked.connect(self.remove_pads)
-        self.minDepth.textChanged.connect(self.min_depth)
-        self.maxDepth.textChanged.connect(self.max_depth)
+        self.minDepth.editingFinished.connect(self.min_depth)
+        self.maxDepth.editingFinished.connect(self.max_depth)
         self.genDepths.clicked.connect(self.generate_depths)
         self.minX.setText(str(min(self.model.xCS)))
         self.minY.setText(str(min(self.model.yCS)))
@@ -87,14 +87,20 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         except ValueError:
             min_depth = self.model.dz[1]
             self.minDepth.setText(str(min_depth))
+        if min_depth >= float(self.maxDepth.text()):
+            self.minDepth.setText(str(0.001))
+            self.messages.setText('Minimum depth cannot exceed maximum depth!')
         self.update_decade_list(direction='top')
 
     def max_depth(self):
         try:
-            max_depth = float(self.minDepth.text())
+            max_depth = float(self.maxDepth.text())
         except ValueError:
             max_depth = self.model.dz[-1]
             self.maxDepth.setText(str(max_depth))
+        if max_depth <= float(self.minDepth.text()):
+            self.maxDepth.setText(str(float(self.minDepth.text()) + 1000))
+            self.messages.setText('Maximum depth cannot be less minimum depth!')
         self.update_decade_list(direction='bottom')
 
     def update_decade_list(self, direction=None):
@@ -105,9 +111,10 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         if direction is None or direction == 'top':
             idx = 0
         else:
-            idx = self.zPerDecade.count()
+            idx = self.zPerDecade.count() - 1
         num_decade = int(np.ceil(np.log10(max_depth)) - np.floor(np.log10(min_depth)))
         while num_decade != self.zPerDecade.count():
+            print(idx, num_decade)
             if num_decade < self.zPerDecade.count():
                 self.zPerDecade.takeItem(idx)
             elif num_decade > self.zPerDecade.count():
@@ -116,7 +123,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                               QtCore.Qt.ItemIsSelectable |
                               QtCore.Qt.ItemIsEnabled)
                 self.zPerDecade.insertItem(idx, item)
-            idx = self.zPerDecade.count()
+            idx = self.zPerDecade.count() - 1
 
     def generate_depths(self):
         min_depth = float(self.minDepth.text())
@@ -236,6 +243,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             3. Plot resulting data.
             4. Update Figure
         """
+        if not event.inaxes:
+            return
         self.key_presses = check_key_presses(QtGui.QApplication.keyboardModifiers())
         # print(key_presses)
         # Get nearest data
@@ -244,19 +253,17 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         # Check which mouse button:
         if event.button == 1:
             # Plot it
-            if event.xdata > self.model.dy[xpos]:
-                xpos += 1
             if self.key_presses['Control']:
                 diff = np.abs(event.xdata - self.model.dy[xpos])
                 print(diff)
-                print(self.delete_tolerance * (self.model.dy[xpos] - self.model.dy[xpos - 1]))
-                if diff <= self.delete_tolerance * (self.model.dy[xpos] - self.model.dy[xpos - 1]):
+                print(self.delete_tolerance * abs(self.model.dy[xpos] - self.model.dy[xpos - 1]))
+                if diff <= self.delete_tolerance * abs(self.model.dy[xpos] - self.model.dy[xpos - 1]):
                     self.model.dy_delete(xpos)
             else:
+                if event.xdata > self.model.dy[xpos]:
+                    xpos += 1
                 self.model.dy_insert(xpos, event.xdata)
         elif event.button == 3:
-            if event.ydata > self.model.dx[ypos]:
-                ypos += 1
             if self.key_presses['Control']:
                 diff = np.abs(event.ydata - self.model.dx[ypos])
                 print(diff)
@@ -264,6 +271,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                 if diff <= self.delete_tolerance * (self.model.dx[ypos] - self.model.dx[ypos - 1]):
                     self.model.dx_delete(ypos)
             else:
+                if event.ydata > self.model.dx[ypos]:
+                    ypos += 1
                 self.model.dx_insert(ypos, event.ydata)
         self.redraw_pcolor()
         # Show it

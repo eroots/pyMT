@@ -486,7 +486,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 k = -1 / k
             if self.dataset.freqset:
                 cp = utils.closest_periods(self.dataset.freqset, [k])[0]
-                idx = self.dataset.freqset.index(cp)
+                idx = self.dataset.freqset.index(cp) + 1
             else:
                 idx = ''
             print('{:>2} {:>2} {:15.5} {:15.5} {:15.5} {:<2}'.format(yn, idx, k, log_k, v, yn))

@@ -805,8 +805,6 @@ class Model(object):
         self.update_vals(axis=0, index=index, mode='delete')
 
     def dy_delete(self, index):
-        print(index)
-        print(self.ny)
         del self._dy[index]
         self._yCS = list(np.diff(self._dy))
         self.update_vals(axis=1, index=index, mode='delete')
@@ -859,7 +857,7 @@ class Model(object):
 
     @dx.setter
     def dx(self, vals):
-        self._dx = vals
+        self._dx = list(set(vals))
         self._xCS = list(np.diff(self._dx))
         self.update_vals()
 
@@ -869,7 +867,7 @@ class Model(object):
 
     @dy.setter
     def dy(self, vals):
-        self._dy = vals
+        self._dy = list(set(vals))
         self._yCS = list(np.diff(self._dy))
         self.update_vals()
 
@@ -879,7 +877,7 @@ class Model(object):
 
     @dz.setter
     def dz(self, vals):
-        self._dz = vals
+        self._dz = list(set(vals))
         self._zCS = list(np.diff(self._dz))
         self.update_vals()
 
@@ -1403,7 +1401,7 @@ class RawData(object):
             listfile (TYPE): Description
             datpath (str, optional): Description
         """
-        if not datpath:
+        if not datpath and listfile:
             datpath = os.path.dirname(listfile)
         self.datpath = datpath
         self.listfile = listfile

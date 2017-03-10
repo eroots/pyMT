@@ -3,11 +3,14 @@ TODO
 Overall:
     - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
     - Refactor some code (esp. from data_plot) to use GUI_common rather than internal methods / functions.
+    - Finish writing 'calculate_RMS'
+    - Need more meaningful errors for things. For instance, if you read in a output data file (from WSINV) instead of an input file (from j2, e.g.), the Data object will be created fine, but it will cause fatal errors in data_plot.py. It's fine that the data still gets read, but data_plot.py needs to know how to gracefully exit and give a meaningful error.
 
 j2ws3d.py:
     - Make interactive period selection more interactive (pickable table for periods)
 
 data_plot.py:
+    - When adding / removing sites, the list should remember where you are. Gets annoying having to scroll back down and find your spot.
     - BIG BUG: I think that if you write a datafile after changing the sort order, something messes up with the written data files. Either the site locations are staying the same but the data is being moved, or vice versa, either way, the data is not right.
     - Should change the behavior of phase, rho, and bostick plotting to lazy calculation, but so that it retains that knowledge, i.e. calculate when called upon, but store the result so that it doesn't have to be calculated again.
     - Error tree branches don't expand and collapse properly when flipping through site pages.
