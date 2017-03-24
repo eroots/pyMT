@@ -79,8 +79,10 @@ def get_components(invType=None, NR=None):
     elif invType == 3:
         comps = [possible[8:], tuple(range(4))]
     elif invType == 4:
-        comps = [possible[2, 3, 4, 5, 8, 9, 10, 11],
+        # comps = [possible[2, 3, 4, 5, 8, 9, 10, 11],
+        comps = [possible[2:6] + possible[8:12],
                  tuple(range(8))]
+        # tuple(range(8))]
     return comps
 
 
@@ -228,6 +230,20 @@ def read_sites(listfile):
         raise(WSFileError('fnf', offender=listfile))
 
 
+def read_startup():
+    s_dict = {}
+    with open('startup', 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if 'INVERSION_TYPE' in line.upper():
+                s_dict.update({'inv_type': int(line.split()[1])})
+            elif 'MIN_ERROR_Z' in line.upper():
+                s_dict.update({'errFloorZ': float(line.split()[1])})
+            elif 'MIN_ERROR_T' in line.upper():
+                s_dict.update({'errFloorT': float(line.split()[1])})
+    return s_dict
+
+
 def read_data(datafile='', site_names='', filetype='data', invType=None):
     """Summary
 
@@ -256,6 +272,11 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
                 raise(WSFileError(ID='int', offender=datafile,
                                   extra='Number of sites in data file not equal to list file'))
             # Components is a pair of (compType, Nth item to grab)
+            if utils.check_file('startup'):
+                startup = read_startup()
+                invType = startup.get('inv_type', None)
+            else:
+                startup = {}
             components = get_components(invType, NR)
             # next(f)  # skip the next line
             lines = f.readlines()
@@ -316,17 +337,26 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
                               'errmap': siteErrMap[site],
                               'periods': periods,
                               'locations': siteLocs,
-                              'azimuth': azi
-                              }
+                              'azimuth': azi,
+                              'errFloorZ': startup.get('errFloorZ', None),
+                              'errFloorT': startup.get('errFloorT', None)}
                               })
     except FileNotFoundError as e:
         raise(WSFileError(ID='fnf', offender=datafile)) from None
-    return sites
+    return sites, invType
 
 
 def write_data(data, outfile=None, to_write=None):
     if '.data' not in outfile:
         outfile = ''.join([outfile, '.data'])
+    if to_write == 'all' or to_write is None:
+        to_write = ['DATA', 'ERROR', 'ERMAP']
+    elif to_write == 'errors':
+        to_write = ['ERROR']
+    elif to_write == 'errmap':
+        to_write = ['ERMAP']
+    elif to_write == 'data':
+        to_write = ['DATA']
     comps_to_write = data.used_components
     NP = data.NP
     NR = data.NR
@@ -334,7 +364,7 @@ def write_data(data, outfile=None, to_write=None):
     azi = int(data.azimuth)
     ordered_comps = {key: ii for ii, key in enumerate(data.ACCEPTED_COMPONENTS)}
     comps_to_write = sorted(comps_to_write, key=lambda d: ordered_comps[d])
-    theresgottabeabetterway = ('DATA', 'ERROR', 'ERMAP')
+    # theresgottabeabetterway = ('DATA', 'ERROR', 'ERMAP')
     thismeansthat = {'DATA': 'data',
                      'ERROR': 'errors',
                      'ERMAP': 'errmap'}
@@ -349,7 +379,7 @@ def write_data(data, outfile=None, to_write=None):
         f.write('Station_Locations: E-W\n')
         for Y in data.locations[:, 1]:
             f.write('{}\n'.format(Y))
-        for this in theresgottabeabetterway:
+        for this in to_write:
             that = thismeansthat[this]
             for idx, period in enumerate(utils.to_list(data.periods)):
                 f.write(''.join([this, '_Period: ', '%0.5E\n' % float(period)]))
@@ -488,10 +518,11 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     tmp = values.vals
     values.vals = np.swapaxes(tmp, 0, 1)
     NX, NY, NZ = values.vals.shape
-    values.dx, values.dy = values.dy, values.dx
-    values.dx = [x + ox for x in values.dx]
-    values.dy = [y + oy for y in values.dy]
-    values.dz = [-z + sea_level for z in values.dz]
+    values._dx, values._dy = values._dy, values._dx
+    values._dx = [x + ox for x in values._dx]
+    values._dy = [y + oy for y in values._dy]
+    values._dz = [-z + sea_level for z in values._dz]
+
     # if azi:
     #     use_rot = True
     #     X, Y = np.meshgrid(values.dx, values.dy)
@@ -507,9 +538,9 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
         f.write('DATASET RECTILINEAR_GRID\n')
         f.write('DIMENSIONS {} {} {}\n'.format(NX + 1, NY + 1, NZ + 1))
         for dim in ('x', 'y', 'z'):
-            f.write('{}_COORDINATES {} float\n'.format(dim.upper(), 1 +
-                                                       getattr(values, ''.join(['n', dim]))))
-            gridlines = getattr(values, ''.join(['d', dim]))
+            f.write('{}_COORDINATES {} float\n'.format(dim.upper(),
+                                                       len(getattr(values, ''.join(['_d', dim])))))
+            gridlines = getattr(values, ''.join(['_d', dim]))
             for edge in gridlines:
                 f.write('{} '.format(str(edge)))
             f.write('\n')

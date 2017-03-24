@@ -72,6 +72,8 @@
     <addaction name="separator"/>
     <addaction name="actionList_File"/>
     <addaction name="actionData_File"/>
+    <addaction name="writeCurrentPlot"/>
+    <addaction name="writeAllPlots"/>
    </widget>
    <addaction name="menuWS_Data_Plot"/>
    <addaction name="menuDisplay_Options"/>
@@ -641,6 +643,16 @@
   <action name="actionData_File">
    <property name="text">
     <string>Data File</string>
+   </property>
+  </action>
+  <action name="writeCurrentPlot">
+   <property name="text">
+    <string>Current Plot</string>
+   </property>
+  </action>
+  <action name="writeAllPlots">
+   <property name="text">
+    <string>All Plots</string>
    </property>
   </action>
  </widget>

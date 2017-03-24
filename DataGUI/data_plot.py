@@ -32,6 +32,7 @@ from matplotlib.backends.backend_qt4agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
+from pyMT.GUI_common import common_functions
 
 path = os.path.dirname(os.path.realpath(__file__))
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
@@ -57,6 +58,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.stored_sites = {}
         self.old_val = ''
         self.fig = Figure()
+        self.file_dialog = common_functions.FileDialog(self)
         self.map = {'fig': None, 'canvas': None, 'axis': None,
                     'plots': {'all': None, 'highlight': None, 'mesh': None}}
         for ii, (dname, files) in enumerate(dataset_dict.items()):
@@ -292,7 +294,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.showOutliers.clicked.connect(self.toggle_outliers)
         self.actionList_File.triggered.connect(self.WriteList)
         self.actionData_File.triggered.connect(self.WriteData)
+        self.writeCurrentPlot.triggered.connect(self.write_current_plot)
+        self.writeAllPlots.triggered.connect(self.write_all_plots)
         self.regErrors.clicked.connect(self.regulate_errors)
+
+    def write_current_plot(self):
+        pass
+        # filename, ret = self.file_dialog.write_file()
+        # if ret:
+        #     self.dpm.fig.savefig(''.join([filename]))
+        # filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Plot',)
+
+    def write_all_plots(self):
+        pass
 
     def regulate_errors(self):
         print('Recalculating error maps...')

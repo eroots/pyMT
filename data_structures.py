@@ -193,6 +193,8 @@ class Dataset(object):
         if origin is None:
             if self.model.origin == (0, 0):
                 origin = self.raw_data.origin()
+            else:
+                origin = self.model.origin
         if self.data.sites:
             try:
                 assert all(np.isclose(self.data.locations[:, 0] + origin[1],
@@ -430,9 +432,9 @@ class Data(object):
         if datafile:
             # Might have to watch that if site names are read after data, that
             # The data site names are updated appropriately.
-            all_data = WS_io.read_data(datafile=datafile,
-                                       site_names=self.site_names,
-                                       filetype='data', invType=invType)
+            all_data, invType = WS_io.read_data(datafile=datafile,
+                                                site_names=self.site_names,
+                                                filetype='data', invType=invType)
             self.sites = {}
             if not self.site_names:
                 self.site_names = [str(x) for x in range(1, len(all_data) + 1)]
@@ -445,7 +447,9 @@ class Data(object):
                                         errmap=site.get('errmap', None),
                                         periods=site['periods'],
                                         locations=site['locations'],
-                                        azimuth=site['azimuth']
+                                        azimuth=site['azimuth'],
+                                        errfloorZ=site['errFloorZ'],
+                                        errfloorT=site['errFloorT']
                                         )})
             # if not self.site_names:
             #     self.site_names = [site for site in self.sites.keys()]
@@ -517,8 +521,8 @@ class Data(object):
             components = self.ACCEPTED_COMPONENTS
         return components
 
-    def write(self, outfile):
-        WS_io.write_data(data=self, outfile=outfile)
+    def write(self, outfile, to_write=None):
+        WS_io.write_data(data=self, outfile=outfile, to_write=to_write)
 
     def write_list(self, outfile):
         WS_io.write_list(data=self, outfile=outfile)
@@ -857,7 +861,10 @@ class Model(object):
 
     @dx.setter
     def dx(self, vals):
-        self._dx = list(set(vals))
+        if len(set(vals)) != len(vals):
+            print('Mesh lines not unique. Ignoring request.')
+            return
+        self._dx = vals
         self._xCS = list(np.diff(self._dx))
         self.update_vals()
 
@@ -867,7 +874,10 @@ class Model(object):
 
     @dy.setter
     def dy(self, vals):
-        self._dy = list(set(vals))
+        if len(set(vals)) != len(vals):
+            print('Mesh lines not unique. Ignoring request.')
+            return
+        self._dy = vals
         self._yCS = list(np.diff(self._dy))
         self.update_vals()
 
@@ -877,7 +887,10 @@ class Model(object):
 
     @dz.setter
     def dz(self, vals):
-        self._dz = list(set(vals))
+        if len(set(vals)) != len(vals):
+            print('Mesh lines not unique. Ignoring request.')
+            return
+        self._dz = vals
         self._zCS = list(np.diff(self._dz))
         self.update_vals()
 
@@ -961,7 +974,8 @@ class Site(object):
     NO_COMP_FLAG = -99999
 
     def __init__(self, data={}, name='', periods=None, locations={},
-                 errors={}, errmap=None, azimuth=None, flags=None):
+                 errors={}, errmap=None, azimuth=None, flags=None,
+                 errfloorZ=None, errfloorT=None):
         """Initialize a Site object.
         Data must a dictionary where the keys are acceptable tensor components,
         and the length matches the number of periods.
@@ -982,8 +996,14 @@ class Site(object):
         self.components = [key for key in data.keys()]
         self.orig_azimuth = azimuth
         self.azimuth = azimuth
-        self.errfloorZ = 5
-        self.errfloorT = 15
+        if errfloorZ is None:
+            self.errfloorZ = 5
+        else:
+            self.errfloorZ = errfloorZ
+        if errfloorT is None:
+            self.errfloorT = 15
+        else:
+            self.errfloorT = errfloorT
         if errmap:
             self.errmap = errmap
         else:
@@ -1172,6 +1192,7 @@ class Site(object):
             # if any(np.isclose(period, self.periods)):
             # ind = [ii for ii, val in enumerate(self.periods) if val >= period][0]
             ind = np.where(self.periods == period)[0]
+            # if ind is None
             # self.periods.delete(ind)
             self.periods = np.delete(self.periods, ind)
             for comp in self.data.keys():
