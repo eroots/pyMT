@@ -88,6 +88,7 @@ class Dataset(object):
         self.model = Model(modelfile=modelfile)
         self.raw_data = RawData(listfile=listfile, datpath=datpath)
         self.response = Data(listfile=listfile, datafile=responsefile)
+        self.rms = self.calculate_RMS()
         if not self.data.site_names:
             self.get_data_from_raw()
         azi = []
@@ -338,17 +339,46 @@ class Dataset(object):
     def calculate_RMS(self):
         NP = self.data.NP
         NS = self.data.NS
-        # NR = self.data.NR
-        misfit = {comp: np.array((NS, NP)) for comp in self.data.components}
-        comp_misfit = {comp: 0 for comp in self.data.components}
-        station_misfit = {comp: np.array((NS, 1)) for comp in self.data.components}
-        period_misfit = {comp: np.array((NP, 1)) for comp in self.data.components}
-        total_rms = 0
-        for ii, site in enumerate(self.data.site_names):
-            for comp in self.data.components:
-                misfit[comp][ii, :] = (np.abs(self.response.sites[site].data[comp] -
-                                              self.data.sites[site].data[comp]) /
-                                       self.data.sites[site].used_error[comp]) ** 2
+        NR = self.data.NR
+        components = self.data.components
+        if NP != self.response.NP:
+            print('Data and response periods do not match')
+            print('Data NP: {}, Response NP: {}'.format(self.data.NP, self.response.NP))
+            return None
+        if NS != self.response.NS:
+            print('Number of sites in data and response not equal')
+            return None
+        sites = self.data.site_names
+        misfit = {site: {comp: np.zeros((NP)) for comp in components}
+                  for site in sites}
+        # period_misfit = {site: np.zeros(NP) for site in sites}
+        period_misfit = np.zeros((NP))
+        comp_misfit = {comp: 0 for comp in components}
+        total_misfit = 0
+        for site in sites:
+            all_misfits = utils.calculate_misfit(self.data.sites[site],
+                                                 self.response.sites[site])
+            misfit[site] = all_misfits[0]
+            period_misfit += all_misfits[1]
+            total_misfit += np.mean(all_misfits[1])
+            for comp in components:
+                comp_misfit[comp] += all_misfits[2][comp]
+        period_RMS = np.sqrt(period_misfit / NS)
+        total_RMS = np.sqrt(total_misfit / NS)
+        comp_RMS = {comp: np.sqrt(comp_misfit[comp] / NS) for comp in components}
+        station_RMS = {site: {comp: np.sqrt(np.mean(misfit[site][comp])) for comp in components}
+                       for site in sites}
+        for site in sites:
+            station_RMS[site].update({'Total': 0})
+            for comp in components:
+                station_RMS[site]['Total'] += station_RMS[site][comp] ** 2
+            station_RMS[site]['Total'] = np.sqrt(station_RMS[site]['Total'] / NR)
+
+        return {'Total': total_RMS, 'Period': period_RMS,
+                'Component': comp_RMS, 'Station': station_RMS}
+        # for site in sites:
+        #     for comp in components:
+        #         station_RMS[site][comp] = np.sqrt(np.mean(misfit[site][comp]))
 
 
 class Data(object):

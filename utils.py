@@ -870,3 +870,23 @@ def sort_files(files):
         else:
             ret_dict.update({file_type: file})
     return ret_dict
+
+
+def calculate_misfit(data_site, response_site):
+    components = response_site.components
+    NP = len(data_site.periods)
+    NR = len(response_site.components)
+    misfit = {comp: np.zeros((len(data_site.periods))) for comp in components}
+    comp_misfit = {comp: 0 for comp in components}
+    period_misfit = np.zeros((NP))
+    if NP != len(response_site.periods):
+        print('Number of periods in data and response not equal!')
+        return
+    for comp in components:
+        if comp in data_site.components:
+            misfit[comp] = (np.abs(response_site.data[comp] - data_site.data[comp]) /
+                            data_site.used_error[comp]) ** 2
+            comp_misfit[comp] = (np.mean(misfit[comp]))
+            period_misfit += misfit[comp]
+    period_misfit = (period_misfit / NR)
+    return misfit, period_misfit, comp_misfit

@@ -68,13 +68,14 @@ def get_components(invType=None, NR=None):
                 'ZYYR', 'ZYYI',
                 'TZXR', 'TZXI',
                 'TZYR', 'TZYI')
+    print(invType)
     if not NR:
         NR = 0
     if (NR == 8 and not invType) or (invType == 1):
         comps = [possible[0:8], tuple(range(8))]
     elif (NR == 12 and not invType) or (invType == 5):
         comps = [possible, tuple(range(12))]
-    elif (NR == 4 and not invType) and (invType == 2):
+    elif (NR == 4 and not invType) or (invType == 2):
         comps = [possible[2:5], tuple(range(4))]
     elif invType == 3:
         comps = [possible[8:], tuple(range(4))]
@@ -230,9 +231,11 @@ def read_sites(listfile):
         raise(WSFileError('fnf', offender=listfile))
 
 
-def read_startup():
+def read_startup(file=None):
     s_dict = {}
-    with open('startup', 'r') as f:
+    if not file:
+        file = 'startup'
+    with open(file, 'r') as f:
         lines = f.readlines()
         for line in lines:
             if 'INVERSION_TYPE' in line.upper():
@@ -272,8 +275,13 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
                 raise(WSFileError(ID='int', offender=datafile,
                                   extra='Number of sites in data file not equal to list file'))
             # Components is a pair of (compType, Nth item to grab)
-            if utils.check_file('startup'):
-                startup = read_startup()
+
+            if os.path.split(datafile)[0]:
+                startup_file = PATH_CONNECTOR.join([os.path.split(datafile)[0], 'startup'])
+            else:
+                startup_file = 'startup'
+            if utils.check_file(startup_file):
+                startup = read_startup(startup_file)
                 invType = startup.get('inv_type', None)
             else:
                 startup = {}

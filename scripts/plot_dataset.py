@@ -33,14 +33,26 @@ dpm = gplot.DataPlotManager(fig=fig)
 # dpm.show_outliers = False
 # dpm.plot_data()
 # plt.show()
-
-dpm.components = ('ZXYR', 'ZXYI', 'ZYXR', 'ZYXI')
+components = {'diag': ('ZXXR', 'ZXXI', 'ZYYR', 'ZYYI'),
+              'offdiag': ('ZXYR', 'ZXYI', 'ZYXR', 'ZYXI'),
+              'phase': ('PhaXY', 'PhaYX', 'PhaXX', 'PhaYY'),
+              'rho': ('RhoXY', 'RhoYX', 'RhoXX', 'RhoYY'),
+              'tipper': ('TZXR', 'TZXI', 'TZYR', 'TZYI')}
+# dpm.components = ('ZXYR', 'ZXYI', 'ZYXR', 'ZYXI')
 # dpm.components = ('ZXXR', 'ZXXI', 'ZYYR', 'ZYYI')
 # dpm.components = ['RhoXY', 'RhoYX', 'RhoXX', 'RhoYY']
+dpm.show_outliers = False
 dpm.markersize = 8
-# for ii in range(0, len(dataset.data.site_names), 9):
-for ii in range(24, 25):
-    sites = dataset.data.site_names[ii:ii + 9]
-    dpm.sites = dataset.get_sites(site_names=sites, dTypes='all')
-    dpm.plot_data()
-    dpm.fig.savefig(''.join(['PhaDiag_misfit', str(ii), '.pdf']), bbox_inches='tight', dpi=1000)
+dpm.outlier_thresh = 3
+# for comps in components.keys():
+for comps in ['tipper']:
+    dpm.components = components[comps]
+    for ii in range(0, len(dataset.data.site_names), 9):
+        if comps == 'tipper':
+            dpm.scale = 'none'
+        else:
+            dpm.scale = 'sqrt(periods)'
+        sites = dataset.data.site_names[ii:ii + 9]
+        dpm.sites = dataset.get_sites(site_names=sites, dTypes='all')
+        dpm.plot_data()
+        dpm.fig.savefig(''.join([comps, '_misfit', str(ii), '.pdf']), bbox_inches='tight', dpi=1000)

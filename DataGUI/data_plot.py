@@ -26,6 +26,7 @@ import re
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui, QtCore
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
@@ -49,6 +50,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def __init__(self, dataset_dict):
         super(DataMain, self).__init__()
+        self.fig_dpi = 300
         self.pick_tol = 0.15
         self.DEBUG = False
         self.setupUi(self)
@@ -85,7 +87,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.error_tree.itemChanged.connect(self.post_edit_error)
         # self.update_comp_list()
         self.update_comp_table()
+        if self.dataset.rms:
+            self.update_rms_info()
         self.stored_key_presses = []
+
+    def update_rms_info():
+        pass
+        # ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
+        #                  if comp in self.dataset.data.components]
+
 
     @property
     def error_type(self):
@@ -299,14 +309,42 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.regErrors.clicked.connect(self.regulate_errors)
 
     def write_current_plot(self):
-        pass
-        # filename, ret = self.file_dialog.write_file()
-        # if ret:
-        #     self.dpm.fig.savefig(''.join([filename]))
+        # pass
+        filename, ret = self.file_dialog.write_file(ext='.pdf')
+        if ret:
+            file, extention = os.path.splitext(filename)
+            if not extention:
+                extention = '.pdf'
+            self.dpm.fig.savefig(''.join([file, extention]), dpi=self.fig_dpi)
         # filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Plot',)
 
     def write_all_plots(self):
-        pass
+        filename, ret = self.file_dialog.write_file(ext='.pdf')
+        if ret:
+            file, extention = os.path.splitext(filename)
+            if not extention:
+                extention = '.pdf'
+            extention = extention.lower()
+            full_file = ''.join([file, extention])
+            num_plots = len(self.site_names)
+            NS = self.dataset.data.NS
+            original_sites = self.site_names
+            for ii in range(0, NS, num_plots):
+                fig_number = int((ii / num_plots) + 1)
+                print('Saving figure {} of {}'.format(fig_number, int(np.ceil(NS / num_plots))))
+                sites = self.dataset.data.site_names[ii: ii + num_plots]
+                self.dpm.sites = self.dataset.get_sites(site_names=sites, dTypes='all')
+                self.dpm.plot_data()
+                if extention == '.pdf':
+                    if ii == 0:
+                        pp = PdfPages(full_file)
+                    self.dpm.fig.savefig(pp, format='pdf', dpi=self.fig_dpi)
+                else:
+                    self.dpm.fig.savefig(''.join([file, str(fig_number), extention]), dpi=self.fig_dpi)
+            if extention == '.pdf':
+                pp.close()
+            print('Done!')
+            self.dpm.sites = self.dataset.get_sites(site_names=original_sites, dTypes='all')
 
     def regulate_errors(self):
         print('Recalculating error maps...')
@@ -427,13 +465,17 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # that 6 sites are plotted but you remove some so that only 4 remain, there
         # will be an error.
         site_names = []
+        min_row = np.Infinity
         for site in self.siteList.selectedItems():
+            min_row = min(min_row, self.siteList.row(site))
             name = site.text()
             site_names.append(name)
             self.rmSitesList.addItem(self.siteList.takeItem(self.siteList.row(site)))
             self.stored_sites.update({name: {dType: getattr(self.dataset, dType).sites[name]
                                              for dType in self.dataset.data_types
                                              if self.dataset.has_dType(dType)}})
+        min_row = max(min_row - 1, 0)
+        self.siteList.scrollToItem(self.siteList.item(min_row), hint=1)
         self.dataset.remove_sites(sites=site_names)
         intersect = set(site_names).intersection(set(self.dpm.site_names))
         idx_plotted = list(sorted([self.dataset.data.site_names.index(x) for x in self.dpm.site_names
@@ -641,8 +683,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if set(self.site_names) == set(self.dpm.site_names) and shift != 0:
             return
         sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
-        self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
         self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
+        self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
         self.dpm.fig.canvas.draw()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
 

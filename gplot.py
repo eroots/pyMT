@@ -235,7 +235,7 @@ class DataPlotManager(object):
         else:
             self.fig.clear()
         if len(self.fig.get_axes()) != self.num_sites:
-            print('Redrawing Axes')
+            # print('Redrawing Axes')
             self.redraw_axes()
         Max = np.zeros([tiling[1] * tiling[0]])
         Min = np.zeros([tiling[1] * tiling[0]])
@@ -255,7 +255,7 @@ class DataPlotManager(object):
                     else:
                         self.artist_ref[Type][ii] = artist
                 if jj == 0:
-                    print(site.name)
+                    # print(site.name)
                     self.set_labels(axnum=ii, site_name=site.name)
         self.set_bounds(Max=Max, Min=Min, axnum=list(range(ii + 1)))
         self.set_legend()
