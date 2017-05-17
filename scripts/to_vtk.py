@@ -32,7 +32,8 @@ def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
         model.to_vtk(outfile, sea_level=sea_level)
     if listfile:
         print('Writing model to {}'.format('_'.join([outfile, 'sites.vtk'])))
-        dataset.raw_data.locations = dataset.raw_data.get_locs(mode='centered')[0]
+        # dataset.raw_data.locations = dataset.raw_data.get_locs(mode='centered')
+        dataset.raw_data.locations -= (origin[1], origin[0])
         dataset.raw_data.to_vtk(origin=origin, UTM=UTM, outfile=outfile, sea_level=sea_level)
     elif datafile:
         print('Writing model to {}'.format('_'.join([outfile, 'sites.vtk'])))

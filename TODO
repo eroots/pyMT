@@ -3,29 +3,30 @@ TODO
 Overall:
     - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
     - Refactor some code (esp. from data_plot) to use GUI_common rather than internal methods / functions.
-    - Finish writing 'calculate_RMS'
     - Need more meaningful errors for things. For instance, if you read in a output data file (from WSINV) instead of an input file (from j2, e.g.), the Data object will be created fine, but it will cause fatal errors in data_plot.py. It's fine that the data still gets read, but data_plot.py needs to know how to gracefully exit and give a meaningful error.
 
 j2ws3d.py:
     - Make interactive period selection more interactive (pickable table for periods)
 
+mesh_designer.py
+    - If a list isn't specified in the pystart file, some error is passing silently: The GUI loads, gives no errors, however axis labels are absent.
+    - Add option to mesh_designer to change aspect ratio
+    - Potential bug where the model that you see in the designer is not the same as the one that is written out. Unknown cause, but it seems that the mesh is shifting (at least relative to the site locations) after write out.
+    - When the model is made non-symmetric (e.g. by adding pads to one side but not the other), the sites remain fixed but grid lines as shown in the GUI will no longer match those made when the model is read in (since when the model is read in, it automatically gets re-centered). This has to be accounted for.
 data_plot.py:
+    - Allow occam responses to be plotted. Will require overhaul...
+    - Error thrown in data_plot when taking consequetive periods off of the end
+    - Dumping plots to file has issues with the number of subplots
     - Ability to plot over the map with rho, phase, or model.
-    - When adding / removing sites, the list should remember where you are. Gets annoying having to scroll back down and find your spot.
     - BIG BUG: I think that if you write a datafile after changing the sort order, something messes up with the written data files. Either the site locations are staying the same but the data is being moved, or vice versa, either way, the data is not right.
     - Should change the behavior of phase, rho, and bostick plotting to lazy calculation, but so that it retains that knowledge, i.e. calculate when called upon, but store the result so that it doesn't have to be calculated again.
-    - Error tree branches don't expand and collapse properly when flipping through site pages.
     - Better ways to set error maps. Intelligent outlier settings and error map caps based on deviation from the rest of the data (don't allow practically infinite error just to ignore a point, set it to keep the response curve reasonable.)
     - If you add or remove periods rapidly, an error occurs as the program tries to put in or remove the new period before it's done working with the old one.
-    - Stop the list from resetting it's position when removing sites. Gets really annoying if you're removing many sites.
     - If you remove all the currently plotted sites, the sorting resets to the beginning of the list. Should probably fill in from where it left off.
     - Better options for adding / removing periods in bulk. Automatic selection good (i.e. high % availability) periods between selected period range.
     - 'Sort Sites' doesn't work as intended when using non-zero azimuth. Map is shown at 0 degrees regardless, but it seems as though the locations used in sorting are considered in the rotated state.
     - Bug when loading data at non-zero azimuths. Raw data is auto-rotated to 0, but if azimuth isn't set in data file, it is assumed to be zero, which leads to unfixable differences between raw and used data. I guess not a bug, you just have to make sure the azimuth is set.
     - Need to work on the file entry portion of this. Pystarts works for me, but need to make sure other options are available if others are gonna use it. Also, -c flag should accept multiple inputs (right now it just takes the first). CORRECTION, -c flag does take multiple inputs if they are separated by ':', i.e. -c d1:d2:d3. This should be made clear in any readmes, or in the -h
-    - Add Bostick calculation and plotting
-    - Separate plottables into Data (Impedances), Rho, Phase, and Bostick. Separate them in the GUI using tabs or something so that you can't mix units.
-    - Should have a button to 'dump plots', i.e. iterate through all the pages with the current plot settings and save each page to a file.
     - Refactor some things.
         - Should have a class based on QMessageBox that handles accepting output files. This is a common part of pretty much any GUI I'll end up writing, so this is something that should be done once (maybe in a module just for this kinds of commom buttons). See method WriteData for what the functionality. (Right now this is also just copy and pasted into dump_list)
     - Should have an option to cache any changes that are made to the dataset. Would be useful to be able to see which sites were removed, which periods removed / added, which error maps changed.
@@ -35,9 +36,9 @@ data_plot.py:
     - Option to plot map in rotated or unrotated coordinates.
     - Give info on the misfit data. Don't want to have to keep going back to matlab to get info like RMS per component, station, period, etc.
 data_structures.py:
+    - Rho, phase, and bostick data should be pre-calculated when the data is read in (i.e. don't have to calculate it manually every time you want to plot it)
     - If a dataset is read without a response, but the data is at 0 degrees, things work fine. If azimuth is non-zero, errors are thrown about azimuth not being an attribute.
     short term solution is to set azimuth to 0 prior to __read__. This suppresses the error, but some output should be given so that you know what the issue is.
-    - Add calculate_misfit method to Dataset
     - Add functionality to allow models and data locations to be plotted in latlong, UTM or local coordinates. Data and Models could have a 'coord_system' attribute which tells get_locs which locations to get by default. Model grid lines would have to be converted accordingly (latlong coords would only be available if RawData were available)
 
 bost1D.py:

@@ -51,6 +51,8 @@ def format_coords(x, y):
 class DataPlotManager(object):
 
     def __init__(self, fig=None):
+        self.link_axes_bounds = False
+        self.axis_padding = 0.1
         self.colour = ['darkgray', 'r', 'g', 'm', 'y', 'lime', 'peru', 'palegreen']
         self.sites = {'raw_data': [], 'data': [], 'response': []}
         self.toggles = {'raw_data': True, 'data': True, 'response': True}
@@ -67,7 +69,7 @@ class DataPlotManager(object):
         self.show_outliers = True
         self.outlier_thresh = 2
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
-        self.y_labels = {'r': 'Apparent Resistivity', 'z': 'Impedance',
+        self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
                          't': 'Transfer Function', 'p': 'Phase', 'b': 'Apparent Resistivity'}
         if fig is None:
             self.new_figure()
@@ -99,7 +101,7 @@ class DataPlotManager(object):
                 sub in self.components[0].lower() for sub in ('rho', 'pha')):
             units = ''.join(['s*', units])
         elif self.scale.lower() == 'sqrt(periods)' and not any(
-                sub in self.components[0].lower() for sub in ('rho', 'pha')):
+                sub in self.components[0].lower() for sub in ('rho', 'pha', 'bost')):
             units = ''.join([r'$\sqrt{s}$*', units])
         return units
 
@@ -113,6 +115,10 @@ class DataPlotManager(object):
         self.axes = []
         self.tiling = self.gen_tiling()
         for ii in range(self.num_sites):
+            # if ii > 0 and self.link_axes_bounds:
+            #     self.axes.append(self.fig.add_subplot(self.tiling[0], self.tiling[1], ii + 1,
+            #                                           sharex=self.axes[0], sharey=self.axes[0]))
+            # else:
             self.axes.append(self.fig.add_subplot(self.tiling[0], self.tiling[1], ii + 1))
 
     def gen_tiling(self):
@@ -201,6 +207,7 @@ class DataPlotManager(object):
         if axnum == 0:
             self.set_legend()
         self.set_bounds(Max=Max, Min=Min, axnum=axnum)
+        # self.set_bounds(axnum=axnum)
         self.set_labels(axnum, site_name)
         # self.fig.canvas.draw()
 
@@ -258,10 +265,11 @@ class DataPlotManager(object):
                     # print(site.name)
                     self.set_labels(axnum=ii, site_name=site.name)
         self.set_bounds(Max=Max, Min=Min, axnum=list(range(ii + 1)))
+        # self.set_bounds(axnum=list(range(ii + 1)))
         self.set_legend()
         # plt.show()
 
-    def set_bounds(self, Max, Min, axnum):
+    def set_bounds(self, Max, Min, axnum=None):
         try:
             for ax in axnum:
                 axrange = Max[ax] - Min[ax]
@@ -269,6 +277,37 @@ class DataPlotManager(object):
         except TypeError:
             axrange = Max - Min
             self.axes[axnum].set_ylim([Min - axrange / 4, Max + axrange / 4])
+        if axnum is None:
+                axnum = range(0, len(self.axes))
+        # if self.link_axes_bounds:
+        #     self.link_axes(axnum=axnum)
+        # else:
+        # try:
+        #     for ax in axnum:
+        #         self.axes[ax].set_ymargin(self.axis_padding)
+        #         self.axes[ax].autoscale(self.axis_padding)
+        # except TypeError:
+        #     self.axes[axnum].set_ymargin(self.axis_padding)
+        #     self.axes[axnum].autoscale()
+
+    @utils.enforce_input(axnum=list, x_bounds=list, y_bounds=list)
+    def link_axes(self, axnum, x_bounds=None, y_bounds=None):
+        if axnum is None:
+            axnum = range(0, len(self.axes))
+        if not x_bounds:
+            x_bounds = (min([ax.get_xbound()[0] for ax in self.axes]),
+                        max([ax.get_xbound()[1] for ax in self.axes]))
+        if not y_bounds:
+            y_bounds = (min([ax.get_ybound()[0] for ax in self.axes]),
+                        max([ax.get_ybound()[1] for ax in self.axes]))
+        # x_axrange = x_bounds[1] - x_bounds[0]
+        # y_axrange = y_bounds[1] - y_bounds[0]
+        # print(x_bounds, y_bounds)
+        for ax in axnum:
+            self.axes[ax].set_xmargin(self.axis_padding)
+            self.axes[ax].set_ymargin(self.axis_padding)
+            self.axes[ax].set_ylim([y_bounds[0], y_bounds[1]])
+            self.axes[ax].set_xlim([x_bounds[0], x_bounds[1]])
 
     def plot_site(self, site, Type='Data', ax=None):
         """Summary
@@ -309,7 +348,8 @@ class DataPlotManager(object):
             toplotErr = None
             errtype = 'none'
         if Type.lower() == 'response':
-            Err = toplotErr = None
+            Err = None
+            toplotErr = None
             errtype = 'none'
         for ii, comp in enumerate(self.components):
             try:
@@ -324,7 +364,9 @@ class DataPlotManager(object):
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
                         toplotErr = log10_e
                 elif 'pha' in comp.lower():
-                    toplot, toplotErr = utils.compute_phase(site, calc_comp=comp, errtype=errtype)
+                    toplot, e = utils.compute_phase(site, calc_comp=comp, errtype=errtype)
+                    if Type.lower() != 'response' and self.errors.lower() != 'none':
+                        toplotErr = e
                 elif 'bost' in comp.lower():
                     toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
                     toplot = np.log10(toplot)

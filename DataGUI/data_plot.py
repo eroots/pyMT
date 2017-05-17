@@ -88,14 +88,50 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.update_comp_list()
         self.update_comp_table()
         if self.dataset.rms:
-            self.update_rms_info()
+            self.init_rms_tables()
         self.stored_key_presses = []
 
-    def update_rms_info():
+    def init_rms_tables(self):
+        ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
+                         if comp in self.dataset.data.components]
+        header = ['Total'] + ordered_comps
+        periods = ['Total'] + list(self.dataset.data.periods)
+        self.stationRMS.setRowCount(self.dataset.data.NS)
+        self.stationRMS.setColumnCount(self.dataset.data.NR + 1)
+        self.periodRMS.setRowCount(self.dataset.data.NP + 1)
+        self.periodRMS.setColumnCount(self.dataset.data.NR + 1)
+        for ii, label in enumerate(header):
+            self.stationRMS.setHorizontalHeaderItem(ii, QtGui.QTableWidgetItem(label))
+            self.periodRMS.setHorizontalHeaderItem(ii, QtGui.QTableWidgetItem(label))
+            for jj, site in enumerate(self.dataset.data.site_names):
+                if ii == 0:
+                    self.stationRMS.setVerticalHeaderItem(jj, QtGui.QTableWidgetItem(site))
+                node = QtGui.QTableWidgetItem(str(self.dataset.rms['Station'][site][label])[:4])
+                node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                self.stationRMS.setItem(jj, ii, node)
+            for jj, period in enumerate(periods):
+                if jj > 0:
+                    if period < 1:
+                        period = utils.truncate(- 1 / period)
+                    period = str(period)
+                if ii == 0:
+                    self.periodRMS.setVerticalHeaderItem(jj, QtGui.QTableWidgetItem(str(period)))
+                if jj == 0:
+                    node = QtGui.QTableWidgetItem(str(self.dataset.rms['Component'][label])[:4])
+                    node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                    self.periodRMS.setItem(jj, ii, QtGui.QTableWidgetItem(node))
+                else:
+                    node = QtGui.QTableWidgetItem(str(self.dataset.rms['Period'][label][jj - 1])[:4])
+                    node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                    self.periodRMS.setItem(jj, ii, QtGui.QTableWidgetItem(node))
+        for ii in range(len(header)):
+            self.stationRMS.horizontalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
+            self.periodRMS.horizontalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
+
+    def update_rms_info(self):
         pass
         # ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
         #                  if comp in self.dataset.data.components]
-
 
     @property
     def error_type(self):
@@ -307,6 +343,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.writeCurrentPlot.triggered.connect(self.write_current_plot)
         self.writeAllPlots.triggered.connect(self.write_all_plots)
         self.regErrors.clicked.connect(self.regulate_errors)
+        self.LockAxes.clicked.connect(self.link_axes)
+
+    def link_axes(self):
+        if self.LockAxes.checkState():
+            self.dpm.link_axes_bounds = True
+        else:
+            self.dpm.link_axes_bounds = False
+        self.dpm.redraw_axes()
+        self.update_dpm()
 
     def write_current_plot(self):
         # pass
@@ -421,8 +466,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.set_data_toggles()
         # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
         # self.error_tree.itemChanged.disconnect()
-        self.update_error_tree()
         self.sort_sites()
+        self.update_error_tree()
         self.back_or_forward_button(shift=0)
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
 
@@ -683,9 +728,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if set(self.site_names) == set(self.dpm.site_names) and shift != 0:
             return
         sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
-        self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
         self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
-        self.dpm.fig.canvas.draw()
+        self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
+        # self.dpm.fig.canvas.draw()
+        self.update_dpm()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
 
     def shift_site_names(self, shift=1):
@@ -731,6 +777,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
             # print(time.time() - t)
         # print(time.time() - t)
         # t = time.time()
+        if self.dpm.link_axes_bounds is True:
+            self.dpm.link_axes()
         self.dpm.fig.canvas.draw()
         # print(time.time() - t)
 

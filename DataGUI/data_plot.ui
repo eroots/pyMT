@@ -117,7 +117,7 @@
      <item row="2" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="currentIndex">
-        <number>2</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -332,7 +332,7 @@
            <x>10</x>
            <y>0</y>
            <width>131</width>
-           <height>151</height>
+           <height>171</height>
           </rect>
          </property>
          <property name="title">
@@ -382,13 +382,20 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="LockAxes">
+            <property name="text">
+             <string>Lock Axes</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
         <widget class="QLabel" name="label_6">
          <property name="geometry">
           <rect>
            <x>40</x>
-           <y>160</y>
+           <y>170</y>
            <width>53</width>
            <height>16</height>
           </rect>
@@ -401,7 +408,7 @@
          <property name="geometry">
           <rect>
            <x>20</x>
-           <y>180</y>
+           <y>190</y>
            <width>91</width>
            <height>22</height>
           </rect>
@@ -425,7 +432,7 @@
         <widget class="QLineEdit" name="numSubplots">
          <property name="geometry">
           <rect>
-           <x>200</x>
+           <x>260</x>
            <y>190</y>
            <width>41</width>
            <height>22</height>
@@ -435,7 +442,7 @@
         <widget class="QLabel" name="label_7">
          <property name="geometry">
           <rect>
-           <x>180</x>
+           <x>240</x>
            <y>170</y>
            <width>81</width>
            <height>16</height>
@@ -487,8 +494,8 @@
         <widget class="QPushButton" name="showMap">
          <property name="geometry">
           <rect>
-           <x>180</x>
-           <y>140</y>
+           <x>130</x>
+           <y>180</y>
            <width>91</width>
            <height>21</height>
           </rect>
@@ -520,64 +527,41 @@
         </attribute>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QTableWidget" name="stationRMS"/>
+          <widget class="QTableWidget" name="stationRMS">
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+           <property name="sortingEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <attribute name="horizontalHeaderCascadingSectionResizes">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+            <bool>false</bool>
+           </attribute>
+           <attribute name="verticalHeaderCascadingSectionResizes">
+            <bool>true</bool>
+           </attribute>
+          </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+          <widget class="QTableWidget" name="periodRMS">
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
+           <property name="sortingEnabled">
+            <bool>false</bool>
            </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QTableWidget" name="compRMS"/>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QTableWidget" name="periodRMS"/>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="rmsInfo">
-           <property name="minimumSize">
-            <size>
-             <width>200</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>TextLabel</string>
-           </property>
+           <attribute name="horizontalHeaderCascadingSectionResizes">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="verticalHeaderCascadingSectionResizes">
+            <bool>true</bool>
+           </attribute>
           </widget>
          </item>
         </layout>

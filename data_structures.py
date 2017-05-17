@@ -193,7 +193,7 @@ class Dataset(object):
     def to_vtk(self, origin=None, UTM=None, outfile=None, sea_level=0):
         if origin is None:
             if self.model.origin == (0, 0):
-                origin = self.raw_data.origin()
+                origin = self.raw_data.origin
             else:
                 origin = self.model.origin
         if self.data.sites:
@@ -216,8 +216,8 @@ class Dataset(object):
         outfile = os.path.splitext(outfile)[0]
         mod_outfile = ''.join([outfile, '_model.vtk'])
         site_outfile = ''.join([outfile, '_sites.vtk'])
-        self.model.model_to_vtk(self.model, outfile=mod_outfile, origin=origin, UTM=UTM, sea_level=sea_level)
-        self.data.sites_to_vtk(self.data, outfile=site_outfile, UTM=UTM, origin=origin, sea_level=sea_level)
+        self.model.to_vtk(outfile=mod_outfile, origin=origin, UTM=UTM, sea_level=sea_level)
+        self.data.to_vtk(outfile=site_outfile, UTM=UTM, origin=origin, sea_level=sea_level)
 
     def read_raw_data(self, listfile='', datpath=''):
         """Summary
@@ -341,6 +341,8 @@ class Dataset(object):
         NS = self.data.NS
         NR = self.data.NR
         components = self.data.components
+        if NS == 0 or NR == 0 or NP == 0:
+            return None
         if NP != self.response.NP:
             print('Data and response periods do not match')
             print('Data NP: {}, Response NP: {}'.format(self.data.NP, self.response.NP))
@@ -352,20 +354,21 @@ class Dataset(object):
         misfit = {site: {comp: np.zeros((NP)) for comp in components}
                   for site in sites}
         # period_misfit = {site: np.zeros(NP) for site in sites}
-        period_misfit = np.zeros((NP))
-        comp_misfit = {comp: 0 for comp in components}
+        period_misfit = {comp: np.zeros((NP)) for comp in components + ['Total']}
+        comp_misfit = {comp: 0 for comp in components + ['Total']}
         total_misfit = 0
         for site in sites:
             all_misfits = utils.calculate_misfit(self.data.sites[site],
                                                  self.response.sites[site])
             misfit[site] = all_misfits[0]
-            period_misfit += all_misfits[1]
-            total_misfit += np.mean(all_misfits[1])
-            for comp in components:
-                comp_misfit[comp] += all_misfits[2][comp]
-        period_RMS = np.sqrt(period_misfit / NS)
+            # period_misfit += all_misfits[1]
+            total_misfit += np.mean(all_misfits[1]['Total'])
+            for comp in comp_misfit.keys():
+                period_misfit[comp] += all_misfits[1][comp]
+                # comp_misfit[comp] += np.mean(period_misfit[comp])
+        period_RMS = {comp: np.sqrt(period_misfit[comp] / NS) for comp in period_misfit.keys()}
         total_RMS = np.sqrt(total_misfit / NS)
-        comp_RMS = {comp: np.sqrt(comp_misfit[comp] / NS) for comp in components}
+        comp_RMS = {comp: np.sqrt(np.mean(period_misfit[comp]) / NS) for comp in comp_misfit.keys()}
         station_RMS = {site: {comp: np.sqrt(np.mean(misfit[site][comp])) for comp in components}
                        for site in sites}
         for site in sites:
@@ -374,8 +377,10 @@ class Dataset(object):
                 station_RMS[site]['Total'] += station_RMS[site][comp] ** 2
             station_RMS[site]['Total'] = np.sqrt(station_RMS[site]['Total'] / NR)
 
-        return {'Total': total_RMS, 'Period': period_RMS,
-                'Component': comp_RMS, 'Station': station_RMS}
+        # return {'Total': total_RMS, 'Period': period_RMS,
+        #         'Component': comp_RMS, 'Station': station_RMS}
+        return {'Total': total_RMS, 'Component': comp_RMS,
+                'Station': station_RMS, 'Period': period_RMS}
         # for site in sites:
         #     for comp in components:
         #         station_RMS[site][comp] = np.sqrt(np.mean(misfit[site][comp]))
@@ -1073,7 +1078,8 @@ class Site(object):
             mapped_err = {comp: self.errors[comp] * self.errmap[comp] for
                           comp in self.errors if comp[0] == 'Z'}
             for comp, err in mapped_err.items():
-                self.used_error[comp] = np.array([max(fl, mapped) for (fl, mapped) in zip(erabsz, err)])
+                self.used_error[comp] = np.array([max(fl, mapped)
+                                                  for (fl, mapped) in zip(erabsz, err)])
         if 'TZX' in comps:
             TZX = self.data['TZXR'] + 1j * self.data['TZXI']
             TZY = self.data['TZYR'] + 1j * self.data['TZYI']
@@ -1566,7 +1572,7 @@ class RawData(object):
         if azi != 0:
             locs = utils.rotate_locs(locs, azi)
         if mode.lower() == 'centered':
-            locs = utils.center_locs(locs)
+            locs = utils.center_locs(locs)[0]
         return locs
 
     def master_period_list(self):

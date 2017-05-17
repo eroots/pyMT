@@ -2,6 +2,7 @@
 """
 import numpy as np
 import os
+from copy import deepcopy
 from math import log10, floor
 MU = 4 * np.pi * 1e-7
 
@@ -640,7 +641,7 @@ def compute_rho(site, calc_comp=None, errtype='none'):
     return np.real(rho_data), np.real(rho_error), np.real(rho_log10Err)
 
 
-def compute_phase(site, calc_comp=None, errtype=None):
+def compute_phase(site, calc_comp=None, errtype=None, wrap=1):
     def compute_phase_error(phase_data, r_error, im_err):
         # Phase error is calculated by first calculating the phase at
         # the 8 possible points when considering the complex errors,
@@ -699,7 +700,8 @@ def compute_phase(site, calc_comp=None, errtype=None):
             zeR = getattr(site, errtype)[''.join([comp, 'R'])]
             zeI = -1j * getattr(site, errtype)[''.join([comp, 'I'])]
             pha_error = compute_phase_error(pha_data, zeR, zeI)
-
+        if 'yx' in calc_comp and wrap:
+            pha_data += 180
     return pha_data, pha_error
 
 
@@ -876,8 +878,9 @@ def calculate_misfit(data_site, response_site):
     components = response_site.components
     NP = len(data_site.periods)
     NR = len(response_site.components)
-    misfit = {comp: np.zeros((len(data_site.periods))) for comp in components}
-    comp_misfit = {comp: 0 for comp in components}
+    misfit = {comp: np.zeros((NP)) for comp in components}
+    # comp_misfit = {comp: 0 for comp in components}
+    comp_misfit = {comp: np.zeros((NP)) for comp in components}
     period_misfit = np.zeros((NP))
     if NP != len(response_site.periods):
         print('Number of periods in data and response not equal!')
@@ -886,7 +889,31 @@ def calculate_misfit(data_site, response_site):
         if comp in data_site.components:
             misfit[comp] = (np.abs(response_site.data[comp] - data_site.data[comp]) /
                             data_site.used_error[comp]) ** 2
-            comp_misfit[comp] = (np.mean(misfit[comp]))
+            comp_misfit[comp] = ((misfit[comp]))
             period_misfit += misfit[comp]
     period_misfit = (period_misfit / NR)
-    return misfit, period_misfit, comp_misfit
+    comp_misfit.update({'Total': period_misfit})
+    return misfit, comp_misfit
+
+
+def convert2impedance(rho, phase, periods, component):
+    phase = np.deg2rad(phase)
+    tp = np.tan(phase)
+    re = np.sign(tp) * np.sqrt(5 * rho * MU / (periods * (1 + tp**2)))
+    im = np.sign(tp) * np.sqrt(5 * rho * MU / (periods * (1 + 1 / (tp**2))))
+    if 'xy' in component.lower():
+        im = -im
+    elif 'yx' in component.lower():
+        re = -re
+    return re, im
+
+
+# def brute_compute_strike(site, increment=1, band=None):
+#     if band is None:
+#         band = (site.periods[0], site.periods[-1])
+#     working_site = deepcopy(site)
+#     degrees = np.linspace(0, 359, increment)
+#     XXPow = np.array((len(degrees), 1))
+#     YYPow = np.array((len(degrees), 1))
+#     idx = np.bitwise_and(site.periods >= band[0], site.periods <= band[1])
+#     for ii, theta in enumerate(degrees):

@@ -1,6 +1,12 @@
 == CHANGELOG ==
+28/04/17:
+ - Added 'link axes' option (note this just sets the bounds the same for each plot)
+??/??/??:
+ - Added RMS table to data_plot GUI.
+ - 
 28/03/17:
  - Finished writing calculate_RMS for Dataset objects.
+ - data_plot can now write plots to files. Saves figure at its current size, may need to be changed in the future.
 08/03/17:
  - Added z-mesh generation to mesh_designer. Bulk changes to mesh (either in Z or XY) will result in the model being changed to a half-space if it wasn't already.
 06/03/17:

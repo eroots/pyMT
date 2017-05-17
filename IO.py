@@ -244,6 +244,8 @@ def read_startup(file=None):
                 s_dict.update({'errFloorZ': float(line.split()[1])})
             elif 'MIN_ERROR_T' in line.upper():
                 s_dict.update({'errFloorT': float(line.split()[1])})
+            elif 'DATA_FILE' in line.upper():
+                s_dict.update({'datafile': line.split()[1]})
     return s_dict
 
 
@@ -502,7 +504,7 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     if origin:
         try:
             ox, oy = origin
-        except:
+        except TypeError:
             errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
     else:
         ox, oy = model.origin
@@ -577,7 +579,7 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
     else:
         try:
             ox, oy = origin
-        except:
+        except TypeError:
             errmsg = '\n'.join([errmsg, 'Model origin must be properly specified.'])
     if not UTM:
         errmsg = '\n'.join(['ERROR: UTM must be specified either in function call or in model'])
@@ -645,13 +647,13 @@ def write_model(model, outfile):
         f.write('{}\n'.format(outfile))
         f.write('{} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space))
         for x in model.xCS:
-            f.write('{:<10.7E}  '.format(x))
+            f.write('{:<10.7f}  '.format(x))
         f.write('\n')
         for y in model.yCS:
-            f.write('{:<10.7E}  '.format(y))
+            f.write('{:<10.7f}  '.format(y))
         f.write('\n')
         for z in model.zCS:
-            f.write('{:<10.7E}  '.format(z))
+            f.write('{:<10.7f}  '.format(z))
         f.write('\n')
         if is_half_space:
             f.write(str(model.vals[0, 0, 0]))
@@ -659,4 +661,105 @@ def write_model(model, outfile):
             for zz in range(model.nz):
                 for yy in range(model.ny):
                     for xx in range(model.nx):
-                        f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                        # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                        f.write('{:<10.7f}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+
+
+def read_occam_data(datafile):
+    with open(datafile, 'r') as f:
+        lines = f.readlines()
+        for ii, line in enumerate(lines):
+            if 'sites' in line.lower():
+                NS = int(line.split(':')[1].strip())
+                site_line = ii + 1
+            if 'offsets' in line.lower():
+                off_line = ii + 1
+            if 'frequencies' in line.lower():
+                NF = int(line.split(':')[1].strip())
+                freq_line = ii + 1
+                break
+        frequencies = []
+        offsets = []
+        for line in lines[off_line: off_line + NS]:
+            if 'frequencies' in line.lower():
+                break
+            else:
+                offsets.append(line)
+        for ii, line in enumerate(lines[freq_line: freq_line + NF]):
+            if 'DATA' in line.upper():
+                ND = int(line.split(':')[1].strip())
+                data_line = ii + 2
+                break
+            else:
+                frequencies.append(line)
+        frequencies = utils.flatten_list([x.split() for x in frequencies])
+        # frequencies = [item for sublist in frequencies for item in sublist]
+        # frequencies = [float(x) for x in frequencies]
+        frequencies = np.array([float(f) for f in frequencies])
+        sites = lines[site_line: site_line + NS]
+        sites = [site.strip() for site in sites]
+        offsets = utils.flatten_list([x.split() for x in offsets])
+        offsets = [float(x) for x in offsets]
+        all_data = np.zeros((ND, 5))
+        for ii, line in enumerate(lines[data_line:]):
+            all_data[ii, :] = [float(x) for x in line.split()]
+        sites_dict = {}
+        for ii, site in enumerate(sites):
+            site_data = {'ZXYR': [], 'ZXYI': [], 'ZYXR': [], 'ZYXI': []}
+            rhoxy = all_data[np.bitwise_and(all_data[:, 2] == 1, all_data[:, 0] == ii + 1), 3]
+            rhoyx = all_data[np.bitwise_and(all_data[:, 2] == 5, all_data[:, 0] == ii + 1), 3]
+            phaxy = all_data[np.bitwise_and(all_data[:, 2] == 2, all_data[:, 0] == ii + 1), 3]
+            phayx = all_data[np.bitwise_and(all_data[:, 2] == 6, all_data[:, 0] == ii + 1), 3]
+            site_data['ZXYR'], site_data['ZXYI'] = utils.convert2impedance(rhoxy,
+                                                                           phaxy,
+                                                                           1 / frequencies,
+                                                                           'xy')
+            site_data['ZYXR'], site_data['ZYXI'] = utils.convert2impedance(rhoyx,
+                                                                           phayx,
+                                                                           1 / frequencies,
+                                                                           'yx')
+            site_errs = {'ZXYR': np.zeros((NF, 1)),
+                         'ZXYI': np.zeros((NF, 1)),
+                         'ZYXR': np.zeros((NF, 1)),
+                         'ZYXI': np.zeros((NF, 1))}
+            site_errmap = {'ZXYR': np.ones((NF, 1)),
+                           'ZXYI': np.ones((NF, 1)),
+                           'ZYXR': np.ones((NF, 1)),
+                           'ZYXI': np.ones((NF, 1))}
+            locations = {'X': 0, 'Y': offsets[ii]}
+            sites_dict.update({site: {
+                               'data': site_data,
+                               'errors': site_errs,
+                               'errmap': site_errmap,
+                               'periods': 1 / frequencies,
+                               'locations': locations,
+                               'azimuth': 0,
+                               'errFloorZ': None,
+                               'errFloorT': None}
+                               })
+    return sites_dict, sites
+
+
+def read_occam_response(respfile, data, sites):
+    all_data = np.loadtxt(respfile)
+    response = copy.deepcopy(data)
+    for ii, site in enumerate(sites):
+        rhoxy = all_data[np.bitwise_and(all_data[:, 2] == 1, all_data[:, 0] == ii + 1), 5]
+        rhoyx = all_data[np.bitwise_and(all_data[:, 2] == 5, all_data[:, 0] == ii + 1), 5]
+        phaxy = all_data[np.bitwise_and(all_data[:, 2] == 2, all_data[:, 0] == ii + 1), 5]
+        phayx = all_data[np.bitwise_and(all_data[:, 2] == 6, all_data[:, 0] == ii + 1), 5]
+        response[site]['data']['ZXYR'],
+        response[site]['data']['ZXYI'] = utils.convert2impedance(rhoxy,
+                                                                 phaxy,
+                                                                 data[site]['periods'],
+                                                                 'xy')
+        response[site]['data']['ZYXR'],
+        response[site]['data']['ZYXI'] = utils.convert2impedance(rhoyx,
+                                                                 phayx,
+                                                                 data[site]['periods'],
+                                                                 'yx')
+        return response
+
+
+# def occam2ws(respfile, datafile, listfile=None, datpath=None):
+
