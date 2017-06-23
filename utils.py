@@ -908,6 +908,14 @@ def convert2impedance(rho, phase, periods, component):
     return re, im
 
 
+def check_extention(outfile, expected=''):
+    path, file, ext = fileparts(outfile)
+    if expected in ext:
+        return outfile
+    else:
+        return '.'.join([outfile, expected])
+
+
 # def brute_compute_strike(site, increment=1, band=None):
 #     if band is None:
 #         band = (site.periods[0], site.periods[-1])

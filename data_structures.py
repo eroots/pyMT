@@ -315,6 +315,8 @@ class Dataset(object):
             self.data.site_names = sites
         else:
             print('Order {} not recognized.'.format(order))
+            return
+        self.data.locations = self.data.get_locs()
 
     def regulate_errors(self, multiplier=2.5, fwidth=1):
         use_log = False

@@ -1,4 +1,10 @@
 == CHANGELOG ==
+13/06/17:
+ - Changed data / list writing from DataGUI such that:
+        - If site order is changed in GUI, the data file is written to reflect the change.
+        - If site order is changed, you are prompted to write out a list file as well as a data file.
+        - Made the Popups clearer as to which is for data and which is for lists
+        - GUI now properly appends the proper extention to the output file PRIOR to checking files existence (and hence will properly give overwrite warning)
 28/04/17:
  - Added 'link axes' option (note this just sets the bounds the same for each plot)
 ??/??/??:

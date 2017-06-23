@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
 import pyMT.utils as utils
 
 
@@ -39,11 +39,11 @@ def check_key_presses(key_presses, verbose=False):
     return retval
 
 
-class FileDialog(QtGui.QInputDialog):
+class FileDialog(QtWidgets.QInputDialog):
     def __init__(self, parent=None):
         super(FileDialog, self).__init__(parent)
-        self.accepted = QtGui.QPushButton('OK')
-        self.rejected = QtGui.QPushButton('Cancel')
+        self.accepted = QtWidgets.QPushButton('OK')
+        self.rejected = QtWidgets.QPushButton('Cancel')
         # self.accepted.connect(self.accept)
         # self.rejected.connect(self.reject)
 
@@ -59,10 +59,10 @@ class FileDialog(QtGui.QInputDialog):
             file = dialog.textValue()
             if ret and file:
                 if utils.check_file(file) or utils.check_file(''.join([file, ext])):
-                    reply = QtGui.QMessageBox.question(parent, 'Message',
-                                                       'File already exists. Overwrite?',
-                                                       QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-                    if reply == QtGui.QMessageBox.Yes:
+                    reply = QtWidgets.QMessageBox.question(parent, 'Message',
+                                                           'File already exists. Overwrite?',
+                                                            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                    if reply == QtWidgets.QMessageBox.Yes:
                         return file, ret
                 else:
                     return file, ret
@@ -79,7 +79,7 @@ class FileDialog(QtGui.QInputDialog):
             file = dialog.textValue()
             if ret and file:
                 if not utils.check_file(file):
-                    QtGui.QMessageBox.about(parent, 'Message',
+                    QtWidgets.QMessageBox.about(parent, 'Message',
                                             'File not found')
                 else:
                     return file, ret

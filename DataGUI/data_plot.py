@@ -23,11 +23,11 @@
 #                                    flag is not given, all datasets are selected
 import numpy as np
 import re
-from PyQt4.uic import loadUiType
-from PyQt4 import QtGui, QtCore
+from PyQt5.uic import loadUiType
+from PyQt5 import QtWidgets, QtCore
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 import sys
@@ -101,12 +101,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.periodRMS.setRowCount(self.dataset.data.NP + 1)
         self.periodRMS.setColumnCount(self.dataset.data.NR + 1)
         for ii, label in enumerate(header):
-            self.stationRMS.setHorizontalHeaderItem(ii, QtGui.QTableWidgetItem(label))
-            self.periodRMS.setHorizontalHeaderItem(ii, QtGui.QTableWidgetItem(label))
+            self.stationRMS.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem(label))
+            self.periodRMS.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem(label))
             for jj, site in enumerate(self.dataset.data.site_names):
                 if ii == 0:
-                    self.stationRMS.setVerticalHeaderItem(jj, QtGui.QTableWidgetItem(site))
-                node = QtGui.QTableWidgetItem(str(self.dataset.rms['Station'][site][label])[:4])
+                    self.stationRMS.setVerticalHeaderItem(jj, QtWidgets.QTableWidgetItem(site))
+                node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Station'][site][label])[:4])
                 node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 self.stationRMS.setItem(jj, ii, node)
             for jj, period in enumerate(periods):
@@ -115,18 +115,18 @@ class DataMain(QMainWindow, Ui_MainWindow):
                         period = utils.truncate(- 1 / period)
                     period = str(period)
                 if ii == 0:
-                    self.periodRMS.setVerticalHeaderItem(jj, QtGui.QTableWidgetItem(str(period)))
+                    self.periodRMS.setVerticalHeaderItem(jj, QtWidgets.QTableWidgetItem(str(period)))
                 if jj == 0:
-                    node = QtGui.QTableWidgetItem(str(self.dataset.rms['Component'][label])[:4])
+                    node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Component'][label])[:4])
                     node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-                    self.periodRMS.setItem(jj, ii, QtGui.QTableWidgetItem(node))
+                    self.periodRMS.setItem(jj, ii, QtWidgets.QTableWidgetItem(node))
                 else:
-                    node = QtGui.QTableWidgetItem(str(self.dataset.rms['Period'][label][jj - 1])[:4])
+                    node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Period'][label][jj - 1])[:4])
                     node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-                    self.periodRMS.setItem(jj, ii, QtGui.QTableWidgetItem(node))
+                    self.periodRMS.setItem(jj, ii, QtWidgets.QTableWidgetItem(node))
         for ii in range(len(header)):
-            self.stationRMS.horizontalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
-            self.periodRMS.horizontalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
+            self.stationRMS.horizontalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
+            self.periodRMS.horizontalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
 
     def update_rms_info(self):
         pass
@@ -203,16 +203,16 @@ class DataMain(QMainWindow, Ui_MainWindow):
         max_len = max([len(comp) for comp in all_comps.values()])
         self.comp_table.setRowCount(max_len)
         for ii, label in enumerate(header):
-            self.comp_table.setHorizontalHeaderItem(ii, QtGui.QTableWidgetItem(label))
+            self.comp_table.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem(label))
         for col, dtype in enumerate(header):
             for row, comp in enumerate(all_comps[dtype]):
-                node = QtGui.QTableWidgetItem(all_comps[dtype][row])
+                node = QtWidgets.QTableWidgetItem(all_comps[dtype][row])
                 node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 self.comp_table.setItem(row, col, node)
         for ii in range(len(header)):
-            self.comp_table.horizontalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
+            self.comp_table.horizontalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
         for ii in range(max_len):
-            self.comp_table.verticalHeader().setResizeMode(ii, QtGui.QHeaderView.ResizeToContents)
+            self.comp_table.verticalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
 
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -246,9 +246,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def comp_table_click(self):
         comps = [x.text() for x in self.comp_table.selectedItems()]
         if not all([x[0] == comps[0][0] for x in comps]):
-            QtGui.QMessageBox.question(self, 'Message',
+            QtWidgets.QMessageBox.question(self, 'Message',
                                              'Can\'t mix components with different units',
-                                             QtGui.QMessageBox.Ok)
+                                             QtWidgets.QMessageBox.Ok)
             comps = self.dpm.components
             items = self.comp_table.selectedItems()
             for item in items:
@@ -269,9 +269,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # be updated if a new comp is added.)
         comps = [x.text() for x in self.comp_list.selectedItems()]
         if not all([x[0] == comps[0][0] for x in comps]):
-            QtGui.QMessageBox.question(self, 'Message',
+            QtWidgets.QMessageBox.question(self, 'Message',
                                              'Can\'t mix components with different units',
-                                             QtGui.QMessageBox.Ok)
+                                             QtWidgets.QMessageBox.Ok)
             comps = self.dpm.components
             for ii in range(self.comp_list.count()):
                 item = self.comp_list.item(ii)
@@ -361,7 +361,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             if not extention:
                 extention = '.pdf'
             self.dpm.fig.savefig(''.join([file, extention]), dpi=self.fig_dpi)
-        # filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Plot',)
+        # filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Plot',)
 
     def write_all_plots(self):
         filename, ret = self.file_dialog.write_file(ext='.pdf')
@@ -676,37 +676,46 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def WriteData(self):
         keep_going = True
+        print(self.sortSites.itemText(self.sortSites.currentIndex()))
+        if self.sortSites.itemText(self.sortSites.currentIndex()) != 'Default':
+            reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                               'Site order has changed. Write new list?',
+                                               QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.WriteList()
         while keep_going:
-            outfile, ret = MyPopupDialog.get_file()
+            outfile, ret = MyPopupDialog.get_file(label='Enter data file')
             if not ret or not outfile:
                 break
             if ret and outfile:
+                outfile = utils.check_extention(outfile, expected='data')
                 retval = self.dataset.write_data(outfile=outfile)
             if retval:
                 break
             else:
-                reply = QtGui.QMessageBox.question(self, 'Message',
+                reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    'File already Exists. Overwrite?',
-                                                   QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-                if reply == QtGui.QMessageBox.Yes:
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                if reply == QtWidgets.QMessageBox.Yes:
                     self.dataset.write_data(outfile=outfile, overwrite=True)
                     break
 
     def WriteList(self):
         keep_going = True
         while keep_going:
-            outfile, ret = MyPopupDialog.get_file()
+            outfile, ret = MyPopupDialog.get_file(label='Enter list file')
             if not ret or not outfile:
                 break
             if ret and outfile:
+                outfile = utils.check_extention(outfile, expected='lst')
                 retval = self.dataset.write_list(outfile=outfile)
             if retval:
                 break
             else:
-                reply = QtGui.QMessageBox.question(self, 'Message',
+                reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    'File already Exists. Overwrite?',
-                                                   QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-                if reply == QtGui.QMessageBox.Yes:
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                if reply == QtWidgets.QMessageBox.Yes:
                     self.dataset.write_list(outfile=outfile, overwrite=True)
                     break
 
@@ -788,7 +797,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         whether or not that cell is editable. If it is, it allows you to edit the item
         which then calls post_edit_error.
         """
-        self.stored_key_presses = QtGui.QApplication.keyboardModifiers()
+        self.stored_key_presses = QtWidgets.QApplication.keyboardModifiers()
         self.check_key_presses(verbose=True)
         item = self.error_tree.itemFromIndex(self.error_tree.selectedIndexes()[0])
         column = self.error_tree.currentColumn()
@@ -846,22 +855,22 @@ class DataMain(QMainWindow, Ui_MainWindow):
                          if comp in self.dataset.data.components]
         header = [['Site'], ['Period'], ordered_comps]
         header = [item for sublist in header for item in sublist]
-        # QtGui.QTreeWidgetItem(['Site', 'Period', 'Component'])
+        # QtWidgets.QTreeWidgetItem(['Site', 'Period', 'Component'])
         self.error_tree.setColumnCount(len(header))
-        self.error_tree.setHeaderItem(QtGui.QTreeWidgetItem(header))
+        self.error_tree.setHeaderItem(QtWidgets.QTreeWidgetItem(header))
         periods = sorted(self.dataset.data.periods)
         # for site in self.site_names: # Gives the tree for only the plotted sites
         self.tree_dict = {site: [] for site in self.dataset.data.site_names}
         for site in reversed(self.dataset.data.site_names):
-            sitenode = QtGui.QTreeWidgetItem([site])
+            sitenode = QtWidgets.QTreeWidgetItem([site])
             self.tree_dict.update({site: sitenode})  # Stuff the site nodes into here
             self.error_tree.insertTopLevelItem(0, sitenode)
             for ii, p in enumerate(periods):
-                # self.error_tree.insertTopLevelItem(1, QtGui.QTreeWidgetItem([str(p)]))
-                # sitenode.addChild(QtGui.QTreeWidgetItem([str(p)]))
+                # self.error_tree.insertTopLevelItem(1, QtWidgets.QTreeWidgetItem([str(p)]))
+                # sitenode.addChild(QtWidgets.QTreeWidgetItem([str(p)]))
                 if p < 1:
                     p = round(-1 / p, 1)
-                pnode = QtGui.QTreeWidgetItem(sitenode, [str(p)])
+                pnode = QtWidgets.QTreeWidgetItem(sitenode, [str(p)])
                 pnode.setFlags(QtCore.Qt.ItemIsEditable |
                                QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 pnode.setText(0, '')
@@ -1070,7 +1079,7 @@ class MyTableModel(QtCore.QAbstractTableModel):
         QtCore.QAbstractTableModel.__init__(self, parent, *args)
         self.arraydata = datain
         self.headerdata = None
-        self.model = QtGui.QStandardItemModel(self)
+        self.model = QtWidgets.QStandardItemModel(self)
 
     def rowCount(self, parent):
         return len(self.arraydata)
@@ -1237,6 +1246,7 @@ class MyPopupDialog(UiPopupMain, QPopupWindow):
             TYPE: Description
         """
         dialog = MyPopupDialog(parent)
+        dialog.message.setText(message)
         dialog.lineEdit.setText(default)
         dialog.label.setText(label)
         ret = dialog.exec_()
@@ -1304,7 +1314,7 @@ def parse_commandline(args):
 
 # If this is run directly, launch the GUI
 def main():
-    app = QtGui.QApplication(sys.argv)  # Starts GUI event loop
+    app = QtWidgets.QApplication(sys.argv)  # Starts GUI event loop
     # These 3 options are mutually exclusive, as they all decide how to get the files
     files = parse_commandline(sys.argv)
     if files is None:
