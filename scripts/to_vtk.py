@@ -5,8 +5,7 @@ from pyMT.WSExceptions import WSFileError
 
 
 def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
-           datpath=None, origin=None, UTM=None, sea_level=0):
-
+           datpath=None, origin=None, UTM=None, sea_level=0, resolutionfile=None):
     if not outfile:
         print('Output file required!')
         return
@@ -29,6 +28,10 @@ def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
         model.origin = origin
         model.UTM_zone = UTM
         print('Writing model to {}'.format('_'.join([outfile, 'model.vtk'])))
+        if resolutionfile:
+            print('Adding resolution')
+            resolution = WSDS.Model(modelfile=resolutionfile)
+            model.resolution = resolution.vals
         model.to_vtk(outfile, sea_level=sea_level)
     if listfile:
         print('Writing model to {}'.format('_'.join([outfile, 'sites.vtk'])))
@@ -53,6 +56,12 @@ def get_inputs():
         # Get model name
         modelfile = verify_input('Input model name', expected='read')
         args.update({'modelfile': modelfile})
+        include_resolution = verify_input('Include model resolution?',
+                                          expected='yn', default='n')
+        if include_resolution == 'y':
+            resolution_file = verify_input('Resolution file name:', expected='read',
+                                            default='Resolution0_inverted.model')
+            args.update({'resolutionfile': resolution_file})
     if to_output == 'd' or to_output == 'b':
         # Get data or list file
         datafile = verify_input('Input data or list file name', expected='read')
@@ -85,6 +94,7 @@ def get_inputs():
     args.update({'sea_level': sea_level})
     outfile = verify_input('Base output file name', expected='write')
     args.update({'outfile': outfile})
+
     return args
 
 

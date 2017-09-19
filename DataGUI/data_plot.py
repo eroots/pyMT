@@ -562,9 +562,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def add_sites(self):
         # This method and the relevent methods in ws.data_structures are
         # not optimized. Adding many sites at once could be slow.
-        for site in self.rmSitesList.selectedIndexes():
-            name = self.rmSitesList.item(site.row()).text()
-            self.siteList.addItem(self.rmSitesList.takeItem(site.row()))
+        site_names = []
+        min_row = np.Infinity
+        for site in self.rmSitesList.selectedItems():
+            min_row = min(min_row, self.rmSitesList.row(site))
+            name = site.text()
+            site_names.append(name)
+            self.siteList.addItem(self.rmSitesList.takeItem(self.rmSitesList.row(site)))
             self.dataset.add_site(self.stored_sites[name])
             del self.stored_sites[name]
         self.draw_map()

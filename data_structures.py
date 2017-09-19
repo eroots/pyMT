@@ -124,6 +124,11 @@ class Dataset(object):
 
     @utils.enforce_input(sites=list, periods=list, components=list, hTol=float, lTol=float)
     def get_data_from_raw(self, lTol=None, hTol=None, sites=None, periods=None, components=None):
+        # if components:
+        #     if any(comp not in Data.ACCEPTED_COMPONENTS for comp in components):
+
+        #         print('Invalid component passed to keyword "components"')
+        #         return
         self.data.sites = self.raw_data.get_data(sites=sites, periods=periods,
                                                  components=components, lTol=lTol,
                                                  hTol=hTol)
@@ -558,8 +563,8 @@ class Data(object):
             components = self.ACCEPTED_COMPONENTS
         return components
 
-    def write(self, outfile, to_write=None):
-        WS_io.write_data(data=self, outfile=outfile, to_write=to_write)
+    def write(self, outfile, to_write=None, out_format=None):
+        WS_io.write_data(data=self, outfile=outfile, to_write=to_write, out_format=out_format)
 
     def write_list(self, outfile):
         WS_io.write_list(data=self, outfile=outfile)
@@ -749,7 +754,7 @@ class Model(object):
     """Summary
     """
 
-    def __init__(self, modelfile=''):
+    def __init__(self, modelfile='', data=None):
         self._xCS = []
         self._yCS = []
         self._zCS = []
@@ -757,10 +762,29 @@ class Model(object):
         self._dy = []
         self._dz = []
         self.vals = []
+        self.background_resistivity = 10000
+        self.resolution = []
         self.file = modelfile
         self.origin = (0, 0)
         self.UTM_zone = None
-        self.__read__(modelfile=modelfile)
+        if modelfile:
+            self.__read__(modelfile=modelfile)
+        elif data:
+            self.generate_dummy_model()
+            x_size = (np.max(data.locations[:, 1]) - np.min(data.locations[:, 1])) / 60
+            y_size = (np.max(data.locations[:, 0]) - np.min(data.locations[:, 0])) / 60
+            self.generate_mesh(site_locs=data.locations, regular=True, min_x=x_size, min_y=y_size,
+                               num_pads=5, pad_mult=1.2)
+            self.generate_zmesh(min_z=1, max_z=500000, NZ=60)
+
+    def generate_dummy_model(self):
+            self._xCS = [1] * 60
+            self._yCS = [1] * 60
+            self._zCS = [1] * 60
+            self.vals = np.zeros((60, 60, 60)) + self.background_resistivity
+            self.xCS = [1] * 60
+            self.yCS = [1] * 60
+            self.zCS = [1] * 60
 
     def __read__(self, modelfile=''):
         if modelfile:
@@ -805,21 +829,21 @@ class Model(object):
 
     def generate_zmesh(self, min_z, max_z, NZ):
 
-        zmesh = utils.generate_zmesh(min_z, max_z, NZ)[0]
+        self.dz = utils.generate_zmesh(min_z, max_z, NZ)[0]
         if not self.is_half_space():
-            self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.vals[0, 0, 0]
+            self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
             print('Mesh generation not setup for non-half-spaces. Converting to half space...')
-        self.dz = zmesh
+        # self.dz = zmesh
 
-    def generate_mesh(self, site_locs, min_x=None, min_y=None,
+    def generate_mesh(self, site_locs, regular=True, min_x=None, min_y=None,
                       max_x=None, max_y=None, num_pads=None, pad_mult=None):
-        xmesh = list(utils.generate_lateral_mesh(site_locs[:, 1], min_x=min_x, max_x=max_x)[0])
-        ymesh = list(utils.generate_lateral_mesh(site_locs[:, 0], min_x=min_y, max_x=max_y)[0])
+        self.dx = list(utils.generate_lateral_mesh(site_locs[:, 0], min_x=min_x, max_x=max_x, regular=regular)[0])
+        self.dy = list(utils.generate_lateral_mesh(site_locs[:, 1], min_x=min_y, max_x=max_y, regular=regular)[0])
         if not self.is_half_space():
             print('Mesh generation not setup for non-half-spaces. Converting to half space...')
-            self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.vals[0, 0, 0]
-        self.dy = xmesh
-        self.dx = ymesh
+            self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
+        # self.dy = ymesh
+        # self.dx = xmesh
 
     def check_new_mesh(self, attr, index, value):
         mesh = getattr(self, attr)
@@ -1375,6 +1399,10 @@ class Site(object):
             periods = self.periods
         if components is None:
             components = self.components
+        if not set(components).issubset(set(Site.ACCEPTED_COMPONENTS)):
+            invalid_component = set(Site.ACCEPTED_COMPONENTS) - set(components)
+            print('{} is not a valid component. Ignoring...'.format(invalid_component))
+            components = [comp for comp in components if comp not in invalid_component]
         if lTol is None:
             lTol = 0.02
         if hTol is None:
@@ -1427,6 +1455,7 @@ class Site(object):
             for idx, per in enumerate(self.periods):
                 datum = self.data[comp][idx]
                 expected = 0
+                jj = 1
                 for jj in range(max(1, idx - 2), min(nper, idx + 2)):
                     expected += self.data[comp][jj]
                 expected /= jj

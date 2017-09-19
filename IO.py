@@ -41,10 +41,16 @@ def verify_input(message, expected, default=None):
                 except ValueError:
                     print('Could not convert {} to tuple'.format(ret))
             elif isinstance(expected, str):
-                if ret.lower() not in expected:
-                    print('That is not an option. Try again.')
-                else:
-                    return ret.lower()
+                try:
+                    if ret.lower() not in expected:
+                        print('That is not an option. Try again.')
+                    else:
+                        return ret.lower()
+                except AttributeError:  # Catch case where string is a digit
+                    if str(ret) not in expected:
+                        print('That is not an option. Try again.')
+                    else:
+                        return ret
             else:
                 try:
                     return expected(ret)
@@ -68,7 +74,7 @@ def get_components(invType=None, NR=None):
                 'ZYYR', 'ZYYI',
                 'TZXR', 'TZXI',
                 'TZYR', 'TZYI')
-    print(invType)
+    # print(invType)
     if not NR:
         NR = 0
     if (NR == 8 and not invType) or (invType == 1):
@@ -84,6 +90,8 @@ def get_components(invType=None, NR=None):
         comps = [possible[2:6] + possible[8:12],
                  tuple(range(8))]
         # tuple(range(8))]
+    elif invType == 5:
+        comps = possible
     return comps
 
 
@@ -356,63 +364,122 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
     return sites, invType
 
 
-def write_data(data, outfile=None, to_write=None):
-    if '.data' not in outfile:
-        outfile = ''.join([outfile, '.data'])
-    if to_write == 'all' or to_write is None:
-        to_write = ['DATA', 'ERROR', 'ERMAP']
-    elif to_write == 'errors':
-        to_write = ['ERROR']
-    elif to_write == 'errmap':
-        to_write = ['ERMAP']
-    elif to_write == 'data':
-        to_write = ['DATA']
-    comps_to_write = data.used_components
-    NP = data.NP
-    NR = data.NR
-    NS = data.NS
-    azi = int(data.azimuth)
-    ordered_comps = {key: ii for ii, key in enumerate(data.ACCEPTED_COMPONENTS)}
-    comps_to_write = sorted(comps_to_write, key=lambda d: ordered_comps[d])
-    # theresgottabeabetterway = ('DATA', 'ERROR', 'ERMAP')
-    thismeansthat = {'DATA': 'data',
-                     'ERROR': 'errors',
-                     'ERMAP': 'errmap'}
-    if outfile is None:
-        print('You have to specify a file!')
-        return
-    with open(outfile, 'w') as f:
-        f.write('{}  {}  {}  {}\n'.format(NS, NP, NR, azi))
-        f.write('Station_Location: N-S\n')
-        for X in data.locations[:, 0]:
-            f.write('{}\n'.format(X))
-        f.write('Station_Locations: E-W\n')
-        for Y in data.locations[:, 1]:
-            f.write('{}\n'.format(Y))
-        for this in to_write:
-            that = thismeansthat[this]
-            for idx, period in enumerate(utils.to_list(data.periods)):
-                f.write(''.join([this, '_Period: ', '%0.5E\n' % float(period)]))
-                for site_name in data.site_names:
-                    site = data.sites[site_name]
-                    for comp in comps_to_write:
-                        to_print = getattr(site, that)[comp][idx]
-                        if that != 'data':
-                            to_print = abs(to_print)
-                        # print(to_print[comp][idx])
-                        if that == 'errmap':
-                            to_print = int(to_print)
-                            if to_print == site.OUTLIER_FLAG:
-                                to_print = data.OUTLIER_MAP
-                            elif to_print == site.NO_PERIOD_FLAG:
-                                to_print = data.NO_PERIOD_MAP
-                            elif to_print == site.NO_COMP_FLAG:
-                                to_print = data.NO_COMP_MAP
-                            f.write('{:<5}'.format(min(9999, int(to_print))))
-                        else:
-                            f.write('{:>14.7E}  '.format(to_print))
-                        # for point in getattr(site, that)[comp]:
-                    f.write('\n')
+def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
+    #  Writes out the contents of a Data object into format specified by 'out_format'
+    #  Currently implemented options include WSINV3DMT and ModEM3D.
+    #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
+    def write_ws(data, outfile, to_write):
+        if '.data' not in outfile:
+            outfile = ''.join([outfile, '.data'])
+        if to_write == 'all' or to_write is None:
+            to_write = ['DATA', 'ERROR', 'ERMAP']
+        elif to_write == 'errors':
+            to_write = ['ERROR']
+        elif to_write == 'errmap':
+            to_write = ['ERMAP']
+        elif to_write == 'data':
+            to_write = ['DATA']
+        comps_to_write = data.used_components
+        NP = data.NP
+        NR = data.NR
+        NS = data.NS
+        azi = int(data.azimuth)
+        ordered_comps = {key: ii for ii, key in enumerate(data.ACCEPTED_COMPONENTS)}
+        comps_to_write = sorted(comps_to_write, key=lambda d: ordered_comps[d])
+        # theresgottabeabetterway = ('DATA', 'ERROR', 'ERMAP')
+        thismeansthat = {'DATA': 'data',
+                         'ERROR': 'errors',
+                         'ERMAP': 'errmap'}
+        if outfile is None:
+            print('You have to specify a file!')
+            return
+        with open(outfile, 'w') as f:
+            f.write('{}  {}  {}  {}\n'.format(NS, NP, NR, azi))
+            f.write('Station_Location: N-S\n')
+            for X in data.locations[:, 0]:
+                f.write('{}\n'.format(X))
+            f.write('Station_Locations: E-W\n')
+            for Y in data.locations[:, 1]:
+                f.write('{}\n'.format(Y))
+            for this in to_write:
+                that = thismeansthat[this]
+                for idx, period in enumerate(utils.to_list(data.periods)):
+                    f.write(''.join([this, '_Period: ', '%0.5E\n' % float(period)]))
+                    for site_name in data.site_names:
+                        site = data.sites[site_name]
+                        for comp in comps_to_write:
+                            try:
+                                to_print = getattr(site, that)[comp][idx]
+                            except KeyError as er:
+                                print('Inside error')
+                                print(site.components)
+                                print(site.data)
+                                raise er
+                            if that != 'data':
+                                to_print = abs(to_print)
+                            # print(to_print[comp][idx])
+                            if that == 'errmap':
+                                to_print = int(to_print)
+                                if to_print == site.OUTLIER_FLAG:
+                                    to_print = data.OUTLIER_MAP
+                                elif to_print == site.NO_PERIOD_FLAG:
+                                    to_print = data.NO_PERIOD_MAP
+                                elif to_print == site.NO_COMP_FLAG:
+                                    to_print = data.NO_COMP_MAP
+                                f.write('{:<5}'.format(min(9999, int(to_print))))
+                            else:
+                                f.write('{:>14.7E}  '.format(to_print))
+                            # for point in getattr(site, that)[comp]:
+                        f.write('\n')
+
+    def write_ModEM3D(data, out_file, header=None):
+        with open(out_file, 'w') as f:
+            if not header:
+                header = '# Dummy header\n' + \
+                         '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) Component Real Imag Error\n'
+            f.write(header)
+            if data.inv_type == 1:
+                f.write('> Full_Impedance\n')
+            elif data.inv_type == 2:
+                f.write('> Off_Diagonal_Impedance\n')
+            elif data.inv_type == 3:
+                f.write('> Full_Vertical_Components\n')
+            elif data.inv_type == 4 or data.inv_type == 5:
+                print('Inversion type {} not supported.\n'.format(data.inv_type))
+                print('Setting inversion type to 1 (Full_Impedance)\n')
+                data.inv_type = 1
+                f.write('> Full_Impedance\n')
+            f.write('> exp(-i\\omega t)\n')
+            f.write('> Ohm\n')
+            f.write('> {}\n'.format(data.azimuth))
+            f.write('> 0.0 0.0 0.0\n')
+            f.write('> {} {}\n'.format(data.NP, data.NS))
+
+            components_to_write = [component for component in data.used_components
+                                   if 'i' not in component.lower()]
+            for ii, site in enumerate(data.site_names):
+                site = data.sites[site]
+                for jj, period in enumerate(data.periods):
+                    for component in components_to_write:
+                        Z_real = site.data[component][jj]
+                        Z_imag = site.data[component[:3] + 'I'][jj]
+                        X, Y, Z = site.locations['X'], site.locations['Y'], site.locations.get('elev', 0)
+                        Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                        f.write(' '.join(['{:>14.7E} {:>03d}',
+                                          '{:>8.3f} {:>8.3f}',
+                                          '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                          '{:>6} {:>14.7E} {:>14.7E}',
+                                          '{:>14.7E}\n']).format(
+                                period, ii,
+                                Lat, Long,
+                                X, Y, Z,
+                                component[:3].upper(), Z_real, Z_imag,
+                                site.used_error[component][jj]))
+
+    if out_format.lower() == 'wsinv3dmt':
+        write_ws(data, outfile, to_write)
+    elif out_format.lower() == 'modem3d':
+        write_ModEM3D(data, outfile, to_write)
 
 
 def write_response(data, outfile=None):
@@ -499,6 +566,17 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     All of Model, Data, and Dataset should probably have wrapper methods for this though that
     just redirect the data to here.
     """
+    def prep_model(model):
+        values = copy.deepcopy(model)
+        tmp = values.vals
+        values.vals = np.swapaxes(tmp, 0, 1)
+        NX, NY, NZ = values.vals.shape
+        values._dx, values._dy = values._dy, values._dx
+        values._dx = [x + ox for x in values._dx]
+        values._dy = [y + oy for y in values._dy]
+        values._dz = [-z + sea_level for z in values._dz]
+        return values
+    # print(model.resolution)
     errmsg = ''
     ox, oy = (0, 0)
     if origin:
@@ -524,15 +602,27 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
         outfile = ''.join([modname, '_model.vtk'])
     else:
         outfile = '_'.join([outfile, 'model.vtk'])
-    values = copy.deepcopy(model)
-    tmp = values.vals
-    values.vals = np.swapaxes(tmp, 0, 1)
-    NX, NY, NZ = values.vals.shape
-    values._dx, values._dy = values._dy, values._dx
-    values._dx = [x + ox for x in values._dx]
-    values._dy = [y + oy for y in values._dy]
-    values._dz = [-z + sea_level for z in values._dz]
-
+    values = prep_model(model)
+    if model.resolution is not []:
+        # This creates separate copies of the model object and sticks the resolution values into the vals
+        # attributes
+        # Is a very roundabout method. All resolution information should be availabe in the original model object
+        print('Model.resolution exists')
+        raw_resolution = copy.deepcopy(model)
+        raw_resolution.vals = model.resolution
+        if np.max(raw_resolution.vals) > 1:  # Invert values if not already done
+            raw_resolution.vals = 1 / raw_resolution.vals
+        raw_resolution.vals[raw_resolution.vals > 1e10] = 1e10
+        modified_resolution = copy.deepcopy(raw_resolution)
+        modified_resolution = utils.normalize(modified_resolution)
+        modified_resolution.vals[modified_resolution.vals > 1] = 1
+        raw_resolution = prep_model(raw_resolution)
+        modified_resolution = prep_model(modified_resolution)
+        scalars = ('Resistivity', 'Raw_Resolution', 'Modified_Resolution')
+        to_write = (values, raw_resolution, modified_resolution)
+    else:
+        scalars = ('Resistivity')
+        to_write = (values)
     # if azi:
     #     use_rot = True
     #     X, Y = np.meshgrid(values.dx, values.dy)
@@ -541,6 +631,7 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     # else:
     # use_rot = False
     # values.vals = np.reshape(values.vals, [NX * NY * NZ], order='F')
+    NX, NY, NZ = values.vals.shape
     with open(outfile, 'w') as f:
         f.write(version)
         f.write('{}   UTM: {} \n'.format(modname, UTM))
@@ -559,16 +650,20 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
             #     f.write('{} '.format(str(midpoint)))
             # f.write('\n')
         f.write('POINT_DATA {}\n'.format((NX + 1) * (NY + 1) * (NZ + 1)))
-        f.write('SCALARS Resistivity float\n')
-        f.write('LOOKUP_TABLE default\n')
-        # print(len())
-        for iz in range(NZ + 1):
-            for iy in range(NY + 1):
-                for ix in range(NX + 1):
-                        xx = min([ix, NX - 1])
-                        yy = min([iy, NY - 1])
-                        zz = min([iz, NZ - 1])
-                        f.write('{}\n'.format(values.vals[xx, yy, zz]))
+
+        for ii, value in enumerate(scalars):
+
+            f.write('SCALARS {} float\n'.format(value))
+            f.write('LOOKUP_TABLE default\n')
+            # print(len())
+            for iz in range(NZ + 1):
+                for iy in range(NY + 1):
+                    for ix in range(NX + 1):
+                            xx = min([ix, NX - 1])
+                            yy = min([iy, NY - 1])
+                            zz = min([iz, NZ - 1])
+                            f.write('{}\n'.format(to_write[ii].vals[xx, yy, zz]))
+
 
 
 def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):

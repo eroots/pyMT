@@ -74,7 +74,7 @@ def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
     return depths, zCS, ddz
 
 
-def generate_lateral_mesh(site_locs, min_x=None, model=None, max_x=None,
+def generate_lateral_mesh(site_locs, regular=True, min_x=None, model=None, max_x=None,
                           num_pads=None, pad_mult=None, DEBUG=True):
     """Summary
 
@@ -89,101 +89,131 @@ def generate_lateral_mesh(site_locs, min_x=None, model=None, max_x=None,
     Returns:
         TYPE: Description
     """
-    MAX_X = 150
-    xlocs = site_locs  # South-North
-    # ylocs = site_locs[:, 1]  # West-East
-    xloc_sort = np.sort(xlocs)
-    # yloc_sort = np.sort(ylocs)
-    xoff = xloc_sort[0] + (xloc_sort[-1] - xloc_sort[0]) / 2
-    xloc_sort = (xloc_sort - xoff).astype(int)
-    x_seperation = np.diff(xloc_sort)
-    max_sep = np.max(x_seperation)
-    xmesh = np.zeros(MAX_X)
-    # median_seperation = np.median(x_seperation)
-    avg_sep = np.mean(x_seperation)
-    max_xmin = 3 * avg_sep
-    if not min_x:
-        min_x = max_xmin / 2
-    if not max_x:
-        max_x = min_x * 2
-    if min_x > max_xmin:
-        print('Minimum cell size shouldn\'t be more than {}'.format(max_xmin))
-        # return
-    dist_without_mesh = 0
-    is_right_ofmesh = 0
-    imesh = 1
-    xmesh[0] = xloc_sort[0] - min_x * 0.5
-    for ii in range(len(xloc_sort) - 1):
-        # Look to station location on right
-        dist_right = xloc_sort[ii + 1] - xloc_sort[ii]
-        ifact = 0
-        dist = 0
-        while dist < dist_right:
-            ifact += 1
-            dist += min_x + min_x * ifact
-        ifact -= ifact
-        if ifact >= 2:
-            # if (imesh + ifact * 2 + 1 > MAX_X):
-            #     resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
-            #     if resp == 'n':
-            #         return
-            for jj in range(1, max(ifact - 2, 1) + 1):
+    def regular_mesh(x_size, bounds):
+        xmesh = list(np.arange(bounds[0], bounds[1], x_size))
+        nmesh = len(xmesh)
+        return xmesh, nmesh
+
+    def j2_mesh(site_locs, min_x, max_x):
+        MAX_X = 150
+        xlocs = site_locs  # South-North
+        # ylocs = site_locs[:, 1]  # West-East
+        xloc_sort = np.sort(xlocs)
+        # yloc_sort = np.sort(ylocs)
+        xoff = xloc_sort[0] + (xloc_sort[-1] - xloc_sort[0]) / 2
+        xloc_sort = (xloc_sort - xoff).astype(int)
+        x_seperation = np.diff(xloc_sort)
+        max_sep = np.max(x_seperation)
+        xmesh = np.zeros(MAX_X)
+        # median_seperation = np.median(x_seperation)
+        avg_sep = np.mean(x_seperation)
+        max_xmin = 3 * avg_sep
+        if not min_x:
+            min_x = max_xmin / 2
+        if not max_x:
+            max_x = min_x * 2
+        if min_x > max_xmin:
+            print('Minimum cell size shouldn\'t be more than {}'.format(max_xmin))
+            # return
+        dist_without_mesh = 0
+        is_right_ofmesh = 0
+        imesh = 1
+        xmesh[0] = xloc_sort[0] - min_x * 0.5
+        for ii in range(len(xloc_sort) - 1):
+            # Look to station location on right
+            dist_right = xloc_sort[ii + 1] - xloc_sort[ii]
+            ifact = 0
+            dist = 0
+            while dist < dist_right:
+                ifact += 1
+                dist += min_x + min_x * ifact
+            ifact -= ifact
+            if ifact >= 2:
+                # if (imesh + ifact * 2 + 1 > MAX_X):
+                #     resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
+                #     if resp == 'n':
+                #         return
+                for jj in range(1, max(ifact - 2, 1) + 1):
+                    imesh += 1
+                    xmesh[imesh - 1] = xmesh[imesh - 2] + min_x * jj
                 imesh += 1
-                xmesh[imesh - 1] = xmesh[imesh - 2] + min_x * jj
-            imesh += 1
-            xmesh[imesh - 1] = xloc_sort[ii] + (xloc_sort[ii + 1] - xloc_sort[ii]) / 2
-            imesh += ifact - 1
-            imesh_save = imesh
-            xmesh[imesh - 1] = xloc_sort[ii + 1] - min_x / 2
-            for jj in range(1, ifact - 1):
-                imesh -= 1
-                xmesh[imesh - 1] = xmesh[imesh] - min_x * jj
-            imesh = imesh_save
-            dist_without_mesh = 0
-            is_right_ofmesh = ii + 1
-        elif (dist_right >= min_x) and (dist_right <= 5 * min_x):
-            if DEBUG:
-                print('Gap is small, splitting sites')
-            # if (imesh + 1 >= MAX_X):
-            #     resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
-            #     if resp == 'n':
-            #         return
-            imesh += 1
-            xmesh[imesh - 1] = xloc_sort[ii] + (xloc_sort[ii + 1] - xloc_sort[ii]) / 2
-            dist_without_mesh = 0
-            is_right_ofmesh = ii + 1
-        else:
-            # no room for mesh?
-            if DEBUG:
-                print('Sites too close, splitting mesh')
-            dist_without_mesh = xloc_sort[ii + 1] - xmesh[imesh - 1]
-        if dist_without_mesh > max_x:
-            if DEBUG:
-                print("Gone too far without adding mesh")
-            max_sep = 0
-            # if is_right_ofmesh == 0:
-            # is_right_ofmesh = 1
-            for is_check in range(is_right_ofmesh, ii + 1):
-                check_sep = xloc_sort[is_check + 1] - xloc_sort[is_check]
-                if check_sep > max_sep:
-                    is_save = is_check
-                    max_sep = check_sep
-            if imesh + 1 > MAX_X:
-                resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
-                if resp == 'n':
-                    return
-            imesh += 1
-            xmesh[imesh - 1] = xloc_sort[is_save] + (xloc_sort[is_save + 1] - xloc_sort[is_save]) / 2
-            dist_without_mesh = 0
-            is_right_ofmesh = is_save + 1
-    imesh += 1
-    if imesh > MAX_X:
-        resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
-        if resp == 'n':
-            return
-    xmesh[imesh - 1] = xloc_sort[-1] + xloc_sort[-1] - xmesh[imesh - 2]
-    nmesh = imesh
-    return xmesh[:nmesh], nmesh
+                xmesh[imesh - 1] = xloc_sort[ii] + (xloc_sort[ii + 1] - xloc_sort[ii]) / 2
+                imesh += ifact - 1
+                imesh_save = imesh
+                xmesh[imesh - 1] = xloc_sort[ii + 1] - min_x / 2
+                for jj in range(1, ifact - 1):
+                    imesh -= 1
+                    xmesh[imesh - 1] = xmesh[imesh] - min_x * jj
+                imesh = imesh_save
+                dist_without_mesh = 0
+                is_right_ofmesh = ii + 1
+            elif (dist_right >= min_x) and (dist_right <= 5 * min_x):
+                if DEBUG:
+                    print('Gap is small, splitting sites')
+                # if (imesh + 1 >= MAX_X):
+                #     resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
+                #     if resp == 'n':
+                #         return
+                imesh += 1
+                xmesh[imesh - 1] = xloc_sort[ii] + (xloc_sort[ii + 1] - xloc_sort[ii]) / 2
+                dist_without_mesh = 0
+                is_right_ofmesh = ii + 1
+            else:
+                # no room for mesh?
+                if DEBUG:
+                    print('Sites too close, splitting mesh')
+                dist_without_mesh = xloc_sort[ii + 1] - xmesh[imesh - 1]
+            if dist_without_mesh > max_x:
+                if DEBUG:
+                    print("Gone too far without adding mesh")
+                max_sep = 0
+                # if is_right_ofmesh == 0:
+                # is_right_ofmesh = 1
+                for is_check in range(is_right_ofmesh, ii + 1):
+                    check_sep = xloc_sort[is_check + 1] - xloc_sort[is_check]
+                    if check_sep > max_sep:
+                        is_save = is_check
+                        max_sep = check_sep
+                if imesh + 1 > MAX_X:
+                    resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
+                    if resp == 'n':
+                        return
+                imesh += 1
+                xmesh[imesh - 1] = xloc_sort[is_save] + (xloc_sort[is_save + 1] - xloc_sort[is_save]) / 2
+                dist_without_mesh = 0
+                is_right_ofmesh = is_save + 1
+        imesh += 1
+        if imesh > MAX_X:
+            resp = input('Number of cells exceeds {}. Continue? (y/n)'.format(MAX_X))
+            if resp == 'n':
+                return
+        xmesh[imesh - 1] = xloc_sort[-1] + xloc_sort[-1] - xmesh[imesh - 2]
+        nmesh = imesh
+        return xmesh[:nmesh], nmesh
+
+    def add_pads(mesh, num_pads, pad_mult):
+        pad = pad_mult * mesh[0]
+        self.model.dy_insert(0, self.model.dy[0] - pad)
+        if self.padRight.checkState():
+            pad = pad_mult * mesh[-1]
+            self.model.dy_insert(self.model.ny + 1, pad + self.model.dy[-1])
+        if self.padTop.checkState():
+            pad = pad_mult * mesh[-1]
+            self.model.dx_insert(self.model.nx + 1, self.model.dx[-1] + pad)
+        if self.padBottom.checkState():
+            pad = pad_mult * mesh[0]
+            self.model.dx_insert(0, self.model.dx[0] - pad)
+
+    if regular:
+        bounds = [np.min(site_locs), np.max(site_locs)]
+        xmesh, nmesh = regular_mesh(min_x, bounds)
+    else:
+        xmesh, nmesh = j2_mesh(site_locs=site_locs, min_x=min_x, max_x=max_x)
+    # if num_pads:
+    #     xmesh, nmesh = add_padding(mesh, num_pads, pad_mult)
+    return xmesh, nmesh
+
+
 
 
 def enforce_input(**types):
@@ -504,7 +534,8 @@ def center_locs(locations):
         TYPE: Description
     """
     X, Y = locations[:, 0], locations[:, 1]
-    center = (np.mean(X), np.mean(Y))
+    # center = (np.mean(X), np.mean(Y))
+    center = ((np.max(X) + np.min(X)) / 2, (np.max(Y) + np.min(Y)) / 2)
     X, Y = X - center[0], Y - center[1]
     return np.array([[x, y] for x, y in zip(X, Y)]), center
 
@@ -641,7 +672,7 @@ def compute_rho(site, calc_comp=None, errtype='none'):
     return np.real(rho_data), np.real(rho_error), np.real(rho_log10Err)
 
 
-def compute_phase(site, calc_comp=None, errtype=None, wrap=1):
+def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
     def compute_phase_error(phase_data, r_error, im_err):
         # Phase error is calculated by first calculating the phase at
         # the 8 possible points when considering the complex errors,
@@ -916,6 +947,15 @@ def check_extention(outfile, expected=''):
         return '.'.join([outfile, expected])
 
 
+def normalize(resolution, reqmean=0.5, reqvar=0.5):
+    # Takes a model object, should just work on any matrix.
+    [xCS, yCS, zCS] = np.meshgrid(resolution.xCS, resolution.yCS, resolution.zCS, indexing='ij')
+    volumes = xCS * yCS * zCS
+    resolution.vals = resolution.vals / (volumes ** (1 / 3))
+    resolution.vals += -np.mean(resolution.vals)
+    resolution.vals = resolution.vals / np.std(resolution.vals)
+    resolution.vals = reqmean + resolution.vals * np.sqrt(reqvar)
+    return resolution
 # def brute_compute_strike(site, increment=1, band=None):
 #     if band is None:
 #         band = (site.periods[0], site.periods[-1])

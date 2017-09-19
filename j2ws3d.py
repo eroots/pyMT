@@ -71,6 +71,8 @@ def main_data(args):
         WSDS.DEBUG = True
     if set(('i', '-i')).intersection(set([x.lower() for x in args])):
         interactive = True
+    else:
+      interactive = False
     # Get list file
     list_file = WSIO.verify_input('Enter list file name:', expected='read')
     try:
@@ -138,7 +140,8 @@ def main_data(args):
                                      expected='12345'))
     # Still have to make sure this method also applies the error map properly.
     dataset.get_data_from_raw(lTol=lowTol, hTol=highTol, periods=chosen,
-                              components=WSIO.get_components(invType=inv_type))
+                              components=WSIO.get_components(invType=inv_type)[0])
+    dataset.data.set_error_map()
     if azimuth != 0:
         dataset.rotate_sites(azimuth)
     while True:
@@ -183,6 +186,7 @@ def pick_periods(sorted_periods, period_set, interactive):
     while True:
         chosen.append(WSIO.verify_input('Enter period number', expected=int, default=0))
         if chosen[-1] == 0:
+            del chosen[-1]
             print('Selected Periods:')
             for idx in chosen:
                 print('{}\n'.format(sorted_periods[idx]))
@@ -192,7 +196,11 @@ def pick_periods(sorted_periods, period_set, interactive):
             else:
                 chosen = []
                 print('Starting over...')
-    return chosen
+    ret = list(sorted([sorted_periods[ii] for ii in chosen]))
+    for ii, p in enumerate(ret):
+        if p < 0:
+            ret[ii] = -1 / p
+    return list(sorted([sorted_periods[ii] for ii in chosen]))
 
 
 def main_mesh(args, data=None):

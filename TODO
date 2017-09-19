@@ -1,6 +1,7 @@
 TODO
 
 Overall:
+    - Fix resolution related things, specifically in IO and utils. Model object should contain resolution information, rather than creating separate objects. utils.normalize should work on arbitrary matrix / list, rather than expecting a model object.
     - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
     - Refactor some code (esp. from data_plot) to use GUI_common rather than internal methods / functions.
     - Need more meaningful errors for things. For instance, if you read in a output data file (from WSINV) instead of an input file (from j2, e.g.), the Data object will be created fine, but it will cause fatal errors in data_plot.py. It's fine that the data still gets read, but data_plot.py needs to know how to gracefully exit and give a meaningful error.
@@ -9,11 +10,13 @@ j2ws3d.py:
     - Make interactive period selection more interactive (pickable table for periods)
 
 mesh_designer.py
+    - Make sure X and Y labels are consistent. In 'Reset mesh' menu, NX, NY do not match with corresponding 'X' and 'Y' cell sizes.
     - If a list isn't specified in the pystart file, some error is passing silently: The GUI loads, gives no errors, however axis labels are absent.
     - Add option to mesh_designer to change aspect ratio
-    - Potential bug where the model that you see in the designer is not the same as the one that is written out. Unknown cause, but it seems that the mesh is shifting (at least relative to the site locations) after write out.
+    - Potential bug where the model that you see in the designer is not the same as the one that is written out. Unknown cause, but it seems that the mesh is shifting (at least relative to the site locations) after write out. CAUSE FOUND: Shifting model such that it becomes non-symettric (e.g. by adding pads to one side but not the other) keeps the stations in the same locations in the GUI, but all other model programs (including WSINV) assumes mesh is symmetric, and so site locations get shifted relative to mesh.
     - When the model is made non-symmetric (e.g. by adding pads to one side but not the other), the sites remain fixed but grid lines as shown in the GUI will no longer match those made when the model is read in (since when the model is read in, it automatically gets re-centered). This has to be accounted for.
 data_plot.py:
+    - Allow a bounding box to be drawn, removing all sites inside or outside the box. Will require writing methods to remove sites based on locations.
     - Allow occam responses to be plotted. Will require overhaul...
     - Error thrown in data_plot when taking consequetive periods off of the end
     - Dumping plots to file has issues with the number of subplots

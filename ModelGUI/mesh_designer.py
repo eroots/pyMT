@@ -5,11 +5,11 @@ import pyMT.utils as utils
 import pyMT.data_structures as WSDS
 import numpy as np
 import copy
-from PyQt4.uic import loadUiType
-from PyQt4 import QtGui, QtCore
+from PyQt5.uic import loadUiType
+from PyQt5 import QtCore, QtWidgets
 from pyMT.GUI_common.common_functions import check_key_presses, FileDialog
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 import sys
@@ -118,7 +118,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             if num_decade < self.zPerDecade.count():
                 self.zPerDecade.takeItem(idx)
             elif num_decade > self.zPerDecade.count():
-                item = QtGui.QListWidgetItem('10')
+                item = QtWidgets.QListWidgetItem('10')
                 item.setFlags(QtCore.Qt.ItemIsEditable |
                               QtCore.Qt.ItemIsSelectable |
                               QtCore.Qt.ItemIsEnabled)
@@ -245,7 +245,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         """
         if not event.inaxes:
             return
-        self.key_presses = check_key_presses(QtGui.QApplication.keyboardModifiers())
+        self.key_presses = check_key_presses(QtWidgets.QApplication.keyboardModifiers())
         # print(key_presses)
         # Get nearest data
         xpos = np.argmin(np.abs(event.xdata - self.model.dy))
@@ -282,15 +282,30 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
 
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    # If a model file is not specified, a uniformly spaced model should be generated based on the data.the
+    # i.e., use sites as bounds, and use smallest period as a starting point for cell sizes.
     files = sys.argv[1:]
     for file in files:
         if not utils.check_file(file):
             print('File {} not found.'.format(file))
             return
     files = utils.sort_files(files=files)
-    model = WSDS.Model(files['model'])
-    data = WSDS.Data(datafile=files['data'])
+    try:
+        data = WSDS.Data(datafile=files['data'])
+    except KeyError:
+        print('No data file given. Site locations will not be available.')
+        data = None
+    try:
+        model = WSDS.Model(files['model'])
+    except KeyError:
+        if data is None:
+            print('One or more of <model_file> and <data_file> must be given!')
+            return
+        else:
+            print('Generating initial model...')
+            model = WSDS.Model(data=data)
+
+    app = QtWidgets.QApplication(sys.argv)
     viewer = model_viewer_2d(model=model, data=data)
     viewer.show()
     ret = app.exec_()
@@ -299,5 +314,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # Build some strange looking data:
     main()
