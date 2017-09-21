@@ -106,7 +106,15 @@ def read_model(modelfile=''):
         header = next(f)
         # if header[0] != '#':
         # break
-        NX, NY, NZ, MODTYPE = [int(h) for h in header.split()]
+        NX, NY, NZ, *MODTYPE = [h for h in header.split()]
+        NX, NY, NZ = int(NX), int(NY), int(NZ)
+        loge_flag = False
+        if len(MODTYPE) == 1:
+            MODTYPE = int(MODTYPE)
+        else:
+            if MODTYPE[1] == 'LOGE':
+                loge_flag = True
+            MODTYPE = int(MODTYPE[0])
         lines = f.readlines()
         lines = [x.split() for x in lines]
         lines = [item for sublist in lines for item in sublist]
@@ -120,6 +128,8 @@ def read_model(modelfile=''):
             # vals = lines[NX + NY + NZ: ]
             mod['vals'] = np.flipud(np.reshape(np.array(lines[NX + NY + NZ: NX + NY + NZ + NX * NY * NZ]),
                                                [NX, NY, NZ], order='F'))
+        if loge_flag:
+            mod['vals'] = np.exp(mod['vals'])
         return mod
 
 
@@ -257,7 +267,7 @@ def read_startup(file=None):
     return s_dict
 
 
-def read_data(datafile='', site_names='', filetype='data', invType=None):
+def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None):
     """Summary
 
     Args:
@@ -269,99 +279,115 @@ def read_data(datafile='', site_names='', filetype='data', invType=None):
     Returns:
         TYPE: Description
     """
-    try:
-        with open(datafile, 'r') as f:
-            NS, NP, *NR = [round(float(h), 1) for h in next(f).split()]
-            if len(NR) == 1:
-                azi = 0  # If azi isn't specified, it's assumed to be 0
-            else:
-                azi = NR[1]
-            NR = int(NR[0])
-            NS = int(NS)
-            NP = int(NP)
-            if not site_names:
-                site_names = [str(x) for x in list(range(1, NS + 1))]
-            if NS != len(site_names):
-                raise(WSFileError(ID='int', offender=datafile,
-                                  extra='Number of sites in data file not equal to list file'))
-            # Components is a pair of (compType, Nth item to grab)
+    def read_ws_data(datafile='', site_names='', invType=None):
+        try:
+            with open(datafile, 'r') as f:
+                NS, NP, *NR = [round(float(h), 1) for h in next(f).split()]
+                if len(NR) == 1:
+                    azi = 0  # If azi isn't specified, it's assumed to be 0
+                else:
+                    azi = NR[1]
+                NR = int(NR[0])
+                NS = int(NS)
+                NP = int(NP)
+                if not site_names:
+                    site_names = [str(x) for x in list(range(1, NS + 1))]
+                if NS != len(site_names):
+                    raise(WSFileError(ID='int', offender=datafile,
+                                      extra='Number of sites in data file not equal to list file'))
+                # Components is a pair of (compType, Nth item to grab)
 
-            if os.path.split(datafile)[0]:
-                startup_file = PATH_CONNECTOR.join([os.path.split(datafile)[0], 'startup'])
-            else:
-                startup_file = 'startup'
-            if utils.check_file(startup_file):
-                startup = read_startup(startup_file)
-                invType = startup.get('inv_type', None)
-            else:
-                startup = {}
-            components = get_components(invType, NR)
-            # next(f)  # skip the next line
-            lines = f.readlines()
-            for ii, l in enumerate(lines):
-                if '#' in l:
-                    lines.pop(ii)
-            sl = [ii for ii, l in enumerate(lines) if 'Station' in l]
-            data = [line.split() for line in lines[sl[0] + 1: sl[1]]]
-            xlocs = utils.flatten_list(data)
-            spoints = [(ii, p) for ii, p in enumerate(lines)
-                       if 'Period' in p]
-            data = [line.split() for line in lines[sl[1] + 1: spoints[0][0]]]
-            ylocs = utils.flatten_list(data)
-            linenums = [ii[0] + 1 for ii in spoints]
-            linenums.append(len(lines) + 1)
-            comps = [comp[0] for comp in (zip(components[0], components[1]))]
-            siteData = {site: {comp: [] for comp in comps}
-                        for site in site_names}
-            siteError = {site: {comp: [] for comp in comps}
-                         for site in site_names}
-            siteErrMap = {site: {comp: [] for comp in comps}
-                          for site in site_names}
-            # If there is a rounding error here, np.unique doesn't properly reduce the
-            # periods to the right set. We know there are NP periods, just take those straight away.
-            periods = np.unique(np.array([float(p[1].split()[1]) for p in spoints[:NP]]))
-            for ii in range(len(linenums) - 1):
-                header = lines[linenums[ii] - 1]
-                data = [line.split() for line in
-                        lines[linenums[ii]: linenums[ii + 1] - 1]]
-                data = utils.flatten_list(data)
-                # This runs, but it remains to be seen whether or not it is correct.
-                for jj, site in enumerate(site_names):
+                if os.path.split(datafile)[0]:
+                    startup_file = PATH_CONNECTOR.join([os.path.split(datafile)[0], 'startup'])
+                else:
+                    startup_file = 'startup'
+                if utils.check_file(startup_file):
+                    startup = read_startup(startup_file)
+                    invType = startup.get('inv_type', None)
+                else:
+                    startup = {}
+                components = get_components(invType, NR)
+                # next(f)  # skip the next line
+                lines = f.readlines()
+                for ii, l in enumerate(lines):
+                    if '#' in l:
+                        lines.pop(ii)
+                sl = [ii for ii, l in enumerate(lines) if 'Station' in l]
+                data = [line.split() for line in lines[sl[0] + 1: sl[1]]]
+                xlocs = utils.flatten_list(data)
+                spoints = [(ii, p) for ii, p in enumerate(lines)
+                           if 'Period' in p]
+                data = [line.split() for line in lines[sl[1] + 1: spoints[0][0]]]
+                ylocs = utils.flatten_list(data)
+                linenums = [ii[0] + 1 for ii in spoints]
+                linenums.append(len(lines) + 1)
+                comps = [comp[0] for comp in (zip(components[0], components[1]))]
+                siteData = {site: {comp: [] for comp in comps}
+                            for site in site_names}
+                siteError = {site: {comp: [] for comp in comps}
+                             for site in site_names}
+                siteErrMap = {site: {comp: [] for comp in comps}
+                              for site in site_names}
+                # If there is a rounding error here, np.unique doesn't properly reduce the
+                # periods to the right set. We know there are NP periods, just take those straight away.
+                periods = np.unique(np.array([float(p[1].split()[1]) for p in spoints[:NP]]))
+                for ii in range(len(linenums) - 1):
+                    header = lines[linenums[ii] - 1]
+                    data = [line.split() for line in
+                            lines[linenums[ii]: linenums[ii + 1] - 1]]
+                    data = utils.flatten_list(data)
+                    # This runs, but it remains to be seen whether or not it is correct.
+                    for jj, site in enumerate(site_names):
+                        for kk in zip(components[0], components[1]):
+                            ind = (NR * jj) + (kk[1])
+                            comp = kk[0]
+                            if 'DATA' in header:
+                                siteData[site][comp].append(data[ind])
+                            elif 'ERROR' in header:
+                                siteError[site][comp].append(data[ind])
+                            elif 'ERMAP' in header:
+                                siteErrMap[site][comp].append(data[ind])
+                for site in site_names:
                     for kk in zip(components[0], components[1]):
-                        ind = (NR * jj) + (kk[1])
                         comp = kk[0]
-                        if 'DATA' in header:
-                            siteData[site][comp].append(data[ind])
-                        elif 'ERROR' in header:
-                            siteError[site][comp].append(data[ind])
-                        elif 'ERMAP' in header:
-                            siteErrMap[site][comp].append(data[ind])
-            for site in site_names:
-                for kk in zip(components[0], components[1]):
-                    comp = kk[0]
-                    vals = siteData[site][comp]
-                    siteData[site][comp] = np.array(vals)
-                    vals = siteError[site][comp]
-                    siteError[site][comp] = np.array(vals)
-                    vals = siteErrMap[site][comp]
-                    siteErrMap[site][comp] = np.array(vals)
-            sites = {}
-            siteLocs = {}
-            for ii, site in enumerate(site_names):
-                siteLocs = {'X': xlocs[ii], 'Y': ylocs[ii]}
-                sites.update({site: {
-                              'data': siteData[site],
-                              'errors': siteError[site],
-                              'errmap': siteErrMap[site],
-                              'periods': periods,
-                              'locations': siteLocs,
-                              'azimuth': azi,
-                              'errFloorZ': startup.get('errFloorZ', None),
-                              'errFloorT': startup.get('errFloorT', None)}
-                              })
-    except FileNotFoundError as e:
-        raise(WSFileError(ID='fnf', offender=datafile)) from None
-    return sites, invType
+                        vals = siteData[site][comp]
+                        siteData[site][comp] = np.array(vals)
+                        vals = siteError[site][comp]
+                        siteError[site][comp] = np.array(vals)
+                        vals = siteErrMap[site][comp]
+                        siteErrMap[site][comp] = np.array(vals)
+                sites = {}
+                siteLocs = {}
+                for ii, site in enumerate(site_names):
+                    siteLocs = {'X': xlocs[ii], 'Y': ylocs[ii]}
+                    sites.update({site: {
+                                  'data': siteData[site],
+                                  'errors': siteError[site],
+                                  'errmap': siteErrMap[site],
+                                  'periods': periods,
+                                  'locations': siteLocs,
+                                  'azimuth': azi,
+                                  'errFloorZ': startup.get('errFloorZ', None),
+                                  'errFloorT': startup.get('errFloorT', None)}
+                                  })
+        except FileNotFoundError as e:
+            raise(WSFileError(ID='fnf', offender=datafile)) from None
+        return sites, invType
+
+    def read_modem_data(datafile='', site_names='', invType=None):
+        pass
+
+    def read_mare2dem_data(datafile='', site_names='', invType=None):
+        pass
+
+    if file_format.lower() == 'wsinv3dmt':
+        return read_ws_data(datafile, site_names, invType)
+    elif file_format.lower() == 'modem':
+        return read_modem_data(datafile, site_names, invType)
+    elif file_format.lower() == 'mare2dem':
+        return read_mare2dem_data(datafile, site_names, invType)
+    else:
+        print
 
 
 def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
@@ -432,28 +458,44 @@ def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
                             # for point in getattr(site, that)[comp]:
                         f.write('\n')
 
-    def write_ModEM3D(data, out_file, header=None):
+    def write_ModEM3D(data, out_file, title=None):
+        units = []
+        data_type = []
         with open(out_file, 'w') as f:
-            if not header:
-                header = '# Dummy header\n' + \
-                         '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) Component Real Imag Error\n'
-            f.write(header)
+            if not title:
+                title = '# Dummy title\n' + \
+                        '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) Component Real Imag Error\n'
             if data.inv_type == 1:
-                f.write('> Full_Impedance\n')
+                data_type.append('> Full_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type = (1)
             elif data.inv_type == 2:
-                f.write('> Off_Diagonal_Impedance\n')
+                data_type.append('> Off_Diagonal_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type = (2)
             elif data.inv_type == 3:
-                f.write('> Full_Vertical_Components\n')
-            elif data.inv_type == 4 or data.inv_type == 5:
-                print('Inversion type {} not supported.\n'.format(data.inv_type))
-                print('Setting inversion type to 1 (Full_Impedance)\n')
-                data.inv_type = 1
-                f.write('> Full_Impedance\n')
-            f.write('> exp(-i\\omega t)\n')
-            f.write('> Ohm\n')
-            f.write('> {}\n'.format(data.azimuth))
-            f.write('> 0.0 0.0 0.0\n')
-            f.write('> {} {}\n'.format(data.NP, data.NS))
+                data_type.append('> Full_Vertical_Components\n')
+                units.append('> []\n')
+                temp_inv_type = (3)
+            elif data.inv_type == 4:
+                data_type.append('> Off_Diagonal_Impedance\n')
+                units.append('> Ohm\n')
+                data_type.append('> Full_Vertical_Components\n')
+                units.append('> []\n')
+                temp_inv_type = (2, 3)
+            elif data.inv_type == 5:
+                data_type.append('> Full_Impedance\n')
+                units.append('> Ohm\n')
+                data_type.append('> Full_Vertical_Components\n')
+                units.append('> []\n')
+                temp_inv_type = (1, 3)
+            for inv_type, data, unit in zip(data_type, temp_inv_type, units):
+                f.write(title)
+                f.write('> exp(-i\\omega t)\n')
+                f.write(unit)
+                f.write('> {}\n'.format(data.azimuth))
+                f.write('> 0.0 0.0 0.0\n')
+                f.write('> {} {}\n'.format(data.NP, data.NS))
 
             components_to_write = [component for component in data.used_components
                                    if 'i' not in component.lower()]

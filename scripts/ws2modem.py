@@ -8,9 +8,9 @@ import pyMT.IO as WSIO
 
 def main(in_file, out_file):
     data = WSDS.Data(in_file)
-    if data.inv_type == 5:
-        print('Ignoring transfer function data...\n')
-        data.inv_type = 1
+    # if data.inv_type == 5:
+    #     print('Ignoring transfer function data...\n')
+    #     data.inv_type = 1
     data.write(outfile=out_file, out_format='ModEM3D')
 
 

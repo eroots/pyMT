@@ -414,6 +414,9 @@ class Data(object):
                            'ZYYR', 'ZYYI',
                            'TZXR', 'TZXI',
                            'TZYR', 'TZYI')
+    IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
+                           'WSINV3DMT': '.data',
+                           'ModEM': '.dat'}
 
     # Scale error map by how much the period differs, or do a straight error mapping
     # First value is 'scaled' or 'straight', second value is mult. For scaled, this is multiplied by
@@ -474,9 +477,21 @@ class Data(object):
         if datafile:
             # Might have to watch that if site names are read after data, that
             # The data site names are updated appropriately.
+            ext = os.split(datafile)[1]
+            if ext == '.emdata':
+                file_format = 'mare2dem'
+            elif ext == '.dat':
+                file_format = 'modem'
+            elif ext == '.data':
+                file_format = 'wsinv3dmt'
+            else:
+                print('Data file extension not recognized.\n')
+                print('Acceptable formats are <Inversion Code> - <File Extension>:\n')
+                for code, ext in Data.IMPLEMENTED_FORMATS.items():
+                    print('{} => {}\n'.format(code, ext))
             all_data, invType = WS_io.read_data(datafile=datafile,
                                                 site_names=self.site_names,
-                                                filetype='data', invType=invType)
+                                                file_format=file_format, invType=invType)
             self.sites = {}
             if not self.site_names:
                 self.site_names = [str(x) for x in range(1, len(all_data) + 1)]
