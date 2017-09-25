@@ -415,7 +415,7 @@ class Data(object):
                            'TZXR', 'TZXI',
                            'TZYR', 'TZYI')
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
-                           'WSINV3DMT': '.data',
+                           'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat'}
 
     # Scale error map by how much the period differs, or do a straight error mapping
@@ -477,15 +477,15 @@ class Data(object):
         if datafile:
             # Might have to watch that if site names are read after data, that
             # The data site names are updated appropriately.
-            ext = os.split(datafile)[1]
+            ext = os.path.splitext(datafile)[1]
             if ext == '.emdata':
                 file_format = 'mare2dem'
             elif ext == '.dat':
                 file_format = 'modem'
-            elif ext == '.data':
+            elif ext == '.data' or 'resp' in datafile:
                 file_format = 'wsinv3dmt'
             else:
-                print('Data file extension not recognized.\n')
+                print('Data file extension {} not recognized.\n'.format(ext))
                 print('Acceptable formats are <Inversion Code> - <File Extension>:\n')
                 for code, ext in Data.IMPLEMENTED_FORMATS.items():
                     print('{} => {}\n'.format(code, ext))
@@ -494,7 +494,7 @@ class Data(object):
                                                 file_format=file_format, invType=invType)
             self.sites = {}
             if not self.site_names:
-                self.site_names = [str(x) for x in range(1, len(all_data) + 1)]
+                self.site_names = [str(x) for x in range(0, len(all_data))]
             self.inv_type = invType
             for site_name, site in all_data.items():
                 self.sites.update({site_name:

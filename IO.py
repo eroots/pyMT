@@ -375,7 +375,118 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
         return sites, invType
 
     def read_modem_data(datafile='', site_names='', invType=None):
-        pass
+        #  Will only ready Impedance and TF data so far, not rho/phase
+        try:
+            with open(datafile, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError as e:
+            raise(WSFileError(ID='fnf', offender=datafile)) from None
+        marker = -10
+        block_start = []
+        periods = []
+        sites = {}
+        site_data = {}
+        site_error = {}
+        site_errmap = {}
+        site_locations = {}
+        inv_type = 0
+        for ii, line in enumerate(lines):
+            if '#' in line and marker + 1 != ii:
+                marker = ii
+                block_start.append(ii)
+        block_start.append(len(lines))
+        for ii, line_number in enumerate(block_start[:-1]):
+            # header = lines[line_number + 1]
+            data_type = lines[line_number + 2].split('>')[1].strip()
+            azimuth = float(lines[line_number + 5].split('>')[1].strip())
+            NP, NS = [int(x) for x in lines[line_number + 7].split('>')[1].strip().split()]
+            if not site_names:
+                site_lookup = {str(x): str(x) for x in range(NS)}
+                site_names = [str(x) for x in range(NS)]
+            else:
+                site_lookup = {str(x): site_names[x] for x in range(NS)}
+            if not site_data:
+                site_data = {site: {} for site in site_names}
+                site_error = {site: {} for site in site_names}
+                # site_errmap = {site: {} for site in site_names}
+                site_locations = {site: {'X': [], 'Y': [], 'Z': []} for site in site_names}
+            if data_type == 'Full_Impedance':
+                if inv_type == 3:
+                    inv_type = 5
+                else:
+                    inv_type = 1
+            #     components = ('ZXX', 'ZYY', 'ZXY', 'ZYR')
+            elif data_type == 'Full_Vertical_Components':
+                if inv_type == 1:
+                    inv_type = 5
+                elif inv_type == 2:
+                    inv_type = 4
+                else:
+                    inv_type = 3
+            #     components = ('TX', 'TY')
+            elif data_type == 'Off_Diagonal_Impedance':
+                if inv_type == 3:
+                    inv_type = 4
+                else:
+                    inv_type = 2
+            #     # components = ('ZXY', 'ZYX')
+            for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
+                line = line_string.split()
+                periods.append(float(line[0]))
+                code = line[1].lstrip('0')
+                if code == '':
+                    code = '0'
+                X, Y, Z = [float(x) for x in line[4:7]]
+                try:
+                    site_locations[site_lookup[code]]['X'] = X
+                    site_locations[site_lookup[code]]['Y'] = Y
+                    site_locations[site_lookup[code]]['Z'] = Z
+                except KeyError as e:
+                    print(site_locations)
+                    raise e
+                component = line[7]
+                real, imag = [float(x) for x in line[8:10]]
+                error = float(line[10])
+                if component == 'TX' or component == 'TY':
+                    component = component[0] + 'Z' + component[1]
+                if component + 'R' not in site_data[site_lookup[code]].keys():
+                    site_data[site_lookup[code]].update({component + 'R': []})
+                if component + 'I' not in site_data[site_lookup[code]].keys():
+                    site_data[site_lookup[code]].update({component + 'I': []})
+                if component + 'R' not in site_error[site_lookup[code]].keys():
+                    site_error[site_lookup[code]].update({component + 'R': []})
+                if component + 'I' not in site_error[site_lookup[code]].keys():
+                    site_error[site_lookup[code]].update({component + 'I': []})
+                # if component not in site_errmap.keys():
+                #     site_errmap[site_lookup[code]].update({component + 'R': []})
+                #     site_errmap[site_lookup[code]].update({component + 'I': []})
+                site_data[site_lookup[code]][component + 'R'].append(real)
+                site_data[site_lookup[code]][component + 'I'].append(imag)
+                site_error[site_lookup[code]][component + 'R'].append(error)
+                site_error[site_lookup[code]][component + 'I'].append(error)
+                # print(site_data[site_lookup[code]][component + 'R'])
+        periods = np.unique(np.array(periods))
+        # print(site_data[site_names[0]])
+        for site in site_names:
+            for component in site_data[site].keys():
+                vals = site_data[site][component]
+                site_data[site][component] = np.array(vals)
+                vals = site_error[site][component]
+                site_error[site][component] = np.array(vals)
+                # site_errmap[site][component] = np.array(site_errmap[site][component])
+        # print(site_data[site][component])
+        for ii, site in enumerate(site_names):
+            sites.update({site: {
+                          'data': site_data[site],
+                          'errors': site_error[site],
+                          'periods': periods,
+                          'locations': site_locations[site],
+                          'azimuth': azimuth,
+                          'errFloorZ': 0,
+                          'errFloorT': 0}
+                          })
+
+        return sites, inv_type
 
     def read_mare2dem_data(datafile='', site_names='', invType=None):
         pass
@@ -489,39 +600,47 @@ def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
                 data_type.append('> Full_Vertical_Components\n')
                 units.append('> []\n')
                 temp_inv_type = (1, 3)
-            for inv_type, data, unit in zip(data_type, temp_inv_type, units):
+            for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
                 f.write(title)
+                f.write(data_type_string)
                 f.write('> exp(-i\\omega t)\n')
                 f.write(unit)
                 f.write('> {}\n'.format(data.azimuth))
                 f.write('> 0.0 0.0 0.0\n')
                 f.write('> {} {}\n'.format(data.NP, data.NS))
-
-            components_to_write = [component for component in data.used_components
-                                   if 'i' not in component.lower()]
-            for ii, site in enumerate(data.site_names):
-                site = data.sites[site]
-                for jj, period in enumerate(data.periods):
-                    for component in components_to_write:
-                        Z_real = site.data[component][jj]
-                        Z_imag = site.data[component[:3] + 'I'][jj]
-                        X, Y, Z = site.locations['X'], site.locations['Y'], site.locations.get('elev', 0)
-                        Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                        f.write(' '.join(['{:>14.7E} {:>03d}',
-                                          '{:>8.3f} {:>8.3f}',
-                                          '{:>15.3f} {:>15.3f} {:>15.3f}',
-                                          '{:>6} {:>14.7E} {:>14.7E}',
-                                          '{:>14.7E}\n']).format(
-                                period, ii,
-                                Lat, Long,
-                                X, Y, Z,
-                                component[:3].upper(), Z_real, Z_imag,
-                                site.used_error[component][jj]))
+                data.inv_type = inv_type
+                components_to_write = [component for component in data.used_components
+                                       if 'i' not in component.lower()]
+                for ii, site in enumerate(data.site_names):
+                    site = data.sites[site]
+                    for jj, period in enumerate(data.periods):
+                        for component in components_to_write:
+                            component_code = component[:3]
+                            if 'T' in component.upper():
+                                component_code = component_code[0] + component_code[2]
+                            Z_real = site.data[component][jj]
+                            Z_imag = site.data[component[:3] + 'I'][jj]
+                            X, Y, Z = site.locations['X'], site.locations['Y'], site.locations.get('elev', 0)
+                            Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                            f.write(' '.join(['{:>14.7E} {:>03d}',
+                                              '{:>8.3f} {:>8.3f}',
+                                              '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                              '{:>6} {:>14.7E} {:>14.7E}',
+                                              '{:>14.7E}\n']).format(
+                                    period, ii,
+                                    Lat, Long,
+                                    X, Y, Z,
+                                    component_code.upper(), Z_real, Z_imag,
+                                    site.used_error[component][jj]))
 
     if out_format.lower() == 'wsinv3dmt':
         write_ws(data, outfile, to_write)
-    elif out_format.lower() == 'modem3d':
+    elif out_format.lower() == 'modem':
         write_ModEM3D(data, outfile, to_write)
+    elif out_format.lower() == 'mare2dem':
+        pass
+    else:
+        print('Output file format {} not recognized'.format(out_format))
 
 
 def write_response(data, outfile=None):

@@ -39,6 +39,7 @@ data_plot.py:
     - Option to plot map in rotated or unrotated coordinates.
     - Give info on the misfit data. Don't want to have to keep going back to matlab to get info like RMS per component, station, period, etc.
 data_structures.py:
+    - Error floors should be settable in the data structure, not just in Sites
     - Rho, phase, and bostick data should be pre-calculated when the data is read in (i.e. don't have to calculate it manually every time you want to plot it)
     - If a dataset is read without a response, but the data is at 0 degrees, things work fine. If azimuth is non-zero, errors are thrown about azimuth not being an attribute.
     short term solution is to set azimuth to 0 prior to __read__. This suppresses the error, but some output should be given so that you know what the issue is.
