@@ -184,12 +184,12 @@ class Dataset(object):
             print('File already exists')
             return False
 
-    def write_data(self, outfile='', overwrite=False):
+    def write_data(self, outfile='', overwrite=False, file_format='wsinv3dmt'):
         if outfile == '':
             print('You should probably name your output first...')
             return False
         if not utils.check_file(outfile) or overwrite:
-            self.data.write(outfile=outfile)
+            self.data.write(outfile=outfile, file_format=file_format)
             return True
         else:
             print('File already exists')
@@ -446,6 +446,10 @@ class Data(object):
             self.components = self.sites[self.site_names[0]].components
             # self.locations = {site.name: site.locations for site in self.sites.values()}
             self.locations = self.get_locs()
+            if not self.inv_type:
+                self.auto_set_inv_type()
+                print('Automatically setting inverison type.')
+                print('Inverison type set to {}. Please ensure this is correct.'.format(self.inv_type))
         else:
             self.components = []
             self.locations = []
@@ -495,7 +499,7 @@ class Data(object):
             self.sites = {}
             if not self.site_names:
                 self.site_names = [str(x) for x in range(0, len(all_data))]
-            self.inv_type = invType
+
             for site_name, site in all_data.items():
                 self.sites.update({site_name:
                                    Site(name=site_name,
@@ -514,6 +518,16 @@ class Data(object):
             self.azimuth = self.sites[self.site_names[0]].azimuth
         else:
             self.sites = {}
+        if invType:
+            self.inv_type = invType
+
+    def auto_set_inv_type(self):
+        if len(self.used_components) == 8:
+            self.inv_type = 1
+        elif len(self.used_components) == 4:
+            self.inv_type = 2
+        elif len(self.used_components) == 12:
+            self.inv_type = 5
 
     def set_error_map(self):
         for site in self.site_names:
@@ -564,7 +578,7 @@ class Data(object):
     @property
     def used_components(self):
         if self.inv_type is None:
-            print('Inversion Type not set. Returning currently set components')
+            # print('Inversion Type not set. Returning currently set components')
             components = self.components
         elif self.inv_type == 1:
             components = self.ACCEPTED_COMPONENTS[:8]
@@ -578,8 +592,8 @@ class Data(object):
             components = self.ACCEPTED_COMPONENTS
         return components
 
-    def write(self, outfile, to_write=None, out_format=None):
-        WS_io.write_data(data=self, outfile=outfile, to_write=to_write, out_format=out_format)
+    def write(self, outfile, to_write=None, file_format=None):
+        WS_io.write_data(data=self, outfile=outfile, to_write=to_write, file_format=file_format)
 
     def write_list(self, outfile):
         WS_io.write_list(data=self, outfile=outfile)

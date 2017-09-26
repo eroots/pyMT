@@ -82,7 +82,7 @@ def get_components(invType=None, NR=None):
     elif (NR == 12 and not invType) or (invType == 5):
         comps = [possible, tuple(range(12))]
     elif (NR == 4 and not invType) or (invType == 2):
-        comps = [possible[2:5], tuple(range(4))]
+        comps = [possible[2:6], tuple(range(4))]
     elif invType == 3:
         comps = [possible[8:], tuple(range(4))]
     elif invType == 4:
@@ -110,7 +110,7 @@ def read_model(modelfile=''):
         NX, NY, NZ = int(NX), int(NY), int(NZ)
         loge_flag = False
         if len(MODTYPE) == 1:
-            MODTYPE = int(MODTYPE)
+            MODTYPE = int(MODTYPE[0])
         else:
             if MODTYPE[1] == 'LOGE':
                 loge_flag = True
@@ -291,7 +291,7 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 NS = int(NS)
                 NP = int(NP)
                 if not site_names:
-                    site_names = [str(x) for x in list(range(1, NS + 1))]
+                    site_names = [str(x) for x in list(range(0, NS))]
                 if NS != len(site_names):
                     raise(WSFileError(ID='int', offender=datafile,
                                       extra='Number of sites in data file not equal to list file'))
@@ -387,7 +387,7 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
         sites = {}
         site_data = {}
         site_error = {}
-        site_errmap = {}
+        # site_errmap = {}
         site_locations = {}
         inv_type = 0
         for ii, line in enumerate(lines):
@@ -501,8 +501,8 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
         print
 
 
-def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
-    #  Writes out the contents of a Data object into format specified by 'out_format'
+def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
+    #  Writes out the contents of a Data object into format specified by 'file_format'
     #  Currently implemented options include WSINV3DMT and ModEM3D.
     #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
     def write_ws(data, outfile, to_write):
@@ -572,6 +572,7 @@ def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
     def write_ModEM3D(data, out_file, title=None):
         units = []
         data_type = []
+        temp_inv_type = []
         with open(out_file, 'w') as f:
             if not title:
                 title = '# Dummy title\n' + \
@@ -579,27 +580,31 @@ def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
             if data.inv_type == 1:
                 data_type.append('> Full_Impedance\n')
                 units.append('> Ohm\n')
-                temp_inv_type = (1)
+                temp_inv_type.append(1)
             elif data.inv_type == 2:
                 data_type.append('> Off_Diagonal_Impedance\n')
                 units.append('> Ohm\n')
-                temp_inv_type = (2)
+                temp_inv_type.append(2)
             elif data.inv_type == 3:
                 data_type.append('> Full_Vertical_Components\n')
                 units.append('> []\n')
-                temp_inv_type = (3)
+                temp_inv_type.append(3)
             elif data.inv_type == 4:
                 data_type.append('> Off_Diagonal_Impedance\n')
                 units.append('> Ohm\n')
                 data_type.append('> Full_Vertical_Components\n')
                 units.append('> []\n')
-                temp_inv_type = (2, 3)
+                temp_inv_type.append(2)
+                temp_inv_type.append(3)
             elif data.inv_type == 5:
                 data_type.append('> Full_Impedance\n')
                 units.append('> Ohm\n')
                 data_type.append('> Full_Vertical_Components\n')
                 units.append('> []\n')
-                temp_inv_type = (1, 3)
+                temp_inv_type.append(1)
+                temp_inv_type.append(3)
+            print(data.inv_type)
+            print(temp_inv_type)
             for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
                 f.write(title)
                 f.write(data_type_string)
@@ -633,14 +638,14 @@ def write_data(data, outfile=None, to_write=None, out_format='WSINV3DMT'):
                                     component_code.upper(), Z_real, Z_imag,
                                     site.used_error[component][jj]))
 
-    if out_format.lower() == 'wsinv3dmt':
+    if file_format.lower() == 'wsinv3dmt':
         write_ws(data, outfile, to_write)
-    elif out_format.lower() == 'modem':
+    elif file_format.lower() == 'modem':
         write_ModEM3D(data, outfile, to_write)
-    elif out_format.lower() == 'mare2dem':
+    elif file_format.lower() == 'mare2dem':
         pass
     else:
-        print('Output file format {} not recognized'.format(out_format))
+        print('Output file format {} not recognized'.format(file_format))
 
 
 def write_response(data, outfile=None):

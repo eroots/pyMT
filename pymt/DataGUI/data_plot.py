@@ -125,8 +125,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                     self.periodRMS.setItem(jj, ii, QtWidgets.QTableWidgetItem(node))
         for ii in range(len(header)):
-            self.stationRMS.horizontalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
-            self.periodRMS.horizontalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
+            self.stationRMS.horizontalHeader().setSectionResizeMode(ii,
+                                                                    QtWidgets.QHeaderView.ResizeToContents)
+            self.periodRMS.horizontalHeader().setSectionResizeMode(ii,
+                                                                   QtWidgets.QHeaderView.ResizeToContents)
 
     def update_rms_info(self):
         pass
@@ -210,9 +212,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 self.comp_table.setItem(row, col, node)
         for ii in range(len(header)):
-            self.comp_table.horizontalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
+            self.comp_table.horizontalHeader().setSectionResizeMode(ii,
+                                                                    QtWidgets.QHeaderView.ResizeToContents)
         for ii in range(max_len):
-            self.comp_table.verticalHeader().setSectionResizeMode(ii, QtWidgets.QHeaderView.ResizeToContents)
+            self.comp_table.verticalHeader().setSectionResizeMode(ii,
+                                                                  QtWidgets.QHeaderView.ResizeToContents)
 
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -247,8 +251,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         comps = [x.text() for x in self.comp_table.selectedItems()]
         if not all([x[0] == comps[0][0] for x in comps]):
             QtWidgets.QMessageBox.question(self, 'Message',
-                                             'Can\'t mix components with different units',
-                                             QtWidgets.QMessageBox.Ok)
+                                           'Can\'t mix components with different units',
+                                           QtWidgets.QMessageBox.Ok)
             comps = self.dpm.components
             items = self.comp_table.selectedItems()
             for item in items:
@@ -270,8 +274,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         comps = [x.text() for x in self.comp_list.selectedItems()]
         if not all([x[0] == comps[0][0] for x in comps]):
             QtWidgets.QMessageBox.question(self, 'Message',
-                                             'Can\'t mix components with different units',
-                                             QtWidgets.QMessageBox.Ok)
+                                           'Can\'t mix components with different units',
+                                           QtWidgets.QMessageBox.Ok)
             comps = self.dpm.components
             for ii in range(self.comp_list.count()):
                 item = self.comp_list.item(ii)
@@ -339,11 +343,20 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.sortSites.currentIndexChanged.connect(self.sort_sites)
         self.showOutliers.clicked.connect(self.toggle_outliers)
         self.actionList_File.triggered.connect(self.WriteList)
-        self.actionData_File.triggered.connect(self.WriteData)
+        # self.actionData_File.triggered.connect(self.WriteData)
+        self.actionWriteWSINV3DMT.triggered.connect(self.write_wsinv3dmt)
+        self.actionWriteModEM.triggered.connect(self.write_ModEM)
         self.writeCurrentPlot.triggered.connect(self.write_current_plot)
         self.writeAllPlots.triggered.connect(self.write_all_plots)
         self.regErrors.clicked.connect(self.regulate_errors)
         self.LockAxes.clicked.connect(self.link_axes)
+        #  Set up Inversion Type action group
+        self.InversionTypeGroup = QtWidgets.QActionGroup(self)
+        self.InversionTypeGroup.addAction(self.inv_type1)
+        self.InversionTypeGroup.addAction(self.inv_type2)
+        self.InversionTypeGroup.addAction(self.inv_type3)
+        self.InversionTypeGroup.addAction(self.inv_type4)
+        self.InversionTypeGroup.addAction(self.inv_type5)
 
     def link_axes(self):
         if self.LockAxes.checkState():
@@ -678,13 +691,34 @@ class DataMain(QMainWindow, Ui_MainWindow):
         else:
             self.toggleResponse.setCheckState(0)
 
-    def WriteData(self):
+    def write_wsinv3dmt(self):
+        self.WriteData(file_format='WSINV3DMT')
+
+    def write_ModEM(self):
+        self.WriteData(file_format='ModEM')
+
+    def check_inv_type(self):
+        if self.inv_type1.isChecked():
+            return 1
+        elif self.inv_type2.isChecked():
+            return 2
+        elif self.inv_type3.isChecked():
+            return 3
+        elif self.inv_type4.isChecked():
+            return 4
+        elif self.inv_type5.isChecked():
+            return 5
+        else:
+            return self.dataset.data.inv_type
+
+    def WriteData(self, file_format='WSINV3DMT'):
+        self.dataset.data.inv_type = self.check_inv_type()
         keep_going = True
         print(self.sortSites.itemText(self.sortSites.currentIndex()))
         if self.sortSites.itemText(self.sortSites.currentIndex()) != 'Default':
             reply = QtWidgets.QMessageBox.question(self, 'Message',
-                                               'Site order has changed. Write new list?',
-                                               QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                                                   'Site order has changed. Write new list?',
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
             if reply == QtWidgets.QMessageBox.Yes:
                 self.WriteList()
         while keep_going:
@@ -692,16 +726,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
             if not ret or not outfile:
                 break
             if ret and outfile:
-                outfile = utils.check_extention(outfile, expected='data')
-                retval = self.dataset.write_data(outfile=outfile)
+                if file_format.lower() == 'wsinv3dmt':
+                    outfile = utils.check_extention(outfile, expected='data')
+                elif file_format.lower() == 'modem':
+                    outfile = utils.check_extention(outfile, expected='dat')
+                retval = self.dataset.write_data(outfile=outfile, file_format=file_format)
             if retval:
                 break
             else:
                 reply = QtWidgets.QMessageBox.question(self, 'Message',
-                                                   'File already Exists. Overwrite?',
-                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                                                       'File already Exists. Overwrite?',
+                                                       QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
-                    self.dataset.write_data(outfile=outfile, overwrite=True)
+                    self.dataset.write_data(outfile=outfile, overwrite=True, file_format=file_format)
                     break
 
     def WriteList(self):
@@ -717,8 +754,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 break
             else:
                 reply = QtWidgets.QMessageBox.question(self, 'Message',
-                                                   'File already Exists. Overwrite?',
-                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                                                       'File already Exists. Overwrite?',
+                                                       QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
                     self.dataset.write_list(outfile=outfile, overwrite=True)
                     break
