@@ -1,4 +1,9 @@
 == CHANGELOG ==
+06/24/17:
+ - Committed changes to IO, adding functions for ModEM and MARE2DEM data files
+ - Changed some things to allow handling of Rho and Phase data. More work on this to be done later.
+ - Began changing how error floors are calculated and applied.
+ - Added Site and Data class methods to add noise to data (for synthetics).
 23/06/17:
  - Made some changes to accomodate update to pyqt5. Keep an eye out for any bugs this might introduce.
 13/06/17:

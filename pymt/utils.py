@@ -191,18 +191,18 @@ def generate_lateral_mesh(site_locs, regular=True, min_x=None, model=None, max_x
         nmesh = imesh
         return xmesh[:nmesh], nmesh
 
-    def add_pads(mesh, num_pads, pad_mult):
-        pad = pad_mult * mesh[0]
-        self.model.dy_insert(0, self.model.dy[0] - pad)
-        if self.padRight.checkState():
-            pad = pad_mult * mesh[-1]
-            self.model.dy_insert(self.model.ny + 1, pad + self.model.dy[-1])
-        if self.padTop.checkState():
-            pad = pad_mult * mesh[-1]
-            self.model.dx_insert(self.model.nx + 1, self.model.dx[-1] + pad)
-        if self.padBottom.checkState():
-            pad = pad_mult * mesh[0]
-            self.model.dx_insert(0, self.model.dx[0] - pad)
+    # def add_pads(mesh, num_pads, pad_mult):
+    #     pad = pad_mult * mesh[0]
+    #     self.model.dy_insert(0, self.model.dy[0] - pad)
+    #     if self.padRight.checkState():
+    #         pad = pad_mult * mesh[-1]
+    #         self.model.dy_insert(self.model.ny + 1, pad + self.model.dy[-1])
+    #     if self.padTop.checkState():
+    #         pad = pad_mult * mesh[-1]
+    #         self.model.dx_insert(self.model.nx + 1, self.model.dx[-1] + pad)
+    #     if self.padBottom.checkState():
+    #         pad = pad_mult * mesh[0]
+    #         self.model.dx_insert(0, self.model.dx[0] - pad)
 
     if regular:
         bounds = [np.min(site_locs), np.max(site_locs)]
@@ -212,8 +212,6 @@ def generate_lateral_mesh(site_locs, regular=True, min_x=None, model=None, max_x
     # if num_pads:
     #     xmesh, nmesh = add_padding(mesh, num_pads, pad_mult)
     return xmesh, nmesh
-
-
 
 
 def enforce_input(**types):
