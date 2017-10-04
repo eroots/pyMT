@@ -341,7 +341,7 @@ class Dataset(object):
                         error_map[ii] = min([data_site.errmap[comp][ii],
                                              np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
                     self.data.sites[site].errmap[comp] = error_map
-            self.data.sites[site].calculate_used_errors()
+            self.data.sites[site].apply_error_floor()
 
     def calculate_RMS(self):
         NP = self.data.NP
@@ -417,6 +417,53 @@ class Data(object):
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
                            'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat'}
+    INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',
+                           'ZXYR', 'ZXYI',
+                           'ZYXR', 'ZYXI',
+                           'ZYYR', 'ZYYI'),
+                       2: ('ZXYR', 'ZXYI',
+                           'ZYXR', 'ZYXI'),
+                       3: ('TZXR', 'TZXI',
+                           'TZYR', 'TZYI'),
+                       4: ('ZXYR', 'ZXYI',
+                           'ZYXR', 'ZYXI',
+                           'TZXR', 'TZXI',
+                           'TZYR', 'TZYI'),
+                       5: ('ZXYR', 'ZXYI',
+                           'ZYXR', 'ZYXI',
+                           'TZXR', 'TZXI',
+                           'TZYR', 'TZYI',
+                           'ZXXR', 'ZXXI',
+                           'ZYYR', 'ZYYI'),
+                       6: ('RhoZXX', 'PhszXX',
+                           'RhoZXY', 'PhszXY',
+                           'RhoZYX', 'PhszYX',
+                           'RhoZYY', 'PhszYY'),
+                       7: ('RhoZXY', 'PhsZXY',
+                           'RhoZYX', 'PhsZYX'),
+                       8: ('TZYR', 'TZYI'),
+                       9: ('RhoZXY', 'PhsZXY',
+                           'RhoZYX', 'PhsZYX',
+                           'TZYR', 'TZYI'),
+                       10: ('RhoZXX', 'PhsZXX',
+                            'RhoZXY', 'PhsZXY',
+                            'RhoZYX', 'PhsZYX',
+                            'RhoZYY', 'PhsZYY',
+                            'TZYR', 'TZYI'),
+                       11: ('log10RhoZXX', 'PhsZXX',
+                            'log10RhoXY', 'PhsXY',
+                            'log10RhoYX', 'PhsYX',
+                            'log10RhoYY', 'PhsYY'),
+                       12: ('log10RhoZXY', 'PhsZXY',
+                            'log10RhoZYX', 'PhsZYX'),
+                       13: ('log10RhoZXY', 'PhsZXY',
+                            'log10RhoZYX', 'PhsZYX',
+                            'TZYR', 'TZYI'),
+                       14: ('log10RhoZXX', 'PhsZXX',
+                            'log10RhoZXY', 'PhsZXY',
+                            'log10RhoZYX', 'PhsZYX',
+                            'log10RhoZYY', 'PhsZYY',
+                            'TZYR', 'TZYI')}
 
     # Scale error map by how much the period differs, or do a straight error mapping
     # First value is 'scaled' or 'straight', second value is mult. For scaled, this is multiplied by
@@ -428,12 +475,16 @@ class Data(object):
     NO_PERIOD_MAP = 50
     NO_COMP_MAP = 9999
 
-    def __init__(self, datafile='', listfile=''):
+    def __init__(self, datafile='', listfile='', file_format=None):
         """Summary
 
         Args:
-            datafile (str, optional): Description
-            listfile (str, optional): Description
+            datafile (str, optional): Path to the data file to be read in
+            listfile (str, optional): Path to the file containing the station names,
+                                      in the same order as given in the data file.
+            file_format (str, optional): Format of the data file to be read in.
+                                         Options are MARE2DEM, WSINV3DMT, ModEM. If not present,
+                                         format will be inferred from data file extention.
         """
         self.datafile = datafile
         self.site_names = []
@@ -441,6 +492,15 @@ class Data(object):
         self.periods = []
         self.inv_type = None
         self.azimuth = 0
+        self.origin = None
+        self.UTM_zone = None
+        if not file_format or file_format in Data.IMPLEMENTED_FORMATS.keys():
+            self.file_format = file_format
+        else:
+            print('File format {} not recognized. ' +
+                  'Will attempt to determine file format from data file'.format(file_format))
+            self.file_format = None
+
         self.__read__(listfile=listfile, datafile=datafile)
         if self.sites:
             self.components = self.sites[self.site_names[0]].components
@@ -482,23 +542,26 @@ class Data(object):
             # Might have to watch that if site names are read after data, that
             # The data site names are updated appropriately.
             ext = os.path.splitext(datafile)[1]
-            if ext == '.emdata':
-                file_format = 'mare2dem'
-            elif ext == '.dat':
-                file_format = 'modem'
-            elif ext == '.data' or 'resp' in datafile:
-                file_format = 'wsinv3dmt'
-            else:
-                print('Data file extension {} not recognized.\n'.format(ext))
-                print('Acceptable formats are <Inversion Code> - <File Extension>:\n')
-                for code, ext in Data.IMPLEMENTED_FORMATS.items():
-                    print('{} => {}\n'.format(code, ext))
-            all_data, invType = WS_io.read_data(datafile=datafile,
-                                                site_names=self.site_names,
-                                                file_format=file_format, invType=invType)
+            if not self.file_format:
+                if ext == '.emdata' or ext == '.resp':
+                    self.file_format = 'MARE2DEM'
+                elif ext == '.dat':
+                    self.file_format = 'ModEM'
+                elif ext == '.data' or 'resp' in datafile:
+                    self.file_format = 'WSINV3DMT'
+                else:
+                    message = ('Acceptable formats are <Inversion Code> - <File Extension>:\n')
+                    for code, ext in Data.IMPLEMENTED_FORMATS.items():
+                        message += '{} => {}\n'.format(code, ext)
+                    raise WSFileError(ID='fmt', offender=datafile, extra=message)
+            all_data, other_info = WS_io.read_data(datafile=datafile,
+                                                   site_names=self.site_names,
+                                                   file_format=self.file_format, invType=invType)
+            self.site_names = other_info['site_names']
+            self.inv_type = other_info['inversion_type']
+            self.origin = other_info['origin']
+            self.UTM_zone = other_info['UTM_zone']
             self.sites = {}
-            if not self.site_names:
-                self.site_names = [str(x) for x in range(0, len(all_data))]
 
             for site_name, site in all_data.items():
                 self.sites.update({site_name:
@@ -509,8 +572,9 @@ class Data(object):
                                         periods=site['periods'],
                                         locations=site['locations'],
                                         azimuth=site['azimuth'],
-                                        errfloorZ=site['errFloorZ'],
-                                        errfloorT=site['errFloorT']
+                                        errfloorZ=site.get('errFloorZ', 0),
+                                        errfloorT=site.get('errFloorT', 0),
+                                        solve_static=site.get('SolveStatic', 0)
                                         )})
             # if not self.site_names:
             #     self.site_names = [site for site in self.sites.keys()]
@@ -522,12 +586,78 @@ class Data(object):
             self.inv_type = invType
 
     def auto_set_inv_type(self):
-        if len(self.used_components) == 8:
+
+        if set(self.used_components) == set(Data.INVERSION_TYPES[1]):
+            #  Full Impedance
             self.inv_type = 1
-        elif len(self.used_components) == 4:
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[2]):
+            #  Off-diagonal Impedance
             self.inv_type = 2
-        elif len(self.used_components) == 12:
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[3]):
+            #  Full Tipper
+            self.inv_type = 3
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[4]):
+            #  Off-Diagonal + Full Tipper
+            self.inv_type = 4
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[5]):
+            #  Full Impedance + Full Tipper
             self.inv_type = 5
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[6]):
+            #  Full Rho + Phase
+            self.inv_type = 6
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[7]):
+            #  Off-Diagonal Rho + Phase
+            self.inv_type = 7
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[8]):
+            #  2-D Tip
+            self.inv_type = 8
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[9]):
+            #  Off-Diagonal Rho + Phase + 2-D Tipper
+            self.inv_type = 9
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[10]):
+            #  Full Rho + Phase + 2-D Tipper
+            self.inv_type = 10
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[11]):
+            #  Full log10Rho + Phase
+            self.inv_type = 11
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[12]):
+            #  Off-Diagonal log10Rho + Phase
+            self.inv_type = 12
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[13]):
+            #  Off-Diagonal log10Rho + Phase + 2-D Tipper
+            self.inv_type = 13
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[14]):
+            #  Full Rho + Phase + 2-D Tipper
+            self.inv_type = 14
+
+    def reset_errors(self, error_floor=None, components=None, sites=None):
+        if not sites:
+            sites = self.site_names
+        elif isinstance(sites, str):
+            sites = [sites]
+        for site in sites:
+            self.sites[site].reset_errors(error_floor=error_floor, components=components)
+
+    def add_noise(self, noise_level=5, components=None, sites=None):
+        if not sites:
+            sites = self.site_names
+        elif isinstance(sites, str):
+            sites = [sites]
+        for site in sites:
+            self.sites[site].add_noise(noise_level=noise_level, components=components)
 
     def set_error_map(self):
         for site in self.site_names:
@@ -580,19 +710,33 @@ class Data(object):
         if self.inv_type is None:
             # print('Inversion Type not set. Returning currently set components')
             components = self.components
-        elif self.inv_type == 1:
-            components = self.ACCEPTED_COMPONENTS[:8]
-        elif self.inv_type == 2:
-            components = self.ACCEPTED_COMPONENTS[2:5]
-        elif self.inv_type == 3:
-            components = self.ACCEPTED_COMPONENTS[8:]
-        elif self.inv_type == 4:
-            components = self.ACCEPTED_COMPONENTS[2:]
-        elif self.inv_type == 5:
-            components = self.ACCEPTED_COMPONENTS
+        else:
+            components = Data.INVERSION_TYPES[self.inv_type]
+        # elif self.inv_type == 1:
+        #     components = self.ACCEPTED_COMPONENTS[:8]
+        # elif self.inv_type == 2:
+        #     components = self.ACCEPTED_COMPONENTS[2:5]
+        # elif self.inv_type == 3:
+        #     components = self.ACCEPTED_COMPONENTS[8:]
+        # elif self.inv_type == 4:
+        #     components = self.ACCEPTED_COMPONENTS[2:]
+        # elif self.inv_type == 5:
+        #     components = self.ACCEPTED_COMPONENTS
         return components
 
+    @property
+    def inv_type(self):
+        return self._inv_type
+
+    @inv_type.setter
+    def inv_type(self, val):
+        if val and val not in Data.INVERSION_TYPES.keys():
+            raise Exception('{} is not a valid inversion type'.format(val))
+        self._inv_type = val
+
     def write(self, outfile, to_write=None, file_format=None):
+        if not file_format:
+            file_format = self.file_format
         WS_io.write_data(data=self, outfile=outfile, to_write=to_write, file_format=file_format)
 
     def write_list(self, outfile):
@@ -866,8 +1010,10 @@ class Model(object):
 
     def generate_mesh(self, site_locs, regular=True, min_x=None, min_y=None,
                       max_x=None, max_y=None, num_pads=None, pad_mult=None):
-        self.dx = list(utils.generate_lateral_mesh(site_locs[:, 0], min_x=min_x, max_x=max_x, regular=regular)[0])
-        self.dy = list(utils.generate_lateral_mesh(site_locs[:, 1], min_x=min_y, max_x=max_y, regular=regular)[0])
+        self.dx = list(utils.generate_lateral_mesh(site_locs[:, 0],
+                                                   min_x=min_x, max_x=max_x, regular=regular)[0])
+        self.dy = list(utils.generate_lateral_mesh(site_locs[:, 1],
+                                                   min_x=min_y, max_x=max_y, regular=regular)[0])
         if not self.is_half_space():
             print('Mesh generation not setup for non-half-spaces. Converting to half space...')
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
@@ -1065,7 +1211,7 @@ class Site(object):
 
     def __init__(self, data={}, name='', periods=None, locations={},
                  errors={}, errmap=None, azimuth=None, flags=None,
-                 errfloorZ=None, errfloorT=None):
+                 errfloorZ=None, errfloorT=None, solve_static=0):
         """Initialize a Site object.
         Data must a dictionary where the keys are acceptable tensor components,
         and the length matches the number of periods.
@@ -1086,6 +1232,12 @@ class Site(object):
         self.components = [key for key in data.keys()]
         self.orig_azimuth = azimuth
         self.azimuth = azimuth
+        self.solve_static = solve_static
+        self.static_multiplier = 1
+        self.error_floors = {'Z': 0,
+                             'T': 0,
+                             'Rho': 0,
+                             'Phs': 0}
         if errfloorZ is None:
             self.errfloorZ = 5
         else:
@@ -1107,43 +1259,150 @@ class Site(object):
             # for comp in self.data.keys():
             #     self.errmap.update({comp:
             #                         np.ones(np.shape(self.data[comp]))})
-        self.used_error = {}
+        try:
+            self.used_error = {component: self.errors[component] for component in self.components}
+        except KeyError:
+            print('Error information not available.')
+            self.used_error = {}
         # Add dummy data to missing components
-        self.calculate_used_errors()
+        self.apply_error_floor()
         # for comp, val in self.errors.items():
         #     self.used_error.update({comp: val * self.errmap[comp]})
 
         # Rotate all sites to 0 degrees to start
         # self.rotate_data(azi=0)
 
-    def calculate_used_errors(self, errfloorZ=None, errfloorT=None):
-        if errfloorZ is None:
-            errfloorZ = self.errfloorZ
-        else:
-            self.errfloorZ = errfloorZ
-        if errfloorT is None:
-            errfloorT = self.errfloorT
-        else:
-            self.errfloorT = errfloorT
-        comps = set([comp[:3] for comp in self.components])
-        if 'ZXY' in comps:
-            ZXY = self.data['ZXYR'] + 1j * self.data['ZXYI']
-            ZYX = self.data['ZYXR'] + 1j * self.data['ZYXI']
-            erabsz = np.sqrt(np.absolute(ZXY * ZYX)) * errfloorZ / 100
-            mapped_err = {comp: self.errors[comp] * self.errmap[comp] for
-                          comp in self.errors if comp[0] == 'Z'}
-            for comp, err in mapped_err.items():
-                self.used_error[comp] = np.array([max(fl, mapped)
-                                                  for (fl, mapped) in zip(erabsz, err)])
-        if 'TZX' in comps:
-            TZX = self.data['TZXR'] + 1j * self.data['TZXI']
-            TZY = self.data['TZYR'] + 1j * self.data['TZYI']
-            ERT = np.sqrt(np.absolute(TZX * TZX) + np.absolute(TZY * TZY))
-            erabst = ERT * errfloorT / 100
-            mapped_err = {comp: self.errors[comp] * self.errmap[comp] for
-                          comp in self.errors if comp[0] == 'T'}
-            for comp, err in mapped_err.items():
-                self.used_error[comp] = np.array([max(fl, mapped) for (fl, mapped) in zip(erabst, err)])
+    @property
+    def errorfloorZ(self):
+        return self.error_floors['Z']
+
+    @errorfloorZ.setter
+    def errorfloorZ(self, val):
+        self.error_floors['Z'] = val
+
+    @property
+    def errorfloorT(self):
+        return self.error_floors['T']
+
+    @errorfloorT.setter
+    def errorfloorT(self, val):
+        self.error_floors['T'] = val
+
+    def calculate_error_floor(self, error_floor=None, components=None):
+        if error_floor is None:
+            error_floor = self.error_floors
+        if not components:
+            components = self.components
+        elif not isinstance(components, list):
+            components = [components]
+        error_floors = self.error_floors
+        if error_floors is not None:
+            try:
+                for key in error_floors.keys():
+                    error_floors[key] = error_floor[key]
+            except TypeError:
+                for key in error_floors.keys():
+                    error_floors[key] = error_floor
+        returned_errors = {component: [] for component in components}
+        for component in components:
+            if 'log10' in component:
+                new_errors = np.log10(1 + error_floors['Rho']) * np.ones(self.data[component].shape)
+            elif 'phs' in component.lower():
+                new_errors = error_floors['Phs'] * 100 * np.ones(self.data[component].shape)
+            elif component.startswith('Z'):
+                new_errors = np.abs(self.data[component] * error_floors['Z'])
+            elif component.startswith('T'):
+                new_errors = np.abs(self.data[component] * error_floors['T'])
+            elif 'rho' in component.lower():
+                new_errors = np.abs(self.data[component] * error_floors['Rho'])
+            new_errors[new_errors == 0] = np.median(new_errors)
+            returned_errors[component] = utils.truncate(new_errors)
+        return returned_errors
+
+    def reset_errors(self, error_floor=None, components=None):
+        if not components:
+            components = self.components
+        new_errors = self.calculate_error_floor(error_floor=error_floor,
+                                                components=components)
+        for component in components:
+            self.errors[component] = new_errors[component]
+            self.used_error[component] = new_errors[component]
+
+    @utils.enforce_input(noise_level=float, components=list)
+    def add_noise(self, noise_level=5, components=None):
+        if noise_level > 1:
+            noise_level /= 100
+        if not components:
+            components = self.components
+        for component in components:
+            size = self.data[component].shape
+            if 'phs' in component.lower():
+                noise = np.random.normal(loc=noise_level * 100,
+                                         scale=noise_level * 100, size=size)
+            elif 'log10' in component.lower():
+                noise = np.random.normal(loc=np.log10(1 + noise_level),
+                                         scale=np.log10(1 + noise_level), size=size)
+            else:
+                noise = []
+                for val in self.data[component]:
+                    noise.append(np.random.normal(loc=abs(val) * noise_level,
+                                                  scale=abs(val) * noise_level, size=1))
+                noise = np.array(noise)
+            noise *= np.random.choice((1, -1))
+            self.data[component] += np.squeeze(noise)
+            self.data[component] = utils.truncate(self.data[component])
+
+    def apply_error_floor(self, error_floors=None, errfloorZ=None, errfloorT=None):
+        if errfloorZ:
+            print('Usage of errfloorZ is depreciated and will be removed in the future.\n')
+            print('Please either set the error_floor attribute, or pass a dictionary argument ' +
+                  ' as error_floor')
+            self.error_floors['Z'] = errfloorZ
+        if errfloorT:
+            print('Usage of errfloorT is depreciated and will be removed in the future.\n')
+            print('Please either set the error_floor attribute, or pass a dictionary argumuent ' +
+                  ' as error_floor')
+            self.error_floors['T'] = errfloorT
+        if error_floors:
+            try:
+                for key in error_floors.keys():
+                    self.error_floors[key] = error_floors[key]
+            except TypeError:
+                for key in self.error_floors.keys():
+                    self.error_floors[key] = error_floors
+        floor_errors = self.calculate_error_floor(self.error_floors)
+        for component in self.components:
+            new_errors = np.maximum.reduce([floor_errors[component],
+                                            self.errors[component]])
+            self.used_error[component] = new_errors
+
+        # if errfloorZ is None:
+        #     errfloorZ = self.errfloorZ
+        # else:
+        #     self.errfloorZ = errfloorZ
+        # if errfloorT is None:
+        #     errfloorT = self.errfloorT
+        # else:
+        #     self.errfloorT = errfloorT
+        # comps = set([comp[:3] for comp in self.components])
+        # if 'ZXY' in comps:
+        #     ZXY = self.data['ZXYR'] + 1j * self.data['ZXYI']
+        #     ZYX = self.data['ZYXR'] + 1j * self.data['ZYXI']
+        #     erabsz = np.sqrt(np.absolute(ZXY * ZYX)) * errfloorZ / 100
+        #     mapped_err = {comp: self.errors[comp] * self.errmap[comp] for
+        #                   comp in self.errors if comp[0] == 'Z'}
+        #     for comp, err in mapped_err.items():
+        #         self.used_error[comp] = np.array([max(fl, mapped)
+        #                                           for (fl, mapped) in zip(erabsz, err)])
+        # if 'TZX' in comps:
+        #     TZX = self.data['TZXR'] + 1j * self.data['TZXI']
+        #     TZY = self.data['TZYR'] + 1j * self.data['TZYI']
+        #     ERT = np.sqrt(np.absolute(TZX * TZX) + np.absolute(TZY * TZY))
+        #     erabst = ERT * errfloorT / 100
+        #     mapped_err = {comp: self.errors[comp] * self.errmap[comp] for
+        #                   comp in self.errors if comp[0] == 'T'}
+        #     for comp, err in mapped_err.items():
+        #         self.used_error[comp] = np.array([max(fl, mapped) for (fl, mapped) in zip(erabst, err)])
 
     def rotate_data(self, azi=0):
         # This function is needlessly long, but I want to make sure it does it's job right...
@@ -1266,7 +1525,7 @@ class Site(object):
         self.errors = {comp: utils.list2np(new_errors[comp]) for comp in self.components}
         self.errmap = {comp: utils.list2np(new_errmap[comp]) for comp in self.components}
         self.periods = utils.list2np(utils.truncate(current_periods))
-        self.calculate_used_errors()
+        self.apply_error_floor()
 
     @utils.enforce_input(periods=list)
     def remove_periods(self, periods):
@@ -1353,7 +1612,7 @@ class Site(object):
                 else:
                     self.errmap[comp][ind] = mult
                 # self.used_error[comp][ind] = self.errors[comp][ind] * mult
-        self.calculate_used_errors()
+        self.apply_error_floor()
 
     @utils.enforce_input(components=list)
     def remove_components(self, components):

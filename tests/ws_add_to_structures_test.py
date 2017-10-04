@@ -1,18 +1,18 @@
 from pyMT import IO
+import numpy as np
 from pyMT.data_structures import Dataset
 from pyMT.data_structures import Data
 from pyMT.WSExceptions import WSFileError
 from nose.tools import assert_equal
 from nose.tools import assert_raises
 import copy
-# from nose.tools import ok_
+import os
 
 
-testlist = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion' \
-           r'\Regions\abi-gren\Old\abi0\rmsites.lst'
-datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion' \
-           r'\Regions\abi-gren\Old\abi0\rmsitesNew_1.data'
-datpath = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\Old\j2'
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+testlist = os.path.join(THIS_DIR, os.pardir, 'test_data', 'rmsites.lst')
+datafile = os.path.join(THIS_DIR, os.pardir, 'test_data', 'rmsitesNew_1.data')
+datpath = os.path.join(THIS_DIR, os.pardir, 'test_data', 'j2')
 
 
 class TestWSSiteAddMethods(object):
@@ -37,8 +37,5 @@ class TestWSSiteAddMethods(object):
         for ii, period in enumerate(old_site.periods):
             if period not in list(old_site.periods):
                 ind = np.argmin(old_site.periods - period)
-                for comp in ololdite.components:
+                for comp in old_site.components:
                     assert (old_site.data[comp][ii] == raw_site.data[comp][ind])
-
-
-
