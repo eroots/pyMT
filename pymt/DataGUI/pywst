@@ -30,3 +30,8 @@ resp out3_resp.02
 list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\New\j2\southeastern_2.lst
 #data all.data
 #resp fwd_resp.00
+% wsSE3_ModEM
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\New\wsSE3_ModEM
+list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\New\j2\southeastern_2.lst
+data wsSE3TF_ModEM.dat
+resp wsSE3TF_final.dat

@@ -28,12 +28,12 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         Input: z, an 2d array.
         x,y coordinters are optional.
         """
+        self.setupUi(self)
         if data:
             self.site_locations = data.locations
         else:
             self.site_locations = []
             self.regenMesh_2.setEnabled(False)
-        self.setupUi(self)
         self.orientation = 'xy'
         self.site_marker = 'w+'
         self.mesh_color = 'w'
