@@ -1,6 +1,4 @@
-import utils
-import numpy as np
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets
 import sys
 # def enforce(*types):
 #     def decorator(f):
@@ -14,7 +12,7 @@ import sys
 #     return decorator
 
 
-class Example(QtGui.QMainWindow):
+class Example(QtWidgets.QMainWindow):
 
     def __init__(self, files):
         super(Example, self).__init__()
@@ -23,19 +21,19 @@ class Example(QtGui.QMainWindow):
 
     def initUI(self, files):
         entries = {f: [] for f in files}
-        self.gb = QtGui.QGroupBox()
+        self.gb = QtWidgets.QGroupBox()
         self.gb.setTitle('Input Files')
         self.setCentralWidget(self.gb)
-        gbox = QtGui.QGridLayout()
+        gbox = QtWidgets.QGridLayout()
         for ii, f in enumerate(files):
-            entries[f] = QtGui.QLineEdit()
+            entries[f] = QtWidgets.QLineEdit()
             gbox.addWidget(entries[f], ii, 1)
-            gbox.addWidget(QtGui.QLabel(f), ii, 0)
+            gbox.addWidget(QtWidgets.QLabel(f), ii, 0)
         self.gb.setLayout(gbox)
 
         # self.setCentralWidget(self.textEdit)
         self.statusBar()
-        openFile = QtGui.QAction(QtGui.QIcon('open.png'), 'Open', self)
+        openFile = QtWidgets.QAction(QtWidgets.QIcon('open.png'), 'Open', self)
         openFile.setShortcut('Ctrl+O')
         openFile.setStatusTip('Open new File')
         openFile.triggered.connect(self.showDialog)
@@ -50,7 +48,7 @@ class Example(QtGui.QMainWindow):
 
     def showDialog(self):
 
-        fname = QtGui.QFileDialog.getOpenFileNames(self, 'Open file',
+        fname = QtWidgets.QFileDialog.getOpenFileNames(self, 'Open file',
                                                   './')
         print(fname)
         # f = open(fname, 'r')
@@ -62,7 +60,7 @@ class Example(QtGui.QMainWindow):
 
 def main():
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     ex = Example(files=('Raw', 'List'))
     ret = app.exec_()
     sys.exit(ret)

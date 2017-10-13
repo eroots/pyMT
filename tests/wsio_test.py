@@ -7,33 +7,36 @@ from pyMT.WSExceptions import WSFileError
 from nose.tools import assert_equal
 from nose.tools import assert_raises
 import numpy as np
+import os
 
-# from nose.tools import ok_
 
-
-testlist = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion' \
-           r'\Regions\abi-gren\Old\abi0\rmsites.lst'
-datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion' \
-           r'\Regions\abi-gren\Old\abi0\rmsitesNew_1.data'
-datpath = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\Old\j2'
-
-outfile = r'D:\pythonProgs\Inversion\testfile.data'
-datafile_mistmatch = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion' \
-                     r'\Regions\abi-gren\Old\abi0_7\abi0_7.data'
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+WS_test_list = os.path.join(THIS_DIR, os.pardir, 'test_data', 'rmsites.lst')
+WS_data_file = os.path.join(THIS_DIR, os.pardir, 'test_data', 'rmsitesNew_1.data')
+ModEM_test_list = os.path.join(THIS_DIR, os.pardir, 'test_data', 'ModEM_test_list.lst')
+ModEM_test_data = os.path.join(THIS_DIR, os.pardir, 'test_data', 'ModEM_test_data.dat')
+MARE2DEM_test_list = os.path.join(THIS_DIR, os.pardir, 'test_data', 'MARE2DEM_test_list.lst')
+MARE2DEM_test_data = os.path.join(THIS_DIR, os.pardir, 'test_data', 'MARE2DEM_test_data.emdata')
+datpath = os.path.join(THIS_DIR, os.pardir, 'test_data', 'j2')
+badlist = os.path.join(THIS_DIR, os.pardir, 'test_data', 'badlist.lst')
+outfile_WS = os.path.join(THIS_DIR, os.pardir, 'test_data', 'testfile_WS.data')
+outfile_ModEM = os.path.join(THIS_DIR, os.pardir, 'test_data', 'testfile_ModEM.dat')
+outfile_MARE2DEM = os.path.join(THIS_DIR, os.pardir, 'test_data', 'testfile_MARE2DEM.emdata')
+datafile_mistmatch = os.path.join(THIS_DIR, os.pardir, 'test_data', 'allsites.data')
 
 
 # Can create a subclass from this later and just modify the setup to also add or subtract something
 # from the dataset to make sure that it is properly reflected in the written data.
-class TestStraightWriteDataset(object):
+class TestStraightWriteDataset_WS(object):
     """
     Test to make sure that when the data read into a Dataset is written out and read
     back in again, that the results are identical.
     """
     @classmethod
     def setUpClass(cls):
-        cls.dataset = Dataset(listfile=testlist, datafile=datafile, datpath=datpath)
-        cls.dataset.data.write(outfile)
-        cls.dataset2 = Dataset(listfile=testlist, datafile=outfile, datpath=datpath)
+        cls.dataset = Dataset(listfile=WS_test_list, datafile=WS_data_file, datpath=datpath)
+        cls.dataset.data.write(outfile_WS)
+        cls.dataset2 = Dataset(listfile=WS_test_list, datafile=WS_data_file, datpath=datpath)
 
     def test_comps_are_equal(self):
         assert_equal(self.dataset.data.components, self.dataset2.data.components)
@@ -72,16 +75,16 @@ class TestStraightWriteDataset(object):
                                            utils.truncate(site2.errmap[comp]), 10e-5)
 
 
-class TestStraightWriteData(object):
+class TestStraightWriteData_WS(object):
     """
     Test to make sure that when a Data instance is created from a data file
     and Immediately written out, the the results are identical.
     """
     @classmethod
     def setUpClass(cls):
-        cls.data = Data(datafile=datafile, listfile=testlist)
-        cls.data.write(outfile)
-        cls.data2 = Data(datafile=outfile, listfile=testlist)
+        cls.data = Data(datafile=WS_data_file, listfile=WS_test_list)
+        cls.data.write(outfile_WS)
+        cls.data2 = Data(datafile=outfile_WS, listfile=WS_test_list)
 
     def test_comps_are_equal(self):
         assert_equal(self.data.components, self.data2.components)
@@ -131,7 +134,7 @@ class TestWSIOWithGoodFile_RawData(object):
     """
     @classmethod
     def setUpClass(cls):
-        cls.data = RawData(testlist, datpath)
+        cls.data = RawData(WS_test_list, datpath)
 
     def test_read_dats_site_names(self):
         assert_equal(set([site.name for site in self.data.sites.values()]),
@@ -159,12 +162,12 @@ class TestWSIOWithGoodFile_RawData(object):
                 assert_equal(len(site.periods), len(site.data[comp]))
 
 
-class TestWSIOWithGoodFile_Data(object):
+class TestIOWithGoodFile_WSData(object):
     """Test that a Data object is initilized correctly when using proper files.
     """
     @classmethod
     def setUpClass(cls):
-        cls.data = Data(datafile=datafile, listfile=testlist)
+        cls.data = Data(datafile=WS_data_file, listfile=WS_test_list)
 
     def test_data_periods_are_identical(self):
         for site in self.data.sites.values():
@@ -176,12 +179,56 @@ class TestWSIOWithGoodFile_Data(object):
 
     def test_data_components_are_identical(self):
         for site in self.data.sites.values():
-            assert_equal(site.components, self.data.components)
+            assert_equal(set(site.components), set((self.data.components)))
 
     def test_data_all_sites_loosely_equal(self):
         for site1 in self.data.sites.values():
             for site2 in self.data.sites.values():
                 assert site1.loosely_equal(site2) and site2.loosely_equal(site1)
+
+
+class TestIOWithGoodFile_ModEMData(TestIOWithGoodFile_WSData):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = Data(datafile=ModEM_test_data, listfile=ModEM_test_list)
+
+
+class TestWriteDataset_ModEM(TestStraightWriteDataset_WS):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = Data(datafile=ModEM_test_data, listfile=ModEM_test_list)
+        cls.data.write(outfile_ModEM)
+        cls.data2 = Data(datafile=outfile_ModEM, listfile=ModEM_test_list)
+
+
+class TestWriteData_ModEM(TestStraightWriteData_WS):
+    @classmethod
+    def setUpClass(cls):
+        cls.dataset = Dataset(listfile=ModEM_test_list, datafile=ModEM_test_data, datpath=datpath)
+        cls.dataset.data.write(outfile_ModEM)
+        cls.dataset2 = Dataset(listfile=ModEM_test_list, datafile=ModEM_test_data, datpath=datpath)
+
+
+class TestIOWithGoodFile_MARE2DEMData(TestIOWithGoodFile_WSData):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = Data(datafile=MARE2DEM_test_data, listfile=MARE2DEM_test_list)
+
+
+class TestWriteDataset_MARE2DEM(TestStraightWriteDataset_WS):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = Data(datafile=MARE2DEM_test_data, listfile=MARE2DEM_test_list)
+        cls.data.write(outfile_MARE2DEM)
+        cls.data2 = Data(datafile=outfile_MARE2DEM, listfile=MARE2DEM_test_list)
+
+
+class TestWriteData_MARE2DEM(TestStraightWriteData_WS):
+    @classmethod
+    def setUpClass(cls):
+        cls.dataset = Dataset(listfile=MARE2DEM_test_list, datafile=MARE2DEM_test_data, datpath=datpath)
+        cls.dataset.data.write(outfile_MARE2DEM)
+        cls.dataset2 = Dataset(listfile=MARE2DEM_test_list, datafile=MARE2DEM_test_data, datpath=datpath)
 
 
 class TestIOWithBadFiles(object):
@@ -198,13 +245,13 @@ class TestIOWithBadFiles(object):
             IO.read_data(datafile='this_is_not_a_file.lst')
 
     def test_readDirect_raw_data_nonexistant_data(self):
-        sites = IO.read_sites('badlist.lst')
+        sites = IO.read_sites(badlist)
         with assert_raises(WSFileError):
             IO.read_raw_data(site_names=sites)
 
     def test_readFromObj_raw_data_nonexistant_data(self):
         with assert_raises(WSFileError):
-            RawData(listfile='badlist.lst')
+            RawData(listfile=badlist)
 
     def test_readFromObj_data_nonexistant_data(self):
         with assert_raises(WSFileError):
@@ -212,4 +259,4 @@ class TestIOWithBadFiles(object):
 
     def test_read_mismatched_files(self):
         with assert_raises(WSFileError):
-            Data(datafile=datafile_mistmatch, listfile=testlist)
+            Data(datafile=datafile_mistmatch, listfile=WS_test_list)

@@ -40,6 +40,13 @@ data_plot.py:
     - Give info on the misfit data. Don't want to have to keep going back to matlab to get info like RMS per component, station, period, etc.
 data_structures.py:
     - The input data format (WS, ModEM, MARE2DEM, OCCAM) should be stored in a Data attribute, and that will become the default output mode if the data is written again
+    - Going to need to keep making the changes to allow for ModEM and MARE2DEM data handling, specifically Rho and Phase data.
+    -Rename some things to make it more clear
+        - calculate_used_errors should probably be apply_error_floor
+            - Speaking of which, this needs to be modified to handle data other than impedance and tipper
+    - Need to take out the explicit references to 'ZXY', 'ZYX', etc.
+        - Going to be a big overhaul to make the data structures work for all inversion types.
+    - 2-D inversions with tipper might break, since TZXR/I won't be available, and some methods might expect it.
     - Error floors should be settable in the data structure, not just in Sites
     - Rho, phase, and bostick data should be pre-calculated when the data is read in (i.e. don't have to calculate it manually every time you want to plot it)
     - If a dataset is read without a response, but the data is at 0 degrees, things work fine. If azimuth is non-zero, errors are thrown about azimuth not being an attribute.

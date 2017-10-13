@@ -372,10 +372,15 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                                   })
         except FileNotFoundError as e:
             raise(WSFileError(ID='fnf', offender=datafile)) from None
-        return sites, invType
+        other_info = {'inversion_type': invType,
+                      'site_names': site_names,
+                      'UTM_zone': 'Undefined',
+                      'origin': (0, 0)}
+        return sites, other_info
 
     def read_modem_data(datafile='', site_names='', invType=None):
         #  Will only ready Impedance and TF data so far, not rho/phase
+        print('Inside read_modem_data')
         try:
             with open(datafile, 'r') as f:
                 lines = f.readlines()
@@ -390,26 +395,27 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
         # site_errmap = {}
         site_locations = {}
         inv_type = 0
+        new_site_names = []
+        if site_names:
+            site_data = {site: {} for site in site_names}
+            site_error = {site: {} for site in site_names}
+            site_locations = {site: {'X': [], 'Y': [], 'elev': []} for site in site_names}
         for ii, line in enumerate(lines):
             if '#' in line and marker + 1 != ii:
                 marker = ii
                 block_start.append(ii)
         block_start.append(len(lines))
         for ii, line_number in enumerate(block_start[:-1]):
-            # header = lines[line_number + 1]
+            header = lines[line_number + 1]
+            if 'UTM Zone:' in header:
+                UTM_zone = header.split(':')[1]
+            else:
+                UTM_zone = 'Undefined'
             data_type = lines[line_number + 2].split('>')[1].strip()
             azimuth = float(lines[line_number + 5].split('>')[1].strip())
+            o_x, *o_y = [float(x) for x in lines[line_number + 6].split('>')[1].strip().split()]
+            o_y = o_y[0]
             NP, NS = [int(x) for x in lines[line_number + 7].split('>')[1].strip().split()]
-            if not site_names:
-                site_lookup = {str(x): str(x) for x in range(NS)}
-                site_names = [str(x) for x in range(NS)]
-            else:
-                site_lookup = {str(x): site_names[x] for x in range(NS)}
-            if not site_data:
-                site_data = {site: {} for site in site_names}
-                site_error = {site: {} for site in site_names}
-                # site_errmap = {site: {} for site in site_names}
-                site_locations = {site: {'X': [], 'Y': [], 'Z': []} for site in site_names}
             if data_type == 'Full_Impedance':
                 if inv_type == 3:
                     inv_type = 5
@@ -433,41 +439,43 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
             for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
                 line = line_string.split()
                 periods.append(float(line[0]))
-                code = line[1].lstrip('0')
-                if code == '':
-                    code = '0'
+                site_name = line[1]
                 X, Y, Z = [float(x) for x in line[4:7]]
-                try:
-                    site_locations[site_lookup[code]]['X'] = X
-                    site_locations[site_lookup[code]]['Y'] = Y
-                    site_locations[site_lookup[code]]['Z'] = Z
-                except KeyError as e:
-                    print(site_locations)
-                    raise e
+                if site_name not in site_data.keys():
+                    site_data.update({site_name: {}})
+                    site_error.update({site_name: {}})
+                    new_site_names.append(site_name)
+                    site_locations.update({site_name: {'X': [],
+                                                       'Y': [],
+                                                       'elev': []}})
+                site_locations[site_name]['X'] = X
+                site_locations[site_name]['Y'] = Y
+                site_locations[site_name]['elev'] = Z
+
                 component = line[7]
                 real, imag = [float(x) for x in line[8:10]]
                 error = float(line[10])
                 if component == 'TX' or component == 'TY':
                     component = component[0] + 'Z' + component[1]
-                if component + 'R' not in site_data[site_lookup[code]].keys():
-                    site_data[site_lookup[code]].update({component + 'R': []})
-                if component + 'I' not in site_data[site_lookup[code]].keys():
-                    site_data[site_lookup[code]].update({component + 'I': []})
-                if component + 'R' not in site_error[site_lookup[code]].keys():
-                    site_error[site_lookup[code]].update({component + 'R': []})
-                if component + 'I' not in site_error[site_lookup[code]].keys():
-                    site_error[site_lookup[code]].update({component + 'I': []})
+                if component + 'R' not in site_data[site_name].keys():
+                    site_data[site_name].update({component + 'R': []})
+                if component + 'I' not in site_data[site_name].keys():
+                    site_data[site_name].update({component + 'I': []})
+                if component + 'R' not in site_error[site_name].keys():
+                    site_error[site_name].update({component + 'R': []})
+                if component + 'I' not in site_error[site_name].keys():
+                    site_error[site_name].update({component + 'I': []})
                 # if component not in site_errmap.keys():
-                #     site_errmap[site_lookup[code]].update({component + 'R': []})
-                #     site_errmap[site_lookup[code]].update({component + 'I': []})
-                site_data[site_lookup[code]][component + 'R'].append(real)
-                site_data[site_lookup[code]][component + 'I'].append(imag)
-                site_error[site_lookup[code]][component + 'R'].append(error)
-                site_error[site_lookup[code]][component + 'I'].append(error)
+                #     site_errmap[site_name].update({component + 'R': []})
+                #     site_errmap[site_name].update({component + 'I': []})
+                site_data[site_name][component + 'R'].append(real)
+                site_data[site_name][component + 'I'].append(imag)
+                site_error[site_name][component + 'R'].append(error)
+                site_error[site_name][component + 'I'].append(error)
                 # print(site_data[site_lookup[code]][component + 'R'])
         periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
-        for site in site_names:
+        for site in new_site_names:
             for component in site_data[site].keys():
                 vals = site_data[site][component]
                 site_data[site][component] = np.array(vals)
@@ -475,21 +483,123 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 site_error[site][component] = np.array(vals)
                 # site_errmap[site][component] = np.array(site_errmap[site][component])
         # print(site_data[site][component])
+        if not site_names:
+            site_names = new_site_names
+        elif site_names != new_site_names:
+            print('Site names specified in list file do not match those in {}\n'.format(datafile))
+            print('Proceeding with names set in list file.\n')
+
         for ii, site in enumerate(site_names):
             sites.update({site: {
-                          'data': site_data[site],
-                          'errors': site_error[site],
+                          'data': site_data[new_site_names[ii]],
+                          'errors': site_error[new_site_names[ii]],
                           'periods': periods,
-                          'locations': site_locations[site],
+                          'locations': site_locations[new_site_names[ii]],
                           'azimuth': azimuth,
                           'errFloorZ': 0,
                           'errFloorT': 0}
                           })
-
-        return sites, inv_type
+        other_info = {'inversion_type': inv_type,
+                      'site_names': site_names,
+                      'origin': (o_x, o_y),
+                      'UTM_zone': UTM_zone}
+        return sites, other_info
 
     def read_mare2dem_data(datafile='', site_names='', invType=None):
-        pass
+        data_type_lookup = {101: 'RhoZXX',
+                            102: 'PhsZXX',
+                            103: 'RhoZXY',
+                            104: 'PhsZXY',
+                            105: 'RhoZYX',
+                            106: 'PhsZYX',
+                            107: 'RhoZYY',
+                            108: 'PhsZYY',
+                            111: 'ZXXR',
+                            112: 'ZXXI',
+                            113: 'ZXYR',
+                            114: 'ZXYI',
+                            115: 'ZYXR',
+                            116: 'ZYXI',
+                            117: 'ZYYR',
+                            118: 'ZYYI',
+                            121: 'log10RhoZXX',
+                            123: 'log10RhoZXY',
+                            125: 'log10RhoZYX',
+                            127: 'log10RhoZYY',
+                            133: 'TZYR',
+                            134: 'TZYI'}
+        #  Assumes you're only working with MT data
+        try:
+            with open(datafile, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError as e:
+            raise(WSFileError(ID='fnf', offender=datafile)) from None
+        #  Remove comment lines
+        lines = [line for line in lines if not line.startswith('%') and not line.startswith('!')]
+        em_format = lines[0].split(':')[1].strip()
+        if 'emresp' in em_format.lower():
+            em_format = 'Response'
+        else:
+            em_format = 'Data'
+        #  It's not entirely clear how strike is used in the program
+        UTM_zone, o_x, o_y, strike = re.split(r'\s{2,}', lines[1].split(':')[1].strip())
+        o_x, o_y, strike = [float(x) for x in [o_x, o_y, strike]]
+        #  Will have to look into the code to see what is done, but I think this makes sense
+        azimuth = strike + 90
+        NP = int(lines[2].split(':')[1].strip())
+        frequencies = []
+        for ii in range(NP):
+            frequencies.append(float(lines[3 + ii]))
+        periods = [1 / f for f in frequencies]
+        periods = np.array(periods)
+        lines = lines[3 + NP:]
+        NS = int(lines[0].split(':')[1].strip())
+        # value_ids = [value for value in lines[1].split()[1:]]
+        value_ids = ['X', 'Y', 'Z', 'Theta', 'Alpha', 'Beta', 'Length', 'SolveStatic', 'Name']
+        site_dict = {}
+        site_names = []
+        site_aliases = {x: [] for x in range(NS)}
+        for ii, line in enumerate(lines[1:NS + 1]):
+            site = {value_ids[ii]: value for ii, value in enumerate(line.split())}
+            site_aliases.update({ii + 1: site['Name']})
+            site_names.append(site['Name'])
+            site_dict.update({site['Name']: {'locations': {'X': float(site['X']),
+                                                           'Y': float(site['Y']),
+                                                           'elev': float(site['Z'])}}})
+            site_dict[site['Name']].update({'data': {},
+                                            'errors': {}})
+            site_dict[site['Name']].update({'solve_static': site['SolveStatic']})
+            site_dict[site['Name']].update({'azimuth': site['Theta']})
+        # num_data = int(lines[NS + 4].split(':')[1])
+        # value_ids = [value for value in lines[NS + 3].split()[1:]]
+        if em_format == 'Data':
+            value_ids = ['Type', 'Freq#', 'Tx#', 'Rx#', 'Data', 'StdError']
+        else:
+            value_ids = ['Type', 'Freq#', 'Tx#', 'Rx#', 'Data', 'StdError', 'Response', 'Residual']
+        for line in lines[NS + 2:]:
+            site = {value_ids[ii]: float(value) for ii, value in enumerate(line.split())}
+            site_name = site_aliases[int(site['Rx#'])]
+            data_type = data_type_lookup[int(site['Type'])]
+            if data_type_lookup[site['Type']] not in site_dict[site_name]['data'].keys():
+                site_dict[site_name]['data'].update({data_type: [0 for x in range(NP)]})
+                site_dict[site_name]['errors'].update({data_type: [0 for x in range(NP)]})
+                # site_dict[site_name].update({'azimuth': site['Theta']})
+                # site_dict[site_name].update({'SolveStatic': site['SolveStatic']})
+            site_dict[site_name]['data'][data_type][int(site['Freq#'] - 1)] = site[em_format]
+            site_dict[site_name]['errors'][data_type][int(site['Freq#'] - 1)] = site['StdError']
+        for site in site_names:
+            site_dict[site].update({'azimuth': azimuth,
+                                    'periods': periods})
+            for component in site_dict[site]['data'].keys():
+                vals = site_dict[site]['data'][component]
+                site_dict[site]['data'].update({component: np.array(vals)})
+                vals = site_dict[site]['errors'][component]
+                site_dict[site]['errors'].update({component: np.array(vals)})
+        other_info = {'site_names': site_names,
+                      'inversion_type': None,
+                      'origin': (o_x, o_y),
+                      'UTM_zone': UTM_zone}
+        return site_dict, other_info
 
     if file_format.lower() == 'wsinv3dmt':
         return read_ws_data(datafile, site_names, invType)
@@ -498,7 +608,10 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
     elif file_format.lower() == 'mare2dem':
         return read_mare2dem_data(datafile, site_names, invType)
     else:
-        print
+        print('Output format {} not recognized'.format(file_format))
+        raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
+                                                                    'wsinv3dmt',
+                                                                    'ModEM'))
 
 
 def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
@@ -569,14 +682,14 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                             # for point in getattr(site, that)[comp]:
                         f.write('\n')
 
-    def write_ModEM3D(data, out_file, title=None):
+    def write_ModEM3D(data, out_file):
         units = []
         data_type = []
         temp_inv_type = []
         with open(out_file, 'w') as f:
-            if not title:
-                title = '# Dummy title\n' + \
-                        '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) Component Real Imag Error\n'
+            title = '# Written using pyMT. UTM Zone: {}\n' + \
+                    '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
+                    'Component Real Imag Error\n'.format(data.UTM_zone)
             if data.inv_type == 1:
                 data_type.append('> Full_Impedance\n')
                 units.append('> Ohm\n')
@@ -638,12 +751,72 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                     component_code.upper(), Z_real, Z_imag,
                                     site.used_error[component][jj]))
 
+    def write_MARE2DEM(data, out_file):
+        data_type_lookup = {'RhoZXX': 101,
+                            'PhsZXX': 102,
+                            'RhoZXY': 103,
+                            'PhsZXY': 104,
+                            'RhoZYX': 105,
+                            'PhsZYX': 106,
+                            'RhoZYY': 107,
+                            'PhsZYY': 108,
+                            'ZXXR': 111,
+                            'ZXXI': 112,
+                            'ZXYR': 113,
+                            'ZXYI': 114,
+                            'ZYXR': 115,
+                            'ZYXI': 116,
+                            'ZYYR': 117,
+                            'ZYYI': 118,
+                            'log10RhoZXX': 121,
+                            'log10RhoZXY': 123,
+                            'log10RhoZYX': 125,
+                            'log10RhoZYY': 127,
+                            'TZYR': 133,
+                            'TZYI': 134}
+        strike = (data.azimuth - 90) % 180
+        frequencies = [(1 / p) for p in data.periods]
+        with open(outfile, 'w') as f:
+            f.write('Format:\tEMData_2.2\n')
+            f.write('UTM of x, y origin (UTM zone, N, E, 2D strike): {:>10}{:>10}{:>10}{:>10}\n'.format(
+                    data.UTM_zone, data.origin[0], data.origin[1], strike))
+            f.write('# MT Frequencies: {}\n'.format(data.NP))
+            for freq in frequencies:
+                f.write('  {}\n'.format(freq))
+            f.write('# MT Receivers: {}\n'.format(data.NS))
+            f.write('!{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                    'X', 'Y', 'Z', 'Theta', 'Alpha', 'Beta', 'Length', 'SolveStatic', 'Name'))
+            for site in data.site_names:
+                f.write(' {:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                    data.sites[site].locations['X'],
+                    data.sites[site].locations['Y'],
+                    data.sites[site].locations['elev'],
+                    data.sites[site].azimuth,
+                    getattr(data.sites[site], 'alpha', 0),
+                    getattr(data.sites[site], 'beta', 0),
+                    getattr(data.sites[site], 'dipole_length', 0),
+                    getattr(data.sites[site], 'solve_static', 0),
+                    site))
+            f.write('# Data: {}\n'.format(data.NS * data.NP * len(data.used_components)))
+            f.write('!{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                    'Type', 'Freq#', 'Tx#', 'Rx#', 'Data', 'StdError'))
+            for ii, site in enumerate(data.site_names):
+                for jj, frequency in enumerate(frequencies):
+                    for component in data.used_components:
+                        f.write('{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                                data_type_lookup[component],
+                                jj + 1,
+                                1,
+                                ii + 1,
+                                data.sites[site].data[component][jj],
+                                data.sites[site].used_error[component][jj]))
+
     if file_format.lower() == 'wsinv3dmt':
         write_ws(data, outfile, to_write)
     elif file_format.lower() == 'modem':
-        write_ModEM3D(data, outfile, to_write)
+        write_ModEM3D(data, outfile)
     elif file_format.lower() == 'mare2dem':
-        pass
+        write_MARE2DEM(data, outfile)
     else:
         print('Output file format {} not recognized'.format(file_format))
 
@@ -772,7 +945,8 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     if model.resolution is not []:
         # This creates separate copies of the model object and sticks the resolution values into the vals
         # attributes
-        # Is a very roundabout method. All resolution information should be availabe in the original model object
+        # Is a very roundabout method. All resolution information
+        # should be availabe in the original model object
         print('Model.resolution exists')
         raw_resolution = copy.deepcopy(model)
         raw_resolution.vals = model.resolution
