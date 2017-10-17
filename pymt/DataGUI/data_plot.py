@@ -255,9 +255,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                            QtWidgets.QMessageBox.Ok)
             comps = self.dpm.components
             items = self.comp_table.selectedItems()
+            # self.comp_table.clearSelection()
+            self.comp_table.itemSelectionChanged.disconnect(self.comp_table_click)
             for item in items:
                 if item.text() not in comps:
-                    self.comp_table.setItemSelected(item, False)
+                    print(item.text())
+                    self.comp_table.setCurrentItem(item, QtCore.QItemSelectionModel.Deselect)
+            self.comp_table.itemSelectionChanged.connect(self.comp_table_click)
             return
         else:
             self.dpm.components = comps
