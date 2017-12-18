@@ -1,5 +1,7 @@
 TODO
 
+Finish the induction arrow plotting. Currently having issues getting it to work.
+
 Overall:
     - Fix resolution related things, specifically in IO and utils. Model object should contain resolution information, rather than creating separate objects. utils.normalize should work on arbitrary matrix / list, rather than expecting a model object.
     - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
@@ -18,14 +20,15 @@ mesh_designer.py
 data_plot.py:
     - Allow plotting of induction arrows in data_plot (as in Model Compare plotter) to compare data and response arrows. This function should probably be held somewhere common (i.e. not in data_plot.py) so that any other model plotting tool can get access to it. 
         - This is part of gplot (note, the name gplot is not very good...). Other things that would be useful are things like strike, skew, etc.
+    - Allow a split screen mode which plots 2 components on top and 2 more on bottom. Would require a bit of work.
     - Allow a bounding box to be drawn, removing all sites inside or outside the box. Will require writing methods to remove sites based on locations.
     - Allow occam responses to be plotted. Will require overhaul...
     - Error thrown in data_plot when taking consequetive periods off of the end
     - Dumping plots to file has issues with the number of subplots
     - Ability to plot over the map with rho, phase, or model.
     - BIG BUG: I think that if you write a datafile after changing the sort order, something messes up with the written data files. Either the site locations are staying the same but the data is being moved, or vice versa, either way, the data is not right.
+        - Couldn't recreate with ModEM data. Keep an eye for this though.
     - Should change the behavior of phase, rho, and bostick plotting to lazy calculation, but so that it retains that knowledge, i.e. calculate when called upon, but store the result so that it doesn't have to be calculated again.
-    - Better ways to set error maps. Intelligent outlier settings and error map caps based on deviation from the rest of the data (don't allow practically infinite error just to ignore a point, set it to keep the response curve reasonable.)
     - If you add or remove periods rapidly, an error occurs as the program tries to put in or remove the new period before it's done working with the old one.
     - If you remove all the currently plotted sites, the sorting resets to the beginning of the list. Should probably fill in from where it left off.
     - Better options for adding / removing periods in bulk. Automatic selection good (i.e. high % availability) periods between selected period range.
@@ -39,7 +42,6 @@ data_plot.py:
     - Phase wrapping on/off (i.e. wrap YX phase [which is typically negative] back over to positive side)
     - Better error map handling. Need to be able to set all the different error map flags, including smart mapping (automatically set error map based on criteria such as, if it's technically a missing data point, don't just set the error map to 9999).
     - Option to plot map in rotated or unrotated coordinates.
-    - Give info on the misfit data. Don't want to have to keep going back to matlab to get info like RMS per component, station, period, etc.
 data_structures.py:
     - The input data format (WS, ModEM, MARE2DEM, OCCAM) should be stored in a Data attribute, and that will become the default output mode if the data is written again
     - Going to need to keep making the changes to allow for ModEM and MARE2DEM data handling, specifically Rho and Phase data.

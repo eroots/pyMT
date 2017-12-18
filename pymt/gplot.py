@@ -447,3 +447,197 @@ class DataPlotManager(object):
             if abs(diff) > tol:
                 inds.append(idx)
         return np.array([x for (idx, x) in enumerate(data) if idx not in inds])
+
+
+class MapView(object):
+    COORD_SYSTEMS = ('local', 'utm', 'latlong')
+
+    def __init__(self, fig=None, **kwargs):
+        self.window = {'figure': None, 'axes': None, 'canvas': None}
+        if fig:
+            self.window = {'figure': fig, 'axes': fig.axes, 'canvas': fig.canvas}
+        self.axis_padding = 0.1
+        self.colour = 'k'
+        self.site_names = []
+        self.site_data = {'raw_data': [], 'data': [], 'response': []}
+        self._active_sites = []
+        self.site_locations = {'generic': [], 'active': [], 'all': []}
+        self.toggles = {'raw_data': False, 'data': False, 'response': False}
+        self.site_marker = {'generic': 'ko', 'active': 'ro'}
+        self.arrow_colours = {'raw_data': 'k', 'data': 'b', 'response': 'r'}
+        self.linestyle = '-'
+        self.mec = 'k'
+        self.markersize = 5
+        self.edgewidth = 2
+        self.sites = None
+        self._coordinate_system = 'local'
+        self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
+        self.annotate_sites = True
+        if fig is None:
+            self.new_figure()
+        else:
+            self.window['figure'] = fig
+        self.create_axes()
+
+    @property
+    def generic_sites(self):
+        return list(set(self.sites) - set(self.active_sites))
+
+    @property
+    def data(self):
+        return self.site_data['data']
+
+    @data.setter
+    def data(self, data):
+        self.site_data['data'] = data
+
+    @property
+    def raw_data(self):
+        return self.site_data['raw_data']
+
+    @raw_data.setter
+    def raw_data(self, raw_data):
+        self.site_data['raw_data'] = raw_data
+
+    @property
+    def response(self):
+        return self.site_data['response']
+
+    @response.setter
+    def response(self, response):
+        self.site_data['response'] = response
+
+    @property
+    def active_sites(self):
+        return self._active_sites
+
+    @active_sites.setter
+    def active_sites(self, sites=None):
+        if not sites:
+            sites = []
+        elif isinstance(sites, str):
+            sites = [sites]
+        self._active_sites = sites
+        self.set_locations()
+        # self.plot_locations()
+
+    @property
+    def coordinate_system(self):
+        return self._coordinate_system
+
+    @coordinate_system.setter
+    def coordinate_system(self, coordinate_system):
+        if coordinate_system in MapView.COORD_SYSTEMS and coordinate_system != self._coordinate_system:
+            if self.verify_coordinate_system(coordinate_system):
+                self._coordinate_system = coordinate_system
+                generic_sites = list(set(self.site_names) - set(self.active_sites))
+                self.site_locations['generic'] = self.get_locations(sites=generic_sites)
+                self.site_locations['active'] = self.get_locations(sites=self.active_sites)
+                self.site_locations['all'] = self.get_locations(sites=self.site_names)
+                self.plot_locations()
+
+    def verify_coordinate_system(self, coordinate_system):
+        if coordinate_system.lower() == 'local':
+            return True
+        elif coordinate_system.lower() == 'utm' or coordinate_system.lower() == 'latlong':
+            if self.site_data['raw_data']:
+                return True
+            else:
+                return False
+
+    def set_kwargs(self, kwargs):
+        for key, value in kwargs.items():
+            if key in self.__dict__.keys():
+                setattr(self, key, value)
+
+    def new_figure(self):
+        if not self.window['figure']:
+            self.window['figure'] = Figure()
+            self.create_axes()
+
+    def create_axes(self):
+        if not self.window['figure'].axes:
+            self.window['axes'] = self.window['figure'].add_subplot(111)
+        else:
+            self.window['axes'] = self.window['figure'].axes
+
+    def set_locations(self):
+        self.site_locations['generic'] = self.get_locations(sites=self.generic_sites)
+        self.site_locations['active'] = self.get_locations(sites=self.active_sites)
+
+    def get_locations(self, sites=None, coordinate_system=None):
+        if not coordinate_system:
+            coordinate_system = self.coordinate_system
+        else:
+            self.coordinate_system = coordinate_system
+        if coordinate_system == 'local':
+            return self.site_data['data'].get_locs(site_list=sites)
+        elif coordinate_system.lower() == 'utm':
+            return self.site_data['raw_data'].get_locs(sites=sites, mode='utm')
+        elif coordinate_system.lower() == 'latlong':
+            return self.site_data['raw_data'].get_locs(sites=sites, mode='latlong')
+
+    def plot_locations(self):
+        # if not self.window['figure']:
+        #     print('No figure to plot to...')
+        #     return
+        self.window['axes'][0].plot(self.site_locations['generic'][:, 1],
+                                    self.site_locations['generic'][:, 0],
+                                    self.site_marker['generic'],
+                                    markersize=self.markersize,
+                                    mec='k',
+                                    mew=self.edgewidth)
+        if self.active_sites:
+            self.window['axes'][0].plot(self.site_locations['active'][:, 1],
+                                        self.site_locations['active'][:, 0],
+                                        self.site_marker['active'],
+                                        markersize=self.markersize,
+                                        mec='k',
+                                        mew=self.edgewidth)
+            if self.annotate_sites:
+                for ii, (xx, yy) in enumerate(self.site_locations['active']):
+                    self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx))
+
+    @utils.enforce_input(data_type=list)
+    def plot_induction_arrows(self, data_type='data', normalize=False,):
+        if normalize:
+            max_length = 1
+        else:
+            print(self.site_locations['all'])
+            # max_length = np.sqrt((np.max(self.site_locations['all'][:, 0]) -
+            #                       np.min(self.site_locations['all'][:, 0])) ** 2 +
+            #                      (np.max(self.site_locations['all'][:, 1]) -
+            #                       np.min(self.site_locations['all'][:, 1])) ** 2) / 10
+        for dType in data_type:
+            X, Y = [], []
+            if dType.lower() == 'data':
+                colour = 'b'
+            elif dType.lower() == 'raw_data':
+                colour = 'k'
+            elif dType.lower() == 'response':
+                colour = 'r'
+
+            for site in self.sites:
+                # Just takes the last frequency. Will have to grab the right one from a list.
+                if 'TZXR' in self.site_data[dType].sites[site].components:
+                    X.append(self.site_data[dType].sites[site].data['TZXR'][-1])
+                else:
+                    X.append(0)
+                if 'TZYR' in self.site_data[dType].sites[site].components:
+                    Y.append(self.site_data[dType].sites[site].data['TZYR'][-1])
+                else:
+                    Y.append(0)
+            arrows = np.transpose(np.array((X, Y)))
+            # arrows = utils.normalize_arrows(arrows)
+            print('inside')
+            print(arrows)
+            print(self.site_locations['all'])
+
+            self.window['axes'][0].quiver(self.site_locations['all'][:, 1],
+                                          self.site_locations['all'][:, 0],
+                                          arrows[:, 1],
+                                          arrows[:, 0],
+                                          color=colour,
+                                          minlength=1)
+
+

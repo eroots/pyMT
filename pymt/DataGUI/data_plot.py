@@ -36,11 +36,96 @@ from pyMT import gplot, utils, data_structures
 from pyMT.GUI_common import common_functions
 
 path = os.path.dirname(os.path.realpath(__file__))
+
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
 UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
+UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
 
 
 # ========================= #
+class MapMain(QMapViewMain, UI_MapViewWindow):
+
+    def __init__(self, dataset, sites, active_sites):
+        super(MapMain, self).__init__()
+        self.setupUi(self)
+        self.fig = Figure()
+        self.init_map(dataset, sites, active_sites)
+        self.add_mpl(self.map.window['figure'])
+        self.connect_widgets()
+
+    def connect_widgets(self):
+        self.DEBUG.clicked.connect(self.DEBUG_FUNC)
+        self.toggle_rawDataInduction.clicked.connect(self.update_map)
+        self.toggle_dataInduction.clicked.connect(self.update_map)
+        self.toggle_responseInduction.clicked.connect(self.update_map)
+        self.toggle_normalizeInduction.clicked.connect(self.update_map)
+
+    def DEBUG_FUNC(self):
+        print('This is a debug function')
+        # print(self.map.site_locations['all'])
+        # print(self.map.active_sites)
+        # print(self.map.site_locations['active'])
+        # print(self.map.sites)
+        X, Y = [], []
+        for site in self.map.sites:
+            if 'TZXR' in self.map.site_data['data'].sites[site].components:
+                X.append(self.map.site_data['data'].sites[site].data['TZXR'][-1])
+            else:
+                X.append(0)
+            if 'TZYR' in self.map.site_data['data'].sites[site].components:
+                Y.append(self.map.site_data['data'].sites[site].data['TZYR'][-1])
+            else:
+                Y.append(0)
+        arrows = np.transpose(np.array((X, Y)))
+        print(arrows)
+
+    def add_mpl(self, fig):
+        self.canvas = FigureCanvas(fig)
+        self.mplvl.addWidget(self.canvas)
+        self.toolbar = NavigationToolbar(canvas=self.canvas,
+                                         parent=self.mplwindow, coordinates=True)
+        self.canvas.draw()
+        self.mplvl.addWidget(self.toolbar)
+
+    def init_map(self, dataset, sites, active_sites):
+        self.map = gplot.MapView(figure=self.fig)
+        self.map.data = dataset.data
+        self.map.raw_data = dataset.raw_data
+        self.map.response = dataset.response
+        self.map.sites = sites
+        self.map._active_sites = active_sites
+        self.map.sites = sites
+        self.map.site_locations['generic'] = self.map.get_locations(
+            sites=self.map.generic_sites)
+        self.map.site_locations['active'] = self.map.get_locations(
+            sites=self.map.active_sites)
+        self.map.site_locations['all'] = self.map.get_locations(self.map.sites)
+
+    def update_map(self):
+        # Currently redraws the whole map every time
+        # This should be changed to just destroy and redraw whatever features are needed
+        # print(self.map.site_locations['generic'])
+        self.map.window['axes'][0].clear()
+        self.map.plot_locations()
+        induction_toggles = self.get_induction_toggles()
+        if induction_toggles['data']:
+            print(induction_toggles['data'])
+            print(induction_toggles['normalize'])
+            self.map.plot_induction_arrows(data_type=induction_toggles['data'],
+                                           normalize=induction_toggles['normalize'])
+        self.canvas.draw()
+
+    def get_induction_toggles(self):
+        toggles = {'data': [], 'normalize': False}
+        if self.toggle_rawDataInduction.checkState():
+            toggles['data'].append('raw_data')
+        if self.toggle_dataInduction.checkState():
+            toggles['data'].append('data')
+        if self.toggle_responseInduction.checkState():
+            toggles['data'].append('response')
+        if self.toggle_normalizeInduction.checkState():
+            toggles['normalize'] = True
+        return toggles
 
 
 class DataMain(QMainWindow, Ui_MainWindow):
@@ -90,6 +175,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if self.dataset.rms:
             self.init_rms_tables()
         self.stored_key_presses = []
+        self.map_view = MapMain(dataset=self.dataset,
+                                active_sites=self.site_names,
+                                sites=self.dataset.data.site_names)
 
     def init_rms_tables(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -151,8 +239,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
     @site_names.setter
     def site_names(self, names):
         self._site_names = names
-        if self.map['fig']:
-            self.draw_map()
+        # if self.map['fig']:
+        #     self.draw_map()
 
     def update_comp_table(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -255,9 +343,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                            QtWidgets.QMessageBox.Ok)
             comps = self.dpm.components
             items = self.comp_table.selectedItems()
+            # self.comp_table.clearSelection()
+            self.comp_table.itemSelectionChanged.disconnect(self.comp_table_click)
             for item in items:
                 if item.text() not in comps:
-                    self.comp_table.setItemSelected(item, False)
+                    # print(item.text())
+                    self.comp_table.setCurrentItem(item, QtCore.QItemSelectionModel.Deselect)
+            self.comp_table.itemSelectionChanged.connect(self.comp_table_click)
             return
         else:
             self.dpm.components = comps
@@ -434,9 +526,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.siteList.addItems(self.dataset.data.site_names)
 
     def show_map(self):
-        if not self.map['fig']:
-            self.draw_map()
-        self.map['canvas'].show()
+        # print(self.map_view.map.site_locations['generic'])
+        # print(self.map_view.map.generic_sites)
+        # print(self.map_view.map.active_sites)
+        self.map_view.update_map()
+        self.map_view.show()
+        # if not self.map['fig']:
+            # self.draw_map()
+        # self.map['canvas'].show()
 
     def draw_map(self):
         if not self.map['fig']:
@@ -465,8 +562,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map['plots']['all'] = self.map['axis'].plot(locs[:, 1], locs[:, 0], 'k+')
         self.map['plots']['highlight'] = self.map['axis'].plot(clocs[:, 1], clocs[:, 0], 'ro')
         for ii, (ix, iy) in enumerate(clocs):
-            print(self.site_names[ii])
-            print(ix, iy)
+            # print(self.site_names[ii])
+            # print(ix, iy)
             self.map['axis'].annotate(self.site_names[ii], xy=(iy, ix))
         self.map['canvas'].draw()
 
@@ -486,7 +583,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.dpm.toggles['response'] = False
 
     def change_dataset(self, index):
-        print(self.dataset.data.site_names[:6])
+        # print(self.dataset.data.site_names[:6])
         dset = self.currentDataset.itemText(index)
         self.current_dataset = dset
         self.dataset = self.stored_datasets[dset]
@@ -728,7 +825,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def WriteData(self, file_format='WSINV3DMT'):
         self.dataset.data.inv_type = self.check_inv_type()
         keep_going = True
-        print(self.sortSites.itemText(self.sortSites.currentIndex()))
+        # print(self.sortSites.itemText(self.sortSites.currentIndex()))
         if self.sortSites.itemText(self.sortSites.currentIndex()) != 'Default':
             reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    'Site order has changed. Write new list?',
@@ -797,6 +894,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.dpm.fig.canvas.draw()
         self.update_dpm()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
+        self.map_view.map.active_sites = self.site_names
+        self.map_view.update_map()
 
     def shift_site_names(self, shift=1):
         try:
@@ -1090,7 +1189,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                     updated_comp=self.dataset.data.components)
         if event.button == 2:
             if israw:
-                print(ind)
+                # print(ind)
                 period = float(raw_site.periods[ind])
                 freq = 1 / period
                 perc = self.dataset.raw_data.master_periods[period] * 100
