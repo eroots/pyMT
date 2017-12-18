@@ -946,6 +946,8 @@ class Model(object):
             self.generate_dummy_model()
             x_size = (np.max(data.locations[:, 1]) - np.min(data.locations[:, 1])) / 60
             y_size = (np.max(data.locations[:, 0]) - np.min(data.locations[:, 0])) / 60
+            x_size = np.max((x_size, 1000))
+            y_size = np.max((y_size, 1000))
             self.generate_mesh(site_locs=data.locations, regular=True, min_x=x_size, min_y=y_size,
                                num_pads=5, pad_mult=1.2)
             self.generate_zmesh(min_z=1, max_z=500000, NZ=60)
@@ -1010,9 +1012,9 @@ class Model(object):
 
     def generate_mesh(self, site_locs, regular=True, min_x=None, min_y=None,
                       max_x=None, max_y=None, num_pads=None, pad_mult=None):
-        self.dx = list(utils.generate_lateral_mesh(site_locs[:, 0],
+        self._dx = list(utils.generate_lateral_mesh(site_locs[:, 0],
                                                    min_x=min_x, max_x=max_x, regular=regular)[0])
-        self.dy = list(utils.generate_lateral_mesh(site_locs[:, 1],
+        self._dy = list(utils.generate_lateral_mesh(site_locs[:, 1],
                                                    min_x=min_y, max_x=max_y, regular=regular)[0])
         if not self.is_half_space():
             print('Mesh generation not setup for non-half-spaces. Converting to half space...')

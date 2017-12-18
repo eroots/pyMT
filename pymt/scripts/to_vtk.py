@@ -60,7 +60,7 @@ def get_inputs():
                                           expected='yn', default='n')
         if include_resolution == 'y':
             resolution_file = verify_input('Resolution file name:', expected='read',
-                                            default='Resolution0_inverted.model')
+                                           default='Resolution0_inverted.model')
             args.update({'resolutionfile': resolution_file})
     if to_output == 'd' or to_output == 'b':
         # Get data or list file

@@ -16,6 +16,8 @@ mesh_designer.py
     - Potential bug where the model that you see in the designer is not the same as the one that is written out. Unknown cause, but it seems that the mesh is shifting (at least relative to the site locations) after write out. CAUSE FOUND: Shifting model such that it becomes non-symettric (e.g. by adding pads to one side but not the other) keeps the stations in the same locations in the GUI, but all other model programs (including WSINV) assumes mesh is symmetric, and so site locations get shifted relative to mesh.
     - When the model is made non-symmetric (e.g. by adding pads to one side but not the other), the sites remain fixed but grid lines as shown in the GUI will no longer match those made when the model is read in (since when the model is read in, it automatically gets re-centered). This has to be accounted for.
 data_plot.py:
+    - Allow plotting of induction arrows in data_plot (as in Model Compare plotter) to compare data and response arrows. This function should probably be held somewhere common (i.e. not in data_plot.py) so that any other model plotting tool can get access to it. 
+        - This is part of gplot (note, the name gplot is not very good...). Other things that would be useful are things like strike, skew, etc.
     - Allow a bounding box to be drawn, removing all sites inside or outside the box. Will require writing methods to remove sites based on locations.
     - Allow occam responses to be plotted. Will require overhaul...
     - Error thrown in data_plot when taking consequetive periods off of the end

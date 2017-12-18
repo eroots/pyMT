@@ -30,4 +30,8 @@ raw  C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\j2
 list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\center_TF\center_fewer3.lst
 data C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\center_ModEM/NLCG_TF\center_TF3_ModEM.dat
 resp C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\center_ModEM/NLCG_TF\center_ModEM_final.dat
-
+% centerMore
+raw  C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\j2
+list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\center_TF\center_fewer3.lst
+data C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\centerMore_ModEM/centerMore.dat
+resp C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\abi-gren\New\centerMore_ModEM/NLCG_NLCG_120.dat

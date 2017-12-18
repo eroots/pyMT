@@ -380,7 +380,7 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
 
     def read_modem_data(datafile='', site_names='', invType=None):
         #  Will only ready Impedance and TF data so far, not rho/phase
-        print('Inside read_modem_data')
+        # print('Inside read_modem_data')
         try:
             with open(datafile, 'r') as f:
                 lines = f.readlines()
@@ -729,8 +729,8 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                 data.inv_type = inv_type
                 components_to_write = [component for component in data.used_components
                                        if 'i' not in component.lower()]
-                for ii, site in enumerate(data.site_names):
-                    site = data.sites[site]
+                for site_name in data.site_names:
+                    site = data.sites[site_name]
                     for jj, period in enumerate(data.periods):
                         for component in components_to_write:
                             component_code = component[:3]
@@ -740,12 +740,12 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                             Z_imag = site.data[component[:3] + 'I'][jj]
                             X, Y, Z = site.locations['X'], site.locations['Y'], site.locations.get('elev', 0)
                             Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                            f.write(' '.join(['{:>14.7E} {:>03d}',
+                            f.write(' '.join(['{:>14.7E} {}',
                                               '{:>8.3f} {:>8.3f}',
                                               '{:>15.3f} {:>15.3f} {:>15.3f}',
                                               '{:>6} {:>14.7E} {:>14.7E}',
                                               '{:>14.7E}\n']).format(
-                                    period, ii,
+                                    period, site_name,
                                     Lat, Long,
                                     X, Y, Z,
                                     component_code.upper(), Z_real, Z_imag,
@@ -942,7 +942,7 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
     else:
         outfile = '_'.join([outfile, 'model.vtk'])
     values = prep_model(model)
-    if model.resolution is not []:
+    if model.resolution:
         # This creates separate copies of the model object and sticks the resolution values into the vals
         # attributes
         # Is a very roundabout method. All resolution information
@@ -961,8 +961,8 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
         scalars = ('Resistivity', 'Raw_Resolution', 'Modified_Resolution')
         to_write = (values, raw_resolution, modified_resolution)
     else:
-        scalars = ('Resistivity')
-        to_write = (values)
+        scalars = ['Resistivity']
+        to_write = [values]
     # if azi:
     #     use_rot = True
     #     X, Y = np.meshgrid(values.dx, values.dy)
@@ -1003,7 +1003,6 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
                             yy = min([iy, NY - 1])
                             zz = min([iz, NZ - 1])
                             f.write('{}\n'.format(to_write[ii].vals[xx, yy, zz]))
-
 
 
 def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):

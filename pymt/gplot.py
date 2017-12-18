@@ -68,6 +68,8 @@ class DataPlotManager(object):
         self.tiling = [0, 0]
         self.show_outliers = True
         self.outlier_thresh = 2
+        self.min_ylim = None
+        self.max_ylim = None
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
                          't': 'Transfer Function', 'p': 'Phase', 'b': 'Apparent Resistivity'}
@@ -270,15 +272,33 @@ class DataPlotManager(object):
         # plt.show()
 
     def set_bounds(self, Max, Min, axnum=None):
+        # print('I am setting the bounds')
         try:
             for ax in axnum:
-                axrange = Max[ax] - Min[ax]
-                self.axes[ax].set_ylim([Min[ax] - axrange / 4, Max[ax] + axrange / 4])
+                if not self.min_ylim:
+                    min_y = Min[ax]
+                else:
+                    min_y = self.min_ylim
+                if not self.max_ylim:
+                    max_y = Max[ax]
+                else:
+                    max_y = self.max_ylim
+                axrange = max_y - min_y
+                self.axes[ax].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
         except TypeError:
-            axrange = Max - Min
-            self.axes[axnum].set_ylim([Min - axrange / 4, Max + axrange / 4])
-        if axnum is None:
-                axnum = range(0, len(self.axes))
+            if not self.min_ylim:
+                min_y = Min
+            else:
+                min_y = self.min_ylim
+            if not self.max_ylim:
+                max_y = Max
+            else:
+                max_y = self.max_ylim
+            # print(self.min_ylim, self.max_ylim)
+            axrange = max_y - min_y
+            self.axes[axnum].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
+        # if axnum is None:
+        #         axnum = range(0, len(self.axes))
         # if self.link_axes_bounds:
         #     self.link_axes(axnum=axnum)
         # else:

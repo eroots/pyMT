@@ -90,6 +90,7 @@ def generate_lateral_mesh(site_locs, regular=True, min_x=None, model=None, max_x
         TYPE: Description
     """
     def regular_mesh(x_size, bounds):
+        print(bounds, x_size)
         xmesh = list(np.arange(bounds[0], bounds[1], x_size))
         nmesh = len(xmesh)
         return xmesh, nmesh
@@ -205,7 +206,7 @@ def generate_lateral_mesh(site_locs, regular=True, min_x=None, model=None, max_x
     #         self.model.dx_insert(0, self.model.dx[0] - pad)
 
     if regular:
-        bounds = [np.min(site_locs), np.max(site_locs)]
+        bounds = [np.min(site_locs) - 500, np.max(site_locs) + 500]
         xmesh, nmesh = regular_mesh(min_x, bounds)
     else:
         xmesh, nmesh = j2_mesh(site_locs=site_locs, min_x=min_x, max_x=max_x)

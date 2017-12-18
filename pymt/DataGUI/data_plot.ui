@@ -64,6 +64,7 @@
     <property name="title">
      <string>Display Options</string>
     </property>
+    <addaction name="actionAxes_Bounds"/>
    </widget>
    <widget class="QMenu" name="menuWrite">
     <property name="title">
@@ -143,7 +144,7 @@
      <item row="2" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -546,6 +547,26 @@
           <bool>false</bool>
          </property>
         </widget>
+        <widget class="QLineEdit" name="axmin_hack">
+         <property name="geometry">
+          <rect>
+           <x>730</x>
+           <y>30</y>
+           <width>113</width>
+           <height>22</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="axmax_hack">
+         <property name="geometry">
+          <rect>
+           <x>860</x>
+           <y>30</y>
+           <width>113</width>
+           <height>22</height>
+          </rect>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="ErrorMap">
         <attribute name="title">
@@ -831,6 +852,11 @@
    </property>
    <property name="text">
     <string>5 (Full Z + Tipper)</string>
+   </property>
+  </action>
+  <action name="actionAxes_Bounds">
+   <property name="text">
+    <string>Axes Bounds</string>
    </property>
   </action>
  </widget>

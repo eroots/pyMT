@@ -358,6 +358,20 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type4)
         self.InversionTypeGroup.addAction(self.inv_type5)
 
+        # Super hacky axis limits setters. Fix this at some point
+        self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
+        self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
+
+    def set_axis_bounds(self):
+        try:
+            self.dpm.min_ylim = float(self.axmin_hack.text())
+            self.dpm.max_ylim = float(self.axmax_hack.text())
+            for axnum, ii in enumerate(self.site_names):
+                self.dpm.set_bounds(Min=0, Max=4, axnum=axnum)
+            self.canvas.draw()
+        except ValueError:
+            return
+
     def link_axes(self):
         if self.LockAxes.checkState():
             self.dpm.link_axes_bounds = True

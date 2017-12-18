@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 
 # raw = WSDS.RawData(r'C:\Users\eric\Documents\MATLAB' +
 #                    r'\MATLAB\Inversion\Regions\abi-gren\New\j2\allsites.lst')
-raw = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Test_Models\ztemTest\rotTest\evenMoreSites\evenMoreSitesSynth.data')
+datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Test_Models\dimensionality\synthCond.data'
+raw = WSDS.Data(datafile)
 
 site_bost = {}
 for site in raw.sites.values():
