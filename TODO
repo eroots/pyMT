@@ -1,5 +1,7 @@
 TODO
 
+Finish the induction arrow plotting. Currently having issues getting it to work.
+
 Overall:
     - Fix resolution related things, specifically in IO and utils. Model object should contain resolution information, rather than creating separate objects. utils.normalize should work on arbitrary matrix / list, rather than expecting a model object.
     - Write reader / writer helper functions that recognize keywords within file names and know what to do with them ('model' for models, 'resp' for responses, etc.). Another helper to automatically detect what you want to write, and make sure it has the right extention.
