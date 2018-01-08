@@ -33,7 +33,7 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
-from pyMT.GUI_common import common_functions
+from pyMT.GUI_common.classes import FileDialog
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -145,7 +145,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.stored_sites = {}
         self.old_val = ''
         self.fig = Figure()
-        self.file_dialog = common_functions.FileDialog(self)
+        self.file_dialog = FileDialog(self)
         self.map = {'fig': None, 'canvas': None, 'axis': None,
                     'plots': {'all': None, 'highlight': None, 'mesh': None}}
         for ii, (dname, files) in enumerate(dataset_dict.items()):
@@ -732,7 +732,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # print(self.dataset.azimuth, self.dataset.data.azimuth,
         #       self.dataset.response.azimuth, self.dataset.raw_data.azimuth)
         print((self.dataset.data.sites[
-              self.dataset.data.site_names[0]].flags))
+              self.dataset.data.site_names[0]].used_error['ZXYR']))
 
     def set_azimuth(self):
         text = self.azimuthEdit.text()
@@ -951,6 +951,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         whether or not that cell is editable. If it is, it allows you to edit the item
         which then calls post_edit_error.
         """
+        print('edit_error_tree')
         self.stored_key_presses = QtWidgets.QApplication.keyboardModifiers()
         self.check_key_presses(verbose=True)
         item = self.error_tree.itemFromIndex(self.error_tree.selectedIndexes()[0])
@@ -1351,7 +1352,7 @@ class FileInputParser(object):
                         print('Unrecognized keyword: {}'.format(dType))
             # If a dataset 'COMMON' is present, fill in any blanks in the other datasets
             # with its values
-            # if 'common' in [dname.lower() for dname in retval.keys()]:
+            # if 'common' in [dname.lower() for dname in r'etval.keys()]:
             # for dataset_files in
             for dataset_files in retval.values():
                 if 'path' in dataset_files.keys():
@@ -1435,7 +1436,7 @@ def parse_commandline(args):
     #     start_file, response = FileInputParser.get_files_dialog()
     if isinstance(start_file, str):
         files = FileInputParser.read_pystart(start_file)
-    if files is False:
+    if not files:
         return None
     # If you made it this far, I assume you have a good starting file.
     if '-c' in sys.argv:

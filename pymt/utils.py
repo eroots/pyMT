@@ -7,6 +7,17 @@ from math import log10, floor
 MU = 4 * np.pi * 1e-7
 
 
+def is_all_empties(dictionary):
+    empties = []
+    for key, val in dictionary.items():
+        if not any(True for ii in val):
+            empties.append(key)
+    if set(empties) == set(dictionary.keys()):
+        return True
+    else:
+        return False
+
+
 def percdiff(val1, val2):
     """Summary
 

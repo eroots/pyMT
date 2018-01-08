@@ -1,5 +1,4 @@
-from PyQt5 import QtCore, QtWidgets
-import pyMT.utils as utils
+from PyQt5 import QtCore
 
 
 def check_key_presses(key_presses, verbose=False):
@@ -39,50 +38,4 @@ def check_key_presses(key_presses, verbose=False):
     return retval
 
 
-class FileDialog(QtWidgets.QInputDialog):
-    def __init__(self, parent=None):
-        super(FileDialog, self).__init__(parent)
-        self.accepted = QtWidgets.QPushButton('OK')
-        self.rejected = QtWidgets.QPushButton('Cancel')
-        # self.accepted.connect(self.accept)
-        # self.rejected.connect(self.reject)
-
-    @staticmethod
-    def write_file(parent=None, default=None, label='Input', ext=None):
-        if ext is None:
-            ext = ''
-        while True:
-            dialog = FileDialog(parent)
-            dialog.setTextValue(default)
-            dialog.setLabelText(label)
-            ret = dialog.exec_()
-            file = dialog.textValue()
-            if ret and file:
-                if utils.check_file(file) or utils.check_file(''.join([file, ext])):
-                    reply = QtWidgets.QMessageBox.question(parent, 'Message',
-                                                           'File already exists. Overwrite?',
-                                                            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-                    if reply == QtWidgets.QMessageBox.Yes:
-                        return file, ret
-                else:
-                    return file, ret
-            else:
-                return file, 0
-
-    @staticmethod
-    def read_file(parent=None, default=None, label='Output'):
-        while True:
-            dialog = FileDialog(parent)
-            dialog.setTextValue(default)
-            dialog.setLabelText(label)
-            ret = dialog.exec_()
-            file = dialog.textValue()
-            if ret and file:
-                if not utils.check_file(file):
-                    QtWidgets.QMessageBox.about(parent, 'Message',
-                                            'File not found')
-                else:
-                    return file, ret
-            else:
-                return file, 0
 

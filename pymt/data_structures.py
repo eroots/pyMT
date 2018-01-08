@@ -983,6 +983,20 @@ class Model(object):
             return
         WS_io.model_to_vtk(self, outfile=outfile, sea_level=sea_level)
 
+    def to_UTM(self, origin=None):
+        '''
+            Convert model coordinates to UTM
+            Usage: model.to_UTM(origin=None) where origin is (Easting, Northing)
+        '''
+        if origin:
+            self.origin = origin
+        elif self.origin is None:
+            print('Must specify origin if model.origin is not set')
+            return
+        else:
+            self._dx = [x + self.origin[1] for x in self._dx]
+            self._dy = [y + self.origin[0] for y in self._dy]
+
     def is_half_space(self):
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
 
@@ -1256,6 +1270,10 @@ class Site(object):
             self.flags = flags
         else:
             self.flags = self.generate_errmap(mult=1)
+        if not self.errors or utils.is_all_empties(self.errors):
+            self.errors = self.generate_errmap(mult=1)
+
+
             # self.errmap = {}
             # self.flags = {}
             # for comp in self.data.keys():
@@ -1375,7 +1393,7 @@ class Site(object):
         floor_errors = self.calculate_error_floor(self.error_floors)
         for component in self.components:
             new_errors = np.maximum.reduce([floor_errors[component],
-                                            self.errors[component]])
+                                            self.used_error[component]])
             self.used_error[component] = new_errors
 
         # if errfloorZ is None:
@@ -1613,7 +1631,7 @@ class Site(object):
                     self.errmap[comp][ind] = mult * self.errmap[comp][ind]
                 else:
                     self.errmap[comp][ind] = mult
-                # self.used_error[comp][ind] = self.errors[comp][ind] * mult
+                self.used_error[comp][ind] = self.errors[comp][ind] * self.errmap[comp][ind]
         self.apply_error_floor()
 
     @utils.enforce_input(components=list)
