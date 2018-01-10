@@ -1,0 +1,4 @@
+% test
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Test_Models\ztemTest\rotTest\evenMoreSites
+#list sites.lst
+data evenMoreSitesSynth.data

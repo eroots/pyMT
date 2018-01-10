@@ -1,0 +1,10 @@
+% rae0_1
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\rae\j2
+list allPlus.lst
+data C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\rae\rae0_1\allPlus_5.data
+resp C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\rae\rae0_1\rae0Inv4_resp.01
+% rae0_2
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\rae\j2
+list allPlus.lst
+data C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\rae\rae0_2\allPlus_5.data
+resp C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\rae\rae0_2\rae0Inv5_resp.02

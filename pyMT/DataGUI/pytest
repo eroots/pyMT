@@ -1,0 +1,6 @@
+% Dataset13p
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\Lalor\lal0_4
+data test.data
+list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\Lalor\j2\rmsites2.lst
+raw_path  C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\Lalor\j2
+response out4_resp.00
