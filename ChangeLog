@@ -1,4 +1,6 @@
 == CHANGELOG ==
+01/10/18:
+ - Implementing version control on ME servers
 06/24/17:
  - Committed changes to IO, adding functions for ModEM and MARE2DEM data files
  - Changed some things to allow handling of Rho and Phase data. More work on this to be done later.
