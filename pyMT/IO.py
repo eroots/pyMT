@@ -475,26 +475,26 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 # print(site_data[site_lookup[code]][component + 'R'])
         periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
-        for site in new_site_names:
-            for component in site_data[site].keys():
-                vals = site_data[site][component]
-                site_data[site][component] = np.array(vals)
-                vals = site_error[site][component]
-                site_error[site][component] = np.array(vals)
                 # site_errmap[site][component] = np.array(site_errmap[site][component])
         # print(site_data[site][component])
         if not site_names:
             site_names = new_site_names
         elif site_names != new_site_names:
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
-            print('Proceeding with names set in list file.\n')
-
+            print('Proceeding with names set in data file.\n')
+            site_names = new_site_names
+        for site in new_site_names:
+            for component in site_data[site].keys():
+                vals = site_data[site][component]
+                site_data[site][component] = np.array(vals)
+                vals = site_error[site][component]
+                site_error[site][component] = np.array(vals)
         for ii, site in enumerate(site_names):
             sites.update({site: {
-                          'data': site_data[new_site_names[ii]],
-                          'errors': site_error[new_site_names[ii]],
+                          'data': site_data[site_names[ii]],
+                          'errors': site_error[site_names[ii]],
                           'periods': periods,
-                          'locations': site_locations[new_site_names[ii]],
+                          'locations': site_locations[site_names[ii]],
                           'azimuth': azimuth,
                           'errFloorZ': 0,
                           'errFloorT': 0}

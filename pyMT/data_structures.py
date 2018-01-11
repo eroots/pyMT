@@ -1393,7 +1393,7 @@ class Site(object):
         floor_errors = self.calculate_error_floor(self.error_floors)
         for component in self.components:
             new_errors = np.maximum.reduce([floor_errors[component],
-                                            self.used_error[component]])
+                                            self.errors[component] * self.errmap[component]])
             self.used_error[component] = new_errors
 
         # if errfloorZ is None:
@@ -1502,7 +1502,8 @@ class Site(object):
 
     def add_periods(self, site):
         """
-        Only adds one period. Lists of periods will have to be handled by outer loops.
+        Adds data from missing periods in self from site. If only certain periods are needed, use RawData.get_data
+        to generate a Site object with the desired periods.
 
         Args:
             data (TYPE): Description
