@@ -4,6 +4,7 @@ from matplotlib import cm, colors
 from matplotlib.image import PcolorImage
 import numpy as np
 from scipy.interpolate import RectBivariateSpline as RBS
+# from scipy.interpolate import SmoothBivariateSpline as RBS
 import copy
 import colorcet as cc
 import colorsys
@@ -79,33 +80,40 @@ def interpolate_slice(x, y, Z, NP):
     return interp_vals
 
 
-mod = WSDS.Model(r'C:\Users\eric\Documents' +
-                 r'\MATLAB\MATLAB\Inversion\Regions' +
-                 r'\abi-gren\New\abi0_sens\outSens_model.00')
-reso = WSDS.Model(r'C:\Users\eric\Documents' +
-                  r'\MATLAB\MATLAB\Inversion\Regions' +
-                  r'\abi-gren\New\abi0_sens\Resolution0_inverted.model')
-data = WSDS.RawData(r'C:\Users\eric\Documents' +
-                    r'\MATLAB\MATLAB\Inversion\Regions' +
-                    r'\abi-gren\New\j2\test.lst',
-                    datpath=r'C:\Users\eric\Documents' +
-                    r'\MATLAB\MATLAB\Inversion\Regions' +
-                    r'\abi-gren\New\j2')
-kimberlines = [5.341140e+006, 5.348097e+006,
-               5.330197e+006, 5.348247e+006,
-               5.369642e+006]
+# mod = WSDS.Model(r'C:\Users\eric\Documents' +
+#                  r'\MATLAB\MATLAB\Inversion\Regions' +
+#                  r'\abi-gren\New\abi0_sens\outSens_model.00')
+# reso = WSDS.Model(r'C:\Users\eric\Documents' +
+#                   r'\MATLAB\MATLAB\Inversion\Regions' +
+#                   r'\abi-gren\New\abi0_sens\Resolution0_inverted.model')
+# data = WSDS.RawData(r'C:\Users\eric\Documents' +
+#                     r'\MATLAB\MATLAB\Inversion\Regions' +
+#                     r'\abi-gren\New\j2\test.lst',
+#                     datpath=r'C:\Users\eric\Documents' +
+#                     r'\MATLAB\MATLAB\Inversion\Regions' +
+#                     r'\abi-gren\New\j2')
+mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
+reso = []
+data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
+                    datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
+# kimberlines = [5.341140e+006, 5.348097e+006,
+#                5.330197e+006, 5.348247e+006,
+#                5.369642e+006]
+kimberlines = []
 mod.origin = data.origin
 mod.to_UTM()
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 2
 use_alpha = 0
 saturation = 0.8
-lightness = 0.45
+lightness = 0.4
 
 # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
-xlim = [5250000, 5450000]
-zlim = [0, 200]
+# xlim = [5250000, 5450000]
+# zlim = [0, 200]
+xlim = []
+zlim = [0, 150]
 lut = 64
 cax = [1, 5]
 isolum = False
@@ -134,30 +142,36 @@ if cmap_name == 'jetplus':
 else:
     cmap = cm.get_cmap(cmap_name, lut)
 
-vals = np.log10(mod.vals[:, 31, :])
+# vals = np.log10(mod.vals[:, 31, :])
+vals = np.log10(mod.vals[:, 22, :])
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
 vals[vals < cax[0]] = cax[0]
 vals[vals > cax[1]] = cax[1]
-alpha = normalize_resolution(mod, reso)
-alpha = alpha[:, 31, :]
+if reso:
+    alpha = normalize_resolution(mod, reso)
+    alpha = alpha[:, 31, :]
 if mode == 2:
     vals = interpolate_slice(x, z, vals, 500)
-    alpha = interpolate_slice(x, z, alpha, 500)
+    if reso:
+        alpha = interpolate_slice(x, z, alpha, 500)
 
 norm_vals = (vals - np.min(vals)) / \
             (np.max(vals) - np.min(vals))
 if mode == 2:
     rgb = cmap(np.flipud(norm_vals.T))
-    alpha = np.flipud(alpha.T)
+    if reso:
+        alpha = np.flipud(alpha.T)
 else:
     rgb = cmap(norm_vals.T)
-    alpha = alpha.T
+    if reso:
+        alpha = alpha.T
 rgba = copy.deepcopy(rgb)
-rgba[..., -1] = alpha
+if reso:
+    rgba[..., -1] = alpha
 # cmap[..., -1] = reso.vals[:, 31, :]
 
-if isolum:
+if isolum and reso:
     cmap = cmap(np.arange(lut))
     cmap = cmap[:, :3]
     rgb = rgba[:, :, :3]
@@ -171,9 +185,9 @@ if isolum:
     hls[:, :, 1] = lightness
     rgb = hls2rgb(hls)
     rgba = np.dstack([rgb, alpha.clip(min=0.1, max=1)])
-    hls[:, :, 1] = alpha.clip(min=0.2, max=lightness)
+    hls[:, :, 1] = alpha.clip(min=0.3, max=lightness)
     rgba_l = hls2rgb(hls)
-    hls[:, :, 1] = np.abs(1 - alpha).clip(min=lightness, max=0.8)
+    hls[:, :, 1] = np.abs(1 - alpha).clip(min=lightness, max=0.7)
     rgba_lr = hls2rgb(hls)
 
     # value = 0.5
@@ -216,8 +230,8 @@ for ii in range(1):
     # ax = fig.add_subplot(2, 2, ii + 1)
     ax = fig.add_subplot(1, 1, 1)
     if mode == 1:
-        im = plt.pcolor(mod.dx, mod.dz, np.log10(mod.vals[:, 31, :]).T,
-                        vmin=1, vmax=5, cmap=cmap)
+        im = plt.pcolormesh(np.array(mod.dy), np.array(mod.dz) / 1000, vals.T,
+                        vmin=1, vmax=5, cmap=cmap, edgecolor='k', linewidth=0.01)
     elif mode == 2:
         im = plt.imshow(to_plot, cmap=cmap, vmin=cax[0], vmax=cax[1], aspect='auto',
                         extent=[x[0], x[-1], z[0] / 1000, z[-1] / 1000])
@@ -225,8 +239,10 @@ for ii in range(1):
         im = pcolorimage(ax, x=np.array(mod.dx) / 1000,
                          y=np.array(mod.dz) / 1000,
                          A=to_plot, cmap=cmap)
-    ax.set_xlim(xlim)
-    ax.set_ylim(zlim)
+    if xlim:
+        ax.set_xlim(xlim)
+    if zlim:
+        ax.set_ylim(zlim)
     ax.invert_yaxis()
     ax.invert_xaxis()
     ax.set_xlabel('Northing (m)', fontsize=14)
@@ -250,5 +266,5 @@ cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
              fontsize=12)
 cb.draw_all()
 plt.show()
-fig.savefig('profile1_' + cmap_name + '.pdf', dpi=600)
+# fig.savefig('profile1_' + cmap_name + '.pdf', dpi=600)
 
