@@ -1250,10 +1250,10 @@ class Site(object):
         self.azimuth = azimuth
         self.solve_static = solve_static
         self.static_multiplier = 1
-        self.error_floors = {'Z': 0,
-                             'T': 0,
-                             'Rho': 0,
-                             'Phs': 0}
+        self.error_floors = {'Z': 0.075,
+                             'T': 0.15,
+                             'Rho': 0.05,
+                             'Phs': 0.05}
         if errfloorZ is None:
             self.errfloorZ = 5
         else:
@@ -1272,6 +1272,8 @@ class Site(object):
             self.flags = self.generate_errmap(mult=1)
         if not self.errors or utils.is_all_empties(self.errors):
             self.errors = self.generate_errmap(mult=1)
+        if not self.errmap or utils.is_all_empties(self.errmap):
+            self.errmap = self.generate_errmap(mult=1)
 
 
             # self.errmap = {}
