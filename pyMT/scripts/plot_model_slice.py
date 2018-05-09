@@ -66,11 +66,12 @@ def normalize_resolution(model, resolution):
 
 def pcolorimage(ax, x=None, y=None, A=None, **kwargs):
     img = PcolorImage(ax, x, y, A, **kwargs)
+    img.set_extent([x[0], x[-1], y[0], y[-1]])  # Have to add this or the fig won't save...
     ax.images.append(img)
     ax.set_xlim(left=x[0], right=x[-1])
     ax.set_ylim(bottom=y[0], top=y[-1])
     ax.autoscale_view(tight=True)
-    return img
+    return img, ax
 
 
 def interpolate_slice(x, y, Z, NP):
@@ -92,18 +93,42 @@ def interpolate_slice(x, y, Z, NP):
 #                     datpath=r'C:\Users\eric\Documents' +
 #                     r'\MATLAB\MATLAB\Inversion\Regions' +
 #                     r'\abi-gren\New\j2')
-mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
+# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
+# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_bost1\out_model.00')
+# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\sens_model.00')
 reso = []
-data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
-                    datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
+# reso = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\Resolution_inverted.model')
+# data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
+#                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
+mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
+data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
 #                5.369642e+006]
 kimberlines = []
 mod.origin = data.origin
-mod.to_UTM()
+data.locations = np.array([[0 for ii in range(17)],
+                           [0.000000000E+00, 0.501143799E+04, 0.104698379E+05,
+                            0.136017852E+05, 0.178389980E+05, 0.208527168E+05,
+                            0.247133633E+05, 0.279987383E+05, 0.328820195E+05,
+                            0.345390352E+05, 0.372428438E+05, 0.394137422E+05,
+                            0.433482109E+05, 0.467561680E+05, 0.507770469E+05,
+                            0.534360625E+05, 0.653211367E+05]]) / 1000
+# mod.to_UTM()
+# mod.to_latlong('10N')
+# data.rotate_sites(azi=-14)
+# data.locations = data.get_locs(mode='centered')
+# mod.to_latlong('13W')
+if mod.coord_system == 'UTM':
+    mod.dx = [xx / 1000 for xx in mod.dx]
+    mod.dy = [yy / 1000 for yy in mod.dy]
+
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
-mode = 2
+mode = 3
+file_path = 'C:/Users/eric/phd/ownCloud/Documents/PDAC 2018/temp_figs/'
+file_name = 'dbrUVT_Left.png'
+title_ = 'Standard Inversion'
+save_fig = 1
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -112,11 +137,12 @@ lightness = 0.4
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
-xlim = []
-zlim = [0, 150]
-lut = 64
-cax = [1, 5]
-isolum = False
+# xlim = [-123.5, -121.5]
+xlim = [-7, 74]
+zlim = [0, 5]
+lut = 256
+cax = [1, 4]
+isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
 # cmap_name = 'jet_r'
@@ -142,19 +168,22 @@ if cmap_name == 'jetplus':
 else:
     cmap = cm.get_cmap(cmap_name, lut)
 
-# vals = np.log10(mod.vals[:, 31, :])
-vals = np.log10(mod.vals[:, 22, :])
+# vals = np.log10(mod.vals[:, 73, :])
+# vals = np.log10(mod.vals[11, :, :])
+vals = np.log10(mod.vals[5, :, :])
+# vals = np.log10(mod.vals[:, 22, :])
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
 vals[vals < cax[0]] = cax[0]
 vals[vals > cax[1]] = cax[1]
 if reso:
     alpha = normalize_resolution(mod, reso)
-    alpha = alpha[:, 31, :]
+    # alpha = alpha[11, :, :]
+    alpha = alpha[:, 73, :]
 if mode == 2:
-    vals = interpolate_slice(x, z, vals, 500)
+    vals = interpolate_slice(y, z, vals, 300)
     if reso:
-        alpha = interpolate_slice(x, z, alpha, 500)
+        alpha = interpolate_slice(y, z, alpha, 300)
 
 norm_vals = (vals - np.min(vals)) / \
             (np.max(vals) - np.min(vals))
@@ -166,11 +195,21 @@ else:
     rgb = cmap(norm_vals.T)
     if reso:
         alpha = alpha.T
+# Just turn the bottom row transparent, since those cells often somehow still have resolution
+# alpha[-1, :] = alpha[-1, :].clip(max=0.5)
 rgba = copy.deepcopy(rgb)
 if reso:
     rgba[..., -1] = alpha
+
+
 # cmap[..., -1] = reso.vals[:, 31, :]
 
+# I had to change the way things plotted, so isolum is unusable right now.
+# Issue is: if we are normalizing data to fit between 0 and 1 so that we can
+# convert it to a cmap, that assumes that we actually have values at the max
+# and min of the cbar we want to use. So, e.g., if we have data from 15-100000, and try
+# to use a cbar from log10(10)) to log10((100000)), the min value of 15 will get mapped
+# down to 10.
 if isolum and reso:
     cmap = cmap(np.arange(lut))
     cmap = cmap[:, :3]
@@ -212,9 +251,9 @@ if isolum and reso:
 
     cmap = colors.ListedColormap(cmap, name='test1')
 
-fig = plt.figure(figsize=(8, 8))
+fig = plt.figure(figsize=(15, 10))
 # fig = plt.gcf()
-for ii in range(1):
+for ii in range(1, 2):
     if ii == 0:
         to_plot = rgb
         title = 'Model'
@@ -230,41 +269,71 @@ for ii in range(1):
     # ax = fig.add_subplot(2, 2, ii + 1)
     ax = fig.add_subplot(1, 1, 1)
     if mode == 1:
-        im = plt.pcolormesh(np.array(mod.dy), np.array(mod.dz) / 1000, vals.T,
-                        vmin=1, vmax=5, cmap=cmap, edgecolor='k', linewidth=0.01)
+        # Have to kind of hack this a bit
+        # Cut the first and last cell in half to squeeze the model into the same
+        # space as for the 'imshow' case.
+        mod.dy[0] = (mod.dy[0] + mod.dy[1]) / 2
+        mod.dy[-1] = (mod.dy[-1] + mod.dy[-2]) / 2
+        im = plt.pcolormesh(np.array(mod.dy) / 1000, np.array(mod.dz) / 1000, vals.T,
+                            vmin=1, vmax=5, cmap=cmap, edgecolor='k', linewidth=0.01)
     elif mode == 2:
-        im = plt.imshow(to_plot, cmap=cmap, vmin=cax[0], vmax=cax[1], aspect='auto',
-                        extent=[x[0], x[-1], z[0] / 1000, z[-1] / 1000])
+        im = plt.imshow(np.flipud(vals.T), cmap=cmap, vmin=np.log10(np.min(vals)),
+                        vmax=np.log10(np.max(vals)), aspect='auto',
+                        extent=[y[0], y[-1], z[0] / 1000, z[-1] / 1000])
     elif mode == 3:
-        im = pcolorimage(ax, x=np.array(mod.dx) / 1000,
-                         y=np.array(mod.dz) / 1000,
-                         A=to_plot, cmap=cmap)
+        mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
+        mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
+        im, ax = pcolorimage(ax, x=(np.array(mod.dy)) / 1000,
+                             y=np.array(mod.dz) / 1000,
+                             A=(to_plot), cmap=cmap)
     if xlim:
         ax.set_xlim(xlim)
     if zlim:
         ax.set_ylim(zlim)
     ax.invert_yaxis()
-    ax.invert_xaxis()
-    ax.set_xlabel('Northing (m)', fontsize=14)
-    ax.set_ylabel('Depth (km)', fontsize=14)
-    # ax.set_title(title)
-    for line in kimberlines:
-        ax.plot([line, line], [0, 200], 'w-', lw=0.5)
+    # ax.invert_xaxis()
+    # ax.set_xlabel('Latitude', fontsize=20)
+    
+    # ax.set_ylabel('Depth (km)', fontsize=20)
+    # ax.set_title(title_, y=1.02, fontsize=20)
+    fig.canvas.draw()
+    # if mod.coord_system == 'latlong':
+    #     labels = [item.get_text() for item in ax.get_xticklabels()]
+    #     for jj, item in enumerate(labels):
+    #         if item:
+    #             labels[jj] = ''.join([item, '$^\circ$N'])
+    #     ax.set_xlabel('Longitude', fontsize=20)
+    #     ax.set_xticklabels(labels)
+    # elif mod.coord_system == 'UTM':
+    #     ax.set_xlabel('Northing', fontsize=20)
+    # else:
+    #     ax.set_xlabel('X (km)', fontsize=20)
+    # for line in kimberlines:
+    #     ax.plot([line, line], [0, 200], 'w-', lw=0.5)
 
 ax.autoscale_view(tight=True)
-ax.tick_params(axis='both', labelsize=10)
-for label in ax.xaxis.get_ticklabels()[1::2]:
+ax.tick_params(axis='both', labelsize=18)
+# locs = ax.plot(data.locations[1, :], np.zeros((data.locations.shape[1])) - 0.05, 'kv', markersize=10)[0]
+# locs.set_clip_on(False)
+for label in ax.xaxis.get_ticklabels():
+    label.set_visible(False)
+for label in ax.yaxis.get_ticklabels():
     label.set_visible(False)
 # ax.tick_params(axis='y', labelsize=10)
 fig.subplots_adjust(right=0.8)
-cb_ax = fig.add_axes([0.85, 0.15, 0.02, 0.7])
+cb_ax = fig.add_axes([0.825, 0.15, 0.02, 0.7])
 cb = fig.colorbar(im, cmap=cmap, cax=cb_ax)
 cb.set_clim(cax[0], cax[1])
+cb.ax.tick_params(labelsize=12)
 cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
              rotation=270,
              labelpad=20,
-             fontsize=12)
+             fontsize=18)
 cb.draw_all()
-plt.show()
-# fig.savefig('profile1_' + cmap_name + '.pdf', dpi=600)
 
+fig.set_dpi(300)
+# ax.set_aspect(3)
+if save_fig:
+    fig.savefig(file_path + file_name, dpi=1200,
+                transparent=True, pad_inches=3)
+plt.show()

@@ -1,6 +1,11 @@
 % all
 path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2
 list allsites.lst
+% ttz_bost
+path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_bost1
+data allsitesMore0_1.data
+resp out5_resp.03
+list C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2\allsites.lst
 % ttz0_3
 path C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3
 data allsitesMore0_1.data

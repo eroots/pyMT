@@ -940,6 +940,7 @@ class Model(object):
         self.file = modelfile
         self.origin = (0, 0)
         self.UTM_zone = None
+        self.coord_system = 'local'
         if modelfile:
             self.__read__(modelfile=modelfile)
         elif data:
@@ -988,14 +989,51 @@ class Model(object):
             Convert model coordinates to UTM
             Usage: model.to_UTM(origin=None) where origin is (Easting, Northing)
         '''
-        if origin:
-            self.origin = origin
-        elif self.origin is None:
-            print('Must specify origin if model.origin is not set')
+        if self.coord_system == 'local':
+            if origin:
+                self.origin = origin
+            elif self.origin is None:
+                print('Must specify origin if model.origin is not set')
+                return False
+            else:
+                self._dx = [x + self.origin[1] for x in self._dx]
+                self._dy = [y + self.origin[0] for y in self._dy]
+        elif self.coord_system == 'latlong':
+            self._dy, self._dx = utils.project((self._dx, self._dy))
+        elif self.coord_system == 'UTM':
+            print('Already in UTM')
             return
+        self.coord_system = 'UTM'
+
+    def to_latlong(self, zone=None):
+        if self.coord_system == 'latlong':
+            print('Already in latlong')
+            return
+        if self.coord_system == 'local':
+            print('Trying to convert from local to UTM first...')
+            ret = self.to_UTM()
+            if not ret:
+                print('Transformation not possible. Convert to UTM first.')
+                return
+        if not self.UTM_zone:
+            self.UTM_zone = zone
+        if not self.UTM_zone:
+            print('UTM zone must be set or given')
+            return
+        if len(zone) == 2:
+            number = int(zone[0])
         else:
-            self._dx = [x + self.origin[1] for x in self._dx]
-            self._dy = [y + self.origin[0] for y in self._dy]
+            number = int(zone[:2])
+        letter = zone[-1]
+        lon = utils.unproject(number, letter,
+                              self._dy,
+                              [self.dx[round(len(self.dx) / 2)] for iy in self.dy])[0]
+        lat = utils.unproject(number, letter,
+                              [self.dy[round(len(self.dy) / 2)] for ix in self.dx],
+                              self._dx)[1]
+        self._dx, self._dy = (lat, lon)
+        self.coord_system = 'latlong'
+        return (lat, lon)
 
     def is_half_space(self):
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))

@@ -491,10 +491,10 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 site_error[site][component] = np.array(vals)
         for ii, site in enumerate(site_names):
             sites.update({site: {
-                          'data': site_data[site_names[ii]],
-                          'errors': site_error[site_names[ii]],
+                          'data': site_data[new_site_names[ii]],
+                          'errors': site_error[new_site_names[ii]],
                           'periods': periods,
-                          'locations': site_locations[site_names[ii]],
+                          'locations': site_locations[new_site_names[ii]],
                           'azimuth': azimuth,
                           'errFloorZ': 0,
                           'errFloorT': 0}
