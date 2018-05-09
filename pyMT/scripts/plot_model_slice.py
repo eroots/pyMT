@@ -6,9 +6,9 @@ import numpy as np
 from scipy.interpolate import RectBivariateSpline as RBS
 # from scipy.interpolate import SmoothBivariateSpline as RBS
 import copy
-import colorcet as cc
+# import colorcet as cc
 import colorsys
-import e_colours.colourmaps
+# import e_colours.colourmaps
 
 
 def extents(f):
@@ -92,10 +92,12 @@ def interpolate_slice(x, y, Z, NP):
 #                     datpath=r'C:\Users\eric\Documents' +
 #                     r'\MATLAB\MATLAB\Inversion\Regions' +
 #                     r'\abi-gren\New\j2')
-mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
+# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
 reso = []
-data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
-                    datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
+# data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
+#                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
+mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\center_ModEM\NLCG\center_noTF_final.model')
+data = WSDS.RawData(listfile=r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\j2\center_fewer3.lst')
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
 #                5.369642e+006]
@@ -103,7 +105,7 @@ kimberlines = []
 mod.origin = data.origin
 mod.to_UTM()
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
-mode = 2
+mode = 3
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -113,17 +115,17 @@ lightness = 0.4
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
 xlim = []
-zlim = [0, 150]
+zlim = []
 lut = 64
 cax = [1, 5]
 isolum = False
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-# cmap_name = 'jet_r'
+cmap_name = 'jet_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
-cmap_name = 'cet_bgy_r'
+# cmap_name = 'cet_bgy_r'
 # cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
@@ -143,7 +145,7 @@ else:
     cmap = cm.get_cmap(cmap_name, lut)
 
 # vals = np.log10(mod.vals[:, 31, :])
-vals = np.log10(mod.vals[:, 22, :])
+vals = np.log10(mod.vals[:, 30, :])
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
 vals[vals < cax[0]] = cax[0]

@@ -481,20 +481,23 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
             site_names = new_site_names
         elif site_names != new_site_names:
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
-            print('Proceeding with names set in data file.\n')
-            site_names = new_site_names
+            print('Proceeding with names set in list file.\n')
+            # site_names = new_site_names
+        # Convert data lists to np.array (use site names as read in data file)
         for site in new_site_names:
             for component in site_data[site].keys():
                 vals = site_data[site][component]
                 site_data[site][component] = np.array(vals)
                 vals = site_error[site][component]
                 site_error[site][component] = np.array(vals)
+        # Sites get named according to list file, but are here internally called
+        # according to the data file
         for ii, site in enumerate(site_names):
             sites.update({site: {
-                          'data': site_data[site_names[ii]],
-                          'errors': site_error[site_names[ii]],
+                          'data': site_data[new_site_names[ii]],
+                          'errors': site_error[new_site_names[ii]],
                           'periods': periods,
-                          'locations': site_locations[site_names[ii]],
+                          'locations': site_locations[new_site_names[ii]],
                           'azimuth': azimuth,
                           'errFloorZ': 0,
                           'errFloorT': 0}
