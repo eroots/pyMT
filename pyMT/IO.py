@@ -481,8 +481,8 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
             site_names = new_site_names
         elif site_names != new_site_names:
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
-            print('Proceeding with names set in data file.\n')
-            site_names = new_site_names
+            print('Proceeding with names set in list file.\n')
+            # site_names = new_site_names
         for site in new_site_names:
             for component in site_data[site].keys():
                 vals = site_data[site][component]
