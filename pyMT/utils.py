@@ -995,19 +995,17 @@ def zone(coordinates):
     return int((coordinates[0] + 180) / 6) + 1
 
 
-def letter(coordinates):
-    return 'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
-
-
 def project(coordinates):
+    def letter(coordinates):
+        return 'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
     z = zone(coordinates)
-    l = letter(coordinates)
+    L = letter(coordinates)
     if z not in _projections:
         _projections[z] = pyproj.Proj(proj='utm', zone=z, ellps='WGS84')
     x, y = _projections[z](coordinates[0], coordinates[1])
     if y < 0:
         y += 10000000
-    return z, l, x, y
+    return z, L, x, y
 
 
 def unproject(z, l, x, y):
@@ -1017,3 +1015,20 @@ def unproject(z, l, x, y):
         y -= 10000000
     lng, lat = _projections[z](x, y, inverse=True)
     return (lng, lat)
+
+
+def parse_dms(dms):
+    '''
+        Parse a string of DMS where the degrees, minutes, seconds are separated by ':'
+    '''
+    d, m, s = [float(x) for x in dms.split(':')]
+    return d, m, s
+
+
+def dms2dd(dms):
+    '''
+        Converts strings containing dms lat longs to decimal degrees
+    '''
+    d, m, s = parse_dms(dms)
+    dd = d + m / 60 + m / 3600
+    return dd
