@@ -1,6 +1,7 @@
 TODO
 
 Finish the induction arrow plotting. Currently having issues getting it to work.
+Look at how RMS misfit is being calculated, still doesn't seem right
 
 Overall:
     - Fix resolution related things, specifically in IO and utils. Model object should contain resolution information, rather than creating separate objects. utils.normalize should work on arbitrary matrix / list, rather than expecting a model object.
