@@ -45,6 +45,7 @@ data_plot.py:
     - Better error map handling. Need to be able to set all the different error map flags, including smart mapping (automatically set error map based on criteria such as, if it's technically a missing data point, don't just set the error map to 9999).
     - Option to plot map in rotated or unrotated coordinates.
 data_structures.py:
+    - Phase tensors have been added, but are not supported yet by the other actions that a Site object can do (add / remove periods), not is it set up properly to handle the case where a Site doesn't have all data components, etc.
     - Fix RMS calculations. Differences between calculated RMS and reported RMS from the model will occur since error floors are applied differently that, for instance, in WSINV. Basically WSINV is the only code that applies error maps and error floors inside the code itself. ModEM and MARE2DEM just take exactly whatever you supply as the errors. This discrepancy is making dealing with errors in pyMT very difficult.
     - The input data format (WS, ModEM, MARE2DEM, OCCAM) should be stored in a Data attribute, and that will become the default output mode if the data is written again
     - Going to need to keep making the changes to allow for ModEM and MARE2DEM data handling, specifically Rho and Phase data.

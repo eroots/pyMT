@@ -958,8 +958,8 @@ def check_extention(outfile, expected=''):
         return '.'.join([outfile, expected])
 
 
-def normalize(resolution, reqmean=0.5, reqvar=0.5):
-    # Takes a model object, should just work on any matrix.
+def normalize_resolution(resolution, reqmean=0.5, reqvar=0.5):
+    # Takes a model object. Should probably just be a part of the Model class
     [xCS, yCS, zCS] = np.meshgrid(resolution.xCS, resolution.yCS, resolution.zCS, indexing='ij')
     volumes = xCS * yCS * zCS
     resolution.vals = resolution.vals / (volumes ** (1 / 3))
@@ -1032,3 +1032,9 @@ def dms2dd(dms):
     d, m, s = parse_dms(dms)
     dd = d + m / 60 + m / 3600
     return dd
+
+
+def normalize(vals):
+    norm_vals = (vals - np.min(vals)) / \
+                (np.max(vals) - np.min(vals))
+    return norm_vals
