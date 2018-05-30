@@ -2087,7 +2087,6 @@ class PhaseTensor(object):
         self.X, self.Y = np.zeros((2, 2)), np.zeros((2, 2))
         self.period = period
         self.Z = Z
-
         self.det_phi = 0
         self.skew_phi = 0
         self.phi_1 = 0
@@ -2112,10 +2111,10 @@ class PhaseTensor(object):
         self.phi = np.matmul(np.linalg.inv(self.X), self.Y)
 
     def calculate_phase_parameters(self):
-        det_phi = np.linalg.det(self.phi)
+        det_phi = (np.linalg.det(self.phi))
         skew_phi = (self.phi[0, 1] - self.phi[1, 0])
         phi_1 = np.trace(self.phi) / 2
-        phi_2 = np.lib.scimath.sqrt(det_phi)
+        phi_2 = np.sqrt(det_phi)
         phi_3 = skew_phi / 2
         phi_max = np.sqrt(phi_1 ** 2 + phi_3 ** 2) + np.sqrt(phi_1 ** 2 + phi_3 ** 2 - det_phi)
         phi_min = np.sqrt(phi_1 ** 2 + phi_3 ** 2) - np.sqrt(phi_1 ** 2 + phi_3 ** 2 + det_phi)

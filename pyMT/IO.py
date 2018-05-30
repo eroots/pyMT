@@ -218,6 +218,7 @@ def read_raw_data(site_names, datpath=''):
         # For now I'm only concerned with reading impedances and tipper
         # I make some assumptions, that may have to be changed later:
         #   Rotation angles are all the same
+        #   Negatives in Lat/Long are ignored
         def extract_blocks(lines):
             blocks = {'HEAD': [],
                       'ZROT': [],
@@ -239,7 +240,9 @@ def read_raw_data(site_names, datpath=''):
                       'TYR.EXP': [],
                       'TYI.EXP': [],
                       'TYVAR.EXP': [],
-                      'FREQ': []}
+                      'FREQ': [],
+                      'INFO': [],
+                      '=DEFINEMAS': []}
             in_block = 0
             ii = 0
             while ii < len(lines):
@@ -261,9 +264,9 @@ def read_raw_data(site_names, datpath=''):
         def read_header(header):
             for line in header:
                 if 'LAT' in line:
-                    lat = utils.dms2dd(line.split('=')[1].strip())
+                    lat = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'LONG' in line:
-                    lon = utils.dms2dd(line.split('=')[1].strip())
+                    lon = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'ELEV' in line:
                     elev = float(line.split('=')[1].strip())
             return lat, lon, elev
@@ -305,12 +308,16 @@ def read_raw_data(site_names, datpath=''):
                         azi = data_block[0]
             # EDI format has ZxyR, ZxyI positive; ZyxR, ZyxI negative. This needs to be changed
             data['ZXYI'] *= -1
-            data['ZYXR'] *= -1
+            data['ZYXI'] *= -1
+            data['ZXXI'] *= -1
+            data['ZYYI'] *= -1
             return data, errors, azi
 
         data = {}
         errors = {}
         with open(file, 'r') as f:
+            # Need to also read in INFO and DEFINEMEAS blocks to confirm that the location
+            # info is consistent
             lines = f.readlines()
             blocks = extract_blocks(lines)
             Lat, Long, elev = read_header(blocks['HEAD'])

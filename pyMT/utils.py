@@ -1030,11 +1030,15 @@ def dms2dd(dms):
         Converts strings containing dms lat longs to decimal degrees
     '''
     d, m, s = parse_dms(dms)
-    dd = d + m / 60 + m / 3600
-    return dd
+    dd = abs(d) + abs(m) / 60 + abs(m) / 3600
+    return dd * np.sign(d)
 
 
-def normalize(vals):
-    norm_vals = (vals - np.min(vals)) / \
-                (np.max(vals) - np.min(vals))
+def normalize(vals, lower=0, upper=1, explicit_bounds=False):
+    if explicit_bounds:
+        norm_vals = (vals - lower) / (upper - lower)
+    else:
+        norm_vals = (vals - np.min(vals)) / \
+                    (np.max(vals) - np.min(vals))
+        norm_vals = norm_vals * (upper - lower) + lower
     return norm_vals
