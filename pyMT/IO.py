@@ -483,7 +483,7 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
             print('Proceeding with names set in list file.\n')
             # site_names = new_site_names
-        # Convert data lists to np.array (use site names as read in data file)
+
         for site in new_site_names:
             for component in site_data[site].keys():
                 vals = site_data[site][component]
