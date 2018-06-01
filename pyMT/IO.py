@@ -143,6 +143,199 @@ def read_raw_data(site_names, datpath=''):
     Returns:
         TYPE: Description
     """
+    RAW_COMPONENTS = ('ZXX', 'ZXY',
+                      'ZYX', 'ZYY',
+                      'TZX', 'TZY')
+
+    def read_dat(file, long_origin=999):
+
+        try:
+            with open(file, 'r') as f:
+                siteData_dict = {}
+                siteError_dict = {}
+                siteLoc_dict = {'azi': [], 'Lat': [], 'Long': [], 'elev': []}
+                while True:
+                    L = next(f)  # Header, unused
+                    if L[0] != '#':
+                        break
+                while True:
+                    if L[0] == '>':
+                        if 'azimuth' in L.lower():
+                            siteLoc_dict.update({'azi': float(L.split('=')[1].rstrip('\n'))})
+                        elif 'latitude' in L.lower():
+                            Lat = float(L.split('=')[1].rstrip('\n'))
+                        elif 'longitude' in L.lower():
+                            Long = float(L.split('=')[1].rstrip('\n'))
+                        elif 'elevation' in L.lower():
+                            siteLoc_dict.update({'elev': float(L.split('=')[1].rstrip('\n'))})
+                        L = next(f)
+                    else:
+                        break
+                Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
+                siteLoc_dict.update({'X': X, 'Y': Y})
+                siteLoc_dict.update({'Lat': Lat, 'Long': Long})
+                next(f)  # Another unused line (site name and a 0)
+                lines = f.read().splitlines()
+                comps = [(ii, comp[:3]) for ii, comp in enumerate(lines)
+                         if comp[:3] in RAW_COMPONENTS]
+                ns = [int(lines[int(ii[0]) + 1]) for ii in comps]
+                ns_cache = []
+                for ii, comp in comps:
+                    ns = int(lines[ii + 1])
+                    ns_cache.append(ns)
+                    data = [(row.split()) for row in lines[ii + 2: ii + ns + 2]]
+                    data = np.array([row for row in data])
+                    data = data.astype(np.float)
+                    periods = data[:, 0]
+                    dataReal = data[:, 1]
+                    dataImag = data[:, 2]
+                    dataErr = data[:, 3]
+                    siteData_dict.update({''.join([comp, 'R']): dataReal})
+                    siteData_dict.update({''.join([comp, 'I']): -1 * dataImag})
+                    siteError_dict.update({''.join([comp, 'R']): dataErr})
+                    siteError_dict.update({''.join([comp, 'I']): dataErr})
+                periods[periods < 0] = -1 / periods[periods < 0]
+        except FileNotFoundError as e:
+            raise(WSFileError(ID='fnf', offender=file))
+        try:
+            assert len(set(ns_cache)) == 1
+        except AssertionError:
+            msg = 'Number of periods in {} is not equal for all components'.format(file)
+            print('Fatal error in pyMT.IO.read_dat')
+            raise(WSFileError(id='int', offender=file, extra=msg))
+        site_dict = {'data': siteData_dict,
+                     'errors': siteError_dict,
+                     'locations': siteLoc_dict,
+                     'periods': periods,
+                     'azimuth': siteLoc_dict['azi']
+                     }
+        return site_dict, long_origin
+
+        # For now I'm only concerned with reading impedances and tipper
+        # I make some assumptions, that may have to be changed later:
+        #   Rotation angles are all the same
+    def read_edi(file, long_origin=999):
+        # For now I'm only concerned with reading impedances and tipper
+        # I make some assumptions, that may have to be changed later:
+        #   Rotation angles are all the same
+        #   Negatives in Lat/Long are ignored
+        def extract_blocks(lines):
+            blocks = {'HEAD': [],
+                      'ZROT': [],
+                      'ZXXR': [],
+                      'ZXXI': [],
+                      'ZXYR': [],
+                      'ZXYI': [],
+                      'ZYXR': [],
+                      'ZYXI': [],
+                      'ZYYR': [],
+                      'ZYYI': [],
+                      'ZXX.VAR': [],
+                      'ZXY.VAR': [],
+                      'ZYX.VAR': [],
+                      'ZYY.VAR': [],
+                      'TXR.EXP': [],
+                      'TXI.EXP': [],
+                      'TXVAR.EXP': [],
+                      'TYR.EXP': [],
+                      'TYI.EXP': [],
+                      'TYVAR.EXP': [],
+                      'FREQ': [],
+                      'INFO': [],
+                      '=DEFINEMAS': []}
+            in_block = 0
+            ii = 0
+            while ii < len(lines):
+                line = lines[ii]
+                if (not in_block and any(''.join(['>', key]) in line for key in blocks.keys())):
+                    block_start = ii
+                    in_block = 1
+                    block_name = [key for key in blocks.keys()
+                                  if ''.join(['>', key]) in line][0]
+                    # print(block_name + str(block_start))
+                elif in_block and line[0] == '>':
+                    in_block = 0
+                    blocks.update({block_name: lines[block_start:ii]})
+                    # print(block_name + str(ii))
+                    ii -= 2
+                ii += 1
+            return blocks
+
+        def read_header(header):
+            for line in header:
+                if 'LAT' in line:
+                    lat = (utils.dms2dd(line.split('=')[1].strip()))
+                if 'LONG' in line:
+                    lon = (utils.dms2dd(line.split('=')[1].strip()))
+                if 'ELEV' in line:
+                    elev = float(line.split('=')[1].strip())
+            return lat, lon, elev
+
+        def read_data_block(block):
+            # print(block[0])
+            num_freqs = float(block[0].split('//')[1])
+            data = []
+            for line in block[1:]:
+                for f in line.split():
+                    data.append(float(f.strip()))
+            if len(data) != num_freqs:
+                print('Number of frequencies does not match the given number')
+                print('Proceeding anyways...')
+            return np.array(data)
+
+        def extract_tensor_info(blocks):
+            scaling_factor = 4 * np.pi / 10000
+            for key in blocks.keys():
+                # print(key)
+                if (key[0] == 'Z' or key[0] == 'T') and key != 'ZROT':
+                    if blocks[key]:
+                        data_block = read_data_block(blocks[key])
+                        if key[0] == 'Z':
+                            new_key = key[:4]
+                        else:
+                            new_key = ''.join(['TZ', key[1:3]])
+                        if 'VAR' in key:
+                            errors.update({new_key[:-1] + 'R': data_block * scaling_factor})
+                            errors.update({new_key[:-1] + 'I': data_block * scaling_factor})
+                        else:
+                            data.update({new_key: data_block * scaling_factor})
+                elif key == 'ZROT':
+                    data_block = read_data_block(blocks[key])
+                    if not np.all(data_block == data_block[1]):
+                        print('Not all rotations are the same. This is not supported yet...')
+                        azi = data_block[0]
+                    else:
+                        azi = data_block[0]
+            # EDI format has ZxyR, ZxyI positive; ZyxR, ZyxI negative. This needs to be changed
+            data['ZXYI'] *= -1
+            data['ZYXI'] *= -1
+            data['ZXXI'] *= -1
+            data['ZYYI'] *= -1
+            return data, errors, azi
+
+        data = {}
+        errors = {}
+        with open(file, 'r') as f:
+            # Need to also read in INFO and DEFINEMEAS blocks to confirm that the location
+            # info is consistent
+            lines = f.readlines()
+            blocks = extract_blocks(lines)
+            Lat, Long, elev = read_header(blocks['HEAD'])
+            frequencies = read_data_block(blocks['FREQ'])
+            periods = utils.truncate(1 / frequencies)
+            data, errors, azi = extract_tensor_info(blocks)
+            Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
+            location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
+            site_dict = {'data': data,
+                         'errors': errors,
+                         'locations': location_dict,
+                         'periods': periods,
+                         'azimuth': azi
+                         }
+
+            # return blocks, lines, freqs
+            return site_dict, long_origin
+
     siteData = {}
     long_origin = 999
     if os.name is 'nt':
@@ -153,78 +346,24 @@ def read_raw_data(site_names, datpath=''):
         path = datpath + connector
     else:
         path = './'
+    all_dats = [file for file in os.listdir(path) if file.endswith('.dat')]
+    # all_edi = [file for file in os.listdir(path) if file.endswith('.edi')]
     for site in site_names:
-        file = ''.join([path, site, '.dat'])
-        site_dict, long_origin = read_dat(file, long_origin)
+        # Look for J-format files first
+        if ''.join([site, '.dat']) in all_dats:
+            file = ''.join([path, site, '.dat'])
+            try:
+                site_dict, long_origin = read_dat(file, long_origin)
+            except FileNotFoundError:
+                print('{} not found. Continuing without it.'.format(file))
+        else:
+            file = ''.join([path, site, '.edi'])
+            try:
+                site_dict, long_origin = read_edi(file, long_origin)
+            except FileNotFoundError:
+                print('{} not found. Continuing without it.'.format(file))
         siteData.update({site: site_dict})
     return siteData
-
-
-def read_dat(file, long_origin=999):
-    RAW_COMPONENTS = ('ZXX', 'ZXY',
-                      'ZYX', 'ZYY',
-                      'TZX', 'TZY')
-    try:
-        with open(file, 'r') as f:
-            siteData_dict = {}
-            siteError_dict = {}
-            siteLoc_dict = {'azi': [], 'Lat': [], 'Long': [], 'elev': []}
-            while True:
-                L = next(f)  # Header, unused
-                if L[0] != '#':
-                    break
-            while True:
-                if L[0] == '>':
-                    if 'azimuth' in L.lower():
-                        siteLoc_dict.update({'azi': float(L.split('=')[1].rstrip('\n'))})
-                    elif 'latitude' in L.lower():
-                        Lat = float(L.split('=')[1].rstrip('\n'))
-                    elif 'longitude' in L.lower():
-                        Long = float(L.split('=')[1].rstrip('\n'))
-                    elif 'elevation' in L.lower():
-                        siteLoc_dict.update({'elev': float(L.split('=')[1].rstrip('\n'))})
-                    L = next(f)
-                else:
-                    break
-            Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
-            siteLoc_dict.update({'X': X, 'Y': Y})
-            siteLoc_dict.update({'Lat': Lat, 'Long': Long})
-            next(f)  # Another unused line (site name and a 0)
-            lines = f.read().splitlines()
-            comps = [(ii, comp[:3]) for ii, comp in enumerate(lines)
-                     if comp[:3] in RAW_COMPONENTS]
-            ns = [int(lines[int(ii[0]) + 1]) for ii in comps]
-            ns_cache = []
-            for ii, comp in comps:
-                ns = int(lines[ii + 1])
-                ns_cache.append(ns)
-                data = [(row.split()) for row in lines[ii + 2: ii + ns + 2]]
-                data = np.array([row for row in data])
-                data = data.astype(np.float)
-                periods = data[:, 0]
-                dataReal = data[:, 1]
-                dataImag = data[:, 2]
-                dataErr = data[:, 3]
-                siteData_dict.update({''.join([comp, 'R']): dataReal})
-                siteData_dict.update({''.join([comp, 'I']): -1 * dataImag})
-                siteError_dict.update({''.join([comp, 'R']): dataErr})
-                siteError_dict.update({''.join([comp, 'I']): dataErr})
-            periods[periods < 0] = -1 / periods[periods < 0]
-    except FileNotFoundError as e:
-        raise(WSFileError(ID='fnf', offender=file))
-    try:
-        assert len(set(ns_cache)) == 1
-    except AssertionError:
-        msg = 'Number of periods in {} is not equal for all components'.format(file)
-        print('Fatal error in pyMT.IO.read_dat')
-        raise(WSFileError(id='int', offender=file, extra=msg))
-    site_dict = {'data': siteData_dict,
-                 'errors': siteError_dict,
-                 'locations': siteLoc_dict,
-                 'periods': periods,
-                 'azimuth': siteLoc_dict['azi']
-                 }
-    return site_dict, long_origin
 
 
 def read_sites(listfile):

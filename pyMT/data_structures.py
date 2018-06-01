@@ -1292,6 +1292,7 @@ class Site(object):
                              'T': 0.15,
                              'Rho': 0.05,
                              'Phs': 0.05}
+        self.phase_tensors = []
         if errfloorZ is None:
             self.errfloorZ = 5
         else:
@@ -1312,7 +1313,7 @@ class Site(object):
             self.errors = self.generate_errmap(mult=1)
         if not self.errmap or utils.is_all_empties(self.errmap):
             self.errmap = self.generate_errmap(mult=1)
-
+        self.calculate_phase_tensors()
 
             # self.errmap = {}
             # self.flags = {}
@@ -1814,6 +1815,12 @@ class Site(object):
                     self.errmap[comp][idx] *= outlier_map
                     self.flags[comp][idx] = self.OUTLIER_FLAG
 
+    def calculate_phase_tensors(self):
+        self.phase_tensors = []
+        for ii, period in enumerate(self.periods):
+            Z = {impedance: self.data[impedance][ii] for impedance in self.data.keys()}
+            self.phase_tensors.append(PhaseTensor(period=period, Z=Z))
+
 
 class RawData(object):
     """Summary
@@ -2073,3 +2080,56 @@ class RawData(object):
         if not origin:
             origin = self.origin
         Data.to_vtk(self, outfile=outfile, origin=origin, UTM=UTM, sea_level=sea_level)
+
+
+class PhaseTensor(object):
+    def __init__(self, period, Z):
+        self.X, self.Y = np.zeros((2, 2)), np.zeros((2, 2))
+        self.period = period
+        self.Z = Z
+        self.det_phi = 0
+        self.skew_phi = 0
+        self.phi_1 = 0
+        self.phi_2 = 0
+        self.phi_max = 0
+        self.phi_min = 0
+        self.alpha = 0
+        self.beta = 0
+        self.Lambda = 0
+        self.azimuth = 0
+        self.form_tensors(Z)
+        self.calculate_phase_tensor()
+        self.calculate_phase_parameters()
+
+    def form_tensors(self, Z):
+        self.X = np.array(((Z['ZXXR'], Z['ZXYR']),
+                           (Z['ZYXR'], Z['ZYYR'])))
+        self.Y = np.array(((Z['ZXXI'], Z['ZXYI']),
+                           (Z['ZYXI'], Z['ZYYI'])))
+
+    def calculate_phase_tensor(self):
+        self.phi = np.matmul(np.linalg.inv(self.X), self.Y)
+
+    def calculate_phase_parameters(self):
+        det_phi = (np.linalg.det(self.phi))
+        skew_phi = (self.phi[0, 1] - self.phi[1, 0])
+        phi_1 = np.trace(self.phi) / 2
+        phi_2 = np.sqrt(det_phi)
+        phi_3 = skew_phi / 2
+        phi_max = np.sqrt(phi_1 ** 2 + phi_3 ** 2) + np.sqrt(phi_1 ** 2 + phi_3 ** 2 - det_phi)
+        phi_min = np.sqrt(phi_1 ** 2 + phi_3 ** 2) - np.sqrt(phi_1 ** 2 + phi_3 ** 2 + det_phi)
+        alpha = 0.5 * np.arctan((self.phi[0, 1] + self.phi[1, 0]) / (self.phi[0, 0] - self.phi[1, 1]))
+        Lambda = (phi_max - phi_min) / (phi_max + phi_min)
+        beta = 0.5 * np.arctan(phi_3 / phi_1)
+        azimuth = 0.5 * np.pi - (alpha - beta)
+        self.det_phi = det_phi
+        self.skew_phi = skew_phi
+        self.phi_1 = phi_1
+        self.phi_2 = phi_2
+        self.phi_3 = phi_3
+        self.phi_max = phi_max
+        self.phi_min = phi_min
+        self.alpha = alpha
+        self.Lambda = Lambda
+        self.beta = beta
+        self.azimuth = azimuth

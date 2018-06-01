@@ -958,8 +958,8 @@ def check_extention(outfile, expected=''):
         return '.'.join([outfile, expected])
 
 
-def normalize(resolution, reqmean=0.5, reqvar=0.5):
-    # Takes a model object, should just work on any matrix.
+def normalize_resolution(resolution, reqmean=0.5, reqvar=0.5):
+    # Takes a model object. Should probably just be a part of the Model class
     [xCS, yCS, zCS] = np.meshgrid(resolution.xCS, resolution.yCS, resolution.zCS, indexing='ij')
     volumes = xCS * yCS * zCS
     resolution.vals = resolution.vals / (volumes ** (1 / 3))
@@ -995,19 +995,17 @@ def zone(coordinates):
     return int((coordinates[0] + 180) / 6) + 1
 
 
-def letter(coordinates):
-    return 'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
-
-
 def project(coordinates):
+    def letter(coordinates):
+        return 'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
     z = zone(coordinates)
-    l = letter(coordinates)
+    L = letter(coordinates)
     if z not in _projections:
         _projections[z] = pyproj.Proj(proj='utm', zone=z, ellps='WGS84')
     x, y = _projections[z](coordinates[0], coordinates[1])
     if y < 0:
         y += 10000000
-    return z, l, x, y
+    return z, L, x, y
 
 
 def unproject(z, l, x, y):
@@ -1017,3 +1015,30 @@ def unproject(z, l, x, y):
         y -= 10000000
     lng, lat = _projections[z](x, y, inverse=True)
     return (lng, lat)
+
+
+def parse_dms(dms):
+    '''
+        Parse a string of DMS where the degrees, minutes, seconds are separated by ':'
+    '''
+    d, m, s = [float(x) for x in dms.split(':')]
+    return d, m, s
+
+
+def dms2dd(dms):
+    '''
+        Converts strings containing dms lat longs to decimal degrees
+    '''
+    d, m, s = parse_dms(dms)
+    dd = abs(d) + abs(m) / 60 + abs(m) / 3600
+    return dd * np.sign(d)
+
+
+def normalize(vals, lower=0, upper=1, explicit_bounds=False):
+    if explicit_bounds:
+        norm_vals = (vals - lower) / (upper - lower)
+    else:
+        norm_vals = (vals - np.min(vals)) / \
+                    (np.max(vals) - np.min(vals))
+        norm_vals = norm_vals * (upper - lower) + lower
+    return norm_vals
