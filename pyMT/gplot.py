@@ -1,6 +1,9 @@
 import numpy as np
 from matplotlib.figure import Figure
+from matplotlib.colorbar import ColorbarBase
+import matplotlib.colorbar as colorbar
 import pyMT.utils as utils
+from e_colours import colourmaps as cm
 # import matplotlib.pyplot as plt
 
 
@@ -453,7 +456,7 @@ class MapView(object):
     COORD_SYSTEMS = ('local', 'utm', 'latlong')
 
     def __init__(self, fig=None, **kwargs):
-        self.window = {'figure': None, 'axes': None, 'canvas': None}
+        self.window = {'figure': None, 'axes': None, 'canvas': None, 'colorbar': None}
         if fig:
             self.window = {'figure': fig, 'axes': fig.axes, 'canvas': fig.canvas}
         self.axis_padding = 0.1
@@ -598,16 +601,12 @@ class MapView(object):
                 for ii, (xx, yy) in enumerate(self.site_locations['active']):
                     self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx))
 
-    @utils.enforce_input(data_type=list)
-    def plot_induction_arrows(self, data_type='data', normalize=False,):
-        if normalize:
-            max_length = 1
-        else:
-            print(self.site_locations['all'])
-            # max_length = np.sqrt((np.max(self.site_locations['all'][:, 0]) -
-            #                       np.min(self.site_locations['all'][:, 0])) ** 2 +
-            #                      (np.max(self.site_locations['all'][:, 1]) -
-            #                       np.min(self.site_locations['all'][:, 1])) ** 2) / 10
+    @utils.enforce_input(data_type=list, normalize=bool, period_idx=int)
+    def plot_induction_arrows(self, data_type='data', normalize=True, period_idx=1):
+        max_length = np.sqrt((np.max(self.site_locations['all'][:, 0]) -
+                              np.min(self.site_locations['all'][:, 0])) ** 2 +
+                             (np.max(self.site_locations['all'][:, 1]) -
+                              np.min(self.site_locations['all'][:, 1])) ** 2) / 10
         for dType in data_type:
             X, Y = [], []
             if dType.lower() == 'data':
@@ -620,24 +619,109 @@ class MapView(object):
             for site in self.sites:
                 # Just takes the last frequency. Will have to grab the right one from a list.
                 if 'TZXR' in self.site_data[dType].sites[site].components:
-                    X.append(self.site_data[dType].sites[site].data['TZXR'][-1])
+                    X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
                 else:
                     X.append(0)
                 if 'TZYR' in self.site_data[dType].sites[site].components:
-                    Y.append(self.site_data[dType].sites[site].data['TZYR'][-1])
+                    Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
                 else:
                     Y.append(0)
             arrows = np.transpose(np.array((X, Y)))
+            print([arrows.shape, len(X), len(Y)])
             # arrows = utils.normalize_arrows(arrows)
-            print('inside')
-            print(arrows)
-            print(self.site_locations['all'])
+            lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+            lengths[lengths == 0] = 1
+            arrows[lengths > 1, 0] /= lengths[lengths > 1]
+            arrows[lengths > 1, 1] /= lengths[lengths > 1]
+            # print('Hello I am inside')
+            # print(normalize)
+            if normalize:
+                arrows /= np.transpose(np.tile(lengths, [2, 1]))
+                # print('Normalizing...')
+            else:
+                arrows /= np.max(lengths)
+                # print('Shrinking arrows')
+            #     print('Not normalizing')
+            # print(arrows)
+            # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+            # print(self.site_locations['all'])
 
             self.window['axes'][0].quiver(self.site_locations['all'][:, 1],
                                           self.site_locations['all'][:, 0],
                                           arrows[:, 1],
                                           arrows[:, 0],
                                           color=colour,
-                                          minlength=1)
+                                          headwidth=3,
+                                          width=0.0025)
+                                          # scale_units='xy',
+                                          # scale=1 / 10000)
 
-
+    @utils.enforce_input(data_type=str, normalize=bool, fill_param=str, period_idx=int)
+    def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
+        def generate_ellipse(phi):
+            jx = np.cos(np.arange(0, 2 * np.pi, np.pi / 30))
+            jy = np.sin(np.arange(0, 2 * np.pi, np.pi / 30))
+            phi_x = phi[0, 0] * jx + phi[0, 1] * jy
+            phi_y = phi[1, 0] * jx + phi[1, 1] * jy
+            return phi_x, phi_y
+        ellipses = []
+        if fill_param != 'Lambda':
+            fill_param = fill_param.lower()
+        if fill_param == 'azimuth':
+            cmap = cm.hsv()
+        else:
+            cmap = cm.jet()
+        for ii, site_name in enumerate(self.sites):
+            site = self.site_data[data_type].sites[site_name]
+            phi_x, phi_y = generate_ellipse(site.phase_tensors[period_idx].phi)
+            X, Y = self.site_locations['all'][ii, 0], self.site_locations['all'][ii, 1]
+            phi_x, phi_y = (1000 * phi_x / site.phase_tensors[period_idx].phi_max,
+                            1000 * phi_y / site.phase_tensors[period_idx].phi_max)
+            radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
+            print(radius)
+            if radius > 1000000:
+                phi_x, phi_y = [(1000000 / radius) * x for x in (phi_x, phi_y)]
+            ellipses.append([Y - phi_x, X - phi_y])
+        fill_vals = np.array([getattr(self.site_data[data_type].sites[site].phase_tensors[period_idx],
+                                      fill_param)
+                              for site in self.sites])
+        if fill_param in ['phi_max', 'phi_min', 'det_phi']:
+            lower, upper = (0, 90)
+        elif fill_param in ['alpha', 'Lambda']:
+            lower, upper = (np.min(fill_vals), np.max(fill_vals))
+        elif fill_param == 'beta':
+            lower, upper = (-10, 10)
+        elif fill_param == 'azimuth':
+            lower, upper = (-90, 90)
+        fill_vals = np.rad2deg(np.arctan(fill_vals))
+        fill_vals[fill_vals > upper] = upper
+        fill_vals[fill_vals < lower] = lower
+        # fill_vals = utils.normalize(fill_vals,
+        #                             lower=lower,
+        #                             upper=upper,
+        #                             explicit_bounds=True)
+        norm_vals = utils.normalize_range(fill_vals,
+                                          lower_range=lower,
+                                          upper_range=upper,
+                                          lower_norm=0,
+                                          upper_norm=1)
+        for ii, ellipse in enumerate(ellipses):
+            self.window['axes'][0].fill(ellipse[0], ellipse[1], color=cmap(norm_vals[ii]))
+        # cax = self.window['figure'].add_axes(rect=[1, 1, 0.1, 1])
+        # print(cax)
+        # cb = ColorbarBase(ax=cax,
+        #                   cmap=cmap)
+        #                   # boundaries=[lower, upper])
+        # cb.set_label('Some units')
+        # print(fill_vals)
+        fake_vals = np.linspace(lower, upper, len(fill_vals))
+        fake_im = self.window['axes'][0].scatter(self.site_locations['all'][:, 1],
+                                                 self.site_locations['all'][:, 0],
+                                                 c=fake_vals, cmap=cmap)
+        # fake_im.colorbar()
+        fake_im.set_visible(False)
+        cb = self.window['colorbar'] = self.window['figure'].colorbar(mappable=fake_im)
+        cb.set_label(fill_param,
+                     rotation=270,
+                     labelpad=20,
+                     fontsize=18)

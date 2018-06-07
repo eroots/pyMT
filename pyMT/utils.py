@@ -1042,3 +1042,12 @@ def normalize(vals, lower=0, upper=1, explicit_bounds=False):
                     (np.max(vals) - np.min(vals))
         norm_vals = norm_vals * (upper - lower) + lower
     return norm_vals
+
+
+def normalize_range(vals, lower_range=0, upper_range=1, lower_norm=0, upper_norm=1):
+    vals = list(vals)
+    vals.append(lower_range)
+    vals.append(upper_range)
+    norm_vals = normalize(np.array(vals), lower=lower_norm, upper=upper_norm)
+    norm_vals = norm_vals[:-2]
+    return norm_vals

@@ -242,7 +242,7 @@ def read_raw_data(site_names, datpath=''):
                       'TYVAR.EXP': [],
                       'FREQ': [],
                       'INFO': [],
-                      '=DEFINEMAS': []}
+                      '=DEFINEMEAS': []}
             in_block = 0
             ii = 0
             while ii < len(lines):
@@ -253,7 +253,7 @@ def read_raw_data(site_names, datpath=''):
                     block_name = [key for key in blocks.keys()
                                   if ''.join(['>', key]) in line][0]
                     # print(block_name + str(block_start))
-                elif in_block and line[0] == '>':
+                elif in_block and ('>' in line):
                     in_block = 0
                     blocks.update({block_name: lines[block_start:ii]})
                     # print(block_name + str(ii))
@@ -262,6 +262,7 @@ def read_raw_data(site_names, datpath=''):
             return blocks
 
         def read_header(header):
+            lat, lon, elev = 0, 0, 0
             for line in header:
                 if 'LAT' in line:
                     lat = (utils.dms2dd(line.split('=')[1].strip()))
@@ -269,6 +270,36 @@ def read_raw_data(site_names, datpath=''):
                     lon = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'ELEV' in line:
                     elev = float(line.split('=')[1].strip())
+            return lat, lon, elev
+
+        def read_info(block):
+            # print('Read info not implemented and returns only zeros')
+            return 0, 0, 0
+
+        def read_definemeas(block):
+            lat, lon, elev = 0, 0, 0
+            # print(block)
+            for line in block:
+                if 'REFLAT' in line:
+                    lat = (utils.dms2dd(line.split('=')[1].strip()))
+                if 'REFLONG' in line:
+                    lon = (utils.dms2dd(line.split('=')[1].strip()))
+                if 'REFELEV' in line:
+                    elev = float(line.split('=')[1].strip())
+            return lat, lon, elev
+
+        def extract_location(blocks):
+            lat_head, lon_head, elev_head = read_header(blocks['HEAD'])
+            lat_info, lon_info, elev_info = read_info(blocks['INFO'])
+            lat_define, lon_define, elev_define = read_definemeas(blocks['=DEFINEMEAS'])
+            # if (lat_head != lat_info) or (lat_head != lat_define) or (lat_define != lat_info):
+            #     print('Latitudes listed in HEAD, INFO and DEFINEMEAS do not match.')
+            # if (lon_head != lon_info) or (lon_head != lon_define) or (lon_define != lon_info):
+            #     print('Longitudes listed in HEAD, INFO and DEFINEMEAS do not match.')
+            # if (elev_head != elev_info) or (elev_head != elev_define) or (elev_define != elev_info):
+            #     print('Elevations listed in HEAD, INFO and DEFINEMEAS do not match.')
+            # print('Location information extracted from DEFINEMEAS block')
+            lat, lon, elev = lat_define, lon_define, elev_define
             return lat, lon, elev
 
         def read_data_block(block):
@@ -320,8 +351,11 @@ def read_raw_data(site_names, datpath=''):
             # info is consistent
             lines = f.readlines()
             blocks = extract_blocks(lines)
-            Lat, Long, elev = read_header(blocks['HEAD'])
-            frequencies = read_data_block(blocks['FREQ'])
+            Lat, Long, elev = extract_location(blocks)
+            if blocks['FREQ']:
+                frequencies = read_data_block(blocks['FREQ'])
+            else:
+                raise WSFileError(ID='int', offender=file, extra='Frequency block non-existent.')
             periods = utils.truncate(1 / frequencies)
             data, errors, azi = extract_tensor_info(blocks)
             Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
@@ -351,18 +385,29 @@ def read_raw_data(site_names, datpath=''):
     for site in site_names:
         # Look for J-format files first
         if ''.join([site, '.dat']) in all_dats:
-            file = ''.join([path, site, '.dat'])
+            if site.endswith('.dat'):
+                file = ''.join([path, site])
+            else:
+                file = ''.join([path, site, '.dat'])
             try:
                 site_dict, long_origin = read_dat(file, long_origin)
-            except FileNotFoundError:
+                siteData.update({site: site_dict})
+            except WSFileError:
                 print('{} not found. Continuing without it.'.format(file))
         else:
-            file = ''.join([path, site, '.edi'])
+            if site.endswith('.edi'):
+                file = ''.join([path, site])
+            else:
+                file = ''.join([path, site, '.edi'])
             try:
                 site_dict, long_origin = read_edi(file, long_origin)
-            except FileNotFoundError:
-                print('{} not found. Continuing without it.'.format(file))
-        siteData.update({site: site_dict})
+                site = site.replace('.edi', '')
+                site = site.replace('.dat', '')
+                siteData.update({site: site_dict})
+            except WSFileError as e:
+                    print(e.message)
+                    print('Skipping site...')
+
     return siteData
 
 
@@ -380,6 +425,7 @@ def read_sites(listfile):
             ns = int(next(f))
             site_names = list(filter(None, f.read().split('\n')))
             site_names = [name.replace('.dat', '') for name in site_names]
+            site_names = [name.replace('.edi', '') for name in site_names]
             if ns != len(site_names):
                 raise(WSFileError(ID='int', offender=listfile,
                                   extra='# Sites does not match length of list.'))

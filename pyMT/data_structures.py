@@ -1315,15 +1315,11 @@ class Site(object):
             self.errmap = self.generate_errmap(mult=1)
         self.calculate_phase_tensors()
 
-            # self.errmap = {}
-            # self.flags = {}
-            # for comp in self.data.keys():
-            #     self.errmap.update({comp:
-            #                         np.ones(np.shape(self.data[comp]))})
         try:
             self.used_error = {component: self.errors[component] for component in self.components}
         except KeyError:
             print('Error information not available.')
+            print(self.name)
             self.used_error = {}
         # Add dummy data to missing components
         self.apply_error_floor()
@@ -1581,6 +1577,7 @@ class Site(object):
                 new_errors[comp].insert(ind - shift, errors[comp][ii])
                 new_errmap[comp].insert(ind - shift, errmap[comp][ii])
                 if period not in current_periods:
+                    self.phase_tensors.insert(ind, site.phase_tensors[ii])
                     current_periods.insert(ind, period)
                     shift = 1
         self.data = {comp: utils.list2np(new_data[comp]) for comp in self.components}
@@ -1607,6 +1604,7 @@ class Site(object):
             # if ind is None
             # self.periods.delete(ind)
             self.periods = np.delete(self.periods, ind)
+            del self.phase_tensors[int(ind)]
             for comp in self.data.keys():
                 self.data[comp] = np.delete(self.data[comp], ind)
                 self.errors[comp] = np.delete(self.errors[comp], ind)
@@ -1889,17 +1887,25 @@ class RawData(object):
         all_data = WS_io.read_raw_data(self.site_names, datpath)
         self.sites = {}
         for site_name, site in all_data.items():
-            self.sites.update({site_name:
-                               Site(name=site_name,
-                                    data=site['data'],
-                                    errors=site['errors'],
-                                    errmap=site.get('errmap', None),
-                                    periods=site['periods'],
-                                    locations=site['locations'],
-                                    azimuth=site['azimuth'],
-                                    flags=None
-                                    )})
-        dummy_sites = self.check_dummy_data(threshold=0.001)
+            try:
+                self.sites.update({site_name:
+                                   Site(name=site_name,
+                                        data=site['data'],
+                                        errors=site['errors'],
+                                        errmap=site.get('errmap', None),
+                                        periods=site['periods'],
+                                        locations=site['locations'],
+                                        azimuth=site['azimuth'],
+                                        flags=None
+                                        )})
+            except WSFileError as e:
+                print(e.message)
+                print('Skipping site...')
+                print(site_name)
+                self.site_names.remove(site_name)
+        # Back-check site list to remove those that didn't get read
+        self.site_names = [site for site in self.site_names if site in self.sites.keys()]
+        dummy_sites = self.check_dummy_data(threshold=0.00001)
         if dummy_sites:
             self.remove_components(sites=dummy_sites,
                                    components=['TZXR', 'TZXI', 'TZYR', 'TZYI'])
@@ -1932,7 +1938,7 @@ class RawData(object):
                 sites.update({site.name: periods})
         return sites
 
-    def check_dummy_data(self, threshold=0.001):
+    def check_dummy_data(self, threshold=0.00001):
         # for comp in ('TZXR', 'TZXI', 'TZYR', 'TZYI'):
         # Only need to check one, right?
         sites = []
@@ -2084,7 +2090,7 @@ class RawData(object):
 
 class PhaseTensor(object):
     def __init__(self, period, Z):
-        self.X, self.Y = np.zeros((2, 2)), np.zeros((2, 2))
+        self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.period = period
         self.Z = Z
         self.det_phi = 0
@@ -2097,32 +2103,54 @@ class PhaseTensor(object):
         self.beta = 0
         self.Lambda = 0
         self.azimuth = 0
+        self.valid_data = True
         self.form_tensors(Z)
         self.calculate_phase_tensor()
-        self.calculate_phase_parameters()
+        if self.valid_data:
+            self.calculate_phase_parameters()
 
     def form_tensors(self, Z):
-        self.X = np.array(((Z['ZXXR'], Z['ZXYR']),
-                           (Z['ZYXR'], Z['ZYYR'])))
-        self.Y = np.array(((Z['ZXXI'], Z['ZXYI']),
-                           (Z['ZYXI'], Z['ZYYI'])))
+        # self.X = np.array(((Z['ZXXR'], Z['ZXYR']),
+        #                    (Z['ZYXR'], Z['ZYYR'])))
+        # self.Y = np.array(((Z['ZXXI'], Z['ZXYI']),
+        #                    (Z['ZYXI'], Z['ZYYI'])))
+        self.X = np.array(((Z['ZYYR'], Z['ZYXR']),
+                           (Z['ZXYR'], Z['ZXXR'])))
+        self.Y = np.array(((Z['ZYYI'], Z['ZYXI']),
+                           (Z['ZXYI'], Z['ZXXI'])))
 
     def calculate_phase_tensor(self):
-        self.phi = np.matmul(np.linalg.inv(self.X), self.Y)
+        try:
+            # Try it the fast way...
+            # self.phi = np.matmul(np.linalg.inv(self.X), self.Y)
+            self.phi[0, 0] = self.X[1, 1] * self.Y[0, 0] - self.X[0, 1] * self.Y[1, 0]
+            self.phi[0, 1] = self.X[1, 1] * self.Y[0, 1] - self.X[0, 1] * self.Y[1, 1]
+            self.phi[1, 0] = -self.X[1, 0] * self.Y[0, 0] + self.X[0, 0] * self.Y[1, 0]
+            self.phi[1, 1] = -self.X[1, 0] * self.Y[0, 1] + self.X[0, 0] * self.Y[1, 1]
+            self.phi /= self.X[0, 0] * self.X[1, 1] - self.X[0, 1] * self.X[1, 0]
+        except np.linalg.LinAlgError:
+            # Error with data. Use dummy data and set flag
+            self.valid_data = False
 
     def calculate_phase_parameters(self):
-        det_phi = (np.linalg.det(self.phi))
+        # det_phi = (np.linalg.det(self.phi))
+        det_phi = self.phi[0, 0] * self.phi[1, 1] - self.phi[0, 1] * self.phi[1, 0]
         skew_phi = (self.phi[0, 1] - self.phi[1, 0])
-        phi_1 = np.trace(self.phi) / 2
+        phi_1 = (self.phi[0, 0] + self.phi[1, 1]) / 2
         phi_2 = np.sqrt(det_phi)
         phi_3 = skew_phi / 2
-        phi_max = np.sqrt(phi_1 ** 2 + phi_3 ** 2) + np.sqrt(phi_1 ** 2 + phi_3 ** 2 - det_phi)
-        phi_min = np.sqrt(phi_1 ** 2 + phi_3 ** 2) - np.sqrt(phi_1 ** 2 + phi_3 ** 2 + det_phi)
-        alpha = 0.5 * np.arctan((self.phi[0, 1] + self.phi[1, 0]) / (self.phi[0, 0] - self.phi[1, 1]))
+        phi_max = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) +
+                   np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
+        phi_min = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) -
+                   np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
+        alpha = 0.5 * np.arctan2((self.phi[0, 0] - self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
+        # alpha = 0.5 * np.arctan2((self.phi[0, 0] - self.phi[1, 1]), (self.phi[0, 1] + self.phi[1, 0]))
         Lambda = (phi_max - phi_min) / (phi_max + phi_min)
-        beta = 0.5 * np.arctan(phi_3 / phi_1)
+        # beta = 0.5 * np.arctan(2 * phi_3 / 2 * phi_1)
+        # beta = 0.5 * np.arctan2((self.phi[0, 0] + self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
+        beta = 0.5 * np.arctan2((self.phi[0, 1] + self.phi[1, 0]), (self.phi[0, 0] - self.phi[1, 1]))
         azimuth = 0.5 * np.pi - (alpha - beta)
-        self.det_phi = det_phi
+        self.det_phi = (det_phi)
         self.skew_phi = skew_phi
         self.phi_1 = phi_1
         self.phi_2 = phi_2

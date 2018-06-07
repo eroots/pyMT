@@ -49,7 +49,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         super(MapMain, self).__init__()
         self.setupUi(self)
         self.fig = Figure()
+        self.active_period = 0
         self.init_map(dataset, sites, active_sites)
+        self.periods = self.map.site_data['data'].periods
+        self.set_period_label()
         self.add_mpl(self.map.window['figure'])
         self.connect_widgets()
 
@@ -59,6 +62,22 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.toggle_dataInduction.clicked.connect(self.update_map)
         self.toggle_responseInduction.clicked.connect(self.update_map)
         self.toggle_normalizeInduction.clicked.connect(self.update_map)
+        self.toggle_rawDataPhaseTensor.clicked.connect(self.update_map)
+        self.toggle_dataPhaseTensor.clicked.connect(self.update_map)
+        self.toggle_responsePhaseTensor.clicked.connect(self.update_map)
+        self.toggle_nonePhaseTensor.clicked.connect(self.update_map)
+        self.PhaseTensor_fill.currentIndexChanged.connect(self.update_map)
+        self.PeriodScrollBar.valueChanged.connect(self.change_period)
+        self.PeriodScrollBar.setMinimum(1)
+        self.PeriodScrollBar.setMaximum(len(self.map.site_data['data'].periods))
+
+    def set_period_label(self):
+        self.PeriodLabel.setText(' '.join([str(self.periods[self.active_period]), 's']))
+
+    def change_period(self, idx):
+        self.active_period = idx - 1
+        self.set_period_label()
+        self.update_map()
 
     def DEBUG_FUNC(self):
         print('This is a debug function')
@@ -77,7 +96,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             else:
                 Y.append(0)
         arrows = np.transpose(np.array((X, Y)))
-        print(arrows)
+        # print(arrows)
+        induction_toggles = self.get_induction_toggles()
+        print(induction_toggles['data'])
+        print(induction_toggles['normalize'])
 
     def add_mpl(self, fig):
         self.canvas = FigureCanvas(fig)
@@ -106,14 +128,36 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # This should be changed to just destroy and redraw whatever features are needed
         # print(self.map.site_locations['generic'])
         self.map.window['axes'][0].clear()
+        if self.map.window['colorbar']:
+            self.map.window['colorbar'].remove()
+            self.map.window['colorbar'] = None
         self.map.plot_locations()
+        PT_toggles = self.get_PT_toggles()
+        if PT_toggles['data'] is not 'None':
+            print('Inside IF')
+            self.map.plot_phase_tensor(data_type=PT_toggles['data'],
+                                       fill_param=PT_toggles['fill'],
+                                       period_idx=self.active_period)
         induction_toggles = self.get_induction_toggles()
         if induction_toggles['data']:
-            print(induction_toggles['data'])
-            print(induction_toggles['normalize'])
             self.map.plot_induction_arrows(data_type=induction_toggles['data'],
-                                           normalize=induction_toggles['normalize'])
+                                           normalize=induction_toggles['normalize'],
+                                           period_idx=self.active_period)
         self.canvas.draw()
+
+    def get_PT_toggles(self):
+        toggles = {'data': [], 'fill': 'Alpha'}
+        if self.toggle_rawDataPhaseTensor.checkState():
+            toggles['data'] = 'raw_data'
+        if self.toggle_dataPhaseTensor.checkState():
+            toggles['data'] = 'data'
+        if self.toggle_responsePhaseTensor.checkState():
+            toggles['data'] = 'response'
+        if self.toggle_nonePhaseTensor.checkState():
+            toggles['data'] = 'None'
+        index = self.PhaseTensor_fill.currentIndex()
+        toggles['fill'] = self.PhaseTensor_fill.itemText(index)
+        return toggles
 
     def get_induction_toggles(self):
         toggles = {'data': [], 'normalize': False}
@@ -449,10 +493,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type3)
         self.InversionTypeGroup.addAction(self.inv_type4)
         self.InversionTypeGroup.addAction(self.inv_type5)
+        self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
 
         # Super hacky axis limits setters. Fix this at some point
-        self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
-        self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
+        # self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
+        # self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
 
     def set_axis_bounds(self):
         try:
@@ -534,6 +579,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # if not self.map['fig']:
             # self.draw_map()
         # self.map['canvas'].show()
+
+    def update_map_data(self):
+        self.map_view.periods = self.dataset.data.periods
+        self.map_view.PeriodScrollBar.setMaximum(len(self.dataset.data.periods))
+        self.map_view.dataset = self.dataset
 
     def draw_map(self):
         if not self.map['fig']:
@@ -733,6 +783,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
         #       self.dataset.response.azimuth, self.dataset.raw_data.azimuth)
         print((self.dataset.data.sites[
               self.dataset.data.site_names[0]].used_error['ZXYR']))
+
+    def azimuth_scroll(self, val):
+        current_val = float(self.azimuthEdit.text())
+        if val < self.AzimuthScrollBar.value():
+            new_val = (current_val - 1) % 359
+        else:
+            new_val = (current_val + 1) % 359
+        self.AzimuthScrollBar.setValue(new_val)
+        self.azimuthEdit.setText(str(new_val))
 
     def set_azimuth(self):
         text = self.azimuthEdit.text()
@@ -1188,6 +1247,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     print('Adding period {}, freq {}'.format(period, 1 / period))
                     self.update_dpm(updated_sites=self.dpm.site_names,
                                     updated_comp=self.dataset.data.components)
+                    self.update_map_data()
         if event.button == 2:
             if israw:
                 # print(ind)
@@ -1211,6 +1271,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 self.dataset.data.remove_periods(periods=period)
                 print('Removing period {}, freq {}'.format(period, 1 / period))
                 self.update_dpm()
+                self.update_map_data()
         #     print('Right Mouse')
         # if self.dpm.axes[ax_index].lines[2].contains(event):
             # print('Yep, thats a point')
