@@ -1,4 +1,11 @@
 == CHANGELOG ==
+06/20/18:
+ - Fixed a bug that crashed DataGUI when changing datasets
+ - Created PhaseTensor class in data_structures
+ - Implemented plotting of phase tensors and induction arrows into DataGUI (ModelGUI)
+    - Note this is still preliminary, lots of improvements to be made
+ - Reading of EDI files (assuming they contain impedance)
+ - New script to convert spectra EDI to impedance EDI (using mtpy [python 2 required])
 01/10/18:
  - Implementing version control on ME servers
 06/24/17:

@@ -1030,7 +1030,7 @@ def dms2dd(dms):
         Converts strings containing dms lat longs to decimal degrees
     '''
     d, m, s = parse_dms(dms)
-    dd = abs(d) + abs(m) / 60 + abs(m) / 3600
+    dd = abs(d) + abs(m) / 60 + abs(s) / 3600
     return dd * np.sign(d)
 
 

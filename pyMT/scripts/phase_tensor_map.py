@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from e_colours import colourmaps as cm
 import pyMT.utils as utils
+from pyMT.gplot import MapView
+
 
 cmap = cm.jet()
 
@@ -64,8 +66,19 @@ def plot_ellipse(data, fill_param):
 if __name__ == '__main__':
     # filename = 'F:/GJH/TNG&MTR-EDI/all.lst'
     # filename = 'C:/users/eroots/phd/ownCloud/data/ArcMap/LegacyMT/ag_edi/ag/all.lst'
-    filename = 'C:/users/eroots/phd/ForEric/TNG&MTR-EDI/all.lst'
+    filename = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/GJH/ForEric/TNG&MTR-EDI/all.lst'
     data = WSDS.RawData(filename)
-    ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    MV = MapView(fig=fig)
+    MV.site_data['raw_data'] = data
+    MV.site_names = data.site_names
+    # # MV.site_locations['generic'] = MV.get_locations(sites=MV.generic_sites)
+    # MV.site_locations['active'] = MV.get_locations(
+    #     sites=MV.active_sites)
+    MV.site_locations['all'] = data.locations
+    MV.plot_phase_tensor(data_type='raw_data', normalize=True,
+                         fill_param='azimuth', period_idx=-6)
+    # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
     plt.show()
     

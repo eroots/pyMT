@@ -472,7 +472,7 @@ class MapView(object):
         self.mec = 'k'
         self.markersize = 5
         self.edgewidth = 2
-        self.sites = None
+        self.site_names = []
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = True
@@ -484,7 +484,7 @@ class MapView(object):
 
     @property
     def generic_sites(self):
-        return list(set(self.sites) - set(self.active_sites))
+        return list(set(self.site_names) - set(self.active_sites))
 
     @property
     def data(self):
@@ -616,7 +616,7 @@ class MapView(object):
             elif dType.lower() == 'response':
                 colour = 'r'
 
-            for site in self.sites:
+            for site in self.site_names:
                 # Just takes the last frequency. Will have to grab the right one from a list.
                 if 'TZXR' in self.site_data[dType].sites[site].components:
                     X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
@@ -667,31 +667,30 @@ class MapView(object):
         ellipses = []
         if fill_param != 'Lambda':
             fill_param = fill_param.lower()
-        if fill_param == 'azimuth':
-            cmap = cm.hsv()
-        else:
-            cmap = cm.jet()
-        for ii, site_name in enumerate(self.sites):
+        # if fill_param == 'azimuth':
+        #     cmap = cm.hsv()
+        # else:
+        cmap = cm.jet()
+        for ii, site_name in enumerate(self.site_names):
             site = self.site_data[data_type].sites[site_name]
             phi_x, phi_y = generate_ellipse(site.phase_tensors[period_idx].phi)
             X, Y = self.site_locations['all'][ii, 0], self.site_locations['all'][ii, 1]
             phi_x, phi_y = (1000 * phi_x / site.phase_tensors[period_idx].phi_max,
                             1000 * phi_y / site.phase_tensors[period_idx].phi_max)
             radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
-            print(radius)
             if radius > 1000000:
                 phi_x, phi_y = [(1000000 / radius) * x for x in (phi_x, phi_y)]
             ellipses.append([Y - phi_x, X - phi_y])
         fill_vals = np.array([getattr(self.site_data[data_type].sites[site].phase_tensors[period_idx],
                                       fill_param)
-                              for site in self.sites])
-        if fill_param in ['phi_max', 'phi_min', 'det_phi']:
+                              for site in self.site_names])
+        if fill_param in ['phi_max', 'phi_min', 'det_phi', ' phi_1', 'phi_2', 'phi_3']:
             lower, upper = (0, 90)
-        elif fill_param in ['alpha', 'Lambda']:
+        elif fill_param in ['Lambda']:
             lower, upper = (np.min(fill_vals), np.max(fill_vals))
         elif fill_param == 'beta':
             lower, upper = (-10, 10)
-        elif fill_param == 'azimuth':
+        elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
         fill_vals = np.rad2deg(np.arctan(fill_vals))
         fill_vals[fill_vals > upper] = upper

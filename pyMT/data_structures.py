@@ -1257,6 +1257,12 @@ class Site(object):
                            'ZYXR', 'ZYXI',
                            'TZXR', 'TZXI',
                            'TZYR', 'TZYI')
+    IMPEDANCE_COMPONENTS = ('ZXXR', 'ZXXI',
+                            'ZXYR', 'ZXYI',
+                            'ZYYR', 'ZYYI',
+                            'ZYXR', 'ZYXI')
+    TIPPER_COMPONENTS = ('TZXR', 'TZXI',
+                         'TZYR', 'TZYI')
     HIGHFREQ_FLAG = -9
     DIAG_FLAG = -99
     OUTLIER_FLAG = -999
@@ -1313,7 +1319,9 @@ class Site(object):
             self.errors = self.generate_errmap(mult=1)
         if not self.errmap or utils.is_all_empties(self.errmap):
             self.errmap = self.generate_errmap(mult=1)
-        self.calculate_phase_tensors()
+        if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)) \
+                and self.periods is not None:
+            self.calculate_phase_tensors()
 
         try:
             self.used_error = {component: self.errors[component] for component in self.components}
@@ -2114,10 +2122,13 @@ class PhaseTensor(object):
         #                    (Z['ZYXR'], Z['ZYYR'])))
         # self.Y = np.array(((Z['ZXXI'], Z['ZXYI']),
         #                    (Z['ZYXI'], Z['ZYYI'])))
-        self.X = np.array(((Z['ZYYR'], Z['ZYXR']),
-                           (Z['ZXYR'], Z['ZXXR'])))
-        self.Y = np.array(((Z['ZYYI'], Z['ZYXI']),
-                           (Z['ZXYI'], Z['ZXXI'])))
+        try:
+            self.X = np.array(((Z['ZYYR'], Z['ZYXR']),
+                               (Z['ZXYR'], Z['ZXXR'])))
+            self.Y = -1 * np.array(((Z['ZYYI'], Z['ZYXI']),
+                                    (Z['ZXYI'], Z['ZXXI'])))
+        except KeyError:
+            self.valid_data = False
 
     def calculate_phase_tensor(self):
         try:
@@ -2137,18 +2148,18 @@ class PhaseTensor(object):
         det_phi = self.phi[0, 0] * self.phi[1, 1] - self.phi[0, 1] * self.phi[1, 0]
         skew_phi = (self.phi[0, 1] - self.phi[1, 0])
         phi_1 = (self.phi[0, 0] + self.phi[1, 1]) / 2
-        phi_2 = np.sqrt(det_phi)
+        phi_2 = np.sqrt(np.abs(det_phi))
         phi_3 = skew_phi / 2
         phi_max = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) +
                    np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
         phi_min = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) -
                    np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
-        alpha = 0.5 * np.arctan2((self.phi[0, 0] - self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
-        # alpha = 0.5 * np.arctan2((self.phi[0, 0] - self.phi[1, 1]), (self.phi[0, 1] + self.phi[1, 0]))
+        # alpha = 0.5 * np.arctan2((self.phi[0, 0] - self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
+        alpha = 0.5 * np.arctan2((self.phi[0, 1] + self.phi[1, 0]), (self.phi[0, 0] - self.phi[1, 1]))
         Lambda = (phi_max - phi_min) / (phi_max + phi_min)
         # beta = 0.5 * np.arctan(2 * phi_3 / 2 * phi_1)
         # beta = 0.5 * np.arctan2((self.phi[0, 0] + self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
-        beta = 0.5 * np.arctan2((self.phi[0, 1] + self.phi[1, 0]), (self.phi[0, 0] - self.phi[1, 1]))
+        beta = 0.5 * np.arctan2((self.phi[0, 1] - self.phi[1, 0]), (self.phi[0, 0] + self.phi[1, 1]))
         azimuth = 0.5 * np.pi - (alpha - beta)
         self.det_phi = (det_phi)
         self.skew_phi = skew_phi

@@ -346,29 +346,32 @@ def read_raw_data(site_names, datpath=''):
 
         data = {}
         errors = {}
-        with open(file, 'r') as f:
-            # Need to also read in INFO and DEFINEMEAS blocks to confirm that the location
-            # info is consistent
-            lines = f.readlines()
-            blocks = extract_blocks(lines)
-            Lat, Long, elev = extract_location(blocks)
-            if blocks['FREQ']:
-                frequencies = read_data_block(blocks['FREQ'])
-            else:
-                raise WSFileError(ID='int', offender=file, extra='Frequency block non-existent.')
-            periods = utils.truncate(1 / frequencies)
-            data, errors, azi = extract_tensor_info(blocks)
-            Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
-            location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
-            site_dict = {'data': data,
-                         'errors': errors,
-                         'locations': location_dict,
-                         'periods': periods,
-                         'azimuth': azi
-                         }
+        try:
+            with open(file, 'r') as f:
+                # Need to also read in INFO and DEFINEMEAS blocks to confirm that the location
+                # info is consistent
+                lines = f.readlines()
+                blocks = extract_blocks(lines)
+                Lat, Long, elev = extract_location(blocks)
+                if blocks['FREQ']:
+                    frequencies = read_data_block(blocks['FREQ'])
+                else:
+                    raise WSFileError(ID='int', offender=file, extra='Frequency block non-existent.')
+                periods = utils.truncate(1 / frequencies)
+                data, errors, azi = extract_tensor_info(blocks)
+                Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
+                location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
+                site_dict = {'data': data,
+                             'errors': errors,
+                             'locations': location_dict,
+                             'periods': periods,
+                             'azimuth': azi
+                             }
 
-            # return blocks, lines, freqs
-            return site_dict, long_origin
+                # return blocks, lines, freqs
+                return site_dict, long_origin
+        except FileNotFoundError as e:
+            raise(WSFileError(ID='fnf', offender=file))
 
     siteData = {}
     long_origin = 999
@@ -389,24 +392,24 @@ def read_raw_data(site_names, datpath=''):
                 file = ''.join([path, site])
             else:
                 file = ''.join([path, site, '.dat'])
-            try:
-                site_dict, long_origin = read_dat(file, long_origin)
-                siteData.update({site: site_dict})
-            except WSFileError:
-                print('{} not found. Continuing without it.'.format(file))
+            # try:
+            site_dict, long_origin = read_dat(file, long_origin)
+            siteData.update({site: site_dict})
+            # except WSFileError:
+            #     print('{} not found. Continuing without it.'.format(file))
         else:
             if site.endswith('.edi'):
                 file = ''.join([path, site])
             else:
                 file = ''.join([path, site, '.edi'])
-            try:
-                site_dict, long_origin = read_edi(file, long_origin)
-                site = site.replace('.edi', '')
-                site = site.replace('.dat', '')
-                siteData.update({site: site_dict})
-            except WSFileError as e:
-                    print(e.message)
-                    print('Skipping site...')
+            # try:
+            site_dict, long_origin = read_edi(file, long_origin)
+            site = site.replace('.edi', '')
+            site = site.replace('.dat', '')
+            siteData.update({site: site_dict})
+            # # except WSFileError as e:
+            #         print(e.message)
+            #         print('Skipping site...')
 
     return siteData
 
@@ -668,7 +671,6 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
             print('Proceeding with names set in list file.\n')
             # site_names = new_site_names
-
         for site in new_site_names:
             for component in site_data[site].keys():
                 vals = site_data[site][component]

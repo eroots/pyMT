@@ -50,6 +50,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.setupUi(self)
         self.fig = Figure()
         self.active_period = 0
+        self.map = gplot.MapView(figure=self.fig)
         self.init_map(dataset, sites, active_sites)
         self.periods = self.map.site_data['data'].periods
         self.set_period_label()
@@ -84,9 +85,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # print(self.map.site_locations['all'])
         # print(self.map.active_sites)
         # print(self.map.site_locations['active'])
-        # print(self.map.sites)
+        # print(self.map.site_names)
         X, Y = [], []
-        for site in self.map.sites:
+        for site in self.map.site_names:
             if 'TZXR' in self.map.site_data['data'].sites[site].components:
                 X.append(self.map.site_data['data'].sites[site].data['TZXR'][-1])
             else:
@@ -110,18 +111,16 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.mplvl.addWidget(self.toolbar)
 
     def init_map(self, dataset, sites, active_sites):
-        self.map = gplot.MapView(figure=self.fig)
         self.map.data = dataset.data
         self.map.raw_data = dataset.raw_data
         self.map.response = dataset.response
-        self.map.sites = sites
+        self.map.site_names = sites
         self.map._active_sites = active_sites
-        self.map.sites = sites
         self.map.site_locations['generic'] = self.map.get_locations(
             sites=self.map.generic_sites)
         self.map.site_locations['active'] = self.map.get_locations(
             sites=self.map.active_sites)
-        self.map.site_locations['all'] = self.map.get_locations(self.map.sites)
+        self.map.site_locations['all'] = self.map.get_locations(self.map.site_names)
 
     def update_map(self):
         # Currently redraws the whole map every time
@@ -637,6 +636,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         dset = self.currentDataset.itemText(index)
         self.current_dataset = dset
         self.dataset = self.stored_datasets[dset]
+        self.site_names = self.shift_site_names(shift=0)
+        self.map_view.init_map(dataset=self.dataset,
+                               sites=self.dataset.data.site_names,
+                               active_sites=self.site_names)
         self.set_data_toggles()
         # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
         # self.error_tree.itemChanged.disconnect()
@@ -644,7 +647,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.update_error_tree()
         self.back_or_forward_button(shift=0)
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
-
+        self.map_view.update_map()
         # self.error_tree.itemChanged.connect(self.post_edit_error)
 
     def num_subplots(self):
@@ -1405,6 +1408,9 @@ class FileInputParser(object):
                     dType = parts[0].lower()
                     dType_abr = re.sub(r'\b' + '|'.join(abbreviations.keys()) + r'\b',
                                        lambda m: abbreviations[m.group(0)], parts[0])
+                    # If there are spaces in a path, make sure they are joined back up
+                    if len(parts) > 2:
+                        parts[1] = ' '.join(parts[1:])
                     if dType in acceptable:
                         retval[dset].update({dType: parts[1]})
                     elif dType_abr in acceptable:
