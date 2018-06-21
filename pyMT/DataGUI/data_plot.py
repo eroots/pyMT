@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Main module for inversion data / response plotting. GUI is launched using 'python data_plot.py'.
 # Currently a flagless launch looks for a file 'pystart' which contains the paths of the files to use.
 # Format of the 'pystart' file is as follows:

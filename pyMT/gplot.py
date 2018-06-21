@@ -671,15 +671,19 @@ class MapView(object):
         #     cmap = cm.hsv()
         # else:
         cmap = cm.jet()
+        X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
+        scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
+                        (np.max(Y_all) - np.min(Y_all)) ** 2)
         for ii, site_name in enumerate(self.site_names):
             site = self.site_data[data_type].sites[site_name]
             phi_x, phi_y = generate_ellipse(site.phase_tensors[period_idx].phi)
-            X, Y = self.site_locations['all'][ii, 0], self.site_locations['all'][ii, 1]
+            X, Y = X_all[ii], Y_all[ii]
             phi_x, phi_y = (1000 * phi_x / site.phase_tensors[period_idx].phi_max,
                             1000 * phi_y / site.phase_tensors[period_idx].phi_max)
             radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
-            if radius > 1000000:
-                phi_x, phi_y = [(1000000 / radius) * x for x in (phi_x, phi_y)]
+            print([scale, radius])
+            # if radius > 1000:
+            phi_x, phi_y = [(scale / (radius * 100)) * x for x in (phi_x, phi_y)]
             ellipses.append([Y - phi_x, X - phi_y])
         fill_vals = np.array([getattr(self.site_data[data_type].sites[site].phase_tensors[period_idx],
                                       fill_param)
