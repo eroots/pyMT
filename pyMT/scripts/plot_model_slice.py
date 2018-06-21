@@ -94,13 +94,11 @@ def interpolate_slice(x, y, Z, NP):
 #                     r'\MATLAB\MATLAB\Inversion\Regions' +
 #                     r'\abi-gren\New\j2')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
-<<<<<<< HEAD
 reso = []
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\center_ModEM\NLCG\center_noTF_final.model')
 data = WSDS.RawData(listfile=r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\j2\center_fewer3.lst')
-=======
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_bost1\out_model.00')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\sens_model.00')
 reso = []
@@ -109,7 +107,6 @@ reso = []
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
 data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
->>>>>>> fb3e2dfb6d07f214d6b79bb89216e20aed7f1e93
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
 #                5.369642e+006]
@@ -133,13 +130,10 @@ if mod.coord_system == 'UTM':
 
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-<<<<<<< HEAD
-=======
 file_path = 'C:/Users/eric/phd/ownCloud/Documents/PDAC 2018/temp_figs/'
 file_name = 'dbrUVT_Left.png'
 title_ = 'Standard Inversion'
 save_fig = 1
->>>>>>> fb3e2dfb6d07f214d6b79bb89216e20aed7f1e93
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -148,20 +142,17 @@ lightness = 0.4
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
-<<<<<<< HEAD
 xlim = []
 zlim = []
 lut = 64
 cax = [1, 5]
 isolum = False
-=======
 # xlim = [-123.5, -121.5]
 xlim = [-7, 74]
 zlim = [0, 5]
 lut = 256
 cax = [1, 4]
 isolum = 0
->>>>>>> fb3e2dfb6d07f214d6b79bb89216e20aed7f1e93
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
 cmap_name = 'jet_r'
@@ -187,15 +178,12 @@ if cmap_name == 'jetplus':
 else:
     cmap = cm.get_cmap(cmap_name, lut)
 
-<<<<<<< HEAD
 # vals = np.log10(mod.vals[:, 31, :])
 vals = np.log10(mod.vals[:, 30, :])
-=======
 # vals = np.log10(mod.vals[:, 73, :])
 # vals = np.log10(mod.vals[11, :, :])
 vals = np.log10(mod.vals[5, :, :])
 # vals = np.log10(mod.vals[:, 22, :])
->>>>>>> fb3e2dfb6d07f214d6b79bb89216e20aed7f1e93
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
 vals[vals < cax[0]] = cax[0]
