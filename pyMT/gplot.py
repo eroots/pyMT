@@ -607,10 +607,11 @@ class MapView(object):
                               np.min(self.site_locations['all'][:, 0])) ** 2 +
                              (np.max(self.site_locations['all'][:, 1]) -
                               np.min(self.site_locations['all'][:, 1])) ** 2) / 10
+
         for dType in data_type:
             X, Y = [], []
             if dType.lower() == 'data':
-                colour = 'b'
+                colour = 'k'
             elif dType.lower() == 'raw_data':
                 colour = 'k'
             elif dType.lower() == 'response':
@@ -640,6 +641,7 @@ class MapView(object):
                 # print('Normalizing...')
             else:
                 arrows /= np.max(lengths)
+                arrows *= max_length / 100
                 # print('Shrinking arrows')
             #     print('Not normalizing')
             # print(arrows)
@@ -652,7 +654,8 @@ class MapView(object):
                                           arrows[:, 0],
                                           color=colour,
                                           headwidth=3,
-                                          width=0.0025)
+                                          width=0.0025,
+                                          zorder=10)
                                           # scale_units='xy',
                                           # scale=1 / 10000)
 
@@ -709,7 +712,9 @@ class MapView(object):
                                           lower_norm=0,
                                           upper_norm=1)
         for ii, ellipse in enumerate(ellipses):
-            self.window['axes'][0].fill(ellipse[0], ellipse[1], color=cmap(norm_vals[ii]))
+            self.window['axes'][0].fill(ellipse[0], ellipse[1],
+                                        color=cmap(norm_vals[ii]),
+                                        zorder=0)
         # cax = self.window['figure'].add_axes(rect=[1, 1, 0.1, 1])
         # print(cax)
         # cb = ColorbarBase(ax=cax,

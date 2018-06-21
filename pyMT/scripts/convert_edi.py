@@ -1,8 +1,10 @@
 import mtpy.core.mt as mt
 import os
 
-in_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/PROCESSED DATA/'
-out_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/PROCESSED DATA/Converted Edi/'
+# in_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/PROCESSED DATA/'
+in_path = 'F:/Dropbox/PROCESSED DATA/'
+# out_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/PROCESSED DATA/Converted Edi/'
+out_path = 'F:/PROCESSED DATA/Converted Edi/'
 extended_path = ['ATIKOKAN/EDIs', 'DRYDEN/EDIs', 'RAINY RIVER/EDIs', 'STURGEON LAKES/EDIs']
 for transect in extended_path:
     full_path = ''.join([in_path, transect])

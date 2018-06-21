@@ -143,7 +143,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.plot_induction_arrows(data_type=induction_toggles['data'],
                                            normalize=induction_toggles['normalize'],
                                            period_idx=self.active_period)
+        self.toolbar.update()
+        self.toolbar.push_current()
         self.canvas.draw()
+
 
     def get_PT_toggles(self):
         toggles = {'data': [], 'fill': 'Alpha'}
