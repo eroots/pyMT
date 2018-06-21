@@ -134,7 +134,6 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.plot_locations()
         PT_toggles = self.get_PT_toggles()
         if PT_toggles['data'] is not 'None':
-            print('Inside IF')
             self.map.plot_phase_tensor(data_type=PT_toggles['data'],
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period)
