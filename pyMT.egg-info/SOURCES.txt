@@ -26,6 +26,8 @@ pyMT/DataGUI/__init__.py
 pyMT/DataGUI/data_plot.py
 pyMT/DataGUI/data_plot.ui
 pyMT/DataGUI/map_viewer.ui
+pyMT/DataGUI/model_map.ui
+pyMT/DataGUI/saveFile.ui
 pyMT/GUI_common/__init__.py
 pyMT/GUI_common/classes.py
 pyMT/GUI_common/common_functions.py

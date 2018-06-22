@@ -112,6 +112,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.mplvl.addWidget(self.toolbar)
 
     def init_map(self, dataset, sites, active_sites):
+        self.map.dataset = dataset
         self.map.data = dataset.data
         self.map.raw_data = dataset.raw_data
         self.map.response = dataset.response
@@ -127,6 +128,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # Currently redraws the whole map every time
         # This should be changed to just destroy and redraw whatever features are needed
         # print(self.map.site_locations['generic'])
+        # Also there should be a mechanism that makes sure this is only redrawn if something changes
         self.map.window['axes'][0].clear()
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
@@ -146,31 +148,42 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.toolbar.push_current()
         self.canvas.draw()
 
-
     def get_PT_toggles(self):
         toggles = {'data': [], 'fill': 'Alpha'}
-        if self.toggle_rawDataPhaseTensor.checkState():
+        if self.toggle_rawDataPhaseTensor.checkState() and self.map.dataset.raw_data.sites:
             toggles['data'] = 'raw_data'
-        if self.toggle_dataPhaseTensor.checkState():
+        if self.toggle_dataPhaseTensor.checkState()and self.map.dataset.data.sites:
             toggles['data'] = 'data'
-        if self.toggle_responsePhaseTensor.checkState():
+        if self.toggle_responsePhaseTensor.checkState()and self.map.dataset.response.sites:
+            print('Turning on response')
             toggles['data'] = 'response'
-        if self.toggle_nonePhaseTensor.checkState():
+        if self.toggle_nonePhaseTensor.checkState() or not toggles['data']:
             toggles['data'] = 'None'
+            self.toggle_nonePhaseTensor.setCheckState(2)
+            self.toggle_rawDataPhaseTensor.setCheckState(0)
+            self.toggle_dataPhaseTensor.setCheckState(0)
+            self.toggle_responsePhaseTensor.setCheckState(0)
         index = self.PhaseTensor_fill.currentIndex()
         toggles['fill'] = self.PhaseTensor_fill.itemText(index)
         return toggles
 
     def get_induction_toggles(self):
         toggles = {'data': [], 'normalize': False}
-        if self.toggle_rawDataInduction.checkState():
+        if self.toggle_rawDataInduction.checkState() and self.map.dataset.raw_data.sites:
             toggles['data'].append('raw_data')
-        if self.toggle_dataInduction.checkState():
+        else:
+            self.toggle_rawDataInduction.setCheckState(0)
+        if self.toggle_dataInduction.checkState() and self.map.dataset.data.sites:
             toggles['data'].append('data')
-        if self.toggle_responseInduction.checkState():
+        else:
+            self.toggle_dataInduction.setCheckState(0)
+        if self.toggle_responseInduction.checkState() and self.map.dataset.response.sites:
             toggles['data'].append('response')
+        else:
+            self.toggle_responseInduction.setCheckState(0)
         if self.toggle_normalizeInduction.checkState():
             toggles['normalize'] = True
+
         return toggles
 
 

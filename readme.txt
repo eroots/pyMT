@@ -9,3 +9,12 @@ Submodules:
 	DataGUI: Contains modules used to interactively plot and manipulate
 		 wsinv3dmt data and models. Not yet set up for interactive file browsing. GUI is launched with by calling it through python, i.e. 'python data_plot.py', and the relevant files are read through startup files. See data_plot.py for more information.
 	tests: Contains modules used to test the various parts of the project
+	ModelGUI: Contains the modules and UI's for creating model meshes. Currently supports 3-D models for ModEM and WSINV3DMT
+
+Note: This package does not automatically install dependencies. You will need to manually install them.
+Dependencies include:
+	matplotlib
+	numpy
+	pyproj
+	pyqt5
+	e_colours (Ask me to about getting this one. If it becomes a problem, I can include it directly in the package)
