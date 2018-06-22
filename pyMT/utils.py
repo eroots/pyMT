@@ -905,7 +905,8 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
 @enforce_input(files=list)
 def sort_files(files):
     ret_dict = {}
-    types = ('model', 'resp', 'lst', 'data')
+    print(files)
+    types = ('model', 'resp', 'lst', 'dat')
     for file in files:
         try:
             file_type = (next(x for x in types if x in file))

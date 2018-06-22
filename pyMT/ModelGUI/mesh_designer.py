@@ -7,7 +7,8 @@ import numpy as np
 import copy
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtWidgets
-from pyMT.GUI_common.common_functions import check_key_presses, FileDialog
+from pyMT.GUI_common.common_functions import check_key_presses
+from pyMT.GUI_common.classes import FileDialog
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -291,7 +292,7 @@ def main():
             return
     files = utils.sort_files(files=files)
     try:
-        data = WSDS.Data(datafile=files['data'])
+        data = WSDS.Data(datafile=files['dat'])
     except KeyError:
         print('No data file given. Site locations will not be available.')
         data = None
@@ -304,6 +305,7 @@ def main():
         else:
             print('Generating initial model...')
             model = WSDS.Model(data=data)
+            print([model.vals.shape, model.nx, model.ny, model.nz])
 
     app = QtWidgets.QApplication(sys.argv)
     viewer = model_viewer_2d(model=model, data=data)
