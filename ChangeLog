@@ -1,4 +1,10 @@
 == CHANGELOG ==
+06/21/18:
+ - Phase tensor ellipses and induction arrows should now scale with the map size
+ - Induction arrows should always plot on top of ellipses
+ - Hitting the 'home' button on map view no longer crashes everything
+ - Made sure certain things were properly disabled so they wouldn't crash everything by accident
+    - Things like RawData phase tensors, plotting response arrows and PTs when no response existed, etc.
 06/20/18:
  - Fixed a bug that crashed DataGUI when changing datasets
  - Created PhaseTensor class in data_structures
