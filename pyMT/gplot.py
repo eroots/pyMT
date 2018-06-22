@@ -628,7 +628,6 @@ class MapView(object):
                 else:
                     Y.append(0)
             arrows = np.transpose(np.array((X, Y)))
-            print([arrows.shape, len(X), len(Y)])
             # arrows = utils.normalize_arrows(arrows)
             lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
             lengths[lengths == 0] = 1
@@ -684,7 +683,6 @@ class MapView(object):
             phi_x, phi_y = (1000 * phi_x / site.phase_tensors[period_idx].phi_max,
                             1000 * phi_y / site.phase_tensors[period_idx].phi_max)
             radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
-            print([scale, radius])
             # if radius > 1000:
             phi_x, phi_y = [(scale / (radius * 100)) * x for x in (phi_x, phi_y)]
             ellipses.append([Y - phi_x, X - phi_y])

@@ -1,3 +1,4 @@
+MANIFEST.in
 setup.py
 pyMT/IO.py
 pyMT/WSExceptions.py
@@ -10,10 +11,11 @@ pyMT/utils.py
 pyMT.egg-info/PKG-INFO
 pyMT.egg-info/SOURCES.txt
 pyMT.egg-info/dependency_links.txt
+pyMT.egg-info/entry_points.txt
 pyMT.egg-info/top_level.txt
-pyMT/DataGUI/data_plot.py
-pyMT/ModelGUI/mesh_designer.py
 pyMT/scripts/autogen_report.py
+pyMT/scripts/convert_edi.py
+pyMT/scripts/f2l.py
 pyMT/scripts/j2ws3d.py
 pyMT/scripts/plot_dataset.py
 pyMT/scripts/plot_occam.py
@@ -22,7 +24,13 @@ pyMT/scripts/to_vtk.py
 pyMT/scripts/ws2modem.py
 pyMT/DataGUI/__init__.py
 pyMT/DataGUI/data_plot.py
+pyMT/DataGUI/data_plot.ui
+pyMT/DataGUI/map_viewer.ui
+pyMT/GUI_common/__init__.py
+pyMT/GUI_common/classes.py
+pyMT/GUI_common/common_functions.py
 pyMT/ModelGUI/mesh_designer.py
+pyMT/ModelGUI/mesh_designer.ui
 pyMT/scripts/DraggablePoint.py
 pyMT/scripts/__init__.py
 pyMT/scripts/add_occam_noise.py

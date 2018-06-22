@@ -20,7 +20,6 @@ setup(name='pyMT',
                'pyMT/scripts/plot_transect.py',
                'pyMT/scripts/to_vtk.py',
                'pyMT/scripts/ws2modem.py',
-               'pyMT/DataGUI/data_plot.py',
-               'pyMT/ModelGUI/mesh_designer.py',
                'pyMT/scripts/f2l.py',
-               'pyMT/scripts/convert_edi.py'])
+               'pyMT/scripts/convert_edi.py'],
+      entry_points={'gui_scripts': 'data_plot = pyMT.DataGUI.data_plot:main'})
