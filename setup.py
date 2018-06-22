@@ -22,4 +22,5 @@ setup(name='pyMT',
                'pyMT/scripts/ws2modem.py',
                'pyMT/scripts/f2l.py',
                'pyMT/scripts/convert_edi.py'],
-      entry_points={'gui_scripts': 'data_plot = pyMT.DataGUI.data_plot:main'})
+      entry_points={'gui_scripts': 'data_plot = pyMT.DataGUI.data_plot:main'},
+      include_package_data=True)

@@ -1,3 +1,2 @@
-include pyMT/DataGUI/data_plot.ui
-include pyMT/DataGUI/map_viewer.ui
-include pyMT/ModelGUI/mesh_designer.ui
+include pyMT/DataGUI/*.ui
+include pyMT/ModelGUI/*.ui
