@@ -136,6 +136,11 @@ def main_data(args):
     # Want user to be able to decide between interactive (plotting) mode, and just
     # straight command line input.
     chosen = pick_periods(sorted_periods, period_set, interactive)
+    for ii, p in enumerate(chosen):
+        if p < 0:
+            chosen[ii] = -1 / p
+        else:
+            chosen[ii] = p
     inv_type = int(WSIO.verify_input('Inversion Type?', default=defaults['inv_type'],
                                      expected='12345'))
     # Still have to make sure this method also applies the error map properly.

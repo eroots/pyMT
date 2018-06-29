@@ -572,7 +572,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def regulate_errors(self):
         print('Recalculating error maps...')
-        self.dataset.regulate_errors()
+        fwidth = float(self.width.text())
+        mult = float(self.mult.text())
+        print([fwidth, mult])
+        self.dataset.regulate_errors(multiplier=mult, fwidth=fwidth)
         print('Updating error tree...')
         self.update_error_tree()
         print('Done!')

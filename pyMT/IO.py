@@ -632,10 +632,11 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 if site_name not in site_data.keys():
                     site_data.update({site_name: {}})
                     site_error.update({site_name: {}})
-                    new_site_names.append(site_name)
                     site_locations.update({site_name: {'X': [],
                                                        'Y': [],
                                                        'elev': []}})
+                if site_name not in new_site_names:
+                    new_site_names.append(site_name)
                 site_locations[site_name]['X'] = X
                 site_locations[site_name]['Y'] = Y
                 site_locations[site_name]['elev'] = Z
@@ -876,6 +877,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
         units = []
         data_type = []
         temp_inv_type = []
+        actual_inv_type = copy.deepcopy(data.inv_type)
         with open(out_file, 'w') as f:
             title = '# Written using pyMT. UTM Zone: {}\n' + \
                     '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
@@ -919,7 +921,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                 data.inv_type = inv_type
                 components_to_write = [component for component in data.used_components
                                        if 'i' not in component.lower()]
-                for site_name in data.site_names:
+                for ii, site_name in enumerate(data.site_names):
                     site = data.sites[site_name]
                     for jj, period in enumerate(data.periods):
                         for component in components_to_write:
@@ -929,6 +931,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                             Z_real = site.data[component][jj]
                             Z_imag = site.data[component[:3] + 'I'][jj]
                             X, Y, Z = site.locations['X'], site.locations['Y'], site.locations.get('elev', 0)
+                            X, Y, Z = data.locations[ii, 0], data.locations[ii, 1], site.locations.get('elev', 0)
                             Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
                             f.write(' '.join(['{:>14.7E} {}',
                                               '{:>8.3f} {:>8.3f}',
@@ -940,6 +943,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                     X, Y, Z,
                                     component_code.upper(), Z_real, Z_imag,
                                     site.used_error[component][jj]))
+        data.inv_type = actual_inv_type
 
     def write_MARE2DEM(data, out_file):
         data_type_lookup = {'RhoZXX': 101,
@@ -1263,13 +1267,18 @@ def write_list(data, outfile):
         f.write('{}'.format(''.join([data.site_names[-1], '.dat'])))
 
 
-def write_model(model, outfile):
+def write_model(model, outfile, file_format='modem'):
     if '.model' not in outfile:
         outfile = ''.join([outfile, '.model'])
     is_half_space = int(model.is_half_space())
+    if file_format.lower() == 'modem':
+        header_four = 'LOGE'
+        is_half_space = 0
+    else:
+        header_four = ''
     with open(outfile, 'w') as f:
         f.write('{}\n'.format(outfile))
-        f.write('{} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space))
+        f.write('{} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
         for x in model.xCS:
             f.write('{:<10.7f}  '.format(x))
         f.write('\n')
@@ -1279,14 +1288,18 @@ def write_model(model, outfile):
         for z in model.zCS:
             f.write('{:<10.7f}  '.format(z))
         f.write('\n')
-        if is_half_space:
+        if header_four == 'LOGE':
+            vals = np.log(model.vals)
+        else:
+            vals = model.vals
+        if is_half_space and header_four != 'LOGE':
             f.write(str(model.vals[0, 0, 0]))
         else:
             for zz in range(model.nz):
                 for yy in range(model.ny):
                     for xx in range(model.nx):
                         # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
-                        f.write('{:<10.7f}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                        f.write('{:<10.7f}\n'.format(vals[model.nx - xx - 1, yy, zz]))
 
 
 def read_occam_data(datafile):

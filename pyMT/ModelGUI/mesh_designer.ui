@@ -58,7 +58,7 @@
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -69,11 +69,24 @@
      <height>500</height>
     </size>
    </property>
+   <property name="maximumSize">
+    <size>
+     <width>351</width>
+     <height>524287</height>
+    </size>
+   </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_3">
+     <item row="1" column="0">
+      <widget class="QLabel" name="nyLabel">
+       <property name="text">
+        <string>NY:</string>
+       </property>
+      </widget>
+     </item>
      <item row="2" column="0">
       <widget class="QLabel" name="nzLabel">
        <property name="text">
@@ -88,13 +101,6 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="nyLabel">
-       <property name="text">
-        <string>NY:</string>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="0">
       <widget class="QToolBox" name="toolBox">
        <property name="currentIndex">
@@ -105,7 +111,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>299</width>
+          <width>329</width>
           <height>611</height>
          </rect>
         </property>
@@ -413,17 +419,6 @@
              </layout>
             </widget>
            </widget>
-           <zorder>padTop</zorder>
-           <zorder>padLeft</zorder>
-           <zorder>padRight</zorder>
-           <zorder>padBottom</zorder>
-           <zorder>addPad</zorder>
-           <zorder>removePad</zorder>
-           <zorder>label</zorder>
-           <zorder>padMult</zorder>
-           <zorder>groupBox_2</zorder>
-           <zorder>groupBox_2</zorder>
-           <zorder>groupBox_2</zorder>
           </widget>
          </item>
         </layout>
@@ -433,7 +428,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>299</width>
+          <width>1271</width>
           <height>611</height>
          </rect>
         </property>

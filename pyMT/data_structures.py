@@ -329,7 +329,7 @@ class Dataset(object):
             raw_site = self.raw_data.sites[site]
             data_site = self.data.sites[site]
             for comp in self.data.sites[site].components:
-                if comp[0].lower() == 'z':
+                if comp[0].lower() in 'zt':
                     error_map = np.zeros(data_site.data[comp].shape)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
                                                           np.sqrt(raw_site.periods) * raw_site.data[comp],
@@ -340,7 +340,12 @@ class Dataset(object):
                                                      smoothed_data[ind])
                         error_map[ii] = min([data_site.errmap[comp][ii],
                                              np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
+                        # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     self.data.sites[site].errmap[comp] = error_map
+            self.data.sites[site].apply_error_floor()
+
+    def apply_error_floor(self):
+        for site in self.site_names:
             self.data.sites[site].apply_error_floor()
 
     def calculate_RMS(self):
@@ -735,6 +740,13 @@ class Data(object):
         self._inv_type = val
 
     def write(self, outfile, to_write=None, file_format=None):
+        '''
+            Write data to file.
+                INPUTS:
+                    out_file: Filename to write to
+                    to_write One of 'all', DATA', 'ERROR' or 'ERMAP'. Default is 'all'
+                    file_format: Which output format to write to. One of 'wsinv3dmt', 'modem', or 'mare2dem'
+        '''
         if not file_format:
             file_format = self.file_format
         WS_io.write_data(data=self, outfile=outfile, to_write=to_write, file_format=file_format)
@@ -1218,8 +1230,8 @@ class Model(object):
         self._dz = list(np.cumsum([0, *vals]))
         self.update_vals()
 
-    def write(self, outfile):
-        WS_io.write_model(self, outfile)
+    def write(self, outfile, file_format='modem'):
+        WS_io.write_model(self, outfile, file_format)
 
 
 class Response(Data):
@@ -1304,11 +1316,11 @@ class Site(object):
                              'Phs': 0.05}
         self.phase_tensors = []
         if errfloorZ is None:
-            self.errfloorZ = 5
+            self.errfloorZ = 0.075
         else:
             self.errfloorZ = errfloorZ
         if errfloorT is None:
-            self.errfloorT = 15
+            self.errfloorT = 0.15
         else:
             self.errfloorT = errfloorT
         if errmap:
