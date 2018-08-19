@@ -982,6 +982,10 @@ def normalize_resolution(resolution, reqmean=0.5, reqvar=0.5):
 _projections = {}
 
 
+def rms(data):
+    return np.sqrt(np.mean(data ** 2))
+
+
 def zone(coordinates):
     if 56 <= coordinates[1] < 64 and 3 <= coordinates[0] < 12:
         return 32

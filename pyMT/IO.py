@@ -874,6 +874,8 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                         f.write('\n')
 
     def write_ModEM3D(data, out_file):
+        if '.dat' not in out_file:
+            out_file = ''.join([out_file, '.dat'])
         units = []
         data_type = []
         temp_inv_type = []
@@ -982,9 +984,9 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                     'X', 'Y', 'Z', 'Theta', 'Alpha', 'Beta', 'Length', 'SolveStatic', 'Name'))
             for site in data.site_names:
                 f.write(' {:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
-                    data.sites[site].locations['X'],
-                    data.sites[site].locations['Y'],
-                    data.sites[site].locations['elev'],
+                    utils.truncate(data.sites[site].locations['X']),
+                    utils.truncate(data.sites[site].locations['Y']),
+                    getattr(data.sites[site].locations, 'elev', 0),
                     data.sites[site].azimuth,
                     getattr(data.sites[site], 'alpha', 0),
                     getattr(data.sites[site], 'beta', 0),
@@ -997,13 +999,71 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
             for ii, site in enumerate(data.site_names):
                 for jj, frequency in enumerate(frequencies):
                     for component in data.used_components:
-                        f.write('{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
-                                data_type_lookup[component],
-                                jj + 1,
-                                1,
-                                ii + 1,
-                                data.sites[site].data[component][jj],
-                                data.sites[site].used_error[component][jj]))
+                        if not component.lower()[:3] == 'tzx':
+                            f.write('{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                                    data_type_lookup[component],
+                                    jj + 1,
+                                    1,
+                                    ii + 1,
+                                    data.sites[site].data[component][jj],
+                                    data.sites[site].used_error[component][jj]))
+
+    def write_occam(data, outfile):
+        # Currently only writes Rho and Pha (can't choose) and sets static errors
+        with open(outfile, 'w') as f:
+            f.write('  FORMAT:         OCCAM2MTDATA_1.0\n')
+            f.write('  MODEL:          {}\n'.format(outfile))
+            f.write('  SITES:{:>17g}\n'.format(len(data.site_names)))
+            data_types = {'ZXYR': 13, 'ZXYI': 14,
+                          'ZYXR': 15, 'ZYXI': 16,
+                          'TZYR': 3, 'TZYI': 4,
+                          'RhoXY': 1, 'RhoYX': 5,
+                          'PhaXY': 2, 'PhaYX': 6}
+            exclude_components = set(('ZXXR', 'ZXXI',
+                                      'ZYYR', 'ZYYI',
+                                      'TZXR', 'TZXI'))
+            NS, NP, NR = (len(data.site_names),
+                          len(data.periods),
+                          len(set(data.used_components) - exclude_components))
+            num_data = NS * NP * 4
+            X = data.locations[:, 0] - np.min(data.locations[:, 0])
+            frequencies = utils.truncate(1 / data.periods)
+            for ii, site in enumerate(data.site_names):
+                f.write('{}\n'.format(site))
+            f.write('  OFFSETS (M):\n')
+            for x in X:
+                f.write('{:>15.8E}'.format(x))
+            f.write('\n')
+            f.write('  FREQUENCIES:{:>13g}\n'.format(len(frequencies)))
+            for freq in frequencies:
+                f.write('{:>15.8E}'.format(freq))
+            f.write('\n')
+            f.write('  DATA BLOCKS:{:>13g}\n'.format(num_data))
+            f.write('SITE   FREQ   DATA TYPE     DATUM       ERR\n')
+            for ii, site in enumerate(data.site_names):
+                for comp in ('RhoXY', 'PhaXY', 'RhoYX', 'PhaYX'):
+                    if comp not in exclude_components:
+                        comp_code = data_types[comp]
+                        if comp[:3].lower() == 'rho':
+                            calc_data, calc_err, calclog10_err = utils.compute_rho(data.sites[site],
+                                                                                   calc_comp=comp,
+                                                                                   errtype='used_error')
+                            calc_data = np.log10(calc_data)
+                            calc_error = 0.08
+                        elif comp[:3].lower() == 'pha':
+                            calc_data, calclog10_err = utils.compute_phase(data.sites[site],
+                                                                           calc_comp=comp,
+                                                                           errtype='used_error',
+                                                                           wrap=1)
+                            calc_error = 5
+                        for jj, freq in enumerate(frequencies):
+                            data_point = calc_data[jj]
+                            error_point = calc_error
+                            f.write('{:>4g}{:>6g}{:>12g}{:>15.5f}{:>15.5f}\n'.format(ii + 1,
+                                                                                     jj + 1,
+                                                                                     comp_code,
+                                                                                     data_point,
+                                                                                     error_point))
 
     if file_format.lower() == 'wsinv3dmt':
         write_ws(data, outfile, to_write)
@@ -1011,6 +1071,8 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
         write_ModEM3D(data, outfile)
     elif file_format.lower() == 'mare2dem':
         write_MARE2DEM(data, outfile)
+    elif file_format.lower() == 'occam':
+        write_occam(data, outfile)
     else:
         print('Output file format {} not recognized'.format(file_format))
 
@@ -1278,7 +1340,7 @@ def write_model(model, outfile, file_format='modem'):
         header_four = ''
     with open(outfile, 'w') as f:
         f.write('{}\n'.format(outfile))
-        f.write('{} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
+        f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
         for x in model.xCS:
             f.write('{:<10.7f}  '.format(x))
         f.write('\n')

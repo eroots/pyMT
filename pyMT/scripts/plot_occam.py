@@ -36,7 +36,7 @@ def plot_data(data, response, sites=None):
         ax.plot(np.log10(response[site]['Freqs']), response[site]['PhaYX'], 'g-')
         if jj == 1:
             ax.legend()
-    # plt.show()
+    plt.show()
     return figs
 
 

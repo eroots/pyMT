@@ -472,7 +472,6 @@ class MapView(object):
         self.mec = 'k'
         self.markersize = 5
         self.edgewidth = 2
-        self.site_names = []
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = True
@@ -631,15 +630,15 @@ class MapView(object):
             # arrows = utils.normalize_arrows(arrows)
             lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
             lengths[lengths == 0] = 1
-            arrows[lengths > 1, 0] /= lengths[lengths > 1]
-            arrows[lengths > 1, 1] /= lengths[lengths > 1]
+            arrows[lengths > 1, 0] = arrows[lengths > 1, 0] / lengths[lengths > 1]
+            arrows[lengths > 1, 1] = arrows[lengths > 1, 1] / lengths[lengths > 1]
             # print('Hello I am inside')
             # print(normalize)
             if normalize:
-                arrows /= np.transpose(np.tile(lengths, [2, 1]))
+                arrows = arrows / np.transpose(np.tile(lengths, [2, 1]))
                 # print('Normalizing...')
             else:
-                arrows /= np.max(lengths)
+                arrows = arrows / np.max(lengths)
                 arrows *= max_length / 100
                 # print('Shrinking arrows')
             #     print('Not normalizing')
@@ -684,7 +683,7 @@ class MapView(object):
                             1000 * phi_y / site.phase_tensors[period_idx].phi_max)
             radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
             # if radius > 1000:
-            phi_x, phi_y = [(scale / (radius * 100)) * x for x in (phi_x, phi_y)]
+            phi_x, phi_y = [(5 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
             ellipses.append([Y - phi_x, X - phi_y])
         fill_vals = np.array([getattr(self.site_data[data_type].sites[site].phase_tensors[period_idx],
                                       fill_param)

@@ -122,6 +122,19 @@ class Dataset(object):
             print('{} is not a valid data type'.format(dType))
             return False
 
+    @property
+    def site_names(self):
+        # Get site list by order of priority
+        # Important to note that the sort_sites method does NOT sort the raw data
+        # Fix this if it becomes an issue, but the data_plot automatically generates a data object
+        # So it should only be a problem if using this class outside of data_plot
+        if self.has_dType('data'):
+            return self.data.site_names
+        elif self.has_dType('data'):
+            return self.raw_data.site_names
+        elif self.has_dType('response'):
+            return self.response.site_names
+
     @utils.enforce_input(sites=list, periods=list, components=list, hTol=float, lTol=float)
     def get_data_from_raw(self, lTol=None, hTol=None, sites=None, periods=None, components=None):
         # if components:
@@ -548,7 +561,7 @@ class Data(object):
             # The data site names are updated appropriately.
             ext = os.path.splitext(datafile)[1]
             if not self.file_format:
-                if ext == '.emdata' or ext == '.resp':
+                if ext == '.emdata':
                     self.file_format = 'MARE2DEM'
                 elif ext == '.dat':
                     self.file_format = 'ModEM'
@@ -1310,6 +1323,7 @@ class Site(object):
         self.azimuth = azimuth
         self.solve_static = solve_static
         self.static_multiplier = 1
+        self.minimum_error = 0.0001
         self.error_floors = {'Z': 0.075,
                              'T': 0.15,
                              'Rho': 0.05,
@@ -1391,12 +1405,19 @@ class Site(object):
             elif 'phs' in component.lower():
                 new_errors = error_floors['Phs'] * 100 * np.ones(self.data[component].shape)
             elif component.startswith('Z'):
-                new_errors = np.abs(self.data[component] * error_floors['Z'])
+                if 'XX' in component or 'YY' in component:
+                    zxy = self.data['ZXYR'] + 1j * self.data['ZXYI']
+                    zyx = self.data['ZYXR'] + 1j * self.data['ZYXI']
+                    new_errors = error_floors['Z'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
+                                                                    zyx * zyx.conjugate())) / 2
+                else:
+                    new_errors = np.abs(self.data[component] * error_floors['Z'])
             elif component.startswith('T'):
                 new_errors = np.abs(self.data[component] * error_floors['T'])
             elif 'rho' in component.lower():
                 new_errors = np.abs(self.data[component] * error_floors['Rho'])
-            new_errors[new_errors == 0] = np.median(new_errors)
+            # new_errors[new_errors == 0] = np.median(new_errors)
+            new_errors[new_errors < self.minimum_error] = self.minimum_error
             returned_errors[component] = utils.truncate(new_errors)
         return returned_errors
 

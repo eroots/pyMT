@@ -1,4 +1,7 @@
 == CHANGELOG ==
+08/04/18:
+ - Map view now correctly updates after removing sites, and no longer crashes when removing sites after re-sorting the locations
+ - Implemented a basic 'write_occam' method into IO. Have not been able to successfully run an inversion off of one of the generated files though, so its possible it has some bugs.
 06/21/18:
  - Phase tensor ellipses and induction arrows should now scale with the map size
  - Induction arrows should always plot on top of ellipses

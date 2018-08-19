@@ -100,8 +100,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         arrows = np.transpose(np.array((X, Y)))
         # print(arrows)
         induction_toggles = self.get_induction_toggles()
-        print(induction_toggles['data'])
-        print(induction_toggles['normalize'])
+        # print(induction_toggles['data'])
+        # print(induction_toggles['normalize'])
 
     def add_mpl(self, fig):
         self.canvas = FigureCanvas(fig)
@@ -133,6 +133,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
             self.map.window['colorbar'] = None
+        # DEBUG
+        # print('I am updating the map')
         self.map.plot_locations()
         PT_toggles = self.get_PT_toggles()
         if PT_toggles['data'] is not 'None':
@@ -146,6 +148,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                            period_idx=self.active_period)
         self.toolbar.update()
         self.toolbar.push_current()
+        # DEBUG
+        # print('Updating Map')
         self.canvas.draw()
 
     def get_PT_toggles(self):
@@ -619,19 +623,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # clocs, _ = utils.center_locs(self.dataset.data.get_locs(site_list=self.site_names))
         locs = self.dataset.data.get_locs(site_list=sites, azi=self.dataset.data.azimuth)
         clocs = self.dataset.data.get_locs(site_list=self.site_names, azi=self.dataset.data.azimuth)
-        # print(clocs)
         # ymesh, Ny = utils.generate_mesh(site_locs=locs[:, 1], min_x=self.yMeshMin.value(), DEBUG=False)
         # xmesh, Nx = utils.generate_mesh(site_locs=locs[:, 0], min_x=self.xMeshMin.value(), DEBUG=False)
         # y, x = np.meshgrid(ymesh, xmesh)
         # c = np.ones_like(x)
-        # print(xmesh.shape, ymesh.shape)
-        # print(x.shape, y.shape, c.shape)
         # self.map['axis'].pcolor(y, x, c, facecolor='none', edgecolor='k')
         self.map['plots']['all'] = self.map['axis'].plot(locs[:, 1], locs[:, 0], 'k+')
         self.map['plots']['highlight'] = self.map['axis'].plot(clocs[:, 1], clocs[:, 0], 'ro')
         for ii, (ix, iy) in enumerate(clocs):
-            # print(self.site_names[ii])
-            # print(ix, iy)
             self.map['axis'].annotate(self.site_names[ii], xy=(iy, ix))
         self.map['canvas'].draw()
 
@@ -651,7 +650,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.dpm.toggles['response'] = False
 
     def change_dataset(self, index):
-        # print(self.dataset.data.site_names[:6])
         dset = self.currentDataset.itemText(index)
         self.current_dataset = dset
         self.dataset = self.stored_datasets[dset]
@@ -751,9 +749,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.site_names = self.dpm.site_names
             self.dpm.fig.canvas.draw()
             self.expand_tree_nodes(to_expand=self.site_names, expand=True)
-        else:
-            # Sites were removed, the map should be updated
-            self.draw_map()
+        # Sites were removed, the map should be updated
+        self.map_view.map.site_names = self.dataset.site_names
+        self.map_view.map.active_sites = self.site_names
+        self.map_view.map.set_locations()
+        self.map_view.update_map()
 
     def add_sites(self):
         # This method and the relevent methods in ws.data_structures are
@@ -767,7 +767,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.siteList.addItem(self.rmSitesList.takeItem(self.rmSitesList.row(site)))
             self.dataset.add_site(self.stored_sites[name])
             del self.stored_sites[name]
-        self.draw_map()
+        self.map_view.map.site_names = self.dataset.site_names
+        self.map_view.map.active_sites = self.site_names
+        self.map_view.map.set_locations()
+        self.map_view.update_map()
 
     def print_periods(self):
         periods = list(self.dataset.raw_data.narrow_periods.keys())
@@ -906,7 +909,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def WriteData(self, file_format='WSINV3DMT'):
         self.dataset.data.inv_type = self.check_inv_type()
         keep_going = True
-        # print(self.sortSites.itemText(self.sortSites.currentIndex()))
         if self.sortSites.itemText(self.sortSites.currentIndex()) != 'Default':
             reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    'Site order has changed. Write new list?',
@@ -975,6 +977,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.dpm.fig.canvas.draw()
         self.update_dpm()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
+        # DEBUG
+        # print(self.site_names)
         self.map_view.map.active_sites = self.site_names
         self.map_view.update_map()
 
