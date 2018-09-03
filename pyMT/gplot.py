@@ -4,6 +4,7 @@ from matplotlib.colorbar import ColorbarBase
 import matplotlib.colorbar as colorbar
 import pyMT.utils as utils
 from e_colours import colourmaps as cm
+import naturalneighbor as nn
 # import matplotlib.pyplot as plt
 
 
@@ -70,6 +71,7 @@ class DataPlotManager(object):
         self.sites = None
         self.tiling = [0, 0]
         self.show_outliers = True
+        self.wrap = 0
         self.outlier_thresh = 2
         self.min_ylim = None
         self.max_ylim = None
@@ -387,7 +389,10 @@ class DataPlotManager(object):
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
                         toplotErr = log10_e
                 elif 'pha' in comp.lower():
-                    toplot, e = utils.compute_phase(site, calc_comp=comp, errtype=errtype)
+                    toplot, e = utils.compute_phase(site,
+                                                    calc_comp=comp,
+                                                    errtype=errtype,
+                                                    wrap=self.wrap)
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
                         toplotErr = e
                 elif 'bost' in comp.lower():
@@ -466,7 +471,9 @@ class MapView(object):
         self._active_sites = []
         self.site_locations = {'generic': [], 'active': [], 'all': []}
         self.toggles = {'raw_data': False, 'data': False, 'response': False}
-        self.site_marker = {'generic': 'ko', 'active': 'ro'}
+        self.site_marker = 'o'
+        self.site_fill = True
+        self.site_colour = 'k'
         self.arrow_colours = {'raw_data': 'k', 'data': 'b', 'response': 'r'}
         self.linestyle = '-'
         self.mec = 'k'
@@ -474,12 +481,28 @@ class MapView(object):
         self.edgewidth = 2
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
-        self.annotate_sites = True
+        self.annotate_sites = 'active'
+        self.colourmap = 'jet_plus'
+        self.rho_cax = [1, 5]
+        self.phase_cax = [0, 90]
+        self.diff_cax = [-10, 10]
+        self.padding_scale = 5
         if fig is None:
             self.new_figure()
         else:
             self.window['figure'] = fig
         self.create_axes()
+
+    @property
+    def facecolour(self):
+        if self.site_fill:
+            return self.site_colour
+        else:
+            return 'none'
+
+    @property
+    def cmap(self):
+        return cm.get_cmap(self.colourmap)
 
     @property
     def generic_sites(self):
@@ -579,26 +602,44 @@ class MapView(object):
         elif coordinate_system.lower() == 'latlong':
             return self.site_data['raw_data'].get_locs(sites=sites, mode='latlong')
 
+    def set_axis_limits(self):
+        min_x, max_x = (min(self.site_data['data'].locations[:, 1]),
+                        max(self.site_data['data'].locations[:, 1]))
+        min_y, max_y = (min(self.site_data['data'].locations[:, 0]),
+                        max(self.site_data['data'].locations[:, 0]))
+        x_pad = (max_x - min_x) / self.padding_scale
+        y_pad = (max_y - min_y) / self.padding_scale
+        self.window['axes'][0].set_xlim([min_x - x_pad, max_x + x_pad])
+        self.window['axes'][0].set_ylim([min_y - y_pad, max_y + y_pad])
+
     def plot_locations(self):
         # if not self.window['figure']:
         #     print('No figure to plot to...')
         #     return
-        self.window['axes'][0].plot(self.site_locations['generic'][:, 1],
-                                    self.site_locations['generic'][:, 0],
-                                    self.site_marker['generic'],
-                                    markersize=self.markersize,
-                                    mec='k',
-                                    mew=self.edgewidth)
+        self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
+                                       self.site_locations['generic'][:, 0],
+                                       marker=self.site_marker,
+                                       s=self.markersize ** 2,
+                                       edgecolors=self.site_colour,
+                                       linewidths=self.edgewidth,
+                                       facecolors=self.facecolour)
         if self.active_sites:
-            self.window['axes'][0].plot(self.site_locations['active'][:, 1],
-                                        self.site_locations['active'][:, 0],
-                                        self.site_marker['active'],
-                                        markersize=self.markersize,
-                                        mec='k',
-                                        mew=self.edgewidth)
-            if self.annotate_sites:
+            self.window['axes'][0].scatter(self.site_locations['active'][:, 1],
+                                           self.site_locations['active'][:, 0],
+                                           marker=self.site_marker,
+                                           s=self.markersize ** 2,
+                                           edgecolors=self.site_colour,
+                                           linewidths=self.edgewidth,
+                                           facecolors=self.facecolour)
+            if self.annotate_sites == 'active':
                 for ii, (xx, yy) in enumerate(self.site_locations['active']):
                     self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx))
+            elif self.annotate_sites == 'all':
+                for ii, (xx, yy) in enumerate(self.site_locations['active']):
+                        self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx))
+                for ii, (xx, yy) in enumerate(self.site_locations['generic']):
+                    self.window['axes'][0].annotate(self.generic_sites[ii], xy=(yy, xx))
+        self.set_axis_limits()
 
     @utils.enforce_input(data_type=list, normalize=bool, period_idx=int)
     def plot_induction_arrows(self, data_type='data', normalize=True, period_idx=1):
@@ -654,10 +695,9 @@ class MapView(object):
                                           headwidth=3,
                                           width=0.0025,
                                           zorder=10)
-                                          # scale_units='xy',
-                                          # scale=1 / 10000)
+            self.set_axis_limits()
 
-    @utils.enforce_input(data_type=str, normalize=bool, fill_param=str, period_idx=int)
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
     def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
         def generate_ellipse(phi):
             jx = np.cos(np.arange(0, 2 * np.pi, np.pi / 30))
@@ -666,29 +706,35 @@ class MapView(object):
             phi_y = phi[1, 0] * jx + phi[1, 1] * jy
             return phi_x, phi_y
         ellipses = []
+        fill_vals = []
         if fill_param != 'Lambda':
             fill_param = fill_param.lower()
-        # if fill_param == 'azimuth':
-        #     cmap = cm.hsv()
-        # else:
-        cmap = cm.jet()
+        if len(data_type) == 2:
+            data_type = ['data', 'response']
         X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
         scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
                         (np.max(Y_all) - np.min(Y_all)) ** 2)
         for ii, site_name in enumerate(self.site_names):
-            site = self.site_data[data_type].sites[site_name]
-            phi_x, phi_y = generate_ellipse(site.phase_tensors[period_idx].phi)
+            site = self.site_data[data_type[0]].sites[site_name]
+            if len(data_type) == 1:
+                phase_tensor = site.phase_tensors[period_idx]
+                phi_x, phi_y = generate_ellipse(phase_tensor.phi)
+                norm_x, norm_y = (phi_x, phi_y)
+            else:
+                phase_tensor = (self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx] -
+                                self.site_data[data_type[1]].sites[site_name].phase_tensors[period_idx])
+                phi_x, phi_y = generate_ellipse(phase_tensor.phi)
+                norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
             X, Y = X_all[ii], Y_all[ii]
-            phi_x, phi_y = (1000 * phi_x / site.phase_tensors[period_idx].phi_max,
-                            1000 * phi_y / site.phase_tensors[period_idx].phi_max)
+            phi_x, phi_y = (1000 * phi_x / phase_tensor.phi_max,
+                            1000 * phi_y / phase_tensor.phi_max)
             radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
             # if radius > 1000:
             phi_x, phi_y = [(5 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
             ellipses.append([Y - phi_x, X - phi_y])
-        fill_vals = np.array([getattr(self.site_data[data_type].sites[site].phase_tensors[period_idx],
-                                      fill_param)
-                              for site in self.site_names])
-        if fill_param in ['phi_max', 'phi_min', 'det_phi', ' phi_1', 'phi_2', 'phi_3']:
+            fill_vals.append(getattr(phase_tensor, fill_param))
+        fill_vals = np.array(fill_vals)
+        if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
             lower, upper = (0, 90)
         elif fill_param in ['Lambda']:
             lower, upper = (np.min(fill_vals), np.max(fill_vals))
@@ -696,7 +742,10 @@ class MapView(object):
             lower, upper = (-10, 10)
         elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
-        fill_vals = np.rad2deg(np.arctan(fill_vals))
+        elif fill_param in ('delta'):
+            lower, upper = (0, 100)
+        if fill_param not in ('delta'):
+            fill_vals = np.rad2deg(np.arctan(fill_vals))
         fill_vals[fill_vals > upper] = upper
         fill_vals[fill_vals < lower] = lower
         # fill_vals = utils.normalize(fill_vals,
@@ -710,23 +759,82 @@ class MapView(object):
                                           upper_norm=1)
         for ii, ellipse in enumerate(ellipses):
             self.window['axes'][0].fill(ellipse[0], ellipse[1],
-                                        color=cmap(norm_vals[ii]),
-                                        zorder=0)
-        # cax = self.window['figure'].add_axes(rect=[1, 1, 0.1, 1])
-        # print(cax)
-        # cb = ColorbarBase(ax=cax,
-        #                   cmap=cmap)
-        #                   # boundaries=[lower, upper])
-        # cb.set_label('Some units')
-        # print(fill_vals)
+                                        color=self.cmap(norm_vals[ii]),
+                                        zorder=0,
+                                        edgecolor='k',
+                                        linewidth=2)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
         fake_im = self.window['axes'][0].scatter(self.site_locations['all'][:, 1],
                                                  self.site_locations['all'][:, 0],
-                                                 c=fake_vals, cmap=cmap)
+                                                 c=fake_vals, cmap=self.cmap)
         # fake_im.colorbar()
         fake_im.set_visible(False)
-        cb = self.window['colorbar'] = self.window['figure'].colorbar(mappable=fake_im)
-        cb.set_label(fill_param,
-                     rotation=270,
-                     labelpad=20,
-                     fontsize=18)
+        if not self.window['colorbar']:
+            self.window['colorbar'] = self.window['figure'].colorbar(mappable=fake_im)
+            self.window['colorbar'].set_label(fill_param,
+                                              rotation=270,
+                                              labelpad=20,
+                                              fontsize=18)
+        self.set_axis_limits()
+
+    @utils.enforce_input(data_type=list, fill_param=str, n_interp=int, period_idx=int)
+    def plan_pseudosection(self, data_type='data', fill_param='rhoxy', n_interp=200, period_idx=0):
+        vals = []
+        #  Just make sure data is the first one
+        if len(data_type) == 2:
+            data_type = ['data', 'response']
+        for ii, dt in enumerate(data_type):
+            data = self.site_data[dt]
+            if 'rho' in fill_param.lower():
+                vals.append([np.log10(utils.compute_rho(site=data.sites[site],
+                                               calc_comp=fill_param,
+                                               errtype='none')[0][period_idx]) for site in data.site_names])
+            elif 'pha' in fill_param.lower():
+                vals.append([utils.compute_phase(site=data.sites[site],
+                                                 calc_comp=fill_param,
+                                                 errtype='none',
+                                                 wrap=1)[0][period_idx] for site in data.site_names])
+        if len(vals) == 1:
+            vals = np.array(vals[0])
+            diff = False
+        else:
+            #  Should be response - data so a larger response gives a +ve percent difference
+            vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
+            diff = True
+        loc_x, loc_y = (data.locations[:, 1], data.locations[:, 0])
+        loc_z = np.zeros(loc_x.shape)
+        points = np.transpose(np.array((loc_x, loc_y, loc_z)))
+        min_x, max_x = (min(loc_x), max(loc_x))
+        x_pad = (max_x - min_x) / self.padding_scale
+        min_x, max_x = (min_x - x_pad, max_x + x_pad)
+        min_y, max_y = (min(loc_y), max(loc_y))
+        y_pad = (max_y - min_y) / self.padding_scale
+        min_y, max_y = (min_y - y_pad, max_y + y_pad)
+        # step_size_x = (max_x - min_x) / n_interp
+        # step_size_y = (max_y - min_y) / n_interp
+        grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp),
+                                     np.linspace(min_y, max_y, n_interp))
+        grid_ranges = [[min_x, max_x, n_interp * 1j],
+                       [min_y, max_y, n_interp * 1j],
+                       [0, 1, 1]]
+        grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))
+        if diff:
+            cax = self.diff_cax
+            fill_param = '% Difference'
+        elif 'rho' in fill_param.lower():
+            # grid_vals = np.log10(grid_vals)
+            cax = self.rho_cax
+        else:
+            cax = self.phase_cax
+        im = self.window['axes'][0].pcolor(grid_x, grid_y, grid_vals.T,
+                                           cmap=self.cmap,
+                                           vmin=cax[0], vmax=cax[1],
+                                           zorder=0)
+        if self.window['colorbar']:
+            self.window['colorbar'].remove()
+        self.window['colorbar'] = self.window['figure'].colorbar(mappable=im)
+        self.window['colorbar'].set_label(fill_param,
+                                          rotation=270,
+                                          labelpad=20,
+                                          fontsize=18)
+        self.set_axis_limits()

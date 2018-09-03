@@ -45,6 +45,63 @@
      <height>26</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Colour Options</string>
+    </property>
+    <widget class="QMenu" name="menuColour_map">
+     <property name="title">
+      <string>Colour map</string>
+     </property>
+     <addaction name="actionJet"/>
+     <addaction name="actionJet_r"/>
+     <addaction name="actionJet_plus"/>
+     <addaction name="actionJet_plus_r"/>
+     <addaction name="actionBgy"/>
+     <addaction name="actionBgy_r"/>
+     <addaction name="actionBwr"/>
+     <addaction name="actionBwr_r"/>
+    </widget>
+    <widget class="QMenu" name="menuColour_limits">
+     <property name="title">
+      <string>Colour limits</string>
+     </property>
+     <addaction name="actionRho_cax"/>
+     <addaction name="actionPhase_cax"/>
+     <addaction name="actionDifference_cax"/>
+    </widget>
+    <addaction name="menuColour_map"/>
+    <addaction name="menuColour_limits"/>
+   </widget>
+   <widget class="QMenu" name="menuPoint_options">
+    <property name="title">
+     <string>Point options</string>
+    </property>
+    <widget class="QMenu" name="menuMarker">
+     <property name="title">
+      <string>Marker</string>
+     </property>
+     <addaction name="actionMarker_Size"/>
+     <addaction name="actionMarker_Shape"/>
+     <addaction name="actionMarker_Colour"/>
+     <addaction name="actionFilled"/>
+    </widget>
+    <widget class="QMenu" name="menuAnnotate">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Annotate</string>
+     </property>
+     <addaction name="actionAnnotate_All"/>
+     <addaction name="actionAnnotate_None"/>
+     <addaction name="actionAnnotate_Active"/>
+    </widget>
+    <addaction name="menuAnnotate"/>
+    <addaction name="menuMarker"/>
+   </widget>
+   <addaction name="menuOptions"/>
+   <addaction name="menuPoint_options"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -52,265 +109,387 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <widget class="QPushButton" name="DEBUG">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>20</y>
-       <width>101</width>
-       <height>28</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Debug Button</string>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>121</width>
-       <height>111</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Induction Arrows</string>
-     </property>
-     <widget class="QCheckBox" name="toggle_rawDataInduction">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Raw Data</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="toggle_dataInduction">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Data</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="toggle_responseInduction">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Response</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="toggle_normalizeInduction">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>80</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Normalize</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>200</y>
-       <width>121</width>
-       <height>171</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Phase Tensor</string>
-     </property>
-     <widget class="QCheckBox" name="toggle_rawDataPhaseTensor">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Raw Data</string>
-      </property>
-      <property name="autoExclusive">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="toggle_dataPhaseTensor">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Data</string>
-      </property>
-      <property name="autoExclusive">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="toggle_responsePhaseTensor">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Response</string>
-      </property>
-      <property name="autoExclusive">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="toggle_nonePhaseTensor">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>80</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>None</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-      <property name="autoExclusive">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="PhaseTensor_fill">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>130</y>
-        <width>91</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>Alpha</string>
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QPushButton" name="DEBUG">
+       <property name="enabled">
+        <bool>true</bool>
        </property>
-      </item>
-      <item>
        <property name="text">
-        <string>Beta</string>
+        <string>Debug Button</string>
        </property>
-      </item>
-      <item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>Induction Arrows</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QCheckBox" name="toggle_dataInduction">
+          <property name="text">
+           <string>Data</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_responseInduction">
+          <property name="text">
+           <string>Response</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_normalizeInduction">
+          <property name="text">
+           <string>Normalize</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
+        <string>Phase Tensor</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="toggle_dataPhaseTensor">
+          <property name="text">
+           <string>Data</string>
+          </property>
+          <property name="autoExclusive">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_responsePhaseTensor">
+          <property name="text">
+           <string>Response</string>
+          </property>
+          <property name="autoExclusive">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_nonePhaseTensor">
+          <property name="text">
+           <string>None</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Fill Value</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="PhaseTensor_fill">
+          <item>
+           <property name="text">
+            <string>Alpha</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Beta</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_max</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_min</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>det_Phi</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Azimuth</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Lambda</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Delta</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="title">
+        <string>Pseudosection</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QRadioButton" name="toggle_rhoPseudo">
+          <property name="text">
+           <string>Apparent 
+Resistivity</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="toggle_phasePseudo">
+          <property name="text">
+           <string>Phase</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_dataPseudo">
+          <property name="text">
+           <string>Data</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_responsePseudo">
+          <property name="text">
+           <string>Response</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="Pseudosection_fill">
+          <item>
+           <property name="text">
+            <string>XY</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>YX</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Det</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Interp points:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="nInterp">
+          <property name="minimum">
+           <number>50</number>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+          <property name="value">
+           <number>200</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="PeriodLabel">
        <property name="text">
-        <string>Phi_max</string>
+        <string>Period: </string>
        </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Phi_min</string>
+      </widget>
+     </item>
+     <item>
+      <widget class="QScrollBar" name="PeriodScrollBar">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>det_Phi</string>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Azimuth</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Lambda</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QLabel" name="label">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>110</y>
-        <width>55</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Fill Value</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QScrollBar" name="PeriodScrollBar">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>420</y>
-       <width>121</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="PeriodLabel">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>390</y>
-       <width>121</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Period: </string>
-     </property>
-    </widget>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
+  <action name="actionJet">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jet</string>
+   </property>
+  </action>
+  <action name="actionJet_plus">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jet_plus</string>
+   </property>
+  </action>
+  <action name="actionJet_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jet_r</string>
+   </property>
+  </action>
+  <action name="actionJet_plus_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jet_plus_r</string>
+   </property>
+  </action>
+  <action name="actionRho_cax">
+   <property name="text">
+    <string>Rho</string>
+   </property>
+  </action>
+  <action name="actionPhase_cax">
+   <property name="text">
+    <string>Phase</string>
+   </property>
+  </action>
+  <action name="actionBgy">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bgy</string>
+   </property>
+  </action>
+  <action name="actionBgy_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bgy_r</string>
+   </property>
+  </action>
+  <action name="actionMarker_Size">
+   <property name="text">
+    <string>Marker Size</string>
+   </property>
+  </action>
+  <action name="actionMarker_Shape">
+   <property name="text">
+    <string>Marker Shape</string>
+   </property>
+  </action>
+  <action name="actionMarker_Colour">
+   <property name="text">
+    <string>Marker Colour</string>
+   </property>
+  </action>
+  <action name="actionAnnotate_All">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>All</string>
+   </property>
+  </action>
+  <action name="actionAnnotate_None">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="actionAnnotate_Active">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Active</string>
+   </property>
+  </action>
+  <action name="actionFilled">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Filled</string>
+   </property>
+  </action>
+  <action name="actionDifference_cax">
+   <property name="text">
+    <string>% Difference</string>
+   </property>
+  </action>
+  <action name="actionBwr">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bwr</string>
+   </property>
+  </action>
+  <action name="actionBwr_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bwr_r</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

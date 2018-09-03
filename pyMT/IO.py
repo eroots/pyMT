@@ -328,8 +328,10 @@ def read_raw_data(site_names, datpath=''):
                         if 'VAR' in key:
                             errors.update({new_key[:-1] + 'R': data_block * scaling_factor})
                             errors.update({new_key[:-1] + 'I': data_block * scaling_factor})
-                        else:
+                        elif 'Z' in key:
                             data.update({new_key: data_block * scaling_factor})
+                        else:
+                            data.update({new_key: data_block})
                 elif key == 'ZROT':
                     data_block = read_data_block(blocks[key])
                     if not np.all(data_block == data_block[1]):

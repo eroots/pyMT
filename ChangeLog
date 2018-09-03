@@ -1,4 +1,16 @@
 == CHANGELOG ==
+08/25/18:
+ - Implemented phase tensor differencing, using the definition of Heise et al. to calculate the PT paramenters, and then using the definition of Booker to calculate the PT itself.
+ - Put in a blue-white-red diverging colour map for difference plotting
+ - Set up a menu item for wrapping the phase in data_plot
+08/24/18:
+ - Implemented apparent resistivity and phase plan pseudosections into data_plot
+    - Can plot these for data, response, and % difference
+ - Implemented differencing and plotting of phase tensors
+    - Note this is not confirmed working yet
+ - Added toolbar menus for colour maps, plot markers, and other plotting options for map_view
+ - Defined the overloaded methods for addition and subtraction of PhaseTensor objects
+    - Note this is not confirmed working
 08/04/18:
  - Map view now correctly updates after removing sites, and no longer crashes when removing sites after re-sorting the locations
  - Implemented a basic 'write_occam' method into IO. Have not been able to successfully run an inversion off of one of the generated files though, so its possible it has some bugs.

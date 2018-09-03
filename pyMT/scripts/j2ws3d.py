@@ -192,6 +192,7 @@ def pick_periods(sorted_periods, period_set, interactive):
         chosen.append(WSIO.verify_input('Enter period number', expected=int, default=0))
         if chosen[-1] == 0:
             del chosen[-1]
+            chosen = [idx - 1 for idx in chosen]
             print('Selected Periods:')
             for idx in chosen:
                 print('{}\n'.format(sorted_periods[idx]))

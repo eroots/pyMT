@@ -60,18 +60,216 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
 
     def connect_widgets(self):
         self.DEBUG.clicked.connect(self.DEBUG_FUNC)
-        self.toggle_rawDataInduction.clicked.connect(self.update_map)
-        self.toggle_dataInduction.clicked.connect(self.update_map)
-        self.toggle_responseInduction.clicked.connect(self.update_map)
-        self.toggle_normalizeInduction.clicked.connect(self.update_map)
-        self.toggle_rawDataPhaseTensor.clicked.connect(self.update_map)
-        self.toggle_dataPhaseTensor.clicked.connect(self.update_map)
-        self.toggle_responsePhaseTensor.clicked.connect(self.update_map)
-        self.toggle_nonePhaseTensor.clicked.connect(self.update_map)
-        self.PhaseTensor_fill.currentIndexChanged.connect(self.update_map)
+        #  Connect induction arrow toggles
+        if self.map.dataset.data.inv_type in (3, 5):
+            self.toggle_dataInduction.clicked.connect(self.update_map)
+            self.toggle_responseInduction.clicked.connect(self.update_map)
+            self.toggle_normalizeInduction.clicked.connect(self.update_map)
+        else:
+            self.toggle_dataInduction.setEnabled(False)
+            self.toggle_responseInduction.setEnabled(False)
+            self.toggle_normalizeInduction.setEnabled(False)
+        #  Connect phase tensor toggles
+        if self.map.dataset.data.inv_type in (1, 5):
+            self.toggle_dataPhaseTensor.clicked.connect(self.data_phase_tensor)
+            self.toggle_responsePhaseTensor.clicked.connect(self.resp_phase_tensor)
+            self.toggle_nonePhaseTensor.clicked.connect(self.none_phase_tensor)
+            self.PhaseTensor_fill.currentIndexChanged.connect(self.update_map)
+        else:
+            self.toggle_dataPhaseTensor.setEnabled(False)
+            self.toggle_responsePhaseTensor.setEnabled(False)
+            self.toggle_nonePhaseTensor.setEnabled(False)
+            self.PhaseTensor_fill.setEnabled(False)
+        #  Connect pseudo-section plotting toggles
+        self.toggle_rhoPseudo.clicked.connect(self.update_map)
+        self.toggle_phasePseudo.clicked.connect(self.update_map)
+        self.toggle_dataPseudo.clicked.connect(self.update_map)
+        self.toggle_responsePseudo.clicked.connect(self.update_map)
+        self.Pseudosection_fill.currentIndexChanged.connect(self.update_map)
+        self.nInterp.valueChanged.connect(self.update_map)
+        #  Set up period scroll bar
         self.PeriodScrollBar.valueChanged.connect(self.change_period)
         self.PeriodScrollBar.setMinimum(1)
         self.PeriodScrollBar.setMaximum(len(self.map.site_data['data'].periods))
+        #  Set up colour map selections
+        self.groupColourmaps = QtWidgets.QActionGroup(self)
+        self.groupColourmaps.triggered.connect(self.set_colourmap)
+        self.actionJet.setActionGroup(self.groupColourmaps)
+        self.actionJet_r.setActionGroup(self.groupColourmaps)
+        self.actionJet_plus.setActionGroup(self.groupColourmaps)
+        self.actionJet_plus_r.setActionGroup(self.groupColourmaps)
+        self.actionBgy.setActionGroup(self.groupColourmaps)
+        self.actionBgy_r.setActionGroup(self.groupColourmaps)
+        self.actionBwr.setActionGroup(self.groupColourmaps)
+        self.actionBwr_r.setActionGroup(self.groupColourmaps)
+        # Set up colour limits
+        self.actionRho_cax.triggered.connect(self.set_rho_cax)
+        self.actionPhase_cax.triggered.connect(self.set_phase_cax)
+        self.actionDifference_cax.triggered.connect(self.set_difference_cax)
+        # Set up point / marker options
+        self.groupAnnotate = QtWidgets.QActionGroup(self)
+        self.actionAnnotate_All.setActionGroup(self.groupAnnotate)
+        self.actionAnnotate_None.setActionGroup(self.groupAnnotate)
+        self.actionAnnotate_Active.setActionGroup(self.groupAnnotate)
+        self.groupAnnotate.triggered.connect(self.set_annotations)
+        self.actionMarker_Size.triggered.connect(self.set_marker_size)
+        self.actionMarker_Shape.triggered.connect(self.set_marker_shape)
+        self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
+        self.actionFilled.triggered.connect(self.set_marker_fill)
+
+    def data_phase_tensor(self):
+        if self.toggle_dataPhaseTensor.isChecked():
+            self.toggle_nonePhaseTensor.setCheckState(0)
+        self.update_map()
+
+    def resp_phase_tensor(self):
+        if self.toggle_responsePhaseTensor.isChecked():
+            self.toggle_nonePhaseTensor.setCheckState(0)
+        self.update_map()
+
+    def none_phase_tensor(self):
+        if self.toggle_nonePhaseTensor.isChecked():
+            self.toggle_dataPhaseTensor.setCheckState(0)
+            self.toggle_responsePhaseTensor.setCheckState(0)
+        self.update_map()
+
+    def set_marker_fill(self):
+        if self.actionFilled.isChecked():
+            self.map.site_fill = True
+        else:
+            self.map.site_fill = False
+        self.update_map()
+
+    def set_annotations(self):
+        if self.actionAnnotate_All.isChecked():
+            self.map.annotate_sites = 'all'
+        elif self.actionAnnotate_None.isChecked():
+            self.map.annotate_sites = 'none'
+        elif self.actionAnnotate_Active.isChecked():
+            self.map.annotate_sites = 'active'
+        self.update_map()
+
+    def set_marker_size(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Marker Size',
+                                                         'Value:',
+                                                         self.map.markersize,
+                                                         0.1, 20, 1)
+        if ok_pressed and d != self.map.markersize:
+            self.map.markersize = d
+            self.update_map()
+
+    def set_marker_colour(self):
+        colours = ['Black', 'Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
+        codes = {'Black': 'k',
+                 'Blue': 'b',
+                 'Red': 'r',
+                 'Green': 'g',
+                 'Cyan': 'c',
+                 'Yellow': 'y',
+                 'Magenta': 'm'}
+        d, ok_pressed = QtWidgets.QInputDialog.getItem(self,
+                                                       'Marker Colour',
+                                                       'Colour:',
+                                                       colours,
+                                                       0, False)
+        if ok_pressed:
+            code = codes[d]
+            self.map.site_colour = code
+            self.update_map()
+
+    def set_marker_shape(self):
+        shapes = ['.', 'o', '*', 'x', '^', 'v']
+        d, ok_pressed = QtWidgets.QInputDialog.getItem(self,
+                                                       'Marker Shape',
+                                                       'Shape:',
+                                                       shapes,
+                                                       0, False)
+        if ok_pressed:
+            self.map.site_marker = d
+            self.update_map()
+
+    def set_rho_cax(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Lower limit',
+                                                         'Value:',
+                                                         self.map.rho_cax[0],
+                                                         -100, 100, 2)
+        if ok_pressed:
+            lower = d
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Upper limit',
+                                                         'Value:',
+                                                         self.map.rho_cax[1],
+                                                         -100, 100, 2)
+        if ok_pressed:
+            upper = d
+        if lower < upper and [lower, upper] != self.map.rho_cax:
+            self.map.rho_cax = [lower, upper]
+            self.update_map()
+        else:
+            print('Invalid colour limits')
+
+    def set_difference_cax(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Lower limit',
+                                                         'Value:',
+                                                         self.map.diff_cax[0],
+                                                         -1000, 1000, 2)
+        if ok_pressed:
+            lower = d
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Upper limit',
+                                                         'Value:',
+                                                         self.map.diff_cax[1],
+                                                         -1000, 1000, 2)
+        if ok_pressed:
+            upper = d
+        if lower < upper and [lower, upper] != self.map.diff_cax:
+            self.map.diff_cax = [lower, upper]
+            self.update_map()
+        else:
+            print('Invalid colour limits')
+
+    def set_phase_cax(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Lower limit',
+                                                         'Value:',
+                                                         self.map.phase_cax[0],
+                                                         -180, 180, 2)
+        if ok_pressed:
+            lower = d
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Upper limit',
+                                                         'Value:',
+                                                         self.map.phase_cax[1],
+                                                         -180, 180, 2)
+        if ok_pressed:
+            upper = d
+        if lower < upper and [lower, upper] != self.map.phase_cax:
+            self.map.phase_cax = [lower, upper]
+            self.update_map()
+        else:
+            print('Invalid colour limits')
+
+    def set_colourmap(self):
+        if self.actionJet.isChecked():
+            self.map.colourmap = 'jet'
+        if self.actionJet_r.isChecked():
+            self.map.colourmap = 'jet_r'
+        if self.actionJet_plus.isChecked():
+            self.map.colourmap = 'jet_plus'
+        if self.actionJet_plus_r.isChecked():
+            self.map.colourmap = 'jet_plus_r'
+        if self.actionBgy.isChecked():
+            self.map.colourmap = 'bgy'
+        if self.actionBgy_r.isChecked():
+            self.map.colourmap = 'bgy_r'
+        if self.actionBwr.isChecked():
+            self.map.colourmap = 'bwr'
+        if self.actionBwr_r.isChecked():
+            self.map.colourmap = 'bwr_r'
+        self.update_map()
 
     def set_period_label(self):
         self.PeriodLabel.setText(' '.join([str(self.periods[self.active_period]), 's']))
@@ -97,9 +295,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                 Y.append(self.map.site_data['data'].sites[site].data['TZYR'][-1])
             else:
                 Y.append(0)
-        arrows = np.transpose(np.array((X, Y)))
+        # arrows = np.transpose(np.array((X, Y)))
         # print(arrows)
-        induction_toggles = self.get_induction_toggles()
+        # induction_toggles = self.get_induction_toggles()
         # print(induction_toggles['data'])
         # print(induction_toggles['normalize'])
 
@@ -135,9 +333,17 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.window['colorbar'] = None
         # DEBUG
         # print('I am updating the map')
+        pseudosection_toggles = self.get_pseudosection_toggles()
+        if pseudosection_toggles['data'] and pseudosection_toggles['fill']:
+            fill_param = ''.join([pseudosection_toggles['fill'],
+                                  pseudosection_toggles['component']])
+            self.map.plan_pseudosection(data_type=pseudosection_toggles['data'],
+                                        fill_param=fill_param,
+                                        period_idx=self.active_period,
+                                        n_interp=self.nInterp.value())
         self.map.plot_locations()
         PT_toggles = self.get_PT_toggles()
-        if PT_toggles['data'] is not 'None':
+        if 'None' not in PT_toggles['data']:
             self.map.plot_phase_tensor(data_type=PT_toggles['data'],
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period)
@@ -152,19 +358,29 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # print('Updating Map')
         self.canvas.draw()
 
+    def get_pseudosection_toggles(self):
+        toggles = {'data': [], 'fill': None, 'component': None}
+        if self.toggle_dataPseudo.checkState() and self.map.dataset.data.sites:
+            toggles['data'].append('data')
+        if self.toggle_responsePseudo.checkState() and self.map.dataset.data.sites:
+            toggles['data'].append('response')
+        if self.toggle_rhoPseudo.isChecked():
+            toggles['fill'] = 'Rho'
+        elif self.toggle_phasePseudo.isChecked():
+            toggles['fill'] = 'Pha'
+        index = self.Pseudosection_fill.currentIndex()
+        toggles['component'] = self.Pseudosection_fill.itemText(index)
+        return toggles
+
     def get_PT_toggles(self):
         toggles = {'data': [], 'fill': 'Alpha'}
-        if self.toggle_rawDataPhaseTensor.checkState() and self.map.dataset.raw_data.sites:
-            toggles['data'] = 'raw_data'
         if self.toggle_dataPhaseTensor.checkState()and self.map.dataset.data.sites:
-            toggles['data'] = 'data'
+            toggles['data'].append('data')
         if self.toggle_responsePhaseTensor.checkState()and self.map.dataset.response.sites:
-            print('Turning on response')
-            toggles['data'] = 'response'
+            toggles['data'].append('response')
         if self.toggle_nonePhaseTensor.checkState() or not toggles['data']:
-            toggles['data'] = 'None'
+            toggles['data'].append('None')
             self.toggle_nonePhaseTensor.setCheckState(2)
-            self.toggle_rawDataPhaseTensor.setCheckState(0)
             self.toggle_dataPhaseTensor.setCheckState(0)
             self.toggle_responsePhaseTensor.setCheckState(0)
         index = self.PhaseTensor_fill.currentIndex()
@@ -173,10 +389,6 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
 
     def get_induction_toggles(self):
         toggles = {'data': [], 'normalize': False}
-        if self.toggle_rawDataInduction.checkState() and self.map.dataset.raw_data.sites:
-            toggles['data'].append('raw_data')
-        else:
-            self.toggle_rawDataInduction.setCheckState(0)
         if self.toggle_dataInduction.checkState() and self.map.dataset.data.sites:
             toggles['data'].append('data')
         else:
@@ -497,12 +709,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                  'South-North', 'Clustering'])
         self.sortSites.currentIndexChanged.connect(self.sort_sites)
         self.showOutliers.clicked.connect(self.toggle_outliers)
+        #  Set up the menu items
         self.actionList_File.triggered.connect(self.WriteList)
         # self.actionData_File.triggered.connect(self.WriteData)
         self.actionWriteWSINV3DMT.triggered.connect(self.write_wsinv3dmt)
         self.actionWriteModEM.triggered.connect(self.write_ModEM)
         self.writeCurrentPlot.triggered.connect(self.write_current_plot)
         self.writeAllPlots.triggered.connect(self.write_all_plots)
+        self.actionPhase_Wrap.triggered.connect(self.set_phase_wrap)
         self.regErrors.clicked.connect(self.regulate_errors)
         self.LockAxes.clicked.connect(self.link_axes)
         #  Set up Inversion Type action group
@@ -514,9 +728,18 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type5)
         self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
 
+
         # Super hacky axis limits setters. Fix this at some point
         # self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
         # self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
+
+    def set_phase_wrap(self):
+        if self.actionPhase_Wrap.isChecked():
+            self.dpm.wrap = 1
+        else:
+            self.dpm.wrap = 0
+        if 'pha' in self.dpm.components[0].lower():
+            self.dummy_update_dpm(toggled=True)
 
     def set_axis_bounds(self):
         try:

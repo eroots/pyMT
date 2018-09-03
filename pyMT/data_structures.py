@@ -2134,7 +2134,7 @@ class RawData(object):
 
 
 class PhaseTensor(object):
-    def __init__(self, period, Z):
+    def __init__(self, period, Z=None):
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.period = period
         self.Z = Z
@@ -2148,10 +2148,13 @@ class PhaseTensor(object):
         self.beta = 0
         self.Lambda = 0
         self.azimuth = 0
-        self.valid_data = True
-        self.form_tensors(Z)
-        self.calculate_phase_tensor()
+        if Z:
+            self.valid_data = True
+        else:
+            self.valid_data = False
         if self.valid_data:
+            self.form_tensors(Z)
+            self.calculate_phase_tensor()
             self.calculate_phase_parameters()
 
     def form_tensors(self, Z):
@@ -2209,3 +2212,45 @@ class PhaseTensor(object):
         self.Lambda = Lambda
         self.beta = beta
         self.azimuth = azimuth
+        self.delta = np.linalg.norm(self.phi)
+
+    def __add__(self, y):
+        new_phi = PhaseTensor(self.period, None)
+        new_phi.phi = self.phi + y.phi
+        new_phi.calculate_phase_parameters()
+        # new_phi.det_phi = self.det_phi + y.det_phi
+        # new_phi.skew_phi = self.skew_phi + y.skew_phi
+        # new_phi.phi_1 = self.phi_1 + y.phi_1
+        # new_phi.phi_2 = self.phi_2 + y.phi_2
+        # new_phi.phi_3 = self.phi_3 + y.phi_3
+        # new_phi.phi_max = self.phi_max + y.phi_max
+        # new_phi.phi_min = self.phi_min + y.phi_min
+        # new_phi.alpha = self.alpha + y.alpha
+        # new_phi.Lambda = self.Lambda + y.Lambda
+        # new_phi.beta = self.beta + y.beta
+        # new_phi.azimuth = self.azimuth + y.azimuth
+        return new_phi
+
+    def __sub__(self, y):
+        new_phi = PhaseTensor(self.period, None)
+        # new_phi.phi = np.abs((self.phi - y.phi)) / np.linalg.norm(self.phi)
+        # inv_phi = np.linalg.inv(y.phi)
+        # new_phi.phi = np.identity(2) - 0.5 * (np.matmul(inv_phi, self.phi) + np.matmul(self.phi, inv_phi))
+        inv_phi = np.linalg.inv(self.phi)
+        new_phi.phi = np.identity(2) - 0.5 * (np.matmul(inv_phi, y.phi) + np.matmul(y.phi, inv_phi))
+        new_phi.calculate_phase_parameters()
+        new_phi.phi = np.abs(self.phi - y.phi)
+        new_phi.delta = 100 * (np.linalg.norm(new_phi.phi) / np.linalg.norm(self.phi))
+        new_phi.phi /= np.linalg.norm(self.phi)
+        # new_phi.det_phi = self.det_phi - y.det_phi
+        # new_phi.skew_phi = self.skew_phi - y.skew_phi
+        # new_phi.phi_1 = self.phi_1 - y.phi_1
+        # new_phi.phi_2 = self.phi_2 - y.phi_2
+        # new_phi.phi_3 = self.phi_3 - y.phi_3
+        # new_phi.phi_max = self.phi_max - y.phi_max
+        # new_phi.phi_min = self.phi_min - y.phi_min
+        # new_phi.alpha = self.alpha - y.alpha
+        # new_phi.Lambda = self.Lambda - y.Lambda
+        # new_phi.beta = self.beta - y.beta
+        # new_phi.azimuth = self.azimuth - y.azimuth
+        return new_phi

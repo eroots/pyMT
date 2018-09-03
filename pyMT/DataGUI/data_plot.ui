@@ -64,6 +64,7 @@
     <property name="title">
      <string>Display Options</string>
     </property>
+    <addaction name="actionPhase_Wrap"/>
    </widget>
    <widget class="QMenu" name="menuWrite">
     <property name="title">
@@ -861,6 +862,14 @@
    </property>
    <property name="text">
     <string>5 (Full Z + Tipper)</string>
+   </property>
+  </action>
+  <action name="actionPhase_Wrap">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Phase Wrap</string>
    </property>
   </action>
  </widget>
