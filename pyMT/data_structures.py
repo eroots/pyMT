@@ -979,6 +979,12 @@ class Model(object):
             self.generate_zmesh(min_z=1, max_z=500000, NZ=60)
             self.update_vals()
 
+    @property
+    def center(self):
+        x, y = (np.mean(self.dx), np.mean(self.dy))
+        x, y = (np.around(x, decimals=5), np.around(y, decimals=5))
+        return x, y
+
     def generate_half_space(self):
         self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
 
@@ -1085,21 +1091,28 @@ class Model(object):
 
     def generate_zmesh(self, min_z, max_z, NZ):
 
-        self.dz = utils.generate_zmesh(min_z, max_z, NZ)[0]
-        if not self.is_half_space():
+        z_mesh = utils.generate_zmesh(min_z, max_z, NZ)[0]
+        if self.is_half_space():
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
-            print('Mesh generation not setup for non-half-spaces. Converting to half space...')
+            # print('Mesh generation not setup for non-half-spaces. Converting to half space...')
+        else:
+            self.vals = utils.regrid_model(self, self.dx, self.dy, z_mesh)
+        self.dz = z_mesh
         # self.dz = zmesh
 
     def generate_mesh(self, site_locs, regular=True, min_x=None, min_y=None,
                       max_x=None, max_y=None, num_pads=None, pad_mult=None):
-        self.dx = list(utils.generate_lateral_mesh(site_locs[:, 0],
-                                                   min_x=min_x, max_x=max_x, regular=regular)[0])
-        self.dy = list(utils.generate_lateral_mesh(site_locs[:, 1],
-                                                   min_x=min_y, max_x=max_y, regular=regular)[0])
-        if not self.is_half_space():
-            print('Mesh generation not setup for non-half-spaces. Converting to half space...')
+        x_mesh = list(utils.generate_lateral_mesh(site_locs[:, 0],
+                                                  min_x=min_x, max_x=max_x, regular=regular)[0])
+        y_mesh = list(utils.generate_lateral_mesh(site_locs[:, 1],
+                                                  min_x=min_y, max_x=max_y, regular=regular)[0])
+        if self.is_half_space():
+            # print('Mesh generation not setup for non-half-spaces. Converting to half space...')
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
+        else:
+            self.vals = utils.regrid_model(self, x_mesh, y_mesh, self.dz)
+        self.dx = x_mesh
+        self.dy = y_mesh
         # self.dy = ymesh
         # self.dx = xmesh
 

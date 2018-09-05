@@ -5,6 +5,7 @@ import os
 from copy import deepcopy
 from math import log10, floor
 import pyproj
+from scipy.interpolate import RegularGridInterpolator as RGI
 MU = 4 * np.pi * 1e-7
 
 
@@ -17,6 +18,13 @@ def is_all_empties(dictionary):
         return True
     else:
         return False
+
+
+def edge2center(x):
+    y = np.zeros(len(x) - 1)
+    for ii in range(len(x) - 1):
+        y[ii] = (x[ii] + x[ii + 1]) / 2
+    return y
 
 
 def percdiff(val1, val2):
@@ -1056,3 +1064,22 @@ def normalize_range(vals, lower_range=0, upper_range=1, lower_norm=0, upper_norm
     norm_vals = normalize(np.array(vals), lower=lower_norm, upper=upper_norm)
     norm_vals = norm_vals[:-2]
     return norm_vals
+
+
+def regrid_model(mod, new_x, new_y, new_z):
+    x, y, z = (edge2center(arr) for arr in (mod.dx, mod.dy, mod.dz))
+    X, Y, Z = (edge2center(arr) for arr in (new_x, new_y, new_z))
+    X_grid, Y_grid, Z_grid = np.meshgrid(X, Y, Z)
+    X_grid, Y_grid, Z_grid = (np.ravel(arr) for arr in (X_grid, Y_grid, Z_grid))
+    # interp = griddata((x_grid, y_grid, z_grid),
+    #                   np.ravel(mod.vals),
+    #                   (X_grid, Y_grid, Z_grid),
+    #                   method='nearest')
+    interp = RGI((y, x, z),
+                 np.transpose(mod.vals, [1, 0, 2]),
+                 method='nearest', bounds_error=False, fill_value=mod.background_resistivity)
+    query_points = np.array((Y_grid, X_grid, Z_grid)).T
+    new_vals = interp(query_points)
+    new_vals = np.reshape(new_vals, [len(Y), len(X), len(Z)])
+    new_vals = np.transpose(new_vals, [1, 0, 2])
+    return new_vals

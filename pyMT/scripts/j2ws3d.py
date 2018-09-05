@@ -121,7 +121,7 @@ def main_data(args):
         defaults.update({'inv_type': 1})
     dType = WSIO.verify_input('Which periods would you like to choose from?\n'
                               'Options are MTU-5, MTU-A, both, freqset, all, or program selected '
-                              '(5/A/b/o/m/n)', default=defaults['period_choice'], expected='5aboan')
+                              '(5/A/b/o/m/n)', default=defaults['period_choice'], expected='5aboamn')
     # if dType == 'n':
     cTol = WSIO.verify_input('Required fraction of sites containing each period?',
                              default=defaults['cTol'], expected=float)

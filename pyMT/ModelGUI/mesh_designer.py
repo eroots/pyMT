@@ -225,14 +225,15 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.canvas.draw()
 
     def redraw_pcolor(self):
-        self.overview.clear()
-        self.overview.autoscale(1, 'both', 1)
-        self.overview.pcolor(self.model.dy, self.model.dx,
-                             self.model.vals[:, :, self.slice_idx], edgecolors=self.mesh_color, picker=3)
+        # self.overview.clear()
+        # self.overview.autoscale(1, 'both', 1)
+        self.mesh_plot = self.overview.pcolor(self.model.dy, self.model.dx,
+                                               self.model.vals[:, :, self.slice_idx],
+                                               edgecolors=self.mesh_color, picker=3)
         if np.any(self.site_locations):
-            self.overview.plot(self.site_locations[:, 1],
-                               self.site_locations[:, 0],
-                               self.site_marker)
+            self.location_plot = self.overview.plot(self.site_locations[:, 1],
+                                                     self.site_locations[:, 0],
+                                                     self.site_marker)
         self.canvas.draw()
         self.update_dimension_labels()
 
