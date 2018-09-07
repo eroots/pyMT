@@ -21,6 +21,11 @@ Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'mesh_designer.ui'))
 plt.rcParams['font.size'] = 8
 
 
+class CustomToolbar(NavigationToolbar):
+    def __init__(self, canvas, **kwargs):
+        NavigationToolbar.__init__(self, canvas, **kwargs)
+
+
 class model_viewer_2d(QMainWindow, Ui_MainWindow):
     def __init__(self, model, data=None):
         super(model_viewer_2d, self).__init__()
@@ -48,6 +53,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.file_dialog = FileDialog(self)
         self.revert_model = copy.deepcopy(model)
         self.overview = self.fig.add_subplot(111)
+        self.initialized = False
         self.delete_tolerance = 0.5
         self.overview.autoscale(1, 'both', 1)
         self.addmpl(self.fig)
@@ -59,6 +65,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.connect_mpl_events()
         self.setup_widgets()
         self.update_decade_list()
+        self.initialized = True
 
     def setup_widgets(self):
         self.minDepth.setText(str(self.model.dz[1]))
@@ -105,8 +112,6 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.update_decade_list(direction='bottom')
 
     def update_decade_list(self, direction=None):
-        print(self.minDepth.text())
-        print(self.maxDepth.text())
         min_depth = float(self.minDepth.text())
         max_depth = float(self.maxDepth.text())
         if direction is None or direction == 'top':
@@ -115,7 +120,6 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             idx = self.zPerDecade.count() - 1
         num_decade = int(np.ceil(np.log10(max_depth)) - np.floor(np.log10(min_depth)))
         while num_decade != self.zPerDecade.count():
-            print(idx, num_decade)
             if num_decade < self.zPerDecade.count():
                 self.zPerDecade.takeItem(idx)
             elif num_decade > self.zPerDecade.count():
@@ -198,6 +202,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         if self.mesh_changable:
             print('Trying to connect')
             self.cid['Mesh'] = self.canvas.mpl_connect('button_release_event', self.click)
+            # self.cid['Mesh'] = self.canvas.mpl_connect('button_press_event', self.click)
 
     def addmpl(self, fig):
         self.canvas = FigureCanvas(fig)  # Make a canvas
@@ -205,8 +210,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         # self.canvas.setParent(self.mplwindow)
         # self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
         # self.canvas.setFocus()
-        self.toolbar = NavigationToolbar(canvas=self.canvas,
-                                         parent=self.mplwindow, coordinates=True)
+        self.toolbar = CustomToolbar(canvas=self.canvas,
+                                     parent=self.mplwindow, coordinates=True)
         # Connect check box to instance
         self.canvas.draw()
         self.mplvl.addWidget(self.toolbar)
@@ -225,17 +230,26 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.canvas.draw()
 
     def redraw_pcolor(self):
-        # self.overview.clear()
+        if self.initialized:
+            x_lim, y_lim = (self.overview.get_xlim(), self.overview.get_ylim())
+            print([x_lim, y_lim])
+        self.overview.clear()
         # self.overview.autoscale(1, 'both', 1)
-        self.mesh_plot = self.overview.pcolor(self.model.dy, self.model.dx,
-                                               self.model.vals[:, :, self.slice_idx],
-                                               edgecolors=self.mesh_color, picker=3)
+        self.mesh_plot = self.overview.pcolormesh(self.model.dy, self.model.dx,
+                                                  self.model.vals[:, :, self.slice_idx],
+                                                  edgecolors=self.mesh_color, picker=3,
+                                                  linewidth=0.1, antialiased=True)
         if np.any(self.site_locations):
             self.location_plot = self.overview.plot(self.site_locations[:, 1],
-                                                     self.site_locations[:, 0],
-                                                     self.site_marker)
+                                                    self.site_locations[:, 0],
+                                                    self.site_marker)
+        if self.initialized:
+            self.overview.set_xlim(x_lim)
+            self.overview.set_ylim(y_lim)
         self.canvas.draw()
         self.update_dimension_labels()
+        # if not self.initialized:
+            # self.initialized = True
 
     def click(self, event):
         """
@@ -245,6 +259,9 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             3. Plot resulting data.
             4. Update Figure
         """
+        #  Don't activate if a toolbar button is being used, or if the click is outside the region
+        if self.toolbar._active:
+            return
         if not event.inaxes:
             return
         self.key_presses = check_key_presses(QtWidgets.QApplication.keyboardModifiers())
@@ -257,8 +274,6 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             # Plot it
             if self.key_presses['Control']:
                 diff = np.abs(event.xdata - self.model.dy[xpos])
-                print(diff)
-                print(self.delete_tolerance * abs(self.model.dy[xpos] - self.model.dy[xpos - 1]))
                 if diff <= self.delete_tolerance * abs(self.model.dy[xpos] - self.model.dy[xpos - 1]):
                     self.model.dy_delete(xpos)
             else:
@@ -268,8 +283,6 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         elif event.button == 3:
             if self.key_presses['Control']:
                 diff = np.abs(event.ydata - self.model.dx[ypos])
-                print(diff)
-                print(self.delete_tolerance * (self.model.dx[ypos] - self.model.dx[ypos - 1]))
                 if diff <= self.delete_tolerance * (self.model.dx[ypos] - self.model.dx[ypos - 1]):
                     self.model.dx_delete(ypos)
             else:

@@ -8,11 +8,11 @@ import e_colours.colourmaps as cm
 
 model_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
 # data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.dat'
-data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\R1North_1b.data'
+data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\R1South_1b.data'
 plot_it = False
 write_it = True
-model_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\test.model'
-data_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\test.data'
+model_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South.model'
+data_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_1c.data'
 mod = WSDS.Model(model_file)
 data = WSDS.Data(datafile=data_file)
 file_format = 'wsinv3dmt'
@@ -27,16 +27,16 @@ for ii in range(len(mod.dz) - 1):
 # x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 # x_grid, y_grid, z_grid = (np.ravel(arr) for arr in (x_grid, y_grid, z_grid))
 # X, Y = (x, y)
-bot_edge = 0
-top_edge = 40000
-left_edge = -1000
-right_edge = 10000
-x_interp = 130
-y_interp = 40
-n_xpad = 15
-n_ypad = 15
-x_pad_extention = 60000  # These control the total width of the combined padding
-y_pad_extention = 60000
+bot_edge = -10000
+top_edge = 10000
+left_edge = -4000
+right_edge = 4000
+x_interp = 100
+y_interp = 50
+n_xpad = 20
+n_ypad = 20
+x_pad_extention = 100000  # These control the total width of the combined padding
+y_pad_extention = 100000
 x_interior = np.linspace(bot_edge, top_edge, x_interp)
 x_pad_size = (x_interior[-1] - x_interior[-2]) * 1.5
 y_interior = np.linspace(left_edge, right_edge, y_interp)
@@ -49,8 +49,10 @@ left_pad = np.flip(-1 * (np.logspace(np.log10(y_pad_size),
                                      np.log10(y_pad_extention), n_ypad) + abs(left_edge)), 0)
 right_pad = np.logspace(np.log10(y_pad_size),
                         np.log10(y_pad_extention), n_ypad) + right_edge
-X = utils.edge2center(np.concatenate((bot_pad, x_interior, top_pad)))
-Y = utils.edge2center(np.concatenate((left_pad, y_interior, right_pad)))
+x_mesh = (np.concatenate((bot_pad, x_interior, top_pad)))
+y_mesh = (np.concatenate((left_pad, y_interior, right_pad)))
+X = utils.edge2center(x_mesh)
+Y = utils.edge2center(y_mesh)
 dz, CSZ, ddz = utils.generate_zmesh(min_depth=1, max_depth=mod.dz[-1], NZ=depths_per_decade)
 Z = utils.edge2center(dz)
 X_grid, Y_grid, Z_grid = np.meshgrid(X, Y, Z)
@@ -69,7 +71,7 @@ new_vals = np.transpose(new_vals, [1, 0, 2])
 # vals = interp()
 if write_it:
     mod.vals = new_vals
-    mod.dx, mod.dy, mod.dz = (X, Y, Z)
+    mod.dx, mod.dy, mod.dz = (x_mesh, y_mesh, dz)
     mod.write(model_out, file_format=file_format)
     center = mod.center
     data.locations[:, 0] -= center[0]
