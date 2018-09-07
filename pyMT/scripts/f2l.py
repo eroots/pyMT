@@ -28,7 +28,9 @@ def write_list(transect, lst, data_type):
 
 
 if __name__ == '__main__':
-    suffix = ['DRY', 'ATT', 'RRV', 'STU', '']
+    suffix = ['DRY', 'ATT', 'RRV', 'STU',
+              'CHI', 'COB', 'GER', 'LAR',
+              'MAL', 'MAT', 'ROU', 'SUD', 'SWZ', '']
     for suff in suffix:
         lst = search_dir(suff)
         for data_type in ['amt', 'bb', 'all']:
