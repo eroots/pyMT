@@ -83,6 +83,29 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.minY.setText(str(min(self.model.yCS)))
         self.maxX.setText(str(max(self.model.xCS)))
         self.maxY.setText(str(max(self.model.yCS)))
+        self.bgRho.setText('2500')
+        self.background_resistivity = float(self.bgRho.text())
+        self.bgRho.editingFinished.connect(self.validate_background_rho)
+        self.setBackgroundRho.clicked.connect(self.set_background_rho)
+
+    def validate_background_rho(self):
+        try:
+            self.background_resistivity = float(self.bgRho.text())
+        except ValueError:
+            self.messages.setText('Background resistivity must be numeric')
+            self.bgRho.setText(str(self.background_resistivity))
+
+    def set_background_rho(self):
+        if self.model.is_half_space():
+            self.model.vals[:, :, :] = self.background_resistivity
+        else:
+            reply = QtWidgets.QMessageBox.question(self,
+                                                   'Set background',
+                                                   'Model is not currently a half-space. Reset it?')
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.model.vals[:, :, :] = self.background_resistivity
+            else:
+                return
 
     def update_dimension_labels(self):
         self.nxLabel.setText(' : '.join(['NX', str(self.model.nx)]))
@@ -162,7 +185,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         if self.padBottom.checkState():
             pad = self.padMult.value() * xmesh[0]
             self.model.dx_insert(0, self.model.dx[0] - pad)
-        self.redraw_pcolor()
+        self.redraw_pcolor(x_lim=[self.model.dy[0], self.model.dy[-1]],
+                           y_lim=[self.model.dx[0], self.model.dx[-1]])
 
     def remove_pads(self):
         print('Removing pads')
@@ -174,7 +198,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             self.model.dx_delete(0)
         if self.padTop.checkState():
             self.model.dx_delete(self.model.nx)
-        self.redraw_pcolor()
+        self.redraw_pcolor(x_lim=[self.model.dy[0], self.model.dy[-1]],
+                           y_lim=[self.model.dx[0], self.model.dx[-1]])
 
     def regenerate_mesh(self):
         print('Regenerating mesh')
@@ -229,9 +254,12 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.model = copy.deepcopy(self.revert_model)
         self.canvas.draw()
 
-    def redraw_pcolor(self):
+    def redraw_pcolor(self, x_lim=None, y_lim=None):
         if self.initialized:
-            x_lim, y_lim = (self.overview.get_xlim(), self.overview.get_ylim())
+            if not x_lim:
+                x_lim = self.overview.get_xlim()
+            if not y_lim:
+                y_lim = self.overview.get_ylim()
             print([x_lim, y_lim])
         self.overview.clear()
         # self.overview.autoscale(1, 'both', 1)

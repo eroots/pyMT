@@ -43,7 +43,7 @@
      <x>0</x>
      <y>0</y>
      <width>1322</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWrite_Model">
@@ -65,13 +65,13 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>311</width>
+     <width>200</width>
      <height>500</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>351</width>
+     <width>300</width>
      <height>524287</height>
     </size>
    </property>
@@ -80,27 +80,6 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_3">
-     <item row="1" column="0">
-      <widget class="QLabel" name="nyLabel">
-       <property name="text">
-        <string>NY:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="nzLabel">
-       <property name="text">
-        <string>NZ:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="nxLabel">
-       <property name="text">
-        <string>NX: </string>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="0">
       <widget class="QToolBox" name="toolBox">
        <property name="currentIndex">
@@ -111,8 +90,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>329</width>
-          <height>611</height>
+          <width>282</width>
+          <height>649</height>
          </rect>
         </property>
         <attribute name="label">
@@ -419,6 +398,42 @@
              </layout>
             </widget>
            </widget>
+           <widget class="QLabel" name="label_9">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>580</y>
+              <width>121</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Background Resistivity</string>
+            </property>
+           </widget>
+           <widget class="QLineEdit" name="bgRho">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>600</y>
+              <width>113</width>
+              <height>20</height>
+             </rect>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="setBackgroundRho">
+            <property name="geometry">
+             <rect>
+              <x>130</x>
+              <y>600</y>
+              <width>91</width>
+              <height>23</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Set background</string>
+            </property>
+           </widget>
           </widget>
          </item>
         </layout>
@@ -428,8 +443,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>1271</width>
-          <height>611</height>
+          <width>282</width>
+          <height>649</height>
          </rect>
         </property>
         <attribute name="label">
@@ -506,6 +521,27 @@
          </layout>
         </widget>
        </widget>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="nyLabel">
+       <property name="text">
+        <string>NY:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="nzLabel">
+       <property name="text">
+        <string>NZ:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="nxLabel">
+       <property name="text">
+        <string>NX: </string>
+       </property>
       </widget>
      </item>
     </layout>

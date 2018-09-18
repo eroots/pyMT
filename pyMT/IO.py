@@ -1353,7 +1353,13 @@ def write_model(model, outfile, file_format='modem'):
             f.write('{:<10.7f}  '.format(z))
         f.write('\n')
         if header_four == 'LOGE':
-            vals = np.log(model.vals)
+            if np.any(model.vals < 0):
+                print('Negative values detected in model.')
+                print('I hope you know what you\'re doing.')
+                vals = np.sign(model.vals) * np.log(np.abs(model.vals))
+                vals = np.nan_to_num(vals)
+            else:
+                vals = np.log(vals)
         else:
             vals = model.vals
         if is_half_space and header_four != 'LOGE':
