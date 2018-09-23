@@ -7,14 +7,24 @@ import e_colours.colourmaps as cm
 
 
 model_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
-# data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.dat'
-data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\R1South_1b.data'
+base_data = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.dat'
+data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\R1South_2.data'
+list_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\R1South.lst'
+base_list = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
 plot_it = False
 write_it = True
-model_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South.model'
-data_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_1c.data'
+model_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South2.model'
+data_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2.data'
 mod = WSDS.Model(model_file)
-data = WSDS.Data(datafile=data_file)
+data = WSDS.Data(datafile=data_file, listfile=list_file)
+base_data = WSDS.Data(datafile=base_data, listfile=base_list)
+for site in base_data.site_names:
+    if site in data.site_names:
+        x_diff = data.sites[site].locations['X'] - base_data.sites[site].locations['X']
+        y_diff = data.sites[site].locations['Y'] - base_data.sites[site].locations['Y']
+        break
+data.locations[:, 0] -= x_diff
+data.locations[:, 1] -= y_diff
 file_format = 'wsinv3dmt'
 depths_per_decade = (10, 12, 14, 16, 14, 6)
 x, y, z = (utils.edge2center(arr) for arr in (mod.dx, mod.dy, mod.dz))
@@ -27,10 +37,10 @@ for ii in range(len(mod.dz) - 1):
 # x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 # x_grid, y_grid, z_grid = (np.ravel(arr) for arr in (x_grid, y_grid, z_grid))
 # X, Y = (x, y)
-bot_edge = -10000
-top_edge = 10000
-left_edge = -4000
-right_edge = 4000
+bot_edge = -32000
+top_edge = 0
+left_edge = -5000
+right_edge = 2000
 x_interp = 100
 y_interp = 50
 n_xpad = 20
@@ -79,23 +89,23 @@ if write_it:
     data.write(outfile=data_out, file_format=file_format)
 if plot_it:
     fig, axes = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
-    axes[0].pcolormesh(x, z, np.log10(mod.vals[:, 36, :].T),
+    axes[0].pcolormesh(y, x, np.log10(mod.vals[:, :, 36]),
                        cmap=cm.jet_plus(64), vmin=1, vmax=5,
                        edgecolor='k', linewidth=0.01)
-    axes[0].plot(data.locations[:, 0], np.zeros(data.locations.shape), 'kv')
-    axes[1].pcolormesh(X, Z, np.log10(new_vals[:, 29, :].T),
+    axes[0].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
+    axes[1].pcolormesh(Y, X, np.log10(new_vals[:, :, 52]),
                        cmap=cm.jet_plus(64), vmin=1, vmax=5,
                        edgecolor='k', linewidth=0.01)
-    axes[1].plot(data.locations[:, 0], np.zeros(data.locations.shape), 'kv')
-    axes[0].invert_yaxis()
+    axes[1].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
+    # axes[0].invert_yaxis()
     # axes[1].invert_yaxis()
     fig2, axes2 = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
-    axes2[0].pcolormesh(x, z, np.log10(mod.vals[:, 36, :].T),
+    axes2[0].pcolormesh(y, x, np.log10(mod.vals[:, :, 36]),
                         cmap=cm.jet_plus(64), vmin=1, vmax=5)
-    axes2[0].plot(data.locations[:, 0], np.zeros(data.locations.shape), 'kv')
-    axes2[1].pcolormesh(X, Z, np.log10(new_vals[:, 29, :].T),
+    axes2[0].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
+    axes2[1].pcolormesh(Y, X, np.log10(new_vals[:, :, 52]),
                         cmap=cm.jet_plus(64), vmin=1, vmax=5)
-    axes2[1].plot(data.locations[:, 0], np.zeros(data.locations.shape), 'kv')
-    axes2[0].invert_yaxis()
+    axes2[1].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
+    # axes2[0].invert_yaxis()
     # axes2[1].invert_yaxis()
     plt.show()

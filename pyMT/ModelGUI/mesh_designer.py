@@ -248,8 +248,6 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             self.overview.set_ylim(y_lim)
         self.canvas.draw()
         self.update_dimension_labels()
-        # if not self.initialized:
-            # self.initialized = True
 
     def click(self, event):
         """

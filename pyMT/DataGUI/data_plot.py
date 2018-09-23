@@ -727,8 +727,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type4)
         self.InversionTypeGroup.addAction(self.inv_type5)
         self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
-
-
+        #  Set up connect to which errors are plotted
+        self.actionDataErrors.changed.connect(self.dummy_update_dpm)
+        self.actionRawErrors.changed.connect(self.dummy_update_dpm)
         # Super hacky axis limits setters. Fix this at some point
         # self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
         # self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
@@ -857,7 +858,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.map['axis'].annotate(self.site_names[ii], xy=(iy, ix))
         self.map['canvas'].draw()
 
-    def dummy_update_dpm(self, toggled):
+    def dummy_update_dpm(self, toggled=True):
         if toggled:
             self.update_dpm(updated_sites=None, updated_comps=None, remove_sites=None)
 
@@ -1232,6 +1233,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         """
         # dpm_sites = [site.name for site in self.dpm.sites['data']]  # Sites currently plotted
         self.dpm.errors = self.error_type
+        self.dpm.which_errors = []
+        if self.actionDataErrors.isChecked():
+            self.dpm.which_errors.append('data')
+        if self.actionRawErrors.isChecked():
+            self.dpm.which_errors.append('raw_data')
         if updated_sites is None:
             updated_sites = self.dpm.site_names
         if updated_comps is None:

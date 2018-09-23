@@ -64,7 +64,15 @@
     <property name="title">
      <string>Display Options</string>
     </property>
+    <widget class="QMenu" name="menuError_Bars">
+     <property name="title">
+      <string>Error Bars</string>
+     </property>
+     <addaction name="actionDataErrors"/>
+     <addaction name="actionRawErrors"/>
+    </widget>
     <addaction name="actionPhase_Wrap"/>
+    <addaction name="menuError_Bars"/>
    </widget>
    <widget class="QMenu" name="menuWrite">
     <property name="title">
@@ -870,6 +878,28 @@
    </property>
    <property name="text">
     <string>Phase Wrap</string>
+   </property>
+  </action>
+  <action name="actionDataErrors">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Data</string>
+   </property>
+  </action>
+  <action name="actionRawErrors">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Raw</string>
    </property>
   </action>
  </widget>

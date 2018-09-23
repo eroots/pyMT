@@ -62,6 +62,7 @@ class DataPlotManager(object):
         self.toggles = {'raw_data': True, 'data': True, 'response': True}
         self.marker = {'raw_data': 'o', 'data': 'oo', 'response': '-'}
         self.errors = 'mapped'
+        self.which_errors = ['data', 'raw_data']
         self.components = ['ZXYR']
         self.linestyle = '-'
         self.scale = 'sqrt(periods)'
@@ -334,7 +335,7 @@ class DataPlotManager(object):
             self.axes[ax].set_ylim([y_bounds[0], y_bounds[1]])
             self.axes[ax].set_xlim([x_bounds[0], x_bounds[1]])
 
-    def plot_site(self, site, Type='Data', ax=None):
+    def plot_site(self, site, Type='Data', ax=None, ):
         """Summary
 
         Args:
@@ -373,6 +374,10 @@ class DataPlotManager(object):
             toplotErr = None
             errtype = 'none'
         if Type.lower() == 'response':
+            Err = None
+            toplotErr = None
+            errtype = 'none'
+        if Type.lower() not in self.which_errors:
             Err = None
             toplotErr = None
             errtype = 'none'

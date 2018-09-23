@@ -661,6 +661,17 @@ class Data(object):
             #  Full Rho + Phase + 2-D Tipper
             self.inv_type = 14
 
+    def print_lowest_errors(self):
+        all_actual, all_used = ([], [])
+        for ii, site in enumerate(self.site_names):
+            actual, used = self.sites[site].print_lowest_errors()
+            all_actual.append(np.min(actual))
+            all_used.append(np.min(used))
+        idx_all = np.argmin(all_actual)
+        idx_used = np.argmin(all_used)
+        print('Lowest actual: {} at site {}'.format(all_actual[idx_all], self.site_names[idx_all]))
+        print('Lowest used: {} at site {}'.format(all_used[idx_used], self.site_names[idx_used]))
+
     def reset_errors(self, error_floor=None, components=None, sites=None):
         if not sites:
             sites = self.site_names
@@ -1374,6 +1385,8 @@ class Site(object):
             self.used_error = {}
         # Add dummy data to missing components
         self.apply_error_floor()
+        self.validate_data()
+        self.validate_errors()
         # for comp, val in self.errors.items():
         #     self.used_error.update({comp: val * self.errmap[comp]})
 
@@ -1395,6 +1408,33 @@ class Site(object):
     @errorfloorT.setter
     def errorfloorT(self, val):
         self.error_floors['T'] = val
+
+    def validate_data(self):
+        for component in self.components:
+            if np.any(np.isnan(self.data[component])):
+                print('NaN value detected in site {}, {} component'.format(self.name, component))
+                print('Setting NaN value to zero')
+                self.data[component] = np.nan_to_num(self.data[component])
+
+    def validate_errors(self):
+        for component in self.components:
+            if np.any(np.isnan(self.errors[component])):
+                print('NaN value detected in site {}, {} component'.format(self.name, component))
+                print('Setting NaN value to error floor')
+                self.errors[component] = np.nan_to_num(self.errors[component])
+                self.reset_errors(components=component)
+
+    def print_lowest_errors(self):
+        all_actual = []
+        all_used = []
+        for component in self.components:
+            min_actual = np.min(np.abs(self.errors[component] / self.data[component]))
+            min_used = np.min(np.abs(self.used_error[component] / self.data[component]))
+            print([self.name, component])
+            print('Actual: {}, Used: {}'.format(min_actual, min_used))
+            all_actual.append(min_actual)
+            all_used.append(min_used)
+        return all_actual, all_used
 
     def calculate_error_floor(self, error_floor=None, components=None):
         if error_floor is None:
@@ -1421,8 +1461,10 @@ class Site(object):
                 if 'XX' in component or 'YY' in component:
                     zxy = self.data['ZXYR'] + 1j * self.data['ZXYI']
                     zyx = self.data['ZYXR'] + 1j * self.data['ZYXI']
-                    new_errors = error_floors['Z'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
-                                                                    zyx * zyx.conjugate())) / 2
+                    offdiag_errors = error_floors['Z'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
+                                                                        zyx * zyx.conjugate())) / 2
+                    diag_errors = np.abs(self.data[component] * error_floors['Z'])
+                    new_errors = np.maximum(offdiag_errors, diag_errors)
                 else:
                     new_errors = np.abs(self.data[component] * error_floors['Z'])
             elif component.startswith('T'):
@@ -1434,6 +1476,7 @@ class Site(object):
             returned_errors[component] = utils.truncate(new_errors)
         return returned_errors
 
+    @utils.enforce_input(error_floor=float, components=list)
     def reset_errors(self, error_floor=None, components=None):
         if not components:
             components = self.components
