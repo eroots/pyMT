@@ -97,28 +97,32 @@ def interpolate_slice(x, y, Z, NP):
 reso = []
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
-mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\center_ModEM\NLCG\center_noTF_final.model')
-data = WSDS.RawData(listfile=r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\j2\center_fewer3.lst')
+# mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\center_ModEM\NLCG\center_noTF_final.model')
+# data = WSDS.RawData(listfile=r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\j2\center_fewer3.lst')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_bost1\out_model.00')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\sens_model.00')
 reso = []
 # reso = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\Resolution_inverted.model')
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
-mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
-data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
+# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
+# data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
+# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
+# data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
+mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2e_smooth.model')
+data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.dat')
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
 #                5.369642e+006]
 kimberlines = []
 mod.origin = data.origin
-data.locations = np.array([[0 for ii in range(17)],
-                           [0.000000000E+00, 0.501143799E+04, 0.104698379E+05,
-                            0.136017852E+05, 0.178389980E+05, 0.208527168E+05,
-                            0.247133633E+05, 0.279987383E+05, 0.328820195E+05,
-                            0.345390352E+05, 0.372428438E+05, 0.394137422E+05,
-                            0.433482109E+05, 0.467561680E+05, 0.507770469E+05,
-                            0.534360625E+05, 0.653211367E+05]]) / 1000
+# data.locations = np.array([[0 for ii in range(17)],
+#                            [0.000000000E+00, 0.501143799E+04, 0.104698379E+05,
+#                             0.136017852E+05, 0.178389980E+05, 0.208527168E+05,
+#                             0.247133633E+05, 0.279987383E+05, 0.328820195E+05,
+#                             0.345390352E+05, 0.372428438E+05, 0.394137422E+05,
+#                             0.433482109E+05, 0.467561680E+05, 0.507770469E+05,
+                            # 0.534360625E+05, 0.653211367E+05]]) / 1000
 # mod.to_UTM()
 # mod.to_latlong('10N')
 # data.rotate_sites(azi=-14)
@@ -133,7 +137,7 @@ mode = 3
 file_path = 'C:/Users/eric/phd/ownCloud/Documents/PDAC 2018/temp_figs/'
 file_name = 'dbrUVT_Left.png'
 title_ = 'Standard Inversion'
-save_fig = 1
+save_fig = 0
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -142,16 +146,16 @@ lightness = 0.4
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
-xlim = []
-zlim = []
+xlim = [-10, 10]
+zlim = [-30, 30]
 lut = 64
 cax = [1, 5]
 isolum = False
 # xlim = [-123.5, -121.5]
-xlim = [-7, 74]
-zlim = [0, 5]
+# xlim = [-7, 74]
+# zlim = [0, 5]
 lut = 256
-cax = [1, 4]
+cax = [1, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
@@ -179,10 +183,10 @@ else:
     cmap = cm.get_cmap(cmap_name, lut)
 
 # vals = np.log10(mod.vals[:, 31, :])
-vals = np.log10(mod.vals[:, 30, :])
+# vals = np.log10(mod.vals[:, :, :])
 # vals = np.log10(mod.vals[:, 73, :])
 # vals = np.log10(mod.vals[11, :, :])
-vals = np.log10(mod.vals[5, :, :])
+vals = np.log10(mod.vals[:, :, 53])
 # vals = np.log10(mod.vals[:, 22, :])
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
@@ -204,7 +208,7 @@ if mode == 2:
     if reso:
         alpha = np.flipud(alpha.T)
 else:
-    rgb = cmap(norm_vals.T)
+    rgb = cmap(norm_vals)
     if reso:
         alpha = alpha.T
 # Just turn the bottom row transparent, since those cells often somehow still have resolution
@@ -293,16 +297,22 @@ for ii in range(1, 2):
                         vmax=np.log10(np.max(vals)), aspect='auto',
                         extent=[y[0], y[-1], z[0] / 1000, z[-1] / 1000])
     elif mode == 3:
-        mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
-        mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
+        # mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
+        # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
         im, ax = pcolorimage(ax, x=(np.array(mod.dy)) / 1000,
-                             y=np.array(mod.dz) / 1000,
+                             y=np.array(mod.dx) / 1000,
                              A=(to_plot), cmap=cmap)
-    if xlim:
-        ax.set_xlim(xlim)
-    if zlim:
-        ax.set_ylim(zlim)
-    ax.invert_yaxis()
+        plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
+        for jj, site in enumerate(data.site_names):
+            plt.annotate(site,
+                         xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
+                         color='w')
+    # if xlim:
+    #     ax.set_xlim(xlim)
+    # if zlim:
+    #     ax.set_ylim(zlim)
+
+    # ax.invert_yaxis()
     # ax.invert_xaxis()
     # ax.set_xlabel('Latitude', fontsize=20)
     
@@ -327,10 +337,10 @@ ax.autoscale_view(tight=True)
 ax.tick_params(axis='both', labelsize=18)
 # locs = ax.plot(data.locations[1, :], np.zeros((data.locations.shape[1])) - 0.05, 'kv', markersize=10)[0]
 # locs.set_clip_on(False)
-for label in ax.xaxis.get_ticklabels():
-    label.set_visible(False)
-for label in ax.yaxis.get_ticklabels():
-    label.set_visible(False)
+# for label in ax.xaxis.get_ticklabels():
+#     label.set_visible(False)
+# for label in ax.yaxis.get_ticklabels():
+#     label.set_visible(False)
 # ax.tick_params(axis='y', labelsize=10)
 fig.subplots_adjust(right=0.8)
 cb_ax = fig.add_axes([0.825, 0.15, 0.02, 0.7])

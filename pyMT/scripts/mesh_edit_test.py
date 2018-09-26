@@ -8,13 +8,13 @@ import e_colours.colourmaps as cm
 
 model_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
 base_data = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.dat'
-data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\R1South_2.data'
-list_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\R1South.lst'
+data_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.data'
+list_file = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\R1South_bb.lst'
 base_list = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
 plot_it = False
 write_it = True
-model_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South2.model'
-data_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2.data'
+model_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\tmp.model'
+data_out = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2_bb_test.data'
 mod = WSDS.Model(model_file)
 data = WSDS.Data(datafile=data_file, listfile=list_file)
 base_data = WSDS.Data(datafile=base_data, listfile=base_list)
@@ -84,8 +84,8 @@ if write_it:
     mod.dx, mod.dy, mod.dz = (x_mesh, y_mesh, dz)
     mod.write(model_out, file_format=file_format)
     center = mod.center
-    data.locations[:, 0] -= center[0]
-    data.locations[:, 1] -= center[1]
+    # data.locations[:, 0] -= center[0]
+    # data.locations[:, 1] -= center[1]
     data.write(outfile=data_out, file_format=file_format)
 if plot_it:
     fig, axes = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)

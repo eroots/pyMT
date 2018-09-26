@@ -1359,7 +1359,7 @@ def write_model(model, outfile, file_format='modem'):
                 vals = np.sign(model.vals) * np.log(np.abs(model.vals))
                 vals = np.nan_to_num(vals)
             else:
-                vals = np.log(vals)
+                vals = np.log(model.vals)
         else:
             vals = model.vals
         if is_half_space and header_four != 'LOGE':
