@@ -111,11 +111,13 @@ def interpolate_slice(x, y, Z, NP):
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model'))
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst'))
-data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/cull5.lst')
-mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wst0_sens/wst0Inv5_model.02')
+# data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/cull5.lst')
+# mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wst0_sens/wst0Inv5_model.02')
+data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southeastern_2.lst')
+mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSE3_ModEM/wsSE3TF_final.model')
 # data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southeastern_2.lst')
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSE3_ModEM/wsSE3TF_final.model')
-seismic = pd.read_table('C:/Users/eric/Downloads/WS1-cdp.dat.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+seismic = pd.read_table('C:/Users/eroots/Downloads/WS1-cdp.dat.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 qx, qy = (np.array(seismic['x'] / 1000),
           np.array(seismic['y']) / 1000)
 reso = []
@@ -138,7 +140,7 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = []
+zlim = [0, 400]
 lut = 64
 isolum = False
 # xlim = [-123.5, -121.5]
@@ -314,7 +316,7 @@ for ii in range(1, 2):
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
         to_plot = to_plot[1:, 1:]
         im, ax = pcolorimage(ax,
-                             x=(np.array(qy)),
+                             x=(np.array(seismic['cdp'])),
                              y=np.array(z),
                              A=(to_plot), cmap=cmap)
     if xlim:

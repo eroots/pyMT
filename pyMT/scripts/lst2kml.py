@@ -41,15 +41,19 @@ lists = ('ATTBB.lst',
          'COBBB.lst',
          'all.lst',
          'BB.lst')
+# transects = ['all-legacy']
+# lists = ['non-duplicates.lst']
+# data_type = 'all_'
 data_type = 'BB_'
 # list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
-list_path = 'F:/ownCloud/Metal Earth/Data/WinGLinkEDIs/'
+# list_path = 'F:/ownCloud/Metal Earth/Data/legacy_edi_export_all/'
+list_path = 'F:/ownCloud/Metal Earth/Data/WinGLinkEDIs_final/'
 csv_save_path = 'F:/ownCloud/Metal Earth/Data/MT-locations/CSVs/'
 shp_save_path = 'F:/ownCloud/Metal Earth/Data/MT-locations/SHPs/'
-kml_save_path = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/KMLs/'
+kml_save_path = 'F:/ownCloud/Metal Earth/Data/MT-locations/KMLs/'
 # csv_save_path = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/CSVs/'
-write_kml = False
+write_kml = True
 write_csv = True
 write_shp = True
 UTM = 16
@@ -83,6 +87,7 @@ for ii, lst in enumerate(lists):
                                                                       y,
                                                                       data.sites[site].locations['elev']))
     if write_kml:
+        print('Writing KML for {}'.format(transects[ii]))
         data.locations = data.get_locs(mode='latlong')
         kml = simplekml.Kml()
         for site in data.site_names:
@@ -97,6 +102,7 @@ for ii, lst in enumerate(lists):
         kml.save(kml_save_file)
 
     if write_shp:
+        print('Writing SHP for {}'.format(transects[ii]))
         if data.site_names:
             w = shapefile.Writer(shapefile.POINTM)
             w.field('Location')
