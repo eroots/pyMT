@@ -25,26 +25,26 @@ transects = ('attikokan',
              'sudbury',
              'cobalt',
              'all',
-             'bb')
-lists = ('ATTBB.lst',
-         'CHIBB.lst',
-         'DRYBB.lst',
-         'GERBB.lst',
-         'LARBB.lst',
-         'MALBB.lst',
-         'MATBB.lst',
-         'RRVBB.lst',
-         'ROUBB.lst',
-         'STUBB.lst',
-         'SWZBB.lst',
-         'SUDBB.lst',
-         'COBBB.lst',
+             'amt')
+lists = ('ATTAMT.lst',
+         'CHIAMT.lst',
+         'DRYAMT.lst',
+         'GERAMT.lst',
+         'LARAMT.lst',
+         'MALAMT.lst',
+         'MATAMT.lst',
+         'RRVAMT.lst',
+         'ROUAMT.lst',
+         'STUAMT.lst',
+         'SWZAMT.lst',
+         'SUDAMT.lst',
+         'COBAMT.lst',
          'all.lst',
-         'BB.lst')
-# transects = ['all-legacy']
-# lists = ['non-duplicates.lst']
-# data_type = 'all_'
-data_type = 'BB_'
+         'AMT.lst')
+# transects = ['amt-legacy', 'bb-legacy', 'lmt-legacy']
+# lists = ['amt.lst', 'bb.lst', 'lmt.lst']
+data_type = 'AMT_'
+# data_type = ['AMT_', 'BB_', 'LMT_']
 # list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/legacy_edi_export_all/'
