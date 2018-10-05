@@ -113,11 +113,21 @@ def interpolate_slice(x, y, Z, NP):
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst'))
 # data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/cull5.lst')
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wst0_sens/wst0Inv5_model.02')
+
 data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southcentral2.lst')
 mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSC1/wsSC_final.model')
 # data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southeastern_2.lst')
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSE3_ModEM/wsSE3TF_final.model')
 seismic = pd.read_table('C:/Users/eric/Desktop/andy/WS1-cdp.dat.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+
+# data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southeastern_2.lst')
+# mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSE3_ModEM/wsSE3TF_final.model')
+data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southcentral.lst')
+# mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/finish/wsSC_finish.model')
+mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/wsSC_final.model')
+# data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southeastern_2.lst')
+# mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSE3_ModEM/wsSE3TF_final.model')
+seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 qx, qy = (np.array(seismic['x'] / 1000),
           np.array(seismic['y']) / 1000)
 reso = []
@@ -135,6 +145,8 @@ file_path = 'C:/Users/eric/phd/ownCloud/Documents/PDAC 2018/temp_figs/'
 file_name = 'dbrUVT_Left.png'
 title_ = 'Standard Inversion'
 save_fig = 0
+save_dat = 1
+csv_name = r'F:\ownCloud\andy\wsSC_noTipper'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -316,7 +328,7 @@ for ii in range(1, 2):
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
         to_plot = to_plot[1:, 1:]
         im, ax = pcolorimage(ax,
-                             x=(np.array(qy)),
+                             x=(np.array(seismic['y']) / 1000),
                              y=np.array(z),
                              A=(to_plot), cmap=cmap)
     if xlim:
@@ -369,4 +381,15 @@ fig.set_dpi(300)
 if save_fig:
     fig.savefig(file_path + file_name, dpi=1200,
                 transparent=True, pad_inches=3)
+
+if save_dat:
+    x_loc = np.tile(1000 * qx[:, np.newaxis], [vals.shape[-1]]).ravel()
+    y_loc = np.tile(1000 * qy[:, np.newaxis], [vals.shape[-1]]).ravel()
+    z_loc = np.tile(1000 * z, len(qx))
+    cdp = np.array(seismic['cdp'])
+    cdp = np.tile(cdp[:, np.newaxis], [vals.shape[-1]]).ravel()
+    df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, np.ravel(vals))).T, columns=None)
+    df.to_csv(''.join([csv_name, 'log10.dat']), sep='\t', header=None, index=False)
+    df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, 10 ** (np.ravel(vals)))).T, columns=None)
+    df.to_csv(''.join([csv_name, 'linear.dat']), sep='\t', header=None, index=False)
 plt.show()

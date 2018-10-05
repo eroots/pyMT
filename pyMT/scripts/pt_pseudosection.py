@@ -15,20 +15,25 @@ def generate_ellipse(phi):
 
 
 # cmap = cm.jet_plus_r(64)
-cmap = cm.jet(64)
+cmap = cm.jet_plus_r(64)
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
-listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/main_transect.lst'
+# listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/main_transect.lst'
+main_list = 'F:/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+listfile = 'F:/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst'
 # datafile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/test.data'
-datafile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.data'
+# datafile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.data'
+# datafile = 'F:/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.data'
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\sturgeon\stu3\stu2_j2Rot2.dat')
 # data = WSDS.Data(datafile)
-ds = WSDS.Dataset(listfile=listfile, datafile=datafile)
-data = ds.data
+# ds = WSDS.Dataset(listfile=listfile, datafile=datafile)
+# data = ds.data
+data = WSDS.RawData(listfile)
+main_transect = WSDS.RawData(main_list)
 # data = WSDS.RawData(listfile=listfile)
 normalize = 1
-fill_param = 'beta'
+fill_param = 'phi_2'
 # periods = list(data.narrow_periods.keys())
 periods = data.sites[data.site_names[0]].periods
 # scale = np.sqrt((len(data.site_names) - 1) ** 2 +
@@ -45,25 +50,28 @@ X = []
 Y = []
 fill_vals = []
 ellipses = []
+main_sites = []
 for ii, site_name in enumerate(data.site_names):
-    site = data.sites[site_name]
-    for jj, period in enumerate(site.periods):
-        if jj % 1 == 0:
-            periods.append(np.log10(period))
-            # loc_x = ii
-            # loc_x = site.locations['Lat'] # / 1000
-            loc_x = site.locations['X'] / 10000
-            loc.append(loc_x)
-            phi_x, phi_y = generate_ellipse(site.phase_tensors[jj].phi)
-            phi_x, phi_y = (1000 * phi_x / np.abs(site.phase_tensors[jj].phi_max),
-                            1000 * phi_y / np.abs(site.phase_tensors[jj].phi_max))
-            # radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
-            radius = 100
-            # if radius > 1000:
-            phi_x, phi_y = [(scale / (radius * 100)) * x for x in (phi_x, phi_y)]
-            # ellipses.append([np.log10(period) - phi_x, ii - phi_y])
-            ellipses.append([loc_x - phi_x, np.log10(period) - phi_y])
-            fill_vals.append(getattr(data.sites[site_name].phase_tensors[jj], fill_param))
+    if site_name in main_transect.site_names:
+        main_sites.append(site_name)
+        site = data.sites[site_name]
+        for jj, period in enumerate(site.periods):
+            if jj % 2 == 0 and period < 1100 and period >= 1 / 300:
+                periods.append(np.log10(period))
+                # loc_x = ii
+                # loc_x = site.locations['Lat'] # / 1000
+                loc_x = site.locations['X'] / 10000
+                loc.append(loc_x)
+                phi_x, phi_y = generate_ellipse(site.phase_tensors[jj].phi)
+                phi_x, phi_y = (1000 * phi_x / np.abs(site.phase_tensors[jj].phi_max),
+                                1000 * phi_y / np.abs(site.phase_tensors[jj].phi_max))
+                # radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
+                radius = 100
+                # if radius > 1000:
+                phi_x, phi_y = [(scale / (radius * 100)) * x for x in (phi_x, phi_y)]
+                # ellipses.append([np.log10(period) - phi_x, ii - phi_y])
+                ellipses.append([loc_x - phi_x, np.log10(period) - phi_y])
+                fill_vals.append(getattr(data.sites[site_name].phase_tensors[jj], fill_param))
 # xticks = np.arange(0, loc[-1], 24)
 # xtick_labels = [str(x) for x in np.arange(501, 531)]
 
@@ -104,17 +112,21 @@ def plot_it():
                          periods,
                          c=fake_vals, cmap=cmap)
     fake_im.set_visible(False)
-    cb = plt.colorbar(mappable=fake_im)
-    if 'phi' in fill_param[:3]:
-        label = r'${}{}(\degree)$'.format('\phi', fill_param[-2:])
-    else:
-        label = r'$\{}(\degree)$'.format(fill_param)
-    cb.set_label(label,
-                 rotation=270,
-                 labelpad=20,
-                 fontsize=18)
+    # cb = plt.colorbar(mappable=fake_im)
+    # if 'phi' in fill_param[:3]:
+    #     label = r'${}{}(\degree)$'.format('\phi', fill_param[-2:])
+    # else:
+    #     label = r'$\{}(\degree)$'.format(fill_param)
+    # cb.set_label(label,
+    #              rotation=270,
+    #              labelpad=20,
+    #              fontsize=18)
     plt.xlabel('Northing (km)')
     plt.ylabel(r'$\log_{10}$ Period (s)')
+    for ii, site in enumerate(main_sites):
+        txt = site[-4:-1]
+        plt.text(main_transect.sites[site].locations['X'] / 10000, -3, txt, rotation=50)
+
     plt.show()
 
 
