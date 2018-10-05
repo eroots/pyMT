@@ -115,14 +115,27 @@ def interpolate_slice(x, y, Z, NP):
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wst0_sens/wst0Inv5_model.02')
 # data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southeastern_2.lst')
 # mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSE3_ModEM/wsSE3TF_final.model')
-data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southcentral.lst')
+# data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southcentral.lst')
 # mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/finish/wsSC_finish.model')
-mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/wsSC_final.model')
+# mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/wsSC_final.model')
 # data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southeastern_2.lst')
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSE3_ModEM/wsSE3TF_final.model')
-seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-qx, qy = (np.array(seismic['x'] / 1000),
-          np.array(seismic['y']) / 1000)
+mod = WSDS.Model('F:/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+data = WSDS.RawData('F:/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# qx, qy = (np.array(seismic['x'] / 1000),
+#           np.array(seismic['y']) / 1000)
+main_list = 'F:/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+main_transect = WSDS.RawData(main_list)
+site_x, site_y = [main_transect.locations[:, 1] / 1000,
+                  main_transect.locations[:, 0] / 1000]
+qx, qy = [], []
+# site_x = 
+for ii in range(len(site_x) - 1):
+    qx.append(np.linspace(site_x[ii], site_x[ii + 1], 100).ravel())
+    qy.append(np.linspace(site_y[ii], site_y[ii + 1], 100).ravel())
+qx = np.array(qx).ravel()
+qy = np.array(qy).ravel()
 reso = []
 kimberlines = []
 mod.origin = data.origin
@@ -138,14 +151,15 @@ file_path = 'C:/Users/eric/phd/ownCloud/Documents/PDAC 2018/temp_figs/'
 file_name = 'dbrUVT_Left.png'
 title_ = 'Standard Inversion'
 save_fig = 0
-save_dat = 1
+save_dat = 0
 csv_name = r'F:\ownCloud\andy\wsSC_noTipper'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 400]
+zlim = []
+# zlim = [0, 400]
 lut = 64
 isolum = False
 # xlim = [-123.5, -121.5]
@@ -321,7 +335,7 @@ for ii in range(1, 2):
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
         to_plot = to_plot[1:, 1:]
         im, ax = pcolorimage(ax,
-                             x=(np.array(seismic['y']) / 1000),
+                             x=(np.array(qy) / 1000),
                              y=np.array(z),
                              A=(to_plot), cmap=cmap)
     if xlim:
