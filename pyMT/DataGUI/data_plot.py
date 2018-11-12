@@ -116,6 +116,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.actionMarker_Shape.triggered.connect(self.set_marker_shape)
         self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
         self.actionFilled.triggered.connect(self.set_marker_fill)
+        # RMS plotting
+        if self.map.dataset.response.sites:
+            self.plotRMS.clicked.connect(self.update_map)
 
     def data_phase_tensor(self):
         if self.toggle_dataPhaseTensor.isChecked():
@@ -341,6 +344,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                         fill_param=fill_param,
                                         period_idx=self.active_period,
                                         n_interp=self.nInterp.value())
+        self.map.plot_rms = self.plotRMS.checkState()
         self.map.plot_locations()
         PT_toggles = self.get_PT_toggles()
         if 'None' not in PT_toggles['data']:
@@ -1265,16 +1269,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
         whether or not that cell is editable. If it is, it allows you to edit the item
         which then calls post_edit_error.
         """
-        print('edit_error_tree')
         self.stored_key_presses = QtWidgets.QApplication.keyboardModifiers()
         self.check_key_presses(verbose=True)
-        item = self.error_tree.itemFromIndex(self.error_tree.selectedIndexes()[0])
+        if self.error_tree.selectedIndexes():
+            item = self.error_tree.itemFromIndex(self.error_tree.selectedIndexes()[0])
+        else:
+            item = []
         column = self.error_tree.currentColumn()
-        if column >= 2 and item.flags():
-            self.current_tree_item = item
-            self.current_tree_col = column
-            self.old_val = item.text(column)
-            self.error_tree.editItem(item, column)
+        if column >= 2 and item:
+            if item.flags():
+                self.current_tree_item = item
+                self.current_tree_col = column
+                self.old_val = item.text(column)
+                self.error_tree.editItem(item, column)
 
     def check_key_presses(self, verbose=False):
         msg = ''
