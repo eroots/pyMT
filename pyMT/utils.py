@@ -9,6 +9,17 @@ from scipy.interpolate import RegularGridInterpolator as RGI
 MU = 4 * np.pi * 1e-7
 
 
+def remove_bad_data(data, error, tolerance=0.5):
+    good_idx = []
+    bad_idx = []
+    for ii, d, e in enumerate(zip(data, error)):
+        if d / e < tolerance:
+            good_idx.append(ii)
+        else:
+            bad_idx.append(ii)
+    return good_idx, bad_idx
+
+
 def is_all_empties(dictionary):
     empties = []
     for key, val in dictionary.items():

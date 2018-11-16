@@ -493,6 +493,10 @@ class MapView(object):
         self.diff_cax = [-10, 10]
         self.padding_scale = 5
         self.plot_rms = False
+        self.pt_scale = 2
+        self.induction_error_tol = 0.5
+        self.rho_error_tol = 1
+        self.phase_error_tol = 30
         if fig is None:
             self.new_figure()
         else:
@@ -679,46 +683,52 @@ class MapView(object):
                 colour = 'k'
             elif dType.lower() == 'response':
                 colour = 'r'
-
-            for site in self.site_names:
+            idx = []
+            for ii, site in enumerate(self.site_names):
                 # Just takes the last frequency. Will have to grab the right one from a list.
-                if 'TZXR' in self.site_data[dType].sites[site].components:
-                    X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
+                if ((abs(self.site_data[dType].sites[site].used_error['TZXR'][period_idx] /
+                         self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
+                    (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
+                         self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
+                    idx.append(ii)
+                    if 'TZXR' in self.site_data[dType].sites[site].components:
+                        X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
+                    else:
+                        X.append(0)
+                    if 'TZYR' in self.site_data[dType].sites[site].components:
+                        Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
+                    else:
+                        Y.append(0)
+            if idx:
+                arrows = np.transpose(np.array((X, Y)))
+                # arrows = utils.normalize_arrows(arrows)
+                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                lengths[lengths == 0] = 1
+                arrows[lengths > 1, 0] = arrows[lengths > 1, 0] / lengths[lengths > 1]
+                arrows[lengths > 1, 1] = arrows[lengths > 1, 1] / lengths[lengths > 1]
+                # print('Hello I am inside')
+                # print(normalize)
+                if normalize:
+                    arrows = arrows / np.transpose(np.tile(lengths, [2, 1]))
+                    # print('Normalizing...')
                 else:
-                    X.append(0)
-                if 'TZYR' in self.site_data[dType].sites[site].components:
-                    Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
-                else:
-                    Y.append(0)
-            arrows = np.transpose(np.array((X, Y)))
-            # arrows = utils.normalize_arrows(arrows)
-            lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-            lengths[lengths == 0] = 1
-            arrows[lengths > 1, 0] = arrows[lengths > 1, 0] / lengths[lengths > 1]
-            arrows[lengths > 1, 1] = arrows[lengths > 1, 1] / lengths[lengths > 1]
-            # print('Hello I am inside')
-            # print(normalize)
-            if normalize:
-                arrows = arrows / np.transpose(np.tile(lengths, [2, 1]))
-                # print('Normalizing...')
-            else:
-                arrows = arrows / np.max(lengths)
-                arrows *= max_length / 100
-                # print('Shrinking arrows')
-            #     print('Not normalizing')
-            # print(arrows)
-            # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-            # print(self.site_locations['all'])
+                    arrows = arrows / np.max(lengths)
+                    arrows *= max_length / 100
+                    # print('Shrinking arrows')
+                #     print('Not normalizing')
+                # print(arrows)
+                # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                # print(self.site_locations['all'])
 
-            self.window['axes'][0].quiver(self.site_locations['all'][:, 1],
-                                          self.site_locations['all'][:, 0],
-                                          arrows[:, 1],
-                                          arrows[:, 0],
-                                          color=colour,
-                                          headwidth=3,
-                                          width=0.0025,
-                                          zorder=10)
-            self.set_axis_limits()
+                self.window['axes'][0].quiver(self.site_locations['all'][idx, 1],
+                                              self.site_locations['all'][idx, 0],
+                                              arrows[:, 1],
+                                              arrows[:, 0],
+                                              color=colour,
+                                              headwidth=3,
+                                              width=0.0025,
+                                              zorder=10)
+                self.set_axis_limits()
 
     @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
     def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
@@ -737,25 +747,40 @@ class MapView(object):
         X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
         scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
                         (np.max(Y_all) - np.min(Y_all)) ** 2)
+        good_idx = []
         for ii, site_name in enumerate(self.site_names):
             site = self.site_data[data_type[0]].sites[site_name]
             if len(data_type) == 1:
                 phase_tensor = site.phase_tensors[period_idx]
-                phi_x, phi_y = generate_ellipse(phase_tensor.phi)
-                norm_x, norm_y = (phi_x, phi_y)
+                if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) or
+                    (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) or
+                    (phase_tensor.phasexy_error < self.phase_error_tol) or
+                    (phase_tensor.phaseyx_error < self.phase_error_tol)):
+                    cont = 1
+                    phi_x, phi_y = generate_ellipse(phase_tensor.phi)
+                    norm_x, norm_y = (phi_x, phi_y)
+                    good_idx.append(ii)
+                    print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
+                else:
+                    cont = 0
+                    print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
+                    phi_x, phi_y = generate_ellipse(phase_tensor.phi)
+                    norm_x, norm_y = (phi_x, phi_y)
             else:
                 phase_tensor = (self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx] -
                                 self.site_data[data_type[1]].sites[site_name].phase_tensors[period_idx])
                 phi_x, phi_y = generate_ellipse(phase_tensor.phi)
                 norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
-            X, Y = X_all[ii], Y_all[ii]
-            phi_x, phi_y = (1000 * phi_x / phase_tensor.phi_max,
-                            1000 * phi_y / phase_tensor.phi_max)
-            radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
-            # if radius > 1000:
-            phi_x, phi_y = [(2 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
-            ellipses.append([Y - phi_x, X - phi_y])
-            fill_vals.append(getattr(phase_tensor, fill_param))
+                cont = 1
+            if cont:
+                X, Y = X_all[ii], Y_all[ii]
+                phi_x, phi_y = (1000 * phi_x / phase_tensor.phi_max,
+                                1000 * phi_y / phase_tensor.phi_max)
+                radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
+                # if radius > 1000:
+                phi_x, phi_y = [(self.pt_scale * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
+                ellipses.append([Y - phi_x, X - phi_y])
+                fill_vals.append(getattr(phase_tensor, fill_param))
         fill_vals = np.array(fill_vals)
         if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
             lower, upper = (0, 90)
@@ -787,8 +812,8 @@ class MapView(object):
                                         edgecolor='k',
                                         linewidth=2)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
-        fake_im = self.window['axes'][0].scatter(self.site_locations['all'][:, 1],
-                                                 self.site_locations['all'][:, 0],
+        fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
+                                                 self.site_locations['all'][good_idx, 0],
                                                  c=fake_vals, cmap=self.cmap)
         # fake_im.colorbar()
         fake_im.set_visible(False)
