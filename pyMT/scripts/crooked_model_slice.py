@@ -136,6 +136,30 @@ azi = -15
 data.locations = utils.rotate_locs(data.locations, azi)
 origin = data.origin
 mod.origin = origin
+# seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# qx, qy = (np.array(seismic['x'] / 1000),
+          # np.array(seismic['y']) / 1000)
+# data.locations = data.get_locs(site_list=main_transect.site_names)
+azi = -15
+data.locations = utils.rotate_locs(data.locations, azi)
+origin = data.origin
+mod.origin = origin
+# seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# qx, qy = (np.array(seismic['x'] / 1000),
+#           np.array(seismic['y']) / 1000)
+main_list = 'F:/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+main_transect = WSDS.RawData(main_list)
+site_x, site_y = [main_transect.locations[:, 1] / 1000,
+                  main_transect.locations[:, 0] / 1000]
+qx, qy = [], []
+for ii in range(len(site_x) - 1):
+    qx.append(np.linspace(site_x[ii], site_x[ii + 1], 100).ravel())
+    qy.append(np.linspace(site_y[ii], site_y[ii + 1], 100).ravel())
+qx = np.array(qx).ravel()
+qy = np.array(qy).ravel()
+reso = []
+kimberlines = []
+mod.origin = data.origin
 mod.to_UTM()
 if mod.coord_system == 'UTM':
     mod.dx = [xx / 1000 for xx in mod.dx]
@@ -190,6 +214,8 @@ lightness = 0.4
 
 xlim = []
 zlim = [0, 50]
+zlim = []
+# zlim = [0, 400]
 lut = 64
 isolum = False
 # xlim = [-123.5, -121.5]
