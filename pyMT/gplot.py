@@ -492,6 +492,7 @@ class MapView(object):
         self.phase_cax = [0, 90]
         self.diff_cax = [-10, 10]
         self.padding_scale = 5
+        self.plot_rms = False
         if fig is None:
             self.new_figure()
         else:
@@ -621,21 +622,38 @@ class MapView(object):
         # if not self.window['figure']:
         #     print('No figure to plot to...')
         #     return
+        marker_size = {'generic': [self.markersize ** 2], 'active': [self.markersize ** 2]}
+        if self.plot_rms:
+            marker = 'o'
+            marker_size['generic'] = np.array([self.dataset.rms['Station'][site]['Total']
+                                               for site in self.generic_sites])
+            marker_size['active'] = np.array([self.dataset.rms['Station'][site]['Total']
+                                              for site in self.active_sites])
+            marker_size['generic'] = (utils.normalize(marker_size['generic'],
+                                                      lower=1, upper=2, explicit_bounds=True) *
+                                      self.markersize) ** 2
+            marker_size['active'] = (utils.normalize(marker_size['active'],
+                                                     lower=1, upper=2, explicit_bounds=True) *
+                                     self.markersize) ** 2
+            facecolour = 'None'
+        else:
+            marker = self.site_marker
+            facecolour = self.facecolour
         self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
                                        self.site_locations['generic'][:, 0],
-                                       marker=self.site_marker,
-                                       s=self.markersize ** 2,
+                                       marker=marker,
+                                       s=marker_size['generic'],
                                        edgecolors=self.site_colour,
                                        linewidths=self.edgewidth,
-                                       facecolors=self.facecolour)
+                                       facecolors=facecolour)
         if self.active_sites:
             self.window['axes'][0].scatter(self.site_locations['active'][:, 1],
                                            self.site_locations['active'][:, 0],
-                                           marker=self.site_marker,
-                                           s=self.markersize ** 2,
+                                           marker=marker,
+                                           s=marker_size['active'],
                                            edgecolors=self.site_colour,
                                            linewidths=self.edgewidth,
-                                           facecolors=self.facecolour)
+                                           facecolors=facecolour)
             if self.annotate_sites == 'active':
                 for ii, (xx, yy) in enumerate(self.site_locations['active']):
                     self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx))
@@ -736,6 +754,7 @@ class MapView(object):
             radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
             # if radius > 1000:
             phi_x, phi_y = [(1 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
+            phi_x, phi_y = [(2 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
             ellipses.append([Y - phi_x, X - phi_y])
             fill_vals.append(getattr(phase_tensor, fill_param))
         fill_vals = np.array(fill_vals)

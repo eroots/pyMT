@@ -343,6 +343,13 @@ Resistivity</string>
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="plotRMS">
+       <property name="text">
+        <string>Plot RMS</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QScrollBar" name="PeriodScrollBar">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">

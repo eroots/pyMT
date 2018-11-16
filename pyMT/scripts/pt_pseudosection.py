@@ -38,6 +38,7 @@ data = WSDS.RawData(listfile)
 main_transect = WSDS.RawData(main_list)
 # data = WSDS.RawData(listfile=listfile)
 normalize = 1
+# fill_param = 'phi_2'
 fill_param = 'beta'
 # periods = list(data.narrow_periods.keys())
 periods = data.sites[data.site_names[0]].periods
@@ -92,12 +93,16 @@ for ii, site_name in enumerate(data.site_names):
 fill_vals = np.array(fill_vals)
 if fill_param in ['phi_max', 'phi_min', 'det_phi', ' phi_1', 'phi_2', 'phi_3']:
     lower, upper = (0, 90)
+    cmap = cm.jet_plus_r(64)
 elif fill_param in ['Lambda']:
     lower, upper = (np.min(fill_vals), np.max(fill_vals))
+    cmap = cm.jet_plus_r(64)
 elif fill_param == 'beta':
     lower, upper = (-10, 10)
+    cmap = cm.bwr(64)
 elif fill_param in ['alpha', 'azimuth']:
     lower, upper = (-90, 90)
+    cmap = cm.bwr(64)
 fill_vals = np.rad2deg(np.arctan(fill_vals))
 fill_vals[fill_vals > upper] = upper
 fill_vals[fill_vals < lower] = lower
@@ -119,6 +124,8 @@ def plot_it():
     ax = Axes(fig, win.get_position())
     ax.set_axes_locator(win.new_locator(nx=1, ny=1))
     fig.add_axes(ax)
+    fig = plt.figure(figsize=(16, 12))
+    ax = fig.add_subplot(111)
     for ii, ellipse in enumerate(ellipses):
         ax.fill(ellipse[0], ellipse[1],
                 color=cmap(norm_vals[ii]),
@@ -129,6 +136,9 @@ def plot_it():
     plt.xlabel('Northing (km)', fontsize=14)
     plt.ylabel(r'$\log_{10}$ Period (s)', fontsize=14)
     # ax.set_aspect(1)
+    ax.set_ylim([-2.75, 3.25])
+    ax.invert_yaxis()
+    ax.set_aspect(1)
     locs, labels = plt.xticks()
     plt.xticks(locs, [int(x * 10) for x in locs])
     fake_vals = np.linspace(lower, upper, len(fill_vals))
@@ -163,7 +173,18 @@ if save_fig:
     for ext in file_types:
         fig.savefig(file_path + file_name + ext, dpi=dpi,
                     transparent=True)
+        plt.plot([main_transect.sites[site].locations['X'] / 10000,
+                  main_transect.sites[site].locations['X'] / 10000],
+                 [-2.75, -2.7], 'k-')
+        plt.text(main_transect.sites[site].locations['X'] / 10000 - 0.05, -2.95, txt, rotation=50)
 
+    # plt.show()
+    plt.savefig('F:/ownCloud/Documents/Swayze_paper/Figures/pt_pseudosection_beta.ps',
+                dpi=600, orientation='landscape')
+    fig, ax = plt.subplots(figsize=(16, 12))
+    plt.colorbar(fake_im, ax=ax)
+    ax.remove()
+    plt.savefig('F:/ownCloud/Documents/Swayze_paper/Figures/phase_colourbar_beta.ps', dpi=600)
 
 # def plot_phase_tensor(data, normalize=True, fill_param='Beta'):
 # def generate_ellipse(phi):

@@ -308,7 +308,7 @@ def read_raw_data(site_names, datpath=''):
             data = []
             for line in block[1:]:
                 for f in line.split():
-                    data.append(float(f.strip()))
+                    data.append(np.nan_to_num(float(f.strip())))
             if len(data) != num_freqs:
                 print('Number of frequencies does not match the given number')
                 print('Proceeding anyways...')
@@ -1303,7 +1303,7 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
             f.write('{}\n'.format(999999))
 
 
-def read_freqset(path):
+def read_freqset(path='./'):
     freqset = PATH_CONNECTOR.join([path, 'freqset'])
     with open(freqset, 'r') as f:
         lines = f.readlines()
