@@ -572,8 +572,10 @@ def rotate_locs(locs, azi=0):
     if azi == 0:
         return locs
     azi = np.deg2rad(azi)
+    locs, center = center_locs(locs)
     R = np.array([[np.cos(azi), -np.sin(azi)], [np.sin(azi), np.cos(azi)]])
-    rot_locs = np.dot(locs, R.T)
+    rot_locs = np.matmul(locs, R.T)
+    rot_locs -= center
     return rot_locs
 
 

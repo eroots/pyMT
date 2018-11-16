@@ -8,7 +8,7 @@ from scipy.interpolate import RectBivariateSpline as RBS
 import copy
 # import colorcet as cc
 import colorsys
-# import e_colours.colourmaps
+import e_colours.colourmaps
 
 
 def extents(f):
@@ -107,10 +107,10 @@ reso = []
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
-# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
-# data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
-mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2e_smooth.model')
-data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.dat')
+mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
+data = WSDS.Data(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
+# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2e_smooth.model')
+# data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.dat')
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
 #                5.369642e+006]
@@ -122,7 +122,7 @@ mod.origin = data.origin
 #                             0.247133633E+05, 0.279987383E+05, 0.328820195E+05,
 #                             0.345390352E+05, 0.372428438E+05, 0.394137422E+05,
 #                             0.433482109E+05, 0.467561680E+05, 0.507770469E+05,
-                            # 0.534360625E+05, 0.653211367E+05]]) / 1000
+#                             0.534360625E+05, 0.653211367E+05]]) / 1000
 # mod.to_UTM()
 # mod.to_latlong('10N')
 # data.rotate_sites(azi=-14)
@@ -146,8 +146,8 @@ lightness = 0.4
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
-xlim = [-10, 10]
-zlim = [-30, 30]
+xlim = []
+zlim = [0, 50]
 lut = 64
 cax = [1, 5]
 isolum = False
@@ -159,12 +159,12 @@ cax = [1, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-cmap_name = 'jet_r'
+# cmap_name = 'jet_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
 # cmap_name = 'cet_bgy_r'
-# cmap_name = 'jetplus'
+cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 
@@ -186,7 +186,7 @@ else:
 # vals = np.log10(mod.vals[:, :, :])
 # vals = np.log10(mod.vals[:, 73, :])
 # vals = np.log10(mod.vals[11, :, :])
-vals = np.log10(mod.vals[:, :, 53])
+vals = np.log10(mod.vals[:, 34, :]).T
 # vals = np.log10(mod.vals[:, 22, :])
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
@@ -299,20 +299,21 @@ for ii in range(1, 2):
     elif mode == 3:
         # mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
-        im, ax = pcolorimage(ax, x=(np.array(mod.dy)) / 1000,
-                             y=np.array(mod.dx) / 1000,
+        im, ax = pcolorimage(ax, x=(np.array(mod.dx)) / 1000,
+                             y=np.array(mod.dz) / 1000,
                              A=(to_plot), cmap=cmap)
-        plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
-        for jj, site in enumerate(data.site_names):
-            plt.annotate(site,
-                         xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
-                         color='w')
-    # if xlim:
-    #     ax.set_xlim(xlim)
-    # if zlim:
-    #     ax.set_ylim(zlim)
+        # plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
+        plt.plot(data.locations[:, 1] / 1000, np.zeros((data.locations[:, 1].shape)), 'k.')
+        # for jj, site in enumerate(data.site_names):
+        #     plt.annotate(site,
+        #                  xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
+        #                  color='w')
+    if xlim:
+        ax.set_xlim(xlim)
+    if zlim:
+        ax.set_ylim(zlim)
 
-    # ax.invert_yaxis()
+    ax.invert_yaxis()
     # ax.invert_xaxis()
     # ax.set_xlabel('Latitude', fontsize=20)
     

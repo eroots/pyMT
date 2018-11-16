@@ -51,7 +51,6 @@ pyMT/scripts/phase_tensor_map.py
 pyMT/scripts/phase_tensor_test.py
 pyMT/scripts/plan_pseudosection.py
 pyMT/scripts/plot_dataset.py
-pyMT/scripts/plot_ellipse_test.py
 pyMT/scripts/plot_model_slice.py
 pyMT/scripts/plot_occam.py
 pyMT/scripts/plot_pseudosection.py

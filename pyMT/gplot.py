@@ -735,7 +735,7 @@ class MapView(object):
                             1000 * phi_y / phase_tensor.phi_max)
             radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
             # if radius > 1000:
-            phi_x, phi_y = [(5 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
+            phi_x, phi_y = [(1 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
             ellipses.append([Y - phi_x, X - phi_y])
             fill_vals.append(getattr(phase_tensor, fill_param))
         fill_vals = np.array(fill_vals)

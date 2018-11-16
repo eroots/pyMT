@@ -11,7 +11,7 @@ def main(in_file, out_file):
     # if data.inv_type == 5:
     #     print('Ignoring transfer function data...\n')
     #     data.inv_type = 1
-    data.write(outfile=out_file, out_format='ModEM3D')
+    data.write(outfile=out_file, file_format='modem')
 
 
 def parse_args(args):
