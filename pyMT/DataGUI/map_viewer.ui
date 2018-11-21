@@ -110,6 +110,7 @@
       <string>Induction Arrows</string>
      </property>
      <addaction name="actionInductionErrorTolerance"/>
+     <addaction name="actionInductionScale"/>
     </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
@@ -531,6 +532,11 @@ Resistivity</string>
   <action name="actionPTPhaseErrorTolerance">
    <property name="text">
     <string>Phase Error Tolerance</string>
+   </property>
+  </action>
+  <action name="actionInductionScale">
+   <property name="text">
+    <string>Scale</string>
    </property>
   </action>
  </widget>

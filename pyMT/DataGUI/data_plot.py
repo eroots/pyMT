@@ -117,6 +117,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
         self.actionFilled.triggered.connect(self.set_marker_fill)
         self.actionPhaseTensorScale.triggered.connect(self.set_pt_scale)
+        self.actionInductionScale.triggered.connect(self.set_induction_scale)
         self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
         self.actionPTPhaseErrorTolerance.triggered.connect(self.set_pt_phase_error_tol)
         self.actionPTRhoErrorTolerance.triggered.connect(self.set_pt_rho_error_tol)
@@ -158,12 +159,23 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             if not self.toggle_nonePhaseTensor.isChecked():
                 self.update_map()
 
+    def set_induction_scale(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Scale',
+                                                         'Value:',
+                                                         self.map.induction_scale,
+                                                         0.01, 100, 1)
+        if ok_pressed:
+            self.map.induction_scale = d
+            if self.toggle_dataInduction.isChecked() or self.toggle_responseInduction.isChecked():
+                self.update_map()
+
     def set_induction_error_tol(self):
         d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
                                                          'Tolerance',
                                                          'Value:',
                                                          self.map.induction_error_tol,
-                                                         0.01, 1, 0.1)
+                                                         0.01, 100, 0.1)
         if ok_pressed:
             self.map.induction_error_tol = d
             if self.toggle_dataInduction.isChecked() or self.toggle_responseInduction.isChecked():
@@ -174,7 +186,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                                          'Tolerance',
                                                          'Value:',
                                                          self.map.rho_error_tol,
-                                                         0.0001, 1, 0.1)
+                                                         0.0001, 100, 0.1)
         if ok_pressed:
             self.map.rho_error_tol = d
             if not self.toggle_nonePhaseTensor.isChecked():
@@ -185,7 +197,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                                          'Tolerance',
                                                          'Value:',
                                                          self.map.phase_error_tol,
-                                                         0, 90, 1)
+                                                         0, 180, 1)
         if ok_pressed:
             self.map.phase_error_tol = d
             if not self.toggle_nonePhaseTensor.isChecked():

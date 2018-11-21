@@ -468,7 +468,7 @@ class MapView(object):
     def __init__(self, fig=None, **kwargs):
         self.window = {'figure': None, 'axes': None, 'canvas': None, 'colorbar': None}
         if fig:
-            self.window = {'figure': fig, 'axes': fig.axes, 'canvas': fig.canvas}
+            self.window = {'figure': fig, 'axes': fig.axes, 'canvas': fig.canvas, 'colorbar': None}
         self.axis_padding = 0.1
         self.colour = 'k'
         self.site_names = []
@@ -494,6 +494,7 @@ class MapView(object):
         self.padding_scale = 5
         self.plot_rms = False
         self.pt_scale = 2
+        self.induction_scale = 5
         self.induction_error_tol = 0.5
         self.rho_error_tol = 1
         self.phase_error_tol = 30
@@ -713,21 +714,25 @@ class MapView(object):
                     # print('Normalizing...')
                 else:
                     arrows = arrows / np.max(lengths)
-                    arrows *= max_length / 100
+                    arrows *= max_length / 50000
                     # print('Shrinking arrows')
                 #     print('Not normalizing')
+                arrows = arrows * self.induction_scale / 50
+                # print(self.induction_scale)
                 # print(arrows)
                 # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
                 # print(self.site_locations['all'])
-
+                headwidth = max(3 * self.induction_scale / 5, 1)
+                width = 0.0025 * self.induction_scale / 5
                 self.window['axes'][0].quiver(self.site_locations['all'][idx, 1],
                                               self.site_locations['all'][idx, 0],
                                               arrows[:, 1],
                                               arrows[:, 0],
                                               color=colour,
-                                              headwidth=3,
-                                              width=0.0025,
-                                              zorder=10)
+                                              headwidth=headwidth,
+                                              width=width,
+                                              zorder=10,
+                                              scale=1)
                 self.set_axis_limits()
 
     @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
@@ -752,18 +757,18 @@ class MapView(object):
             site = self.site_data[data_type[0]].sites[site_name]
             if len(data_type) == 1:
                 phase_tensor = site.phase_tensors[period_idx]
-                if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) or
-                    (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) or
-                    (phase_tensor.phasexy_error < self.phase_error_tol) or
+                if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
+                    (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
+                    (phase_tensor.phasexy_error < self.phase_error_tol) and
                     (phase_tensor.phaseyx_error < self.phase_error_tol)):
                     cont = 1
                     phi_x, phi_y = generate_ellipse(phase_tensor.phi)
                     norm_x, norm_y = (phi_x, phi_y)
                     good_idx.append(ii)
-                    print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
+                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
                 else:
                     cont = 0
-                    print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
+                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
                     phi_x, phi_y = generate_ellipse(phase_tensor.phi)
                     norm_x, norm_y = (phi_x, phi_y)
             else:
@@ -811,6 +816,8 @@ class MapView(object):
                                         zorder=0,
                                         edgecolor='k',
                                         linewidth=2)
+            # self.window['axes'][0].plot(ellipse[0], ellipse[1],
+            #                             'k-', linewidth=1)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
         fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
                                                  self.site_locations['all'][good_idx, 0],
@@ -819,7 +826,8 @@ class MapView(object):
         fake_im.set_visible(False)
         if not self.window['colorbar']:
             self.window['colorbar'] = self.window['figure'].colorbar(mappable=fake_im)
-            self.window['colorbar'].set_label(fill_param,
+            label = self.get_label(fill_param)
+            self.window['colorbar'].set_label(label,
                                               rotation=270,
                                               labelpad=20,
                                               fontsize=18)
@@ -833,11 +841,30 @@ class MapView(object):
             data_type = ['data', 'response']
         for ii, dt in enumerate(data_type):
             data = self.site_data[dt]
+            # temp_vals = []
+            # good_idx = []
             if 'rho' in fill_param.lower():
+                # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
+                #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
+                #     (phase_tensor.phasexy_error < self.phase_error_tol) and
+                #     (phase_tensor.phaseyx_error < self.phase_error_tol)):
+                # for site in data.site_names:
+                    # phase_tensor = data.sites[site].phase_tensors[period_idx]
+                    # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
+                    #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol)):
+                    #     temp_vals.append(np.log10(utils.compute_rho(site=data.sites[site],
+                    #                                                 calc_comp=fill_param,
+                    #                                                 errtype='none')[0][period_idx]))
+                    #     good_idx.append(ii)
                 vals.append([np.log10(utils.compute_rho(site=data.sites[site],
-                                               calc_comp=fill_param,
-                                               errtype='none')[0][period_idx]) for site in data.site_names])
+                                                        calc_comp=fill_param,
+                                                        errtype='none')[0][period_idx]) for site in data.site_names])
+                # vals.append(temp_vals)
             elif 'pha' in fill_param.lower():
+                # vals.append(utils.compute_phase(site=data.sites[site],
+                #                                 calc_comp=fill_param,
+                #                                 errtype='none',
+                #                                 wrap=1)[0][period_idx])
                 vals.append([utils.compute_phase(site=data.sites[site],
                                                  calc_comp=fill_param,
                                                  errtype='none',
@@ -886,3 +913,22 @@ class MapView(object):
                                           labelpad=20,
                                           fontsize=18)
         self.set_axis_limits()
+
+    def get_label(self, param):
+        if param.lower() == 'alpha':
+            label = r'$\alpha$'
+        elif param.lower() == 'beta':
+            label = r'$\beta$'
+        elif param.lower() == 'phi_1':
+            label = r'$\phi_1$'
+        elif param.lower() == 'phi_2':
+            label = r'$\phi_2$'
+        elif param.lower() == 'phi_3':
+            label = r'$\phi_3$'
+        elif param.lower() == 'det_phi':
+            label = r'$det \phi$'
+        elif param.lower() == 'azimuth':
+            label = r'Azimuth'
+        else:
+            label = ''
+        return label

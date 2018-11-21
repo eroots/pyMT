@@ -102,61 +102,22 @@ def interpolate_slice(x, y, Z, NP):
 #                     datpath=r'C:\Users\eric\Documents' +
 #                     r'\MATLAB\MATLAB\Inversion\Regions' +
 #                     r'\abi-gren\New\j2')
-# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
-# data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
-#                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
-# mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\center_ModEM\NLCG\center_noTF_final.model'))
-# data = WSDS.RawData(listfile=r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\j2\center_fewer3.lst')
-# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_bost1\out_model.00')
-# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\sens_model.00')
-# reso = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\Resolution_inverted.model')
-# data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
-#                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
-# mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model'))
-# data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst'))
-# data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/cull5.lst')
-# mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wst0_sens/wst0Inv5_model.02')
-# data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southeastern_2.lst')
-# mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSE3_ModEM/wsSE3TF_final.model')
-# data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southcentral.lst')
-# mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/finish/wsSC_finish.model')
-# mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/wsSC_final.model')
-# data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southeastern_2.lst')
-# mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSE3_ModEM/wsSE3TF_final.model')
-main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-used_data = WSDS.Data(datafile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.dat',
-                 listfile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# used_data = WSDS.Data(datafile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.dat',
+#                  listfile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
           # np.array(seismic['y']) / 1000)
 # data.locations = data.get_locs(site_list=main_transect.site_names)
-azi = -15
+azi = 35
 data.locations = utils.rotate_locs(data.locations, azi)
 origin = data.origin
 mod.origin = origin
-# seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-# qx, qy = (np.array(seismic['x'] / 1000),
-          # np.array(seismic['y']) / 1000)
-# data.locations = data.get_locs(site_list=main_transect.site_names)
-azi = -15
-data.locations = utils.rotate_locs(data.locations, azi)
-origin = data.origin
-mod.origin = origin
-# seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-# qx, qy = (np.array(seismic['x'] / 1000),
-#           np.array(seismic['y']) / 1000)
-main_list = 'F:/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
-main_transect = WSDS.RawData(main_list)
-site_x, site_y = [main_transect.locations[:, 1] / 1000,
-                  main_transect.locations[:, 0] / 1000]
-qx, qy = [], []
-for ii in range(len(site_x) - 1):
-    qx.append(np.linspace(site_x[ii], site_x[ii + 1], 100).ravel())
-    qy.append(np.linspace(site_y[ii], site_y[ii + 1], 100).ravel())
-qx = np.array(qx).ravel()
-qy = np.array(qy).ravel()
 reso = []
 kimberlines = []
 mod.origin = data.origin
@@ -171,13 +132,10 @@ for ii, site in enumerate(data.site_names):
     if site not in main_transect.site_names:
         idx.append(ii)
 data.locations = np.delete(data.locations, idx, axis=0)
-
-# data.origin = (main_transect.origin[1], main_transect.origin[0])
-# data.locations += data.origin
-
-# data.locations = utils.rotate_locs(data.locations, azi)
 data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
-X = np.linspace(data.locations[0, 0] - 5000, data.locations[0, 0], 20)
+# A little kludge to make sure the last few sites are in the right order (west-east)
+data.locations[0:8, :] = data.locations[np.flip(data.locations[0:8, 1].argsort())]
+X = np.linspace(data.locations[0, 0] - 10000, data.locations[0, 0], 20)
 Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
 qx = []
 qy = []
@@ -188,7 +146,7 @@ for ii in range(len(data.locations[:, 0]) - 1):
     Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
     qx.append(Y)
     qy.append(X)
-X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + 5000, 20)
+X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + 10000, 20)
 Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
 qx.append(Y)
 qy.append(X)
@@ -199,12 +157,12 @@ kimberlines = []
 
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/Figures/'
-file_name = 'swayze_regional_model_1-4bgy'
+file_path = r'C:/Users/eric/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
+file_name = 'dryden_regional_model_0-5jetplus'
 file_types = ['.pdf', '.ps', '.png']
 title_ = 'Standard Inversion'
 
-save_fig = 0
+save_fig = 1
 save_dat = 0
 dpi = 600
 csv_name = r'F:\ownCloud\andy\wsSC_noTipper'
@@ -214,7 +172,6 @@ lightness = 0.4
 
 xlim = []
 zlim = [0, 50]
-zlim = []
 # zlim = [0, 400]
 lut = 64
 isolum = False
@@ -222,7 +179,7 @@ isolum = False
 # xlim = [-7, 74]
 # zlim = [0, 5]
 lut = 256
-cax = [1, 4]
+cax = [0, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
@@ -230,11 +187,11 @@ isolum = 0
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
-cmap_name = 'cet_bgy_r'
+# cmap_name = 'cet_bgy_r'
 # cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
-# cmap_name = 'jetplus'
+cmap_name = 'jetplus'
 
 x, y, z = [np.zeros((len(mod.dx) - 1)),
            np.zeros((len(mod.dy) - 1)),

@@ -1349,7 +1349,7 @@ class Site(object):
         self.static_multiplier = 1
         self.minimum_error = 0.0001
         self.error_floors = {'Z': 0.075,
-                             'T': 0.15,
+                             'T': 0.05,
                              'Rho': 0.05,
                              'Phs': 0.05}
         self.phase_tensors = []
@@ -1470,7 +1470,7 @@ class Site(object):
                 else:
                     new_errors = np.abs(self.data[component] * error_floors['Z'])
             elif component.startswith('T'):
-                new_errors = np.abs(self.data[component] * error_floors['T'])
+                new_errors = np.abs(np.ones(self.data[component].shape) * error_floors['T'])
             elif 'rho' in component.lower():
                 new_errors = np.abs(self.data[component] * error_floors['Rho'])
             # new_errors[new_errors == 0] = np.median(new_errors)
