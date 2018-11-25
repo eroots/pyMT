@@ -117,11 +117,11 @@ def interpolate_slice(x, y, Z, NP):
 # data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/cull5.lst')
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wst0_sens/wst0Inv5_model.02')
 
-data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southcentral2.lst')
-mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSC1/wsSC_final.model')
+# data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southcentral2.lst')
+# mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSC1/wsSC_final.model')
 # data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southeastern_2.lst')
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSE3_ModEM/wsSE3TF_final.model')
-seismic = pd.read_table('C:/Users/eric/Desktop/andy/WS1-cdp.dat.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# seismic = pd.read_table('C:/Users/eric/Desktop/andy/WS1-cdp.dat.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 
 # data = WSDS.RawData(listfile='F:/ownCloud/data/Regions/wst/j2/southeastern_2.lst')
 # mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSE3_ModEM/wsSE3TF_final.model')
@@ -146,8 +146,6 @@ mod.origin = origin
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
 #           np.array(seismic['y']) / 1000)
-main_list = 'F:/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
-main_transect = WSDS.RawData(main_list)
 site_x, site_y = [main_transect.locations[:, 1] / 1000,
                   main_transect.locations[:, 0] / 1000]
 qx, qy = [], []
@@ -213,8 +211,6 @@ lightness = 0.4
 
 xlim = []
 zlim = [0, 50]
-=======
-zlim = []
 # zlim = [0, 400]
 lut = 64
 isolum = False
