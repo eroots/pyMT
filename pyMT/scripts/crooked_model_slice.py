@@ -135,11 +135,25 @@ used_data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalE
                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
           # np.array(seismic['y']) / 1000)
 # data.locations = data.get_locs(site_list=main_transect.site_names)
-azi = -15
+azi = 35
+# azi = -15
+padding = 25000
+data.locations = data.get_locs(mode='latlong')
+for ii in range(len(data.locations)):
+        easting, northing = utils.project((data.locations[ii, 1],
+                                           data.locations[ii, 0]),
+                                          zone=16, letter='U')[2:]
+        data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 data.locations = utils.rotate_locs(data.locations, azi)
 origin = data.origin
 mod.origin = origin
@@ -154,6 +168,7 @@ for ii in range(len(site_x) - 1):
     qy.append(np.linspace(site_y[ii], site_y[ii + 1], 100).ravel())
 qx = np.array(qx).ravel()
 qy = np.array(qy).ravel()
+
 reso = []
 kimberlines = []
 mod.origin = data.origin
@@ -168,13 +183,10 @@ for ii, site in enumerate(data.site_names):
     if site not in main_transect.site_names:
         idx.append(ii)
 data.locations = np.delete(data.locations, idx, axis=0)
-
-# data.origin = (main_transect.origin[1], main_transect.origin[0])
-# data.locations += data.origin
-
-# data.locations = utils.rotate_locs(data.locations, azi)
 data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
-X = np.linspace(data.locations[0, 0] - 5000, data.locations[0, 0], 20)
+# A little kludge to make sure the last few sites are in the right order (west-east)
+data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
+X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], 20)
 Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
 qx = []
 qy = []
@@ -185,7 +197,7 @@ for ii in range(len(data.locations[:, 0]) - 1):
     Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
     qx.append(Y)
     qy.append(X)
-X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + 5000, 20)
+X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + padding, 20)
 Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
 qx.append(Y)
 qy.append(X)
@@ -196,12 +208,12 @@ kimberlines = []
 
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/Figures/'
-file_name = 'swayze_regional_model_1-4bgy'
+file_path = r'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/'
+file_name = 'dryden_regional_model_0-5jetplus_lineardistance'
 file_types = ['.pdf', '.ps', '.png']
 title_ = 'Standard Inversion'
 
-save_fig = 0
+save_fig = 1
 save_dat = 0
 dpi = 600
 csv_name = r'F:\ownCloud\andy\wsSC_noTipper'
@@ -218,7 +230,7 @@ isolum = False
 # xlim = [-7, 74]
 # zlim = [0, 5]
 lut = 256
-cax = [1, 4]
+cax = [0, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
@@ -226,11 +238,11 @@ isolum = 0
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
-cmap_name = 'cet_bgy_r'
+# cmap_name = 'cet_bgy_r'
 # cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
-# cmap_name = 'jetplus'
+cmap_name = 'jetplus'
 
 x, y, z = [np.zeros((len(mod.dx) - 1)),
            np.zeros((len(mod.dy) - 1)),
@@ -310,11 +322,11 @@ if reso:
 
 
 # Rotate locations back to true coordinates
-if azi:
-    data.locations = utils.rotate_locs(data.locations, azi=-azi)
-    p = utils.rotate_locs(np.array((qx, qy)).T, azi=-azi)
-    qx = p[:, 0]
-    qy = p[:, 1]
+# if azi:
+#     data.locations = utils.rotate_locs(data.locations, azi=-azi)
+#     p = utils.rotate_locs(np.array((qx, qy)).T, azi=azi)
+#     qx = p[:, 0]
+#     qy = p[:, 1]
 # cmap[..., -1] = reso.vals[:, 31, :]
 
 # I had to change the way things plotted, so isolum is unusable right now.
@@ -449,7 +461,7 @@ ax.tick_params(axis='both', labelsize=14)
 
 # divider = make_axes_locatable(ax)
 # cb_ax = divider.append_axes('right', size='2.5%', pad=0.1)
-# cb = plt.colorbar(im, cmap=cmap, cax=cb_ax)
+# cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='horizontal', extend='both')
 # cb.set_clim(cax[0], cax[1])
 # cb.ax.tick_params(labelsize=12)
 # cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',

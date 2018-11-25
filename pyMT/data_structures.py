@@ -661,10 +661,10 @@ class Data(object):
             #  Full Rho + Phase + 2-D Tipper
             self.inv_type = 14
 
-    def print_lowest_errors(self):
+    def print_lowest_errors(self, components=None):
         all_actual, all_used = ([], [])
         for ii, site in enumerate(self.site_names):
-            actual, used = self.sites[site].print_lowest_errors()
+            actual, used = self.sites[site].print_lowest_errors(components=components)
             all_actual.append(np.min(actual))
             all_used.append(np.min(used))
         idx_all = np.argmin(all_actual)
@@ -1349,7 +1349,7 @@ class Site(object):
         self.static_multiplier = 1
         self.minimum_error = 0.0001
         self.error_floors = {'Z': 0.075,
-                             'T': 0.15,
+                             'T': 0.05,
                              'Rho': 0.05,
                              'Phs': 0.05}
         self.phase_tensors = []
@@ -1373,10 +1373,6 @@ class Site(object):
             self.errors = self.generate_errmap(mult=1)
         if not self.errmap or utils.is_all_empties(self.errmap):
             self.errmap = self.generate_errmap(mult=1)
-        if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)) \
-                and self.periods is not None:
-            self.calculate_phase_tensors()
-
         try:
             self.used_error = {component: self.errors[component] for component in self.components}
         except KeyError:
@@ -1387,6 +1383,9 @@ class Site(object):
         self.apply_error_floor()
         self.validate_data()
         self.validate_errors()
+        if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)) \
+                and self.periods is not None:
+            self.calculate_phase_tensors()
         # for comp, val in self.errors.items():
         #     self.used_error.update({comp: val * self.errmap[comp]})
 
@@ -1424,10 +1423,13 @@ class Site(object):
                 self.errors[component] = np.nan_to_num(self.errors[component])
                 self.reset_errors(components=component)
 
-    def print_lowest_errors(self):
+    @utils.enforce_input(components=list)
+    def print_lowest_errors(self, components=None):
         all_actual = []
         all_used = []
-        for component in self.components:
+        if not components:
+            components = self.components
+        for component in components:
             min_actual = np.min(np.abs(self.errors[component] / self.data[component]))
             min_used = np.min(np.abs(self.used_error[component] / self.data[component]))
             print([self.name, component])
@@ -1468,7 +1470,7 @@ class Site(object):
                 else:
                     new_errors = np.abs(self.data[component] * error_floors['Z'])
             elif component.startswith('T'):
-                new_errors = np.abs(self.data[component] * error_floors['T'])
+                new_errors = np.abs(np.ones(self.data[component].shape) * error_floors['T'])
             elif 'rho' in component.lower():
                 new_errors = np.abs(self.data[component] * error_floors['Rho'])
             # new_errors[new_errors == 0] = np.median(new_errors)
@@ -1916,9 +1918,16 @@ class Site(object):
 
     def calculate_phase_tensors(self):
         self.phase_tensors = []
+        rhoxy, rhoxy_err, rhoxy_log10err = utils.compute_rho(self, calc_comp='xy', errtype='used_error')
+        rhoyx, rhoyx_err, rhoyx_log10err = utils.compute_rho(self, calc_comp='yx', errtype='used_error')
+        phaxy, phaxy_err = utils.compute_phase(self, calc_comp='xy', errtype='used_error')
+        phayx, phayx_err = utils.compute_phase(self, calc_comp='yx', errtype='used_error')
+
         for ii, period in enumerate(self.periods):
             Z = {impedance: self.data[impedance][ii] for impedance in self.data.keys()}
-            self.phase_tensors.append(PhaseTensor(period=period, Z=Z))
+            self.phase_tensors.append(PhaseTensor(period=period, Z=Z,
+                                                  rho=[rhoxy[ii], rhoyx[ii], rhoxy_err[ii], rhoyx_err[ii]],
+                                                  phase=[phaxy[ii], phayx[ii], phaxy_err[ii], phayx_err[ii]]))
 
 
 class RawData(object):
@@ -2190,7 +2199,7 @@ class RawData(object):
 
 
 class PhaseTensor(object):
-    def __init__(self, period, Z=None):
+    def __init__(self, period, Z=None, rho=None, phase=None):
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.period = period
         self.Z = Z
@@ -2204,6 +2213,14 @@ class PhaseTensor(object):
         self.beta = 0
         self.Lambda = 0
         self.azimuth = 0
+        self.rhoxy = rho[0]
+        self.rhoyx = rho[1]
+        self.phasexy = phase[0]
+        self.phaseyx = phase[1]
+        self.rhoxy_error = rho[2]
+        self.rhoyx_error = rho[3]
+        self.phasexy_error = phase[2]
+        self.phaseyx_error = phase[3]
         if Z:
             self.valid_data = True
         else:
@@ -2269,6 +2286,10 @@ class PhaseTensor(object):
         self.beta = beta
         self.azimuth = azimuth
         self.delta = np.linalg.norm(self.phi)
+        # det = np.sqrt((self.X[1, 0] + 1j * self.Y[1, 0]) *
+                      # (self.X[0, 1] + 1j * self.Y[0, 1]) -
+                      # (self.X[1, 1] + 1j * self.Y[1, 1]) *
+                      # (self.X[0, 0] + 1j * self.Y[0, 0]))
 
     def __add__(self, y):
         new_phi = PhaseTensor(self.period, None)

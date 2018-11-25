@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from e_colours import colourmaps as cm
 import pyMT.utils as utils
-from pyMT.gplot import MapView
+import pyMT.gplot as gplot
+from copy import deepcopy
+from scipy.spatial.distance import euclidean
 
 
 cmap = cm.jet()
-
 
 def normalize_ellipse(phi):
     phi_min = abs(phi.phi_min)
@@ -66,19 +67,63 @@ def plot_ellipse(data, fill_param):
 if __name__ == '__main__':
     # filename = 'F:/GJH/TNG&MTR-EDI/all.lst'
     # filename = 'C:/users/eroots/phd/ownCloud/data/ArcMap/LegacyMT/ag_edi/ag/all.lst'
-    filename = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/GJH/ForEric/TNG&MTR-EDI/all.lst'
-    data = WSDS.RawData(filename)
-    fig = plt.figure()
+    # filename = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/GJH/ForEric/TNG&MTR-EDI/all.lst'
+    filename = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/cull_allSuperior.data'
+    listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/culled_allSuperior.lst'
+    out_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/'
+    out_file = 'wstSuperior_PT_noOutline_'
+    ext = '.png'
+    dpi = 600
+    save_fig = 0
+    cutoff_distance = 20000
+    data = WSDS.Data(filename, listfile=listfile)
+    raw = WSDS.RawData(listfile)
+    # data.locations = rawdata.get_locs(mode='latlong')
+
+    all_sites = deepcopy(data.site_names)
+    # Remove redunantly close points
+    for ii, site1 in enumerate(data.site_names):
+        for jj, site2 in enumerate(data.site_names):
+            dist = euclidean((data.locations[ii, 1], data.locations[ii, 0]),
+                             (data.locations[jj, 1], data.locations[jj, 0]))
+            if dist < cutoff_distance and site1 in all_sites and (site1 != site2):
+                if site2 in all_sites:
+                    all_sites.remove(site2)
+    rm_sites = [site for site in data.site_names if site not in all_sites]
+    data.remove_sites(sites=rm_sites)
+    raw.remove_sites(sites=rm_sites)
+    raw.locations = raw.get_locs(mode='latlong')
+    for ii in range(len(raw.locations)):
+        lon, lat = utils.project((raw.locations[ii, 1], raw.locations[ii, 0]), zone=16, letter='U')[2:]
+        raw.locations[ii, 1], raw.locations[ii, 0] = lon, lat
+    data.locations = raw.locations
+    
+    fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111)
-    MV = MapView(fig=fig)
-    MV.site_data['raw_data'] = data
+    MV = gplot.MapView(fig=fig)
+    # MV.colourmap = 'jet'
+    MV.colourmap = 'bwr'
+    MV.site_data['data'] = data
     MV.site_names = data.site_names
+    MV.padding_scale = 10
+    MV.pt_scale = 1
+    MV.phase_error_tol = 5
+    MV.rho_error_tol = 1
     # # MV.site_locations['generic'] = MV.get_locations(sites=MV.generic_sites)
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
-    MV.plot_phase_tensor(data_type='raw_data', normalize=True,
-                         fill_param='azimuth', period_idx=-6)
-    # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
-    plt.show()
-    
+    for ii in range(20, 21):#len(data.periods[20:21])):
+        period = data.periods[ii]
+        if period < 1:
+            period = -1 / period
+        period = str(int(period))
+        MV.plot_phase_tensor(data_type='data', normalize=True,
+                             fill_param='beta', period_idx=ii)
+        # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
+        if save_fig:
+            plt.savefig(out_path + out_file + period + ext, dpi=dpi,
+                        transparent=True)
+            ax.clear()
+        else:
+            plt.show()

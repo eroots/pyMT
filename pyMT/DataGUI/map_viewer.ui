@@ -97,8 +97,25 @@
      <addaction name="actionAnnotate_None"/>
      <addaction name="actionAnnotate_Active"/>
     </widget>
+    <widget class="QMenu" name="menuPhase_Tensors">
+     <property name="title">
+      <string>Phase Tensors</string>
+     </property>
+     <addaction name="actionPhaseTensorScale"/>
+     <addaction name="actionPTRhoErrorTolerance"/>
+     <addaction name="actionPTPhaseErrorTolerance"/>
+    </widget>
+    <widget class="QMenu" name="menuInduction_Arrows">
+     <property name="title">
+      <string>Induction Arrows</string>
+     </property>
+     <addaction name="actionInductionErrorTolerance"/>
+     <addaction name="actionInductionScale"/>
+    </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
+    <addaction name="menuPhase_Tensors"/>
+    <addaction name="menuInduction_Arrows"/>
    </widget>
    <addaction name="menuOptions"/>
    <addaction name="menuPoint_options"/>
@@ -495,6 +512,31 @@ Resistivity</string>
    </property>
    <property name="text">
     <string>bwr_r</string>
+   </property>
+  </action>
+  <action name="actionPhaseTensorScale">
+   <property name="text">
+    <string>Scale</string>
+   </property>
+  </action>
+  <action name="actionInductionErrorTolerance">
+   <property name="text">
+    <string>Error Tolerance</string>
+   </property>
+  </action>
+  <action name="actionPTRhoErrorTolerance">
+   <property name="text">
+    <string>Rho Error Tolerance</string>
+   </property>
+  </action>
+  <action name="actionPTPhaseErrorTolerance">
+   <property name="text">
+    <string>Phase Error Tolerance</string>
+   </property>
+  </action>
+  <action name="actionInductionScale">
+   <property name="text">
+    <string>Scale</string>
    </property>
   </action>
  </widget>

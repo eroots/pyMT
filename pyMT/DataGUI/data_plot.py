@@ -116,6 +116,11 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.actionMarker_Shape.triggered.connect(self.set_marker_shape)
         self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
         self.actionFilled.triggered.connect(self.set_marker_fill)
+        self.actionPhaseTensorScale.triggered.connect(self.set_pt_scale)
+        self.actionInductionScale.triggered.connect(self.set_induction_scale)
+        self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
+        self.actionPTPhaseErrorTolerance.triggered.connect(self.set_pt_phase_error_tol)
+        self.actionPTRhoErrorTolerance.triggered.connect(self.set_pt_rho_error_tol)
         # RMS plotting
         if self.map.dataset.response.sites:
             self.plotRMS.clicked.connect(self.update_map)
@@ -142,6 +147,61 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         else:
             self.map.site_fill = False
         self.update_map()
+
+    def set_pt_scale(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Scale',
+                                                         'Value:',
+                                                         self.map.pt_scale,
+                                                         0.01, 100, 1)
+        if ok_pressed:
+            self.map.pt_scale = d
+            if not self.toggle_nonePhaseTensor.isChecked():
+                self.update_map()
+
+    def set_induction_scale(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Scale',
+                                                         'Value:',
+                                                         self.map.induction_scale,
+                                                         0.01, 100, 1)
+        if ok_pressed:
+            self.map.induction_scale = d
+            if self.toggle_dataInduction.isChecked() or self.toggle_responseInduction.isChecked():
+                self.update_map()
+
+    def set_induction_error_tol(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Tolerance',
+                                                         'Value:',
+                                                         self.map.induction_error_tol,
+                                                         0.01, 100, 0.1)
+        if ok_pressed:
+            self.map.induction_error_tol = d
+            if self.toggle_dataInduction.isChecked() or self.toggle_responseInduction.isChecked():
+                self.update_map()
+
+    def set_pt_rho_error_tol(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Tolerance',
+                                                         'Value:',
+                                                         self.map.rho_error_tol,
+                                                         0.0001, 100, 0.1)
+        if ok_pressed:
+            self.map.rho_error_tol = d
+            if not self.toggle_nonePhaseTensor.isChecked():
+                self.update_map()
+
+    def set_pt_phase_error_tol(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Tolerance',
+                                                         'Value:',
+                                                         self.map.phase_error_tol,
+                                                         0, 180, 1)
+        if ok_pressed:
+            self.map.phase_error_tol = d
+            if not self.toggle_nonePhaseTensor.isChecked():
+                self.update_map()
 
     def set_annotations(self):
         if self.actionAnnotate_All.isChecked():
