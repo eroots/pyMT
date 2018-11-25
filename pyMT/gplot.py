@@ -470,6 +470,7 @@ class MapView(object):
         if fig:
             self.window = {'figure': fig, 'axes': fig.axes, 'canvas': fig.canvas, 'colorbar': None}
         self.axis_padding = 0.1
+        self.fake_im = []
         self.colour = 'k'
         self.site_names = []
         self.site_data = {'raw_data': [], 'data': [], 'response': []}
@@ -493,6 +494,7 @@ class MapView(object):
         self.diff_cax = [-10, 10]
         self.padding_scale = 5
         self.plot_rms = False
+        self.use_colourbar = True
         self.pt_scale = 2
         self.induction_scale = 5
         self.induction_error_tol = 0.5
@@ -761,6 +763,7 @@ class MapView(object):
                     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
                     (phase_tensor.phasexy_error < self.phase_error_tol) and
                     (phase_tensor.phaseyx_error < self.phase_error_tol)):
+                # if True:
                     cont = 1
                     phi_x, phi_y = generate_ellipse(phase_tensor.phi)
                     norm_x, norm_y = (phi_x, phi_y)
@@ -819,13 +822,13 @@ class MapView(object):
             # self.window['axes'][0].plot(ellipse[0], ellipse[1],
             #                             'k-', linewidth=1)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
-        fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
+        self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
                                                  self.site_locations['all'][good_idx, 0],
                                                  c=fake_vals, cmap=self.cmap)
         # fake_im.colorbar()
-        fake_im.set_visible(False)
-        if not self.window['colorbar']:
-            self.window['colorbar'] = self.window['figure'].colorbar(mappable=fake_im)
+        self.fake_im.set_visible(False)
+        if not self.window['colorbar'] and self.use_colourbar:
+            self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
             label = self.get_label(fill_param)
             self.window['colorbar'].set_label(label,
                                               rotation=270,

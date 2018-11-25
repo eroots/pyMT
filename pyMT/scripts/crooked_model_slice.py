@@ -103,8 +103,6 @@ def interpolate_slice(x, y, Z, NP):
 #                     r'\MATLAB\MATLAB\Inversion\Regions' +
 #                     r'\abi-gren\New\j2')
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# used_data = WSDS.Data(datafile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.dat',
-#                  listfile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
@@ -115,6 +113,14 @@ mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5
           # np.array(seismic['y']) / 1000)
 # data.locations = data.get_locs(site_list=main_transect.site_names)
 azi = 35
+# azi = -15
+padding = 25000
+data.locations = data.get_locs(mode='latlong')
+for ii in range(len(data.locations)):
+        easting, northing = utils.project((data.locations[ii, 1],
+                                           data.locations[ii, 0]),
+                                          zone=16, letter='U')[2:]
+        data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 data.locations = utils.rotate_locs(data.locations, azi)
 origin = data.origin
 mod.origin = origin
@@ -134,8 +140,8 @@ for ii, site in enumerate(data.site_names):
 data.locations = np.delete(data.locations, idx, axis=0)
 data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
 # A little kludge to make sure the last few sites are in the right order (west-east)
-data.locations[0:8, :] = data.locations[np.flip(data.locations[0:8, 1].argsort())]
-X = np.linspace(data.locations[0, 0] - 10000, data.locations[0, 0], 20)
+data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
+X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], 20)
 Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
 qx = []
 qy = []
@@ -146,7 +152,7 @@ for ii in range(len(data.locations[:, 0]) - 1):
     Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
     qx.append(Y)
     qy.append(X)
-X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + 10000, 20)
+X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + padding, 20)
 Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
 qx.append(Y)
 qy.append(X)
@@ -157,8 +163,8 @@ kimberlines = []
 
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eric/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
-file_name = 'dryden_regional_model_0-5jetplus'
+file_path = r'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/'
+file_name = 'dryden_regional_model_0-5jetplus_lineardistance'
 file_types = ['.pdf', '.ps', '.png']
 title_ = 'Standard Inversion'
 
@@ -271,11 +277,11 @@ if reso:
 
 
 # Rotate locations back to true coordinates
-if azi:
-    data.locations = utils.rotate_locs(data.locations, azi=-azi)
-    p = utils.rotate_locs(np.array((qx, qy)).T, azi=-azi)
-    qx = p[:, 0]
-    qy = p[:, 1]
+# if azi:
+#     data.locations = utils.rotate_locs(data.locations, azi=-azi)
+#     p = utils.rotate_locs(np.array((qx, qy)).T, azi=azi)
+#     qx = p[:, 0]
+#     qy = p[:, 1]
 # cmap[..., -1] = reso.vals[:, 31, :]
 
 # I had to change the way things plotted, so isolum is unusable right now.
@@ -410,7 +416,7 @@ ax.tick_params(axis='both', labelsize=14)
 
 # divider = make_axes_locatable(ax)
 # cb_ax = divider.append_axes('right', size='2.5%', pad=0.1)
-# cb = plt.colorbar(im, cmap=cmap, cax=cb_ax)
+# cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='horizontal', extend='both')
 # cb.set_clim(cax[0], cax[1])
 # cb.ax.tick_params(labelsize=12)
 # cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',

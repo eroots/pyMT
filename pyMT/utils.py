@@ -1021,11 +1021,15 @@ def zone(coordinates):
     return int((coordinates[0] + 180) / 6) + 1
 
 
-def project(coordinates):
+def project(coordinates, zone=None, letter=None):
     def letter(coordinates):
         return 'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
-    z = zone(coordinates)
-    L = letter(coordinates)
+    if not(zone and letter):
+        z = zone(coordinates)
+        L = letter(coordinates)
+    else:
+        z = zone
+        L = letter
     if z not in _projections:
         _projections[z] = pyproj.Proj(proj='utm', zone=z, ellps='WGS84')
     x, y = _projections[z](coordinates[0], coordinates[1])

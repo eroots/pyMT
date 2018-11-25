@@ -13,12 +13,16 @@ cmap = cm.jet_plus(64)
 # listfile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\j2\allbb.lst')
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\j2\allbb.data')
 # datafile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/swz_cull1/swz_cull1f_Z.dat'
-datafile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/all_superior.data'
-listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/allbb.lst'
+datafile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/cull_allSuperior.data'
+listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/culled_allSuperior.lst'
 data = WSDS.Data(datafile=datafile, listfile=listfile)
 raw = WSDS.RawData(listfile=listfile)
+raw.locations = raw.get_locs(mode='latlong')
+for ii in range(len(raw.locations)):
+    lon, lat = utils.project((raw.locations[ii, 1], raw.locations[ii, 0]), zone=16, letter='U')[2:]
+    raw.locations[ii, 1], raw.locations[ii, 0] = lon, lat
 data.locations = raw.locations
-save_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/Pseudosections/'
+save_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/Pseudosections/culled/'
 # rmsites = [site for site in data.site_names if site[0] == 'e' or site[0] == 'd']
 # data.remove_sites(rmsites)
 # data.sort_sites(order='west-east')
@@ -40,7 +44,7 @@ for idx, period in enumerate(data.periods):
     phase_vals = []
     loc_z = []
     for dim in (0, 1):
-        for site in data.site_names:
+        for ii, site in enumerate(data.site_names):
             # for ii, p in enumerate(data.sites[site].periods):
                 # periods.append(p)
                 # bost2.append(bost[site][ii])
@@ -54,8 +58,8 @@ for idx, period in enumerate(data.periods):
                     rho_vals.append(np.log10(rho[site][idx]))
                     phase_vals.append(pha[site][idx])
                     # # Flip the coords here so X is west-east
-                    loc_y.append(raw.sites[site].locations['X'])
-                    loc_x.append(raw.sites[site].locations['Y'])
+                    loc_y.append(raw.locations[ii, 0])
+                    loc_x.append(raw.locations[ii, 1])
                     loc_z.append(dim)
     phase_vals = np.array(phase_vals)
     rho_vals = np.array(rho_vals)
@@ -71,8 +75,8 @@ for idx, period in enumerate(data.periods):
 
     grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp),
                                  np.linspace(min_y, max_y, n_interp))
-    step_size_x = (max_x - min_x) / n_interp
-    step_size_y = (max_y - min_y) / n_interp
+    step_size_x = np.ceil((max_x - min_x) / n_interp)
+    step_size_y = np.ceil((max_y - min_y) / n_interp)
     grid_ranges = [[min_x, max_x, step_size_x],
                    [min_y, max_y, step_size_y],
                    [0, 1, 1]]
@@ -80,7 +84,7 @@ for idx, period in enumerate(data.periods):
     # grid_pha = griddata(points, phase_vals, (grid_x, grid_y), method='linear')
     grid_rho = np.squeeze(nn.griddata(points, rho_vals, grid_ranges))
     # grid_pha = np.squeeze(nn.griddata(points, phase_vals, grid_ranges))
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111)
     # ax.plot(raw.locations[:, 1] / 1000, raw.locations[:, 0] / 1000, 'k.', markersize=1)
     plt.plot(loc_x / 1000, loc_y / 1000, 'k.', markersize=1)
@@ -89,19 +93,20 @@ for idx, period in enumerate(data.periods):
     # cax = divider.append_axes("right", size="5%", pad=0.05)
     # plt.colorbar(im, cax=cax)
     # cbaxes = fig.add_axes([0.9, -0.212, 0.05, 1.09])
-    # cb = plt.colorbar(im, cax=cbaxes)
-    ax.set_title('Period: {:5.5f}'.format(period))
-    ax.set_xlabel('Easting (km)')
-    ax.set_ylabel('Northing (km)')
+    # cb = plt.colorbar(im)
+    ax.set_title('Frequency: {:5.5f} Hz, Period: {:5.5f} s'.format(1 / period, period), fontsize=18)
+    ax.set_xlabel('Easting (km)', fontsize=18)
+    ax.set_ylabel('Northing (km)', fontsize=18)
     ax.set_aspect('equal')
+    ax.tick_params(axis='both', labelsize=14)
     # cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
     #              rotation=270,
     #              labelpad=30,
     #              fontsize=14)
     im.set_clim(rho_lim)
     # plt.gca().invert_yaxis()
-    plt.savefig(save_path + 'rho_' + str(idx) + '.pdf', dpi=600)
-    plt.savefig(save_path + 'rho_' + str(idx) + '.png', dpi=600)
+    plt.savefig(save_path + 'rho_' + str(idx) + '.pdf', dpi=600, bbox_inches='tight')
+    plt.savefig(save_path + 'rho_' + str(idx) + '.png', dpi=600, bbox_inches='tight')
     plt.close()
     # plt.figure(figsize=(8, 8))
     # ax = plt.gca()
@@ -123,4 +128,4 @@ for idx, period in enumerate(data.periods):
     # plt.savefig(save_path + 'pha_' + str(idx) + '.png', dpi=600)
     # # plt.gca().invert_yaxis()
     # plt.close()
-    # # plt.show()
+    # plt.show()
