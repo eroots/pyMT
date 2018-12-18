@@ -800,7 +800,7 @@ class MapView(object):
             lower, upper = (-90, 90)
         elif fill_param in ('delta'):
             lower, upper = (0, 100)
-        if fill_param not in ('delta'):
+        if fill_param not in ('delta', 'Lambda'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         fill_vals[fill_vals > upper] = upper
         fill_vals[fill_vals < lower] = lower

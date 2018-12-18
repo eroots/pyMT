@@ -11,6 +11,7 @@ from scipy.spatial.distance import euclidean
 
 cmap = cm.jet()
 
+
 def normalize_ellipse(phi):
     phi_min = abs(phi.phi_min)
     phi_max = abs(phi.phi_max)
@@ -68,14 +69,17 @@ if __name__ == '__main__':
     # filename = 'F:/GJH/TNG&MTR-EDI/all.lst'
     # filename = 'C:/users/eroots/phd/ownCloud/data/ArcMap/LegacyMT/ag_edi/ag/all.lst'
     # filename = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/GJH/ForEric/TNG&MTR-EDI/all.lst'
-    filename = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/cull_allSuperior.data'
-    listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/culled_allSuperior.lst'
-    out_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/'
+    # filename = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/cull_allSuperior.data'
+    # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/culled_allSuperior.lst'
+    # out_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/'
+    filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry5_3.dat'
+    listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
+    out_path = 'C:/Users/eroots/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/'
     out_file = 'wstSuperior_PT_noOutline_'
     ext = '.png'
     dpi = 600
     save_fig = 0
-    cutoff_distance = 20000
+    cutoff_distance = 1000
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
     # data.locations = rawdata.get_locs(mode='latlong')
@@ -113,7 +117,7 @@ if __name__ == '__main__':
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
-    for ii in range(20, 21):#len(data.periods[20:21])):
+    for ii in range(0, 1):#len(data.periods[20:21])):
         period = data.periods[ii]
         if period < 1:
             period = -1 / period

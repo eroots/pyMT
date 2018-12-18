@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-list_file = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/WinGLinkEDIs_final/plot.lst'
+# list_file = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/WinGLinkEDIs_final/plot.lst'
 # list_file = 'C:/Users/eric/ownCloud/data/Regions/swayze/j2/all.lst'
-
+list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/j2/allbb.lst'
 data = WSDS.RawData(list_file)
-sites = ['ATT019M', 'SWZ032M']
+# sites = ['ATT019M', 'SWZ032M']
+sites = ['p92001', 'p92002']
 axes = []
 fig = plt.figure(figsize=(12, 6))
 axes.append(plt.subplot2grid((3, 2), (0, 0), rowspan=2))
@@ -57,5 +58,5 @@ for ii, name in enumerate(sites):
     axes[(ii) * 2 + 1].tick_params(axis='both', labelsize=12)
 
 fig.tight_layout()
-plt.savefig('C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/data_example.png', dpi=300)
+# plt.savefig('C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/data_example.png', dpi=300)
 plt.show()

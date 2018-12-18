@@ -130,24 +130,28 @@ def interpolate_slice(x, y, Z, NP):
 # mod = WSDS.Model('F:/ownCloud/data/Regions/wst/wsSC1/wsSC_final.model')
 # data = WSDS.RawData(listfile='C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/southeastern_2.lst')
 # mod = WSDS.Model('C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/wsSE3_ModEM/wsSE3TF_final.model')
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-used_data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.dat',
-                 listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# used_data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_cull1i.dat',
+#                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
 # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
           # np.array(seismic['y']) / 1000)
 # data.locations = data.get_locs(site_list=main_transect.site_names)
-azi = 35
-# azi = -15
-padding = 25000
+main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
+data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R1North_cull2.lst')
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
+# azi = 35
+azi = -15
+# padding = 25000
+padding = 10000
 data.locations = data.get_locs(mode='latlong')
 for ii in range(len(data.locations)):
         easting, northing = utils.project((data.locations[ii, 1],
@@ -185,7 +189,7 @@ for ii, site in enumerate(data.site_names):
 data.locations = np.delete(data.locations, idx, axis=0)
 data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
 # A little kludge to make sure the last few sites are in the right order (west-east)
-data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
+# data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
 X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], 20)
 Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
 qx = []
@@ -208,8 +212,8 @@ kimberlines = []
 
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/'
-file_name = 'dryden_regional_model_0-5jetplus_lineardistance'
+file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
+file_name = 'swayze_R2North_20km_1-5jet'
 file_types = ['.pdf', '.ps', '.png']
 title_ = 'Standard Inversion'
 
@@ -222,7 +226,7 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 50]
+zlim = [0, 20]
 # zlim = [0, 400]
 lut = 64
 isolum = False
@@ -230,11 +234,11 @@ isolum = False
 # xlim = [-7, 74]
 # zlim = [0, 5]
 lut = 256
-cax = [0, 5]
+cax = [1, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-# cmap_name = 'jet_r'
+cmap_name = 'jet_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
@@ -242,7 +246,7 @@ isolum = 0
 # cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
-cmap_name = 'jetplus'
+# cmap_name = 'jetplus'
 
 x, y, z = [np.zeros((len(mod.dx) - 1)),
            np.zeros((len(mod.dy) - 1)),
@@ -303,8 +307,8 @@ vals = np.reshape(vals, [len(qx), len(qz)])
 if reso:
     alpha = interpolate_slice(y, z, alpha, 300)
 
-norm_vals = (vals - np.min(vals)) / \
-            (np.max(vals) - np.min(vals))
+norm_vals = (vals - min(cax[0], np.min(vals))) / \
+            (max(np.max(vals), cax[1]) - min(cax[0], np.min(vals)))
 if mode == 2:
     rgb = cmap(np.flipud(norm_vals.T))
     if reso:
@@ -322,11 +326,11 @@ if reso:
 
 
 # Rotate locations back to true coordinates
-# if azi:
-#     data.locations = utils.rotate_locs(data.locations, azi=-azi)
-#     p = utils.rotate_locs(np.array((qx, qy)).T, azi=azi)
-#     qx = p[:, 0]
-#     qy = p[:, 1]
+if azi:
+    data.locations = utils.rotate_locs(data.locations, azi=-azi)
+    p = utils.rotate_locs(np.array((qx, qy)).T, azi=azi)
+    qx = p[:, 0]
+    qy = p[:, 1]
 # cmap[..., -1] = reso.vals[:, 31, :]
 
 # I had to change the way things plotted, so isolum is unusable right now.
@@ -450,8 +454,10 @@ for ii in range(1, 2):
 
 ax.autoscale_view(tight=True)
 ax.tick_params(axis='both', labelsize=14)
-# locs = ax.plot(data.locations[1, :], np.zeros((data.locations.shape[1])) - 0.05, 'kv', markersize=10)[0]
-# locs.set_clip_on(False)
+locs = ax.plot(data.locations[:, 0] / 1000,
+               np.zeros((data.locations.shape[0])) - 0.5,
+               'kv', markersize=6)[0]
+locs.set_clip_on(False)
 # for label in ax.xaxis.get_ticklabels():
 #     label.set_visible(False)
 # for label in ax.yaxis.get_ticklabels():

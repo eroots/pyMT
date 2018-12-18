@@ -592,7 +592,8 @@ class Data(object):
                                         azimuth=site['azimuth'],
                                         errfloorZ=site.get('errFloorZ', 0),
                                         errfloorT=site.get('errFloorT', 0),
-                                        solve_static=site.get('SolveStatic', 0)
+                                        solve_static=site.get('SolveStatic', 0),
+                                        file_format=self.file_format
                                         )})
             # if not self.site_names:
             #     self.site_names = [site for site in self.sites.keys()]
@@ -1324,7 +1325,7 @@ class Site(object):
 
     def __init__(self, data={}, name='', periods=None, locations={},
                  errors={}, errmap=None, azimuth=None, flags=None,
-                 errfloorZ=None, errfloorT=None, solve_static=0):
+                 errfloorZ=None, errfloorT=None, solve_static=0, file_format=None):
         """Initialize a Site object.
         Data must a dictionary where the keys are acceptable tensor components,
         and the length matches the number of periods.
@@ -1352,6 +1353,7 @@ class Site(object):
                              'T': 0.05,
                              'Rho': 0.05,
                              'Phs': 0.05}
+        self.file_format = file_format
         self.phase_tensors = []
         if errfloorZ is None:
             self.errfloorZ = 0.075
@@ -1380,7 +1382,11 @@ class Site(object):
             print(self.name)
             self.used_error = {}
         # Add dummy data to missing components
-        self.apply_error_floor()
+        try:
+            if not self.file_format.lower() == 'modem':
+                self.apply_error_floor()
+        except AttributeError:
+            self.apply_error_floor()
         self.validate_data()
         self.validate_errors()
         if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)) \
@@ -2273,7 +2279,8 @@ class PhaseTensor(object):
         # beta = 0.5 * np.arctan(2 * phi_3 / 2 * phi_1)
         # beta = 0.5 * np.arctan2((self.phi[0, 0] + self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
         beta = 0.5 * np.arctan2((self.phi[0, 1] - self.phi[1, 0]), (self.phi[0, 0] + self.phi[1, 1]))
-        azimuth = 0.5 * np.pi - (alpha - beta)
+        # azimuth = 0.5 * np.pi - (alpha - beta)
+        azimuth = (alpha - beta)
         self.det_phi = (det_phi)
         self.skew_phi = skew_phi
         self.phi_1 = phi_1
