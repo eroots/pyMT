@@ -2133,6 +2133,7 @@ class RawData(object):
     def get_data(self, sites=None, periods=None, components=None,
                  lTol=None, hTol=None):
         self.set_tols(hTol=hTol, lTol=lTol, cTol=None)
+        auto_periods = False
         if sites is None:
             sites = self.sites
         # elif isinstance(sites, str):
@@ -2141,12 +2142,13 @@ class RawData(object):
             sites = {site_name: self.sites[site_name] for site_name in sites}
         if periods is None:
             periods = list(self.narrow_periods.keys())
+            auto_periods = True
         if components is None:
             components = []
             for comp in self.RAW_COMPONENTS:
                 components.append(''.join([comp, 'R']))
                 components.append(''.join([comp, 'I']))
-        if len(periods) > 16:
+        if len(periods) > 16 and auto_periods:
             minp = np.log10(min(periods))
             maxp = np.log10(max(periods))
             logp = np.logspace(minp, maxp, 12)

@@ -646,13 +646,14 @@ class MapView(object):
         else:
             marker = self.site_marker
             facecolour = self.facecolour
-        self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
-                                       self.site_locations['generic'][:, 0],
-                                       marker=marker,
-                                       s=marker_size['generic'],
-                                       edgecolors=self.site_colour,
-                                       linewidths=self.edgewidth,
-                                       facecolors=facecolour)
+        if not self.site_locations['generic'] == []:
+            self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
+                                           self.site_locations['generic'][:, 0],
+                                           marker=marker,
+                                           s=marker_size['generic'],
+                                           edgecolors=self.site_colour,
+                                           linewidths=self.edgewidth,
+                                           facecolors=facecolour)
         if self.active_sites:
             self.window['axes'][0].scatter(self.site_locations['active'][:, 1],
                                            self.site_locations['active'][:, 0],
@@ -819,8 +820,8 @@ class MapView(object):
                                         zorder=0,
                                         edgecolor='k',
                                         linewidth=2)
-            # self.window['axes'][0].plot(ellipse[0], ellipse[1],
-            #                             'k-', linewidth=1)
+            self.window['axes'][0].plot(ellipse[0], ellipse[1],
+                                        'k-', linewidth=1)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
         self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
                                                  self.site_locations['all'][good_idx, 0],
