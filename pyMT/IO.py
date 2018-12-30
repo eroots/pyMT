@@ -883,9 +883,12 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
         temp_inv_type = []
         actual_inv_type = copy.deepcopy(data.inv_type)
         with open(out_file, 'w') as f:
-            title = '# Written using pyMT. UTM Zone: {}\n' + \
-                    '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
-                    'Component Real Imag Error\n'.format(data.UTM_zone)
+            z_title = '# Written using pyMT. UTM Zone: {}\n' + \
+                      '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
+                      'Component Real Imag Error\n'.format(data.UTM_zone)
+            pt_title = '# Written using pyMT. UTM Zone: {}\n' + \
+                       '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
+                       'Component Value Error\n'.format(data.UTM_zone)
             if data.inv_type == 1:
                 data_type.append('> Full_Impedance\n')
                 units.append('> Ohm\n')
@@ -912,41 +915,92 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                 units.append('> []\n')
                 temp_inv_type.append(1)
                 temp_inv_type.append(3)
+            elif data.inv_type == 6:
+                data_type.append('> Phase_Tensor\n')
+                units.append('> []\n')
+                temp_inv_type.append(6)
             print(data.inv_type)
             print(temp_inv_type)
-            for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
-                f.write(title)
-                f.write(data_type_string)
-                f.write('> exp(-i\\omega t)\n')
-                f.write(unit)
-                f.write('> {}\n'.format(data.azimuth))
-                f.write('> 0.0 0.0 0.0\n')
-                f.write('> {} {}\n'.format(data.NP, data.NS))
-                data.inv_type = inv_type
-                components_to_write = [component for component in data.used_components
-                                       if 'i' not in component.lower()]
-                for ii, site_name in enumerate(data.site_names):
-                    site = data.sites[site_name]
-                    for jj, period in enumerate(data.periods):
-                        for component in components_to_write:
-                            component_code = component[:3]
-                            if 'T' in component.upper():
-                                component_code = component_code[0] + component_code[2]
-                            Z_real = site.data[component][jj]
-                            Z_imag = site.data[component[:3] + 'I'][jj]
-                            X, Y, Z = site.locations['X'], site.locations['Y'], site.locations.get('elev', 0)
-                            X, Y, Z = data.locations[ii, 0], data.locations[ii, 1], site.locations.get('elev', 0)
-                            Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                            f.write(' '.join(['{:>14.7E} {}',
-                                              '{:>8.3f} {:>8.3f}',
-                                              '{:>15.3f} {:>15.3f} {:>15.3f}',
-                                              '{:>6} {:>14.7E} {:>14.7E}',
-                                              '{:>14.7E}\n']).format(
-                                    period, site_name,
-                                    Lat, Long,
-                                    X, Y, Z,
-                                    component_code.upper(), Z_real, Z_imag,
-                                    site.used_error[component][jj]))
+            # If inverting impedanaces or tipper
+            if data.inv_type <= 5:
+                for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                    f.write(z_title)
+                    f.write(data_type_string)
+                    f.write('> exp(-i\\omega t)\n')
+                    f.write(unit)
+                    f.write('> {}\n'.format(data.azimuth))
+                    f.write('> 0.0 0.0 0.0\n')
+                    f.write('> {} {}\n'.format(data.NP, data.NS))
+                    data.inv_type = inv_type
+                    components_to_write = [component for component in data.used_components
+                                           if 'i' not in component.lower()]
+                    for ii, site_name in enumerate(data.site_names):
+                        site = data.sites[site_name]
+                        for jj, period in enumerate(data.periods):
+                            for component in components_to_write:
+                                component_code = component[:3]
+                                if 'T' in component.upper():
+                                    component_code = component_code[0] + component_code[2]
+                                Z_real = site.data[component][jj]
+                                Z_imag = site.data[component[:3] + 'I'][jj]
+                                X, Y, Z = (site.locations['X'],
+                                           site.locations['Y'],
+                                           site.locations.get('elev', 0))
+                                X, Y, Z = (data.locations[ii, 0],
+                                           data.locations[ii, 1],
+                                           site.locations.get('elev', 0))
+                                Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                                f.write(' '.join(['{:>14.7E} {}',
+                                                  '{:>8.3f} {:>8.3f}',
+                                                  '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                                  '{:>6} {:>14.7E} {:>14.7E}',
+                                                  '{:>14.7E}\n']).format(
+                                        period, site_name,
+                                        Lat, Long,
+                                        X, Y, Z,
+                                        component_code.upper(), Z_real, Z_imag,
+                                        site.used_error[component][jj]))
+            # If inv_type is greater than 5, do phase tensors?
+            else:
+                for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                    f.write(pt_title)
+                    f.write(data_type_string)
+                    f.write('> exp(-i\\omega t)\n')
+                    f.write(unit)
+                    f.write('> {}\n'.format(data.azimuth))
+                    f.write('> 0.0 0.0 0.0\n')
+                    f.write('> {} {}\n'.format(data.NP, data.NS))
+                    data.inv_type = inv_type
+                    components_to_write = ['PTXX', 'PTXY', 'PTYX', 'PTYY']
+                    for ii, site_name in enumerate(data.site_names):
+                        site = data.sites[site_name]
+                        for jj, period in enumerate(data.periods):
+                            for kk, component in enumerate(components_to_write):
+                                component_code = component[:]
+                                if kk == 0:  # PTXX
+                                    value = site.phase_tensors[jj].phi[0, 0]
+                                elif kk == 1:  # PTXY - Remember X and Y are switched for Caldwell's def
+                                    value = site.phase_tensors[jj].phi[1, 0]
+                                elif kk == 2:  # PTYX
+                                    value = site.phase_tensors[jj].phi[0, 1]
+                                elif kk == 3:  # PTYY
+                                    value = site.phase_tensors[jj].phi[1, 1]
+                                X, Y, Z = (site.locations['X'],
+                                           site.locations['Y'],
+                                           site.locations.get('elev', 0))
+                                X, Y, Z = (data.locations[ii, 0],
+                                           data.locations[ii, 1],
+                                           site.locations.get('elev', 0))
+                                Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                                f.write(' '.join(['{:>14.7E} {}',
+                                                  '{:>8.3f} {:>8.3f}',
+                                                  '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                                  '{:>6} {:>14.7E} {:>14.7E}\n']).format(
+                                        period, site_name,
+                                        Lat, Long,
+                                        X, Y, Z,
+                                        component_code.upper(), value,
+                                        value * 0.1))
         data.inv_type = actual_inv_type
 
     def write_MARE2DEM(data, out_file):

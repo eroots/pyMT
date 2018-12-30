@@ -74,11 +74,11 @@ if __name__ == '__main__':
     # out_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/'
     filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry5_3.dat'
     listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
-    out_path = 'C:/Users/eroots/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/'
-    out_file = 'wstSuperior_PT_noOutline_'
+    out_path = 'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/PTs/'
+    out_file = 'dryden_PT_'
     ext = '.png'
     dpi = 600
-    save_fig = 0
+    save_fig = 1
     cutoff_distance = 1000
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
@@ -111,13 +111,13 @@ if __name__ == '__main__':
     MV.site_names = data.site_names
     MV.padding_scale = 10
     MV.pt_scale = 1
-    MV.phase_error_tol = 5
-    MV.rho_error_tol = 1
+    MV.phase_error_tol = 1000
+    MV.rho_error_tol = 1000
     # # MV.site_locations['generic'] = MV.get_locations(sites=MV.generic_sites)
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
-    for ii in range(0, 1):#len(data.periods[20:21])):
+    for ii in range(len(data.periods)):
         period = data.periods[ii]
         if period < 1:
             period = -1 / period
@@ -126,7 +126,7 @@ if __name__ == '__main__':
                              fill_param='beta', period_idx=ii)
         # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
         if save_fig:
-            plt.savefig(out_path + out_file + period + ext, dpi=dpi,
+            plt.savefig(out_path + out_file + str(ii) + ext, dpi=dpi,
                         transparent=True)
             ax.clear()
         else:

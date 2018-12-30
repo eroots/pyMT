@@ -138,18 +138,18 @@ def interpolate_slice(x, y, Z, NP):
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
 # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
           # np.array(seismic['y']) / 1000)
 # data.locations = data.get_locs(site_list=main_transect.site_names)
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R1North_cull2.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
-# azi = 35
-azi = -15
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R1North_cull2.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
+azi = 35
+# azi = -15
 # padding = 25000
 padding = 10000
 data.locations = data.get_locs(mode='latlong')
@@ -212,8 +212,8 @@ kimberlines = []
 
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
-file_name = 'swayze_R2North_20km_1-5jet'
+file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
+file_name = 'dryden_0-5grey'
 file_types = ['.pdf', '.ps', '.png']
 title_ = 'Standard Inversion'
 
@@ -226,7 +226,7 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 20]
+zlim = [0, 50]
 # zlim = [0, 400]
 lut = 64
 isolum = False
@@ -234,11 +234,12 @@ isolum = False
 # xlim = [-7, 74]
 # zlim = [0, 5]
 lut = 256
-cax = [1, 5]
+cax = [0, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-cmap_name = 'jet_r'
+# cmap_name = 'jet_r'
+cmap_name = 'gray'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'

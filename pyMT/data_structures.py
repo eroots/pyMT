@@ -1541,6 +1541,7 @@ class Site(object):
             new_errors = np.maximum.reduce([floor_errors[component],
                                             self.errors[component] * self.errmap[component]])
             self.used_error[component] = new_errors
+            self.errors[component] = new_errors
 
         # if errfloorZ is None:
         #     errfloorZ = self.errfloorZ
