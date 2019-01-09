@@ -626,6 +626,8 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 else:
                     inv_type = 2
             #     # components = ('ZXY', 'ZYX')
+            elif data_type == 'Phase_Tensor':
+                inv_type = 6
             for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
                 line = line_string.split()
                 periods.append(float(line[0]))
@@ -644,25 +646,35 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 site_locations[site_name]['elev'] = Z
 
                 component = line[7]
-                real, imag = [float(x) for x in line[8:10]]
-                error = float(line[10])
-                if component == 'TX' or component == 'TY':
-                    component = component[0] + 'Z' + component[1]
-                if component + 'R' not in site_data[site_name].keys():
-                    site_data[site_name].update({component + 'R': []})
-                if component + 'I' not in site_data[site_name].keys():
-                    site_data[site_name].update({component + 'I': []})
-                if component + 'R' not in site_error[site_name].keys():
-                    site_error[site_name].update({component + 'R': []})
-                if component + 'I' not in site_error[site_name].keys():
-                    site_error[site_name].update({component + 'I': []})
-                # if component not in site_errmap.keys():
-                #     site_errmap[site_name].update({component + 'R': []})
-                #     site_errmap[site_name].update({component + 'I': []})
-                site_data[site_name][component + 'R'].append(real)
-                site_data[site_name][component + 'I'].append(imag)
-                site_error[site_name][component + 'R'].append(error)
-                site_error[site_name][component + 'I'].append(error)
+                if inv_type <= 5:
+                    real, imag = [float(x) for x in line[8:10]]
+                    error = float(line[10])
+                    if component == 'TX' or component == 'TY':
+                        component = component[0] + 'Z' + component[1]
+                    if component + 'R' not in site_data[site_name].keys():
+                        site_data[site_name].update({component + 'R': []})
+                    if component + 'I' not in site_data[site_name].keys():
+                        site_data[site_name].update({component + 'I': []})
+                    if component + 'R' not in site_error[site_name].keys():
+                        site_error[site_name].update({component + 'R': []})
+                    if component + 'I' not in site_error[site_name].keys():
+                        site_error[site_name].update({component + 'I': []})
+                    # if component not in site_errmap.keys():
+                    #     site_errmap[site_name].update({component + 'R': []})
+                    #     site_errmap[site_name].update({component + 'I': []})
+                    site_data[site_name][component + 'R'].append(real)
+                    site_data[site_name][component + 'I'].append(imag)
+                    site_error[site_name][component + 'R'].append(error)
+                    site_error[site_name][component + 'I'].append(error)
+                else:
+                    real = float(line[8])
+                    error = float(line[9])
+                    if component not in site_data[site_name].keys():
+                        site_data[site_name].update({component: []})
+                    if component not in site_error[site_name].keys():
+                        site_error[site_name].update({component: []})
+                    site_data[site_name][component].append(real)
+                    site_error[site_name][component].append(error)
                 # print(site_data[site_lookup[code]][component + 'R'])
         periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
@@ -975,16 +987,17 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                     for ii, site_name in enumerate(data.site_names):
                         site = data.sites[site_name]
                         for jj, period in enumerate(data.periods):
-                            for kk, component in enumerate(components_to_write):
+                            for component in components_to_write:
                                 component_code = component[:]
-                                if kk == 0:  # PTXX
-                                    value = site.phase_tensors[jj].phi[0, 0]
-                                elif kk == 1:  # PTXY - Remember X and Y are switched for Caldwell's def
-                                    value = site.phase_tensors[jj].phi[1, 0]
-                                elif kk == 2:  # PTYX
-                                    value = site.phase_tensors[jj].phi[0, 1]
-                                elif kk == 3:  # PTYY
+                                # Remember X and Y are switched for Caldwell's def
+                                if component == 'PTXX':  # PTXX
                                     value = site.phase_tensors[jj].phi[1, 1]
+                                elif component == 'PTXY':  # PTXY
+                                    value = site.phase_tensors[jj].phi[1, 0]
+                                elif component == 'PTYX':  # PTYX
+                                    value = site.phase_tensors[jj].phi[0, 1]
+                                elif component == 'PTYY':  # PTYY
+                                    value = site.phase_tensors[jj].phi[0, 0]
                                 X, Y, Z = (site.locations['X'],
                                            site.locations['Y'],
                                            site.locations.get('elev', 0))
@@ -1000,7 +1013,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                         Lat, Long,
                                         X, Y, Z,
                                         component_code.upper(), value,
-                                        value * 0.1))
+                                        abs(value * 0.1)))
         data.inv_type = actual_inv_type
 
     def write_MARE2DEM(data, out_file):
