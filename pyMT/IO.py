@@ -1407,44 +1407,76 @@ def write_list(data, outfile):
 
 
 def write_model(model, outfile, file_format='modem'):
-    if '.model' not in outfile:
-        outfile = ''.join([outfile, '.model'])
-    is_half_space = int(model.is_half_space())
-    if file_format.lower() == 'modem':
-        header_four = 'LOGE'
-        is_half_space = 0
-    else:
-        header_four = ''
-    with open(outfile, 'w') as f:
-        f.write('{}\n'.format(outfile))
-        f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
-        for x in model.xCS:
-            f.write('{:<10.7f}  '.format(x))
-        f.write('\n')
-        for y in model.yCS:
-            f.write('{:<10.7f}  '.format(y))
-        f.write('\n')
-        for z in model.zCS:
-            f.write('{:<10.7f}  '.format(z))
-        f.write('\n')
-        if header_four == 'LOGE':
-            if np.any(model.vals < 0):
-                print('Negative values detected in model.')
-                print('I hope you know what you\'re doing.')
-                vals = np.sign(model.vals) * np.log(np.abs(model.vals))
-                vals = np.nan_to_num(vals)
+    def to_ubc(model, outfile):
+        file_name, ext = os.path.splitext(outfile)
+        with open(file_name + '.msh', 'w') as f:
+            f.write('{:<5d}{:<5d}{:<5d}\n'.format(model.ny, model.nx, model.nz))
+            f.write('{:<14.7f} {:<14.7f} {:<14.7f}\n'.format(model.dy[0],
+                                                             model.dx[0],
+                                                             model.dz[0]))
+            for y in model.yCS:
+                f.write('{:<10.7f} '.format(y))
+            f.write('\n')
+            for x in model.xCS:
+                f.write('{:<10.7f} '.format(x))
+            f.write('\n')
+            for z in model.zCS:
+                f.write('{:<10.7f} '.format(z))
+
+        with open(file_name + '.res', 'w') as f:
+            for ix in range(model.nx):
+                for iy in range(model.ny):
+                    for iz in range(model.nz):
+                        f.write('{:<10.7f}\n'.format(model.vals[ix, iy, iz]))
+
+    def write_inv_model(model, outfile, file_format):
+        if '.model' not in outfile:
+            outfile = ''.join([outfile, '.model'])
+        is_half_space = int(model.is_half_space())
+        if file_format.lower() == 'modem':
+            header_four = 'LOGE'
+            is_half_space = 0
+        else:
+            header_four = ''
+        with open(outfile, 'w') as f:
+            f.write('{}\n'.format(outfile))
+            f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
+            for x in model.xCS:
+                f.write('{:<10.7f}  '.format(x))
+            f.write('\n')
+            for y in model.yCS:
+                f.write('{:<10.7f}  '.format(y))
+            f.write('\n')
+            for z in model.zCS:
+                f.write('{:<10.7f}  '.format(z))
+            f.write('\n')
+            if header_four == 'LOGE':
+                if np.any(model.vals < 0):
+                    print('Negative values detected in model.')
+                    print('I hope you know what you\'re doing.')
+                    vals = np.sign(model.vals) * np.log(np.abs(model.vals))
+                    vals = np.nan_to_num(vals)
+                else:
+                    vals = np.log(model.vals)
             else:
-                vals = np.log(model.vals)
-        else:
-            vals = model.vals
-        if is_half_space and header_four != 'LOGE':
-            f.write(str(model.vals[0, 0, 0]))
-        else:
-            for zz in range(model.nz):
-                for yy in range(model.ny):
-                    for xx in range(model.nx):
-                        # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
-                        f.write('{:<10.7f}\n'.format(vals[model.nx - xx - 1, yy, zz]))
+                vals = model.vals
+            if is_half_space and header_four != 'LOGE':
+                f.write(str(model.vals[0, 0, 0]))
+            else:
+                for zz in range(model.nz):
+                    for yy in range(model.ny):
+                        for xx in range(model.nx):
+                            # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                            f.write('{:<10.7f}\n'.format(vals[model.nx - xx - 1, yy, zz]))
+    if file_format.lower() in ('modem', 'wsinv', 'wsinv3dmt'):
+        write_inv_model(model=model, outfile=outfile, file_format=file_format)
+    elif file_format.lower() in ('ubc', 'ubc-gif'):
+        to_ubc(model=model, outfile=outfile)
+    else:
+        print('File format {} not supported'.format(file_format))
+        print('Supported formats are: ')
+        print('ModEM, WSINV3DMT, UBC-GIF')
+        return
 
 
 def read_occam_data(datafile):

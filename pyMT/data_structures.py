@@ -5,6 +5,7 @@ import os
 from pyMT.WSExceptions import WSFileError
 import pyMT.utils as utils
 import pyMT.IO as WS_io
+from copy import deepcopy
 
 
 # ==========TODO=========== #
@@ -344,17 +345,26 @@ class Dataset(object):
             for comp in self.data.sites[site].components:
                 if comp[0].lower() in 'ztp':
                     error_map = np.zeros(data_site.data[comp].shape)
+                if comp[0].lower() in 'zt':
+                    if comp[0].lower == 'z':
+                        scale = np.sqrt(raw_site.periods)
+                    else:
+                        scale = 1
+                    # error_map = np.zeros(data_site.data[comp].shape)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
-                                                          np.sqrt(raw_site.periods) * raw_site.data[comp],
+                                                          scale * raw_site.data[comp],
                                                           fwidth=fwidth, use_log=use_log)
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))
-                        max_error = multiplier * abs(np.sqrt(p) * data_site.data[comp][ii] -
+                        max_error = multiplier * abs(scale * data_site.data[comp][ii] -
                                                      smoothed_data[ind])
-                        error_map[ii] = min([data_site.errmap[comp][ii],
-                                             np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
+                        # error_map[ii] = min([data_site.errmap[comp][ii],
+                        # np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
+                        self.data.sites[site].errors[comp][ii] = max_error
+                        self.data.sites[site].used_error[comp][ii] = max_error
+                        self.data.sites[site].errmap[comp][ii] = 1
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
-                    self.data.sites[site].errmap[comp] = error_map
+                    # self.data.sites[site].errmap[comp] = error_map
             self.data.sites[site].apply_error_floor()
 
     def apply_error_floor(self):
@@ -1396,7 +1406,7 @@ class Site(object):
         if not self.errmap or utils.is_all_empties(self.errmap):
             self.errmap = self.generate_errmap(mult=1)
         try:
-            self.used_error = {component: self.errors[component] for component in self.components}
+            self.used_error = {component: deepcopy(self.errors[component]) for component in self.components}
         except KeyError:
             print('Error information not available.')
             print(self.name)
@@ -1574,8 +1584,8 @@ class Site(object):
         for component in self.components:
             new_errors = np.maximum.reduce([floor_errors[component],
                                             self.errors[component] * self.errmap[component]])
-            self.used_error[component] = new_errors
-            self.errors[component] = new_errors
+            self.used_error[component] = deepcopy(new_errors)
+            self.errors[component] = deepcopy(new_errors)
 
         # if errfloorZ is None:
         #     errfloorZ = self.errfloorZ
@@ -1811,12 +1821,15 @@ class Site(object):
         for comp in comps:
             for period in periods:
                 ind = np.argmin(abs(self.periods - period))
+                print(self.errors[comp][ind])
                 if multiplicative:
                     self.errmap[comp][ind] = mult * self.errmap[comp][ind]
                 else:
                     self.errmap[comp][ind] = mult
+                    # print(mult)
                 self.used_error[comp][ind] = self.errors[comp][ind] * self.errmap[comp][ind]
-        self.apply_error_floor()
+                print(self.errors[comp][ind])
+        # self.apply_error_floor()
 
     @utils.enforce_input(components=list)
     def remove_components(self, components):
