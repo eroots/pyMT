@@ -373,7 +373,7 @@ class Dataset(object):
         NP = self.data.NP
         NS = self.data.NS
         NR = self.data.NR
-        components = self.data.components
+        components = list(self.data.components)
         if NS == 0 or NR == 0 or NP == 0:
             return None
         if NP != self.response.NP:
@@ -443,7 +443,7 @@ class Data(object):
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
                            'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat'}
-    INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',
+    INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
                            'ZXYR', 'ZXYI',
                            'ZYXR', 'ZYXI',
                            'ZYYR', 'ZYYI'),
@@ -461,31 +461,33 @@ class Data(object):
                            'TZYR', 'TZYI',
                            'ZXXR', 'ZXXI',
                            'ZYYR', 'ZYYI'),
-                       6: ('RhoZXX', 'PhszXX',
+                       6: ('PTXX', 'PTXY',  # 6 is ModEM Phase Tensor inversion
+                           'PTYX', 'PTYY'),
+                       7: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
                            'RhoZXY', 'PhszXY',
                            'RhoZYX', 'PhszYX',
                            'RhoZYY', 'PhszYY'),
-                       7: ('RhoZXY', 'PhsZXY',
+                       8: ('RhoZXY', 'PhsZXY',
                            'RhoZYX', 'PhsZYX'),
-                       8: ('TZYR', 'TZYI'),
-                       9: ('RhoZXY', 'PhsZXY',
-                           'RhoZYX', 'PhsZYX',
-                           'TZYR', 'TZYI'),
-                       10: ('RhoZXX', 'PhsZXX',
+                       9: ('TZYR', 'TZYI'),
+                       10: ('RhoZXY', 'PhsZXY',
+                            'RhoZYX', 'PhsZYX',
+                            'TZYR', 'TZYI'),
+                       11: ('RhoZXX', 'PhsZXX',
                             'RhoZXY', 'PhsZXY',
                             'RhoZYX', 'PhsZYX',
                             'RhoZYY', 'PhsZYY',
                             'TZYR', 'TZYI'),
-                       11: ('log10RhoZXX', 'PhsZXX',
+                       12: ('log10RhoZXX', 'PhsZXX',
                             'log10RhoXY', 'PhsXY',
                             'log10RhoYX', 'PhsYX',
                             'log10RhoYY', 'PhsYY'),
-                       12: ('log10RhoZXY', 'PhsZXY',
-                            'log10RhoZYX', 'PhsZYX'),
                        13: ('log10RhoZXY', 'PhsZXY',
+                            'log10RhoZYX', 'PhsZYX'),
+                       14: ('log10RhoZXY', 'PhsZXY',
                             'log10RhoZYX', 'PhsZYX',
                             'TZYR', 'TZYI'),
-                       14: ('log10RhoZXX', 'PhsZXX',
+                       15: ('log10RhoZXX', 'PhsZXX',
                             'log10RhoZXY', 'PhsZXY',
                             'log10RhoZYX', 'PhsZYX',
                             'log10RhoZYY', 'PhsZYY',
@@ -635,40 +637,44 @@ class Data(object):
             self.inv_type = 5
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[6]):
-            #  Full Rho + Phase
+            #  Phase Tensor
             self.inv_type = 6
+
+        elif set(self.used_components) == set(Data.INVERSION_TYPES[6]):
+            #  Full Rho + Phase
+            self.inv_type = 7
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[7]):
             #  Off-Diagonal Rho + Phase
-            self.inv_type = 7
+            self.inv_type = 8
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[8]):
             #  2-D Tip
-            self.inv_type = 8
+            self.inv_type = 9
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[9]):
             #  Off-Diagonal Rho + Phase + 2-D Tipper
-            self.inv_type = 9
+            self.inv_type = 10
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[10]):
             #  Full Rho + Phase + 2-D Tipper
-            self.inv_type = 10
+            self.inv_type = 11
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[11]):
             #  Full log10Rho + Phase
-            self.inv_type = 11
+            self.inv_type = 12
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[12]):
             #  Off-Diagonal log10Rho + Phase
-            self.inv_type = 12
+            self.inv_type = 13
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[13]):
             #  Off-Diagonal log10Rho + Phase + 2-D Tipper
-            self.inv_type = 13
+            self.inv_type = 14
 
         elif set(self.used_components) == set(Data.INVERSION_TYPES[14]):
             #  Full Rho + Phase + 2-D Tipper
-            self.inv_type = 14
+            self.inv_type = 15
 
     def print_lowest_errors(self, components=None):
         all_actual, all_used = ([], [])
@@ -1325,6 +1331,8 @@ class Site(object):
                             'ZYXR', 'ZYXI')
     TIPPER_COMPONENTS = ('TZXR', 'TZXI',
                          'TZYR', 'TZYI')
+    PHASE_TENSOR_COMPONENTS = ('PTXX', 'PTXY',
+                               'PTYX', 'PTYY')
     HIGHFREQ_FLAG = -9
     DIAG_FLAG = -99
     OUTLIER_FLAG = -999
@@ -1360,7 +1368,7 @@ class Site(object):
         self.error_floors = {'Z': 0.075,
                              'T': 0.05,
                              'Rho': 0.05,
-                             'Phs': 0.05}
+                             'Phs': 0.03}
         self.file_format = file_format
         self.phase_tensors = []
         if errfloorZ is None:
@@ -1471,7 +1479,7 @@ class Site(object):
         for component in components:
             if 'log10' in component:
                 new_errors = np.log10(1 + error_floors['Rho']) * np.ones(self.data[component].shape)
-            elif 'phs' in component.lower():
+            elif ('phs' in component.lower()) or ('pt' in component.lower()):
                 new_errors = error_floors['Phs'] * 100 * np.ones(self.data[component].shape)
             elif component.startswith('Z'):
                 if 'XX' in component or 'YY' in component:
@@ -1936,16 +1944,31 @@ class Site(object):
 
     def calculate_phase_tensors(self):
         self.phase_tensors = []
-        rhoxy, rhoxy_err, rhoxy_log10err = utils.compute_rho(self, calc_comp='xy', errtype='used_error')
-        rhoyx, rhoyx_err, rhoyx_log10err = utils.compute_rho(self, calc_comp='yx', errtype='used_error')
-        phaxy, phaxy_err = utils.compute_phase(self, calc_comp='xy', errtype='used_error')
-        phayx, phayx_err = utils.compute_phase(self, calc_comp='yx', errtype='used_error')
+        if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)):
+            rhoxy, rhoxy_err, rhoxy_log10err = utils.compute_rho(self, calc_comp='xy', errtype='used_error')
+            rhoyx, rhoyx_err, rhoyx_log10err = utils.compute_rho(self, calc_comp='yx', errtype='used_error')
+            phaxy, phaxy_err = utils.compute_phase(self, calc_comp='xy', errtype='used_error')
+            phayx, phayx_err = utils.compute_phase(self, calc_comp='yx', errtype='used_error')
 
-        for ii, period in enumerate(self.periods):
-            Z = {impedance: self.data[impedance][ii] for impedance in self.data.keys()}
-            self.phase_tensors.append(PhaseTensor(period=period, Z=Z,
-                                                  rho=[rhoxy[ii], rhoyx[ii], rhoxy_err[ii], rhoyx_err[ii]],
-                                                  phase=[phaxy[ii], phayx[ii], phaxy_err[ii], phayx_err[ii]]))
+            for ii, period in enumerate(self.periods):
+                Z = {impedance: self.data[impedance][ii] for impedance in self.IMPEDANCE_COMPONENTS}
+                self.phase_tensors.append(PhaseTensor(period=period, Z=Z,
+                                                      rho=[rhoxy[ii], rhoyx[ii],
+                                                           rhoxy_err[ii], rhoyx_err[ii]],
+                                                      phase=[phaxy[ii], phayx[ii],
+                                                             phaxy_err[ii], phayx_err[ii]]))
+        else:
+            print('Phase tensor calculation requires all impedance components.')
+            print('If input data is phase tensors, use "define_phase_tensor" method instead.')
+
+    def define_phase_tensor(self):
+        self.phase_tensors = []
+        if set(self.PHASE_TENSOR_COMPONENTS).issubset(set(self.components)):
+            for ii, period in enumerate(self.periods):
+                phi = {component: self.data[component][ii] for component in self.PHASE_TENSOR_COMPONENTS}
+                phi_error = {component: self.used_error[component][ii]
+                             for component in self.PHASE_TENSOR_COMPONENTS}
+                self.phase_tensors.append(PhaseTensor(period=period, phi=phi, phi_error=phi_error))
 
 
 class RawData(object):
@@ -2219,7 +2242,7 @@ class RawData(object):
 
 
 class PhaseTensor(object):
-    def __init__(self, period, Z=None, rho=None, phase=None):
+    def __init__(self, period, Z=None, rho=None, phase=None, phi=None):
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.period = period
         self.Z = Z
@@ -2233,6 +2256,10 @@ class PhaseTensor(object):
         self.beta = 0
         self.Lambda = 0
         self.azimuth = 0
+        if not rho:
+            rho = (0, 0, 0, 0)
+        if not phase:
+            phase = (0, 0, 0, 0)
         self.rhoxy = rho[0]
         self.rhoyx = rho[1]
         self.phasexy = phase[0]
@@ -2243,11 +2270,14 @@ class PhaseTensor(object):
         self.phaseyx_error = phase[3]
         if Z:
             self.valid_data = True
+            self.form_tensors(Z)
+            self.calculate_phase_tensor()
+        elif phi:
+            self.valid_data = True
+            self.phi
         else:
             self.valid_data = False
         if self.valid_data:
-            self.form_tensors(Z)
-            self.calculate_phase_tensor()
             self.calculate_phase_parameters()
 
     def form_tensors(self, Z):
