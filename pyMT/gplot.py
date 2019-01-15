@@ -400,6 +400,23 @@ class DataPlotManager(object):
                                                     wrap=self.wrap)
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
                         toplotErr = e
+                elif 'pt' in comp.lower():
+                    # If PTs are actually the inverted data, take them directly from the site
+                    if comp in site.components:
+                        toplot = site.data[comp]
+                        e = site.used_error[comp]
+                    # Otherwise use the associated PT object
+                    else:
+                        toplot = np.array([getattr(site.phase_tensors[ii],
+                                                   comp.upper())
+                                           for ii in range(site.NP)])
+                        e = np.array([getattr(site.phase_tensors[ii],
+                                              comp.upper() + '_error')
+                                      for ii in range(site.NP)])
+                    # Convert to degrees
+                    toplot = np.rad2deg(np.arctan(toplot))
+                    if Type.lower() != 'response' and self.errors.lower() != 'none':
+                        toplotErr = np.rad2deg(np.arctan(e))
                 elif 'bost' in comp.lower():
                     toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
                     toplot = np.log10(toplot)

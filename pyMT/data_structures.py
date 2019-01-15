@@ -342,7 +342,7 @@ class Dataset(object):
             raw_site = self.raw_data.sites[site]
             data_site = self.data.sites[site]
             for comp in self.data.sites[site].components:
-                if comp[0].lower() in 'zt':
+                if comp[0].lower() in 'ztp':
                     error_map = np.zeros(data_site.data[comp].shape)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
                                                           np.sqrt(raw_site.periods) * raw_site.data[comp],
@@ -431,7 +431,17 @@ class Data(object):
                            'ZYXR', 'ZYXI',
                            'ZYYR', 'ZYYI',
                            'TZXR', 'TZXI',
-                           'TZYR', 'TZYI')
+                           'TZYR', 'TZYI',
+                           'PTXX', 'PTXY',
+                           'PTYX', 'PTYY')
+    IMPEDANCE_COMPONENTS = ('ZXXR', 'ZXXI',
+                            'ZXYR', 'ZXYI',
+                            'ZYYR', 'ZYYI',
+                            'ZYXR', 'ZYXI')
+    TIPPER_COMPONENTS = ('TZXR', 'TZXI',
+                         'TZYR', 'TZYI')
+    PHASE_TENSOR_COMPONENTS = ('PTXX', 'PTXY',
+                               'PTYX', 'PTYY')
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
                            'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat'}
@@ -1316,7 +1326,9 @@ class Site(object):
                            'ZYYR', 'ZYYI',
                            'ZYXR', 'ZYXI',
                            'TZXR', 'TZXI',
-                           'TZYR', 'TZYI')
+                           'TZYR', 'TZYI',
+                           'PTXX', 'PTXY',
+                           'PTYX', 'PTYY')
     IMPEDANCE_COMPONENTS = ('ZXXR', 'ZXXI',
                             'ZXYR', 'ZXYI',
                             'ZYYR', 'ZYYI',
@@ -1389,7 +1401,7 @@ class Site(object):
             print('Error information not available.')
             print(self.name)
             self.used_error = {}
-        # Add dummy data to missing components
+        # Don't apply error floors if the input is from ModEM - display exactly the used errors.
         try:
             if not self.file_format.lower() == 'modem':
                 self.apply_error_floor()
@@ -1400,11 +1412,22 @@ class Site(object):
         if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)) \
                 and self.periods is not None:
             self.calculate_phase_tensors()
+        elif set(self.PHASE_TENSOR_COMPONENTS).issubset(set(self.components)) \
+                and self.periods is not None:
+            self.define_phase_tensor()
         # for comp, val in self.errors.items():
         #     self.used_error.update({comp: val * self.errmap[comp]})
 
         # Rotate all sites to 0 degrees to start
         # self.rotate_data(azi=0)
+
+    @property
+    def NP(self):
+        return len(self.periods)
+
+    @property
+    def NR(self):
+        return len(self.components)
 
     @property
     def errorfloorZ(self):
@@ -1471,8 +1494,11 @@ class Site(object):
         for component in components:
             if 'log10' in component:
                 new_errors = np.log10(1 + error_floors['Rho']) * np.ones(self.data[component].shape)
-            elif ('phs' in component.lower()) or ('pt' in component.lower()):
+            elif 'phs' in component.lower():
                 new_errors = error_floors['Phs'] * 100 * np.ones(self.data[component].shape)
+            elif 'pt' in component.lower():
+                new_errors = (np.tan(np.deg2rad((error_floors['Phs'] * 100))) *
+                              np.ones(self.data[component].shape))
             elif component.startswith('Z'):
                 if 'XX' in component or 'YY' in component:
                     zxy = self.data['ZXYR'] + 1j * self.data['ZXYI']
@@ -2231,8 +2257,9 @@ class RawData(object):
 
 
 class PhaseTensor(object):
-    def __init__(self, period, Z=None, rho=None, phase=None, phi=None):
+    def __init__(self, period, Z=None, rho=None, phase=None, phi=None, phi_error=None):
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
+        self.error_floor = np.tan(np.deg2rad(3))
         self.period = period
         self.Z = Z
         self.det_phi = 0
@@ -2261,13 +2288,85 @@ class PhaseTensor(object):
             self.valid_data = True
             self.form_tensors(Z)
             self.calculate_phase_tensor()
+            self.phi_error = np.array(((self.error_floor, self.error_floor),
+                                       (self.error_floor, self.error_floor)))
         elif phi:
             self.valid_data = True
-            self.phi
+            for k, v in phi.items():
+                setattr(self, k, v)
+            if phi_error:
+                self.phi_error = phi_error
+            else:
+                self.phi_error = np.array(((self.error_floor, self.error_floor),
+                                           (self.error_floor, self.error_floor)))
         else:
             self.valid_data = False
         if self.valid_data:
             self.calculate_phase_parameters()
+
+    @property
+    def PTXX(self):
+        return self.phi[0, 0]
+
+    @PTXX.setter
+    def PTXX(self, value):
+        self.phi[0, 0] = value
+
+    @property
+    def PTXY(self):
+        return self.phi[0, 1]
+
+    @PTXY.setter
+    def PTXY(self, value):
+        self.phi[0, 1] = value
+
+    @property
+    def PTYX(self):
+        return self.phi[1, 0]
+
+    @PTYX.setter
+    def PTYX(self, value):
+        self.phi[1, 0] = value
+
+    @property
+    def PTYY(self):
+        return self.phi[1, 1]
+
+    @PTYY.setter
+    def PTYY(self, value):
+        self.phi[1, 1] = value
+
+    @property
+    def PTXX_error(self):
+        return self.phi_error[0, 0]
+
+    @property
+    def PTXY_error(self):
+        return self.phi_error[0, 1]
+
+    @property
+    def PTYX_error(self):
+        return self.phi_error[1, 0]
+
+    @property
+    def PTYY_error(self):
+        return self.phi_error[1, 1]
+
+    @PTXX_error.setter
+    def PTXX_error(self, value):
+        self.phi_error[0, 0] = value
+
+    @PTXY_error.setter
+    def PTXY_error(self, value):
+        self.phi_error[0, 1] = value
+
+    @PTYX_error.setter
+    def PTYX_error(self, value):
+        self.phi_error[1, 0] = value
+
+    @PTYY_error.setter
+    def PTYY_error(self, value):
+        self.phi_error[1, 1] = value
 
     def form_tensors(self, Z):
         # self.X = np.array(((Z['ZXXR'], Z['ZXYR']),

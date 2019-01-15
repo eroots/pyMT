@@ -585,32 +585,55 @@ class DataMain(QMainWindow, Ui_MainWindow):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
         c = 0
-        all_comps = {'Impedance': ordered_comps,
+        possible_comps = ('Impedance', 'Tipper', 'Rho', 'Phase', 'Bostick', 'PhsTensor')
+        all_comps = {'Impedance': [],
                      'Rho': [],
+                     'Tipper': [],
                      'Phase': [],
-                     'Bostick': []}
+                     'Bostick': [],
+                     'PhsTensor': []}
+        # print('ORDERED COMPS:')
+        # print(ordered_comps)
+        # print('ACCEPTED COMPS:')
+        # print(self.dataset.data.ACCEPTED_COMPONENTS)
+        # print('COMPS:')
+        # print(self.dataset.data.components)
         if 'TZXR' in ordered_comps:
             all_comps.update({'Tipper': [comp for comp in ordered_comps if comp[0].upper() == 'T']})
             ordered_comps.remove('TZXR')
             ordered_comps.remove('TZXI')
             ordered_comps.remove('TZYR')
             ordered_comps.remove('TZYI')
+        if 'PTXX' in ordered_comps:
+            all_comps.update({'PhsTensor': [comp for comp in ordered_comps if comp[0].upper() == 'P']})
+            ordered_comps.remove('PTXX')
+            ordered_comps.remove('PTXY')
+            ordered_comps.remove('PTYX')
+            ordered_comps.remove('PTYY')
         if 'ZXXR' in ordered_comps:
+            all_comps['Impedance'].append('ZXXR')
+            all_comps['Impedance'].append('ZXXI')
             all_comps['Rho'].append('RhoXX')
             all_comps['Phase'].append('PhaXX')
             all_comps['Bostick'].append('BostXX')
             c += 1
         if 'ZXYR' in ordered_comps:
+            all_comps['Impedance'].append('ZXYR')
+            all_comps['Impedance'].append('ZXYI')
             all_comps['Rho'].append('RhoXY')
             all_comps['Phase'].append('PhaXY')
             all_comps['Bostick'].append('BostXY')
             c += 1
         if 'ZYYR' in ordered_comps:
+            all_comps['Impedance'].append('ZYYR')
+            all_comps['Impedance'].append('ZYYI')
             all_comps['Rho'].append('RhoYY')
             all_comps['Phase'].append('PhaYY')
             all_comps['Bostick'].append('BostYY')
             c += 1
         if 'ZYXR' in ordered_comps:
+            all_comps['Impedance'].append('ZYXR')
+            all_comps['Impedance'].append('ZYXI')
             all_comps['Rho'].append('RhoYX')
             all_comps['Phase'].append('PhaYX')
             all_comps['Bostick'].append('BostYX')
@@ -625,9 +648,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
             all_comps['Bostick'].append('BostDet')
             all_comps['Bostick'].append('BostAAV')
             all_comps['Bostick'].append('BostGAV')
-        header = ['Impedance', 'Rho', 'Phase', 'Bostick']
-        if 'Tipper' in all_comps.keys():
-            header.insert(1, 'Tipper')
+            if not all_comps['PhsTensor']:  # If it hasn't already been added...
+                all_comps['PhsTensor'].append('PTXX')
+                all_comps['PhsTensor'].append('PTXY')
+                all_comps['PhsTensor'].append('PTYX')
+                all_comps['PhsTensor'].append('PTYY')
+        # If none of the Impedance if's above triggered, remove all the associated headers
+        # Will have to change this if we ever do Rho / Phase inversion
+        # header = ['Impedance', 'Rho', 'Phase', 'Bostick', 'PhsTensor']
+        header = [comp for comp in possible_comps if all_comps[comp]]
+        tmp = {comp: val for comp, val in all_comps.items() if val}  # Delete empties
+        all_comps = tmp
+        # if 'Tipper' in all_comps.keys():
+        #     header.insert(1, 'Tipper')
         self.comp_table.setColumnCount(len(header))
         max_len = max([len(comp) for comp in all_comps.values()])
         self.comp_table.setRowCount(max_len)
@@ -668,6 +701,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if c == 4:
             ordered_comps.append('RhoDet')
             ordered_comps.append('PhaDet')
+            if not 'PTXX' in ordered_comps:
+                ordered_comps.append('PTXX')
+                ordered_comps.append('PTXY')
+                ordered_comps.append('PTYX')
+                ordered_comps.append('PTYY')
 
         self.comp_list.addItems(ordered_comps)
         labels = [self.comp_list.item(x) for x in range(self.comp_list.count())]

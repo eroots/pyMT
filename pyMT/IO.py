@@ -669,12 +669,16 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
                 else:
                     real = float(line[8])
                     error = float(line[9])
-                    if component not in site_data[site_name].keys():
-                        site_data[site_name].update({component: []})
-                    if component not in site_error[site_name].keys():
-                        site_error[site_name].update({component: []})
-                    site_data[site_name][component].append(real)
-                    site_error[site_name][component].append(error)
+                    # For now we are swapping the X and Y's to conform with the Caldwell et al. definition
+                    swapped_component = component.replace('X', '1')
+                    swapped_component = swapped_component.replace('Y', 'X')
+                    swapped_component = swapped_component.replace('1', 'Y')
+                    if swapped_component not in site_data[site_name].keys():
+                        site_data[site_name].update({swapped_component: []})
+                    if swapped_component not in site_error[site_name].keys():
+                        site_error[site_name].update({swapped_component: []})
+                    site_data[site_name][swapped_component].append(real)
+                    site_error[site_name][swapped_component].append(error)
                 # print(site_data[site_lookup[code]][component + 'R'])
         periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
@@ -962,7 +966,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                            data.locations[ii, 1],
                                            site.locations.get('elev', 0))
                                 Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                                f.write(' '.join(['{:>14.7E} {}',
+                                f.write(' '.join(['{:>14.7E} {:>14}',
                                                   '{:>8.3f} {:>8.3f}',
                                                   '{:>15.3f} {:>15.3f} {:>15.3f}',
                                                   '{:>6} {:>14.7E} {:>14.7E}',
@@ -992,12 +996,16 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                 # Remember X and Y are switched for Caldwell's def
                                 if component == 'PTXX':  # PTXX
                                     value = site.phase_tensors[jj].phi[1, 1]
+                                    error = site.phase_tensors[jj].phi_error[1, 1]
                                 elif component == 'PTXY':  # PTXY
                                     value = site.phase_tensors[jj].phi[1, 0]
+                                    error = site.phase_tensors[jj].phi_error[1, 0]
                                 elif component == 'PTYX':  # PTYX
                                     value = site.phase_tensors[jj].phi[0, 1]
+                                    error = site.phase_tensors[jj].phi_error[0, 1]
                                 elif component == 'PTYY':  # PTYY
                                     value = site.phase_tensors[jj].phi[0, 0]
+                                    error = site.phase_tensors[jj].phi_error[0, 0]
                                 X, Y, Z = (site.locations['X'],
                                            site.locations['Y'],
                                            site.locations.get('elev', 0))
@@ -1005,7 +1013,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                            data.locations[ii, 1],
                                            site.locations.get('elev', 0))
                                 Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                                f.write(' '.join(['{:>14.7E} {}',
+                                f.write(' '.join(['{:>14.7E} {:>14}',
                                                   '{:>8.3f} {:>8.3f}',
                                                   '{:>15.3f} {:>15.3f} {:>15.3f}',
                                                   '{:>6} {:>14.7E} {:>14.7E}\n']).format(
@@ -1013,7 +1021,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                         Lat, Long,
                                         X, Y, Z,
                                         component_code.upper(), value,
-                                        abs(value * 0.1)))
+                                        error))
         data.inv_type = actual_inv_type
 
     def write_MARE2DEM(data, out_file):

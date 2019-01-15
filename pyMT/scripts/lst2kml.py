@@ -1,4 +1,4 @@
-# import simplekml
+import simplekml
 import pyMT.data_structures as WSDS
 import pandas as pd
 import numpy as np
@@ -12,53 +12,51 @@ from pyMT.WSExceptions import WSFileError
 # list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/abi-gren/New/j2/allsites.lst'
 # list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/dryden/j2/allsites.lst'
 # list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/SWZall.lst')
-# transects = ('attikokan',
-#              'chibougamau',
-#              'dryden',
-#              'geraldton',
-#              'larder',
-#              'malartic',
-#              'matheson',
-#              'rainy',
-#              'rouyn',
-#              'sturgeon',
-#              'swayze',
-#              'sudbury',
-#              'cobalt',
-#              'all',
-#              'AMT')
-# lists = ('ATTAMT.lst',
-#          'CHIAMT.lst',
-#          'DRYAMT.lst',
-#          'GERAMT.lst',
-#          'LARAMT.lst',
-#          'MALAMT.lst',
-#          'MATAMT.lst',
-#          'RRVAMT.lst',
-#          'ROUAMT.lst',
-#          'STUAMT.lst',
-#          'SWZAMT.lst',
-#          'SUDAMT.lst',
-#          'COBAMT.lst',
-#          'all.lst',
-#          'AMT.lst')
-transects = ['swayze']
-lists = ['SWZAMT.lst']
+transects = ('attikokan',
+             'chibougamau',
+             'dryden',
+             'geraldton',
+             'larder',
+             'malartic',
+             'matheson',
+             'rainy',
+             'rouyn',
+             'sturgeon',
+             'swayze',
+             'sudbury',
+             'cobalt',
+             'BB')
+lists = ('ATTBB.lst',
+         'CHIBB.lst',
+         'DRYBB.lst',
+         'GERBB.lst',
+         'LARBB.lst',
+         'MALBB.lst',
+         'MATBB.lst',
+         'RRVBB.lst',
+         'ROUBB.lst',
+         'STUBB.lst',
+         'SWZBB.lst',
+         'SUDBB.lst',
+         'COBBB.lst',
+         'BB.lst')
+# transects = ['swayze']
+# lists = ['SWZAMT.lst']
 # transects = ['BB-legacy', 'bb-legacy', 'lmt-legacy']
 # lists = ['BB.lst', 'bb.lst', 'lmt.lst']
-data_type = 'AMT_'
+data_type = 'BB_'
 # data_type = ['BB_', 'BB_', 'LMT_']
 # list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/legacy_edi_export_all/'
-# list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/WinGLinkEDIs_final/'
-list_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/'
-csv_save_path = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/MT-locations/CSVs/'
-shp_save_path = 'C:/Users/eroots/phd/ownCloud/data/ArcMap/MT-locations/SHPs/AMT/'
-kml_save_path = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/MT-locations/KMLs/'
+list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/WinGLinkEDIs_final/'
+# list_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/'
+csv_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/CSV/'
+shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/SHPs/Jan2019/SHP/'
+kml_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/KML/'
 # csv_save_path = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/CSVs/'
-write_kml = False
-write_csv = False
+write_kml = True
+write_csv = True
 write_shp = True
 UTM = 16
 for ii, lst in enumerate(lists):
