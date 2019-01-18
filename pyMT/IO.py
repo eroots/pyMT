@@ -4,6 +4,7 @@ import numpy as np
 import os
 import copy
 import re
+import shapefile
 
 
 if os.name is 'nt':
@@ -821,6 +822,36 @@ def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None)
         raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
                                                                     'wsinv3dmt',
                                                                     'ModEM'))
+
+
+def write_locations(data, out_file=None, file_format='csv'):
+    def write_shapefile(data, outfile):
+        if not outfile.endswith('.shp'):
+            outfile += '.shp'
+        if data.site_names:
+            print('Writing shapefile with locations stored in data.locations')
+            w = shapefile.Writer(shapefile.POINT)
+            w.field('X', 'F', 10, 5)
+            w.field('Y', 'F', 10, 5)
+            w.field('Z', 'F', 10, 5)
+            w.field('Label')
+            for ii, site in enumerate(data.site_names):
+                X, Y, Z = (data.locations[ii, 1],
+                           data.locations[ii, 0],
+                           data.sites[site].locations['elev'])
+                w.point(X, Y, Z)
+                w.record(X, Y, Z, site)
+            w.save(outfile)
+
+    if file_format.lower() not in ('csv', 'shp', 'kml'):
+        print('File format {} not supported'.format(file_format))
+        return
+    if file_format.lower() == 'csv':
+        print('Not implemented yet')
+    elif file_format.lower() == 'shp':
+        write_shapefile(data, out_file)
+    elif file_format.lower() == 'kml':
+        print('Not implemented yet')
 
 
 def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):

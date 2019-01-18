@@ -151,7 +151,7 @@ class Dataset(object):
             self.data.sites[site].detect_outliers(self.data.OUTLIER_MAP)
         self.data._runErrors = []
         self.data.periods = np.array([p for p in self.data.sites[self.data.site_names[0]].periods])
-        self.data.components = Data.ACCEPTED_COMPONENTS
+        self.data.components = RawData.ACCEPTED_COMPONENTS
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
         self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
@@ -365,6 +365,7 @@ class Dataset(object):
                         self.data.sites[site].errmap[comp][ii] = 1
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
+            self.data.apply_no_data_map()
             self.data.sites[site].apply_error_floor()
 
     def apply_error_floor(self):
@@ -2014,7 +2015,12 @@ class RawData(object):
     RAW_COMPONENTS = ('ZXX', 'ZXY',
                       'ZYX', 'ZYY',
                       'TZX', 'TZY')
-
+    ACCEPTED_COMPONENTS = ('ZXXR', 'ZXXI',
+                           'ZXYR', 'ZXYI',
+                           'ZYXR', 'ZYXI',
+                           'ZYYR', 'ZYYI',
+                           'TZXR', 'TZXI',
+                           'TZYR', 'TZYI')
     def __init__(self, listfile='', datpath=''):
         """Summary
 
@@ -2051,6 +2057,10 @@ class RawData(object):
         origin = (min_x + (max_x - min_x) / 2,
                   min_y + (max_y - min_y) / 2)
         return origin
+
+    @property
+    def NS(self):
+        return len(self.site_names)
 
     def __read__(self, listfile, datpath=''):
         """Summary
@@ -2146,6 +2156,17 @@ class RawData(object):
         if mode.lower() == 'centered':
             locs = utils.center_locs(locs)[0]
         return locs
+
+    def to_utm(self, zone, letter):
+        latlons = self.get_locs(mode='latlong')
+        for ii in range(self.NS):
+            E, N = utils.project((latlons[ii, 1],
+                                  latlons[ii, 0]),
+                                 zone=zone, letter=letter)[2:]
+            self.locations[ii, 1], self.locations[ii, 0] = E, N
+
+    def write_locations(self, out_file, file_format='csv'):
+        WS_io.write_locations(self, out_file=out_file, file_format=file_format)
 
     def master_period_list(self):
         """Summary

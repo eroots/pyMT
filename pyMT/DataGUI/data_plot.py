@@ -624,19 +624,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
             all_comps['Phase'].append('PhaXY')
             all_comps['Bostick'].append('BostXY')
             c += 1
-        if 'ZYYR' in ordered_comps:
-            all_comps['Impedance'].append('ZYYR')
-            all_comps['Impedance'].append('ZYYI')
-            all_comps['Rho'].append('RhoYY')
-            all_comps['Phase'].append('PhaYY')
-            all_comps['Bostick'].append('BostYY')
-            c += 1
         if 'ZYXR' in ordered_comps:
             all_comps['Impedance'].append('ZYXR')
             all_comps['Impedance'].append('ZYXI')
             all_comps['Rho'].append('RhoYX')
             all_comps['Phase'].append('PhaYX')
             all_comps['Bostick'].append('BostYX')
+            c += 1
+        if 'ZYYR' in ordered_comps:
+            all_comps['Impedance'].append('ZYYR')
+            all_comps['Impedance'].append('ZYYI')
+            all_comps['Rho'].append('RhoYY')
+            all_comps['Phase'].append('PhaYY')
+            all_comps['Bostick'].append('BostYY')
             c += 1
         if c == 4:
             all_comps['Rho'].append('RhoDet')
@@ -701,7 +701,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if c == 4:
             ordered_comps.append('RhoDet')
             ordered_comps.append('PhaDet')
-            if not 'PTXX' in ordered_comps:
+            if 'PTXX' not in ordered_comps:
                 ordered_comps.append('PTXX')
                 ordered_comps.append('PTXY')
                 ordered_comps.append('PTYX')
