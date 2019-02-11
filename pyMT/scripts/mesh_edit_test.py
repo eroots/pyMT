@@ -6,20 +6,20 @@ import matplotlib.pyplot as plt
 import e_colours.colourmaps as cm
 
 
-model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
-base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.dat'
+model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
+base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
 data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
 list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
 base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-plot_it = 1
-write_it = 0
+plot_it = 0
+write_it = 1
 # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/R2central_1/R2central_1d_Z.dat'
 # base_data = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data'
 # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/R2_central1a.lst'
 # base_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
 # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho'
-model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4.model'
-data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4_placed.data'
+model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5.model'
+data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5_placed.data'
 mod = WSDS.Model(model_file)
 data = WSDS.Data(datafile=data_file, listfile=list_file)
 base_data = WSDS.Data(datafile=base_data, listfile=base_list)
@@ -30,7 +30,7 @@ for site in base_data.site_names:
         break
 data.locations[:, 0] -= x_diff
 data.locations[:, 1] -= y_diff
-file_format = 'modem'
+file_format = 'wsinv3dmt'
 depths_per_decade = (8, 10, 12, 14, 12)
 x, y, z = (utils.edge2center(arr) for arr in (mod.dx, mod.dy, mod.dz))
 for ii in range(len(mod.dx) - 1):
@@ -42,14 +42,14 @@ for ii in range(len(mod.dz) - 1):
 # x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 # x_grid, y_grid, z_grid = (np.ravel(arr) for arr in (x_grid, y_grid, z_grid))
 # X, Y = (x, y)
-bot_edge = -30000
+bot_edge = -34000
 top_edge = 10000
 left_edge = -25000
 right_edge = 25000
-x_interp = 50
-y_interp = 50
-n_xpad = 30
-n_ypad = 30
+x_interp = 75
+y_interp = 75
+n_xpad = 15
+n_ypad = 15
 x_pad_extention = 75000  # These control the total width of the combined padding
 y_pad_extention = 75000
 max_depth = 100000
@@ -85,6 +85,8 @@ query_points = np.array((Y_grid, X_grid, Z_grid)).T
 new_vals = interp(query_points)
 new_vals = np.reshape(new_vals, [len(Y), len(X), len(Z)])
 new_vals = np.transpose(new_vals, [1, 0, 2])
+ii = np.argmin(abs(np.array(dz[1:]) - mod.dz[1]))
+new_vals[:, :, 0:ii] = np.transpose(np.tile(new_vals[:, :, ii], [ii, 1, 1]), [1, 2, 0])
 # vals = interp()
 if write_it:
     mod.vals = new_vals
