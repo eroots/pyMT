@@ -56,7 +56,7 @@ def normalize_resolution(model, resolution):
     volumes = X * Y * Z
     res_vals = 1 / resolution.vals
     res_vals = res_vals / volumes ** (1 / 3)
-    res_vals[res_vals > np.mean(res_vals.flatten())] = np.mean(res_vals.flatten())
+    res_vals[res_vals > np.median(res_vals.flatten())] = np.median(res_vals.flatten())
     res_vals = res_vals - np.mean(res_vals.flatten())
     res_vals = res_vals / np.std(res_vals.flatten())
     res_vals = 0.5 + res_vals * np.sqrt(0.5)
@@ -94,26 +94,26 @@ def interpolate_slice(x, y, Z, NP):
 #                     r'\MATLAB\MATLAB\Inversion\Regions' +
 #                     r'\abi-gren\New\j2')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\sensTest2.model')
-reso = []
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 # mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\center_ModEM\NLCG\center_noTF_final.model')
 # data = WSDS.RawData(listfile=r'C:\Users\eroots\phd\ownCloud\data\Regions\abi-gren\j2\center_fewer3.lst')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_bost1\out_model.00')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\sens_model.00')
-reso = []
 # reso = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\ttz0_3\Resolution_inverted.model')
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\gem_thelon\original\all_sites.lst',
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
-# mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
-# data = WSDS.Data(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
+mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
+data = WSDS.Data(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
+reso = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
+# mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2e_smooth.model')
 # data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.dat')
-data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data',
-                 listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+# data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data',
+#                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
 #                5.369642e+006]
@@ -134,14 +134,14 @@ mod.origin = data.origin
 if mod.coord_system == 'UTM':
     mod.dx = [xx / 1000 for xx in mod.dx]
     mod.dy = [yy / 1000 for yy in mod.dy]
-
+slice_num = 34
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 file_path = 'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
 file_name = 'dryden_plan_gray.png'
 title_ = 'Standard Inversion'
-save_fig = 1
-use_alpha = 0
+save_fig = 0
+use_alpha = 1
 saturation = 0.8
 lightness = 0.4
 
@@ -150,26 +150,23 @@ lightness = 0.4
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
 xlim = [-100, 100]
-zlim = [-100, 100]
-# zlim = [0, 50]
+# zlim = [-100, 100]
+zlim = [0, 50]
 lut = 64
 cax = [1, 5]
 isolum = False
 # xlim = [-123.5, -121.5]
 # xlim = [-7, 74]
 # zlim = [0, 5]
-lut = 256
-cax = [0, 5]
-isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-# cmap_name = 'jet_r'
+cmap_name = 'jet_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
 # cmap_name = 'cet_bgy_r'
 # cmap_name = 'jetplus'
-cmap_name = 'gray'
+# cmap_name = 'gray'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 
@@ -191,35 +188,35 @@ else:
 # vals = np.log10(mod.vals[:, :, :])
 # vals = np.log10(mod.vals[:, 73, :])
 # vals = np.log10(mod.vals[11, :, :])
-vals = np.log10(mod.vals[:, :, 30])
-# vals = np.log10(mod.vals[:, 22, :])
+# vals = np.log10(mod.vals[:, :, 30])
+vals = np.log10(mod.vals[:, slice_num, :]).T
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
 vals[vals < cax[0]] = cax[0]
 vals[vals > cax[1]] = cax[1]
-if reso:
+if use_alpha:
     alpha = normalize_resolution(mod, reso)
     # alpha = alpha[11, :, :]
-    alpha = alpha[:, 73, :]
+    alpha = alpha[:, slice_num, :]
 if mode == 2:
     vals = interpolate_slice(y, z, vals, 300)
-    if reso:
+    if use_alpha:
         alpha = interpolate_slice(y, z, alpha, 300)
 
 norm_vals = (vals - np.min(vals)) / \
             (np.max(vals) - np.min(vals))
 if mode == 2:
     rgb = cmap(np.flipud(norm_vals.T))
-    if reso:
+    if use_alpha:
         alpha = np.flipud(alpha.T)
 else:
     rgb = cmap(norm_vals)
-    if reso:
+    if use_alpha:
         alpha = alpha.T
 # Just turn the bottom row transparent, since those cells often somehow still have resolution
-# alpha[-1, :] = alpha[-1, :].clip(max=0.5)
 rgba = copy.deepcopy(rgb)
-if reso:
+if use_alpha:
+    alpha[-1, :] = alpha[-1, :].clip(max=0.5)
     rgba[..., -1] = alpha
 
 
@@ -304,21 +301,21 @@ for ii in range(1, 2):
     elif mode == 3:
         # mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
-        im, ax = pcolorimage(ax, x=(np.array(mod.dy)) / 1000,
-                             y=np.array(mod.dx) / 1000,
+        im, ax = pcolorimage(ax, x=(np.array(mod.dx)) / 1000,
+                             y=np.array(mod.dz) / 1000,
                              A=(to_plot), cmap=cmap)
-        plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
-        # plt.plot(data.locations[:, 1] / 1000, np.zeros((data.locations[:, 1].shape)), 'k.')
-        for jj, site in enumerate(data.site_names):
-            plt.annotate(site,
-                         xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
-                         color='w')
+        # plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
+        plt.plot(data.locations[:, 1] / 1000, np.zeros((data.locations[:, 1].shape)), 'k.')
+        # for jj, site in enumerate(data.site_names):
+        #     plt.annotate(site,
+        #                  xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
+        #                  color='w')
     if xlim:
         ax.set_xlim(xlim)
     if zlim:
         ax.set_ylim(zlim)
 
-    # ax.invert_yaxis()
+    ax.invert_yaxis()
     # ax.invert_xaxis()
     # ax.set_xlabel('Latitude', fontsize=20)
     

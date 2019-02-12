@@ -5,6 +5,7 @@ import pyMT.utils as utils
 import matplotlib.pyplot as plt
 import e_colours.colourmaps as cm
 
+<<<<<<< HEAD
 ########################################
 # SWAYZE
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
@@ -14,6 +15,14 @@ import e_colours.colourmaps as cm
 # base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
 # model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4.model'
 # data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4_placed.data'
+
+model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
+base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
+data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
+list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
+base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
+model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5.model'
+data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5_placed.data'
 ########################################
 # DRYDEN
 # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/R2central_1/R2central_1d_Z.dat'
@@ -36,6 +45,7 @@ data_out = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry.d
 plot_it = 0
 write_it = 1
 azi = 35  # Rotate the non-base data back
+
 mod = WSDS.Model(model_file)
 data = WSDS.Data(datafile=data_file, listfile=list_file)
 data.locations = data.get_locs(azi=-azi)
@@ -60,18 +70,29 @@ for ii in range(len(mod.dz) - 1):
 # x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 # x_grid, y_grid, z_grid = (np.ravel(arr) for arr in (x_grid, y_grid, z_grid))
 # X, Y = (x, y)
-bot_edge = -230000
-top_edge = -50000
-left_edge = -200000
-right_edge = -15000
-x_interp = 60
-y_interp = 60
-n_xpad = 20
-n_ypad = 20
-x_pad_extention = 250000  # These control the total width of the combined padding
-y_pad_extention = 250000
-min_depth = 10
-max_depth = 500000
+# bot_edge = -230000
+# top_edge = -50000
+# left_edge = -200000
+# right_edge = -15000
+# x_interp = 60
+# y_interp = 60
+# n_xpad = 20
+# n_ypad = 20
+# x_pad_extention = 250000  # These control the total width of the combined padding
+# y_pad_extention = 250000
+# min_depth = 10
+# max_depth = 500000
+bot_edge = -34000
+top_edge = 10000
+left_edge = -25000
+right_edge = 25000
+x_interp = 75
+y_interp = 75
+n_xpad = 15
+n_ypad = 15
+x_pad_extention = 75000  # These control the total width of the combined padding
+y_pad_extention = 75000
+max_depth = 100000
 # max_depth = mod.dz[-1]
 x_interior = np.linspace(bot_edge, top_edge, x_interp)
 x_pad_size = (x_interior[-1] - x_interior[-2]) * 1.5
@@ -104,6 +125,8 @@ query_points = np.array((Y_grid, X_grid, Z_grid)).T
 new_vals = interp(query_points)
 new_vals = np.reshape(new_vals, [len(Y), len(X), len(Z)])
 new_vals = np.transpose(new_vals, [1, 0, 2])
+ii = np.argmin(abs(np.array(dz[1:]) - mod.dz[1]))
+new_vals[:, :, 0:ii] = np.transpose(np.tile(new_vals[:, :, ii], [ii, 1, 1]), [1, 2, 0])
 # vals = interp()
 if write_it:
     mod.vals = new_vals

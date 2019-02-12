@@ -135,12 +135,19 @@ def interpolate_slice(x, y, Z, NP):
 #                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+#########################################################
+# SWAYZE
+main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/pt/swzPT3_lastIter.rho')
+# mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
+#########################################################
+# DRYDEN-ATIKOKAN
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+#########################################################
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
           # np.array(seismic['y']) / 1000)
@@ -148,10 +155,50 @@ mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dr
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R1North_cull2.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
-azi = 35
-# azi = -15
+# azi = 35  # Dryden-regional
+azi = -15  # Swayze regional
 # padding = 25000
 padding = 10000
+modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
+mode = 3
+file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
+file_name = 'swzRegional_0-5_PT-Z_logScale'
+file_types = ['.pdf', '.ps', '.png']
+title_ = 'Standard Inversion'
+
+save_fig = 0
+save_dat = 0
+dpi = 600
+csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
+use_alpha = 0
+saturation = 0.8
+lightness = 0.4
+
+xlim = []
+zlim = [0, 50]
+# zlim = [0, 400]
+lut = 64
+isolum = False
+# xlim = [-123.5, -121.5]
+# xlim = [-7, 74]
+# zlim = [0, 5]
+lut = 256
+cax = [0, 5]
+# cax = [-2, 2]
+isolum = 0
+# cmap_name = 'gist_rainbow'
+# cmap_name = 'cet_rainbow_r'
+cmap_name = 'jet_r'
+# cmap_name = 'gray'
+# cmap_name = 'viridis_r'
+# cmap_name = 'magma_r'
+# cmap_name = 'cet_isolum_r'
+# cmap_name = 'cet_bgy_r'
+# cmap_name = 'jetplus'
+# cmap_name = 'Blues'
+# cmap_name = 'nipy_spectral_r'
+# cmap_name = 'jetplus'
+
 data.locations = data.get_locs(mode='latlong')
 for ii in range(len(data.locations)):
         easting, northing = utils.project((data.locations[ii, 1],
@@ -183,10 +230,13 @@ if mod.coord_system == 'UTM':
     mod.dz = [zz / 1000 for zz in mod.dz]
 
 idx = []
+rm_sites = []
 for ii, site in enumerate(data.site_names):
     if site not in main_transect.site_names:
         idx.append(ii)
+        rm_sites.append(site)
 data.locations = np.delete(data.locations, idx, axis=0)
+data.site_names = [site for site in data.site_names if site not in rm_sites]
 data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
 # A little kludge to make sure the last few sites are in the right order (west-east)
 # data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
@@ -209,45 +259,6 @@ qx = np.concatenate(qx).ravel() / 1000
 qy = np.concatenate(qy).ravel() / 1000
 reso = []
 kimberlines = []
-
-modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
-mode = 3
-file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
-file_name = 'dryden_0-5grey'
-file_types = ['.pdf', '.ps', '.png']
-title_ = 'Standard Inversion'
-
-save_fig = 1
-save_dat = 0
-dpi = 600
-csv_name = r'F:\ownCloud\andy\wsSC_noTipper'
-use_alpha = 0
-saturation = 0.8
-lightness = 0.4
-
-xlim = []
-zlim = [0, 50]
-# zlim = [0, 400]
-lut = 64
-isolum = False
-# xlim = [-123.5, -121.5]
-# xlim = [-7, 74]
-# zlim = [0, 5]
-lut = 256
-cax = [0, 5]
-isolum = 0
-# cmap_name = 'gist_rainbow'
-# cmap_name = 'cet_rainbow_r'
-# cmap_name = 'jet_r'
-cmap_name = 'gray'
-# cmap_name = 'viridis_r'
-# cmap_name = 'magma_r'
-# cmap_name = 'cet_isolum_r'
-# cmap_name = 'cet_bgy_r'
-# cmap_name = 'jetplus'
-# cmap_name = 'Blues'
-# cmap_name = 'nipy_spectral_r'
-# cmap_name = 'jetplus'
 
 x, y, z = [np.zeros((len(mod.dx) - 1)),
            np.zeros((len(mod.dy) - 1)),
@@ -458,7 +469,13 @@ ax.tick_params(axis='both', labelsize=14)
 locs = ax.plot(data.locations[:, 0] / 1000,
                np.zeros((data.locations.shape[0])) - 0.5,
                'kv', markersize=6)[0]
-locs.set_clip_on(False)
+for jj, site in enumerate(data.site_names):
+    plt.text(s=site,
+             x=data.locations[jj, 0] / 1000,
+             y=-0.5,
+             color='k',
+             rotation=90)
+# locs.set_clip_on(False)
 # for label in ax.xaxis.get_ticklabels():
 #     label.set_visible(False)
 # for label in ax.yaxis.get_ticklabels():
@@ -468,7 +485,7 @@ locs.set_clip_on(False)
 
 # divider = make_axes_locatable(ax)
 # cb_ax = divider.append_axes('right', size='2.5%', pad=0.1)
-# cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='horizontal', extend='both')
+# cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='vertical', extend='both')
 # cb.set_clim(cax[0], cax[1])
 # cb.ax.tick_params(labelsize=12)
 # cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
@@ -491,11 +508,12 @@ if save_fig:
 if save_dat:
     x_loc = np.tile(1000 * qx[:, np.newaxis], [vals.shape[-1]]).ravel()
     y_loc = np.tile(1000 * qy[:, np.newaxis], [vals.shape[-1]]).ravel()
-    z_loc = np.tile(1000 * z, len(qx))
+    z_loc = np.tile(1000 * qz, len(qx))
     # cdp = np.array(seismic['cdp'])
+    cdp = np.array(range(1, len(qx) + 1))
     cdp = np.tile(cdp[:, np.newaxis], [vals.shape[-1]]).ravel()
     df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, np.ravel(vals))).T, columns=None)
-    df.to_csv(''.join([csv_name, 'log10.dat']), sep='\t', header=None, index=False)
+    df.to_csv(''.join([csv_name, 'log10.dat']), sep=',', header=None, index=False)
     df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, 10 ** (np.ravel(vals)))).T, columns=None)
-    df.to_csv(''.join([csv_name, 'linear.dat']), sep='\t', header=None, index=False)
+    df.to_csv(''.join([csv_name, 'linear.dat']), sep=',', header=None, index=False)
 plt.show()
