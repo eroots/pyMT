@@ -6,20 +6,25 @@ import matplotlib.pyplot as plt
 import e_colours.colourmaps as cm
 
 
+# model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
+# base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
+# data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
+# list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
+# base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
 model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
 base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
-data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
-list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
+data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2north_3b_Z.dat'
+list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2North_cull3.lst'
 base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-plot_it = 0
-write_it = 1
+plot_it = 1
+write_it = 0
 # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/R2central_1/R2central_1d_Z.dat'
 # base_data = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data'
 # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/R2_central1a.lst'
 # base_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
 # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho'
-model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5.model'
-data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5_placed.data'
+model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.model'
+data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.data'
 mod = WSDS.Model(model_file)
 data = WSDS.Data(datafile=data_file, listfile=list_file)
 base_data = WSDS.Data(datafile=base_data, listfile=base_list)
@@ -42,14 +47,18 @@ for ii in range(len(mod.dz) - 1):
 # x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 # x_grid, y_grid, z_grid = (np.ravel(arr) for arr in (x_grid, y_grid, z_grid))
 # X, Y = (x, y)
-bot_edge = -34000
-top_edge = 10000
-left_edge = -25000
-right_edge = 25000
+# bot_edge = -34000
+# top_edge = 10000
+# left_edge = -25000
+# right_edge = 25000
+bot_edge = 0
+top_edge = 40000
+left_edge = -7000
+right_edge = 18000
 x_interp = 75
 y_interp = 75
-n_xpad = 15
-n_ypad = 15
+n_xpad = 20
+n_ypad = 20
 x_pad_extention = 75000  # These control the total width of the combined padding
 y_pad_extention = 75000
 max_depth = 100000
