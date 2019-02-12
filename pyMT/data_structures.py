@@ -844,6 +844,12 @@ class Data(object):
             locs = utils.rotate_locs(locs, azi)
         return locs
 
+    def set_locs(self):
+        # Sets the site object locations to match those in self.locations
+        for ii, site in enumerate(self.site_names):
+            self.sites[site].locations['X'] = self.locations[ii, 0]
+            self.sites[site].locations['Y'] = self.locations[ii, 1]
+
     def add_site(self, site):
         """
         Adds a site object to the data dictionary. It also checks to make sure that the
