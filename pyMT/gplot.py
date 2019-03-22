@@ -417,6 +417,7 @@ class DataPlotManager(object):
                     toplot = np.rad2deg(np.arctan(toplot))
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
                         toplotErr = np.rad2deg(np.arctan(e))
+                        # toplotErr = e
                 elif 'bost' in comp.lower():
                     toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
                     toplot = np.log10(toplot)
@@ -707,19 +708,19 @@ class MapView(object):
             idx = []
             for ii, site in enumerate(self.site_names):
                 # Just takes the last frequency. Will have to grab the right one from a list.
-                if ((abs(self.site_data[dType].sites[site].used_error['TZXR'][period_idx] /
-                         self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
-                    (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
-                         self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
-                    idx.append(ii)
-                    if 'TZXR' in self.site_data[dType].sites[site].components:
-                        X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
-                    else:
-                        X.append(0)
-                    if 'TZYR' in self.site_data[dType].sites[site].components:
-                        Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
-                    else:
-                        Y.append(0)
+                # if ((abs(self.site_data[dType].sites[site].used_error['TZXR'][period_idx] /
+                #          self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
+                #     (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
+                #          self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
+                idx.append(ii)
+                if 'TZXR' in self.site_data[dType].sites[site].components:
+                    X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
+                else:
+                    X.append(0)
+                if 'TZYR' in self.site_data[dType].sites[site].components:
+                    Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
+                else:
+                    Y.append(0)
             if idx:
                 arrows = np.transpose(np.array((X, Y)))
                 # arrows = utils.normalize_arrows(arrows)
@@ -777,11 +778,11 @@ class MapView(object):
             site = self.site_data[data_type[0]].sites[site_name]
             if len(data_type) == 1:
                 phase_tensor = site.phase_tensors[period_idx]
-                if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
-                    (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
-                    (phase_tensor.phasexy_error < self.phase_error_tol) and
-                    (phase_tensor.phaseyx_error < self.phase_error_tol)):
-                # if True:
+                # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
+                #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
+                #     (phase_tensor.phasexy_error < self.phase_error_tol) and
+                #     (phase_tensor.phaseyx_error < self.phase_error_tol)):
+                if True:
                     cont = 1
                     phi_x, phi_y = generate_ellipse(phase_tensor.phi)
                     norm_x, norm_y = (phi_x, phi_y)
@@ -841,8 +842,8 @@ class MapView(object):
                                         'k-', linewidth=1)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
         self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
-                                                 self.site_locations['all'][good_idx, 0],
-                                                 c=fake_vals, cmap=self.cmap)
+                                                      self.site_locations['all'][good_idx, 0],
+                                                      c=fake_vals, cmap=self.cmap)
         # fake_im.colorbar()
         self.fake_im.set_visible(False)
         if not self.window['colorbar'] and self.use_colourbar:

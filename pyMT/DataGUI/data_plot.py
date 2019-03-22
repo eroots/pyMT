@@ -70,7 +70,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_responseInduction.setEnabled(False)
             self.toggle_normalizeInduction.setEnabled(False)
         #  Connect phase tensor toggles
-        if self.map.dataset.data.inv_type in (1, 5):
+        if self.map.dataset.data.inv_type in (1, 5, 6):
             self.toggle_dataPhaseTensor.clicked.connect(self.data_phase_tensor)
             self.toggle_responsePhaseTensor.clicked.connect(self.resp_phase_tensor)
             self.toggle_nonePhaseTensor.clicked.connect(self.none_phase_tensor)
@@ -501,6 +501,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             else:
                 self.stored_datasets.update({dname: dataset})
         self.site_names = self.dataset.data.site_names[:6]
+        self.update_error_floor_table()
         self.setup_widgets()
         self.init_dpm()
         self.update_error_tree()
@@ -511,6 +512,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.error_tree.itemChanged.connect(self.post_edit_error)
         # self.update_comp_list()
         self.update_comp_table()
+        
         if self.dataset.rms:
             self.init_rms_tables()
         self.stored_key_presses = []
@@ -580,6 +582,29 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self._site_names = names
         # if self.map['fig']:
         #     self.draw_map()
+
+    def update_error_floor_table(self):
+        self.errorFloorTable.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        horizontal_headers = ['Error Floor']
+        vertical_headers = ['Diagonal Impedance', 'Off-Diagonal Impedance', 'Tipper', 'Rho', 'Phase']
+        self.errorFloorTable.setColumnCount(len(horizontal_headers))
+        self.errorFloorTable.setRowCount(len(vertical_headers))
+        for ii, label in enumerate(horizontal_headers):
+            self.errorFloorTable.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem(label))
+        for ii, label in enumerate(vertical_headers):
+            self.errorFloorTable.setVerticalHeaderItem(ii, QtWidgets.QTableWidgetItem(label))
+        for col, dtype in enumerate(vertical_headers):
+            node = QtWidgets.QTableWidgetItem(str(self.dataset.data.error_floors[dtype]))
+            node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable)
+            self.errorFloorTable.setItem(1, col - 1, node)
+        for ii in range(len(horizontal_headers)):
+            self.errorFloorTable.horizontalHeader().setSectionResizeMode(ii,
+                                                                         QtWidgets.QHeaderView.ResizeToContents)
+        for ii in range(len(vertical_headers)):
+            self.errorFloorTable.verticalHeader().setSectionResizeMode(ii,
+                                                                       QtWidgets.QHeaderView.ResizeToContents)
+        self.errorFloorTable.resizeColumnsToContents()
+        self.errorFloorTable.resizeRowsToContents()
 
     def update_comp_table(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -781,6 +806,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.WriteDataButton.clicked.connect(self.WriteData)
         # self.comp_list.itemSelectionChanged.connect(self.list_click)
         self.comp_table.itemSelectionChanged.connect(self.comp_table_click)
+        self.errorFloorTable.cellChanged.connect(self.error_floor_changed)
         self.toggleRaw.clicked.connect(self.toggle_raw)
         self.toggleData.clicked.connect(self.toggle_data)
         self.toggleResponse.clicked.connect(self.toggle_response)
@@ -806,6 +832,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.usedErrRadio.toggled.connect(self.dummy_update_dpm)
         self.noErrRadio.toggled.connect(self.dummy_update_dpm)
         self.refreshErrorTree.clicked.connect(self.update_error_tree)
+        self.resetErrors.clicked.connect(self.reset_errors)
         self.showMap.clicked.connect(self.show_map)
         self.sortSites.addItems(['Default', 'West-East',
                                  'South-North', 'Clustering'])
@@ -835,6 +862,24 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # Super hacky axis limits setters. Fix this at some point
         # self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
         # self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
+
+    def reset_errors(self):
+        self.dataset.data.reset_errors()
+        self.update_dpm()
+
+    def error_floor_changed(self, row, column):
+        value = self.errorFloorTable.item(row, column).text()
+        component = self.errorFloorTable.verticalHeaderItem(row).text()
+        try:
+            value = float(value)
+        except ValueError:
+            self.errorFloorTable.setItem(row, column, QtWidgets.QTableWidgetItem(self.dataset.data.error_floors[component]))
+        self.dataset.data.error_floors[component] = value
+        self.dataset.data.apply_error_floor()
+        self.update_dpm()
+        # self.dpm.components = comps
+        # self.update_dpm(updated_sites=self.dpm.site_names,
+                        # updated_comps=self.dpm.components)
 
     def set_phase_wrap(self):
         if self.actionPhase_Wrap.isChecked():
@@ -1481,9 +1526,20 @@ class DataMain(QMainWindow, Ui_MainWindow):
         initial_parent = item.parent()
         try:
             new_val = int(item.text(column))
+            if new_val < 0:
+                use_val = 1 * new_val
+                new_val = 1
+            elif new_val > 0:
+                use_val = new_val
+            else:
+                print('Multiplier cannot be zero')
+                item.setText(column, self.old_val)
+                self.error_tree.itemChanged.connect(self.post_edit_error)
+                return
         except ValueError:
             print('Value must be an integer')
             item.setText(column, self.old_val)
+            self.error_tree.itemChanged.connect(self.post_edit_error)
             return
 
         # Go over headers (Components)
@@ -1521,7 +1577,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         comps = set(comps)
         periods = set(periods)
         for site in set(site_names):
-            self.dataset.data.sites[site].change_errmap(periods=periods, mult=new_val,
+            self.dataset.data.sites[site].change_errmap(periods=periods, mult=use_val,
                                                         comps=comps,
                                                         multiplicative=False)
 

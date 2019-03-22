@@ -1025,18 +1025,25 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                             for component in components_to_write:
                                 component_code = component[:]
                                 # Remember X and Y are switched for Caldwell's def
-                                if component == 'PTXX':  # PTXX
-                                    value = site.phase_tensors[jj].phi[1, 1]
-                                    error = site.phase_tensors[jj].phi_error[1, 1]
-                                elif component == 'PTXY':  # PTXY
-                                    value = site.phase_tensors[jj].phi[1, 0]
-                                    error = site.phase_tensors[jj].phi_error[1, 0]
-                                elif component == 'PTYX':  # PTYX
-                                    value = site.phase_tensors[jj].phi[0, 1]
-                                    error = site.phase_tensors[jj].phi_error[0, 1]
-                                elif component == 'PTYY':  # PTYY
-                                    value = site.phase_tensors[jj].phi[0, 0]
-                                    error = site.phase_tensors[jj].phi_error[0, 0]
+                                if component in site.components:
+                                    swapped_component = component.replace('X', '1')
+                                    swapped_component = swapped_component.replace('Y', 'X')
+                                    swapped_component = swapped_component.replace('1', 'Y')
+                                    value = site.data[swapped_component][jj]
+                                    error = site.used_error[swapped_component][jj]
+                                else:
+                                    if component == 'PTXX':  # PTXX
+                                        value = site.phase_tensors[jj].phi[1, 1]
+                                        error = site.phase_tensors[jj].phi_error[1, 1]
+                                    elif component == 'PTXY':  # PTXY
+                                        value = site.phase_tensors[jj].phi[1, 0]
+                                        error = site.phase_tensors[jj].phi_error[1, 0]
+                                    elif component == 'PTYX':  # PTYX
+                                        value = site.phase_tensors[jj].phi[0, 1]
+                                        error = site.phase_tensors[jj].phi_error[0, 1]
+                                    elif component == 'PTYY':  # PTYY
+                                        value = site.phase_tensors[jj].phi[0, 0]
+                                        error = site.phase_tensors[jj].phi_error[0, 0]
                                 X, Y, Z = (site.locations['X'],
                                            site.locations['Y'],
                                            site.locations.get('elev', 0))

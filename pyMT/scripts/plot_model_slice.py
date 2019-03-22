@@ -54,13 +54,13 @@ def normalize_resolution(model, resolution):
                      np.diff(mod.dz)]
     X, Y, Z = np.meshgrid(yCS, xCS, zCS)
     volumes = X * Y * Z
-    res_vals = 1 / resolution.vals
+    res_vals = resolution.vals
     res_vals = res_vals / volumes ** (1 / 3)
     res_vals[res_vals > np.median(res_vals.flatten())] = np.median(res_vals.flatten())
     res_vals = res_vals - np.mean(res_vals.flatten())
     res_vals = res_vals / np.std(res_vals.flatten())
     res_vals = 0.5 + res_vals * np.sqrt(0.5)
-    res_vals[res_vals > 1] = 1
+    res_vals = np.clip(res_vals, a_max=1, a_min=0)
     return res_vals
 
 
@@ -105,9 +105,9 @@ def interpolate_slice(x, y, Z, NP):
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
-mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
-data = WSDS.Data(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
-reso = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
+mod = WSDS.Model(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
+data = WSDS.Data(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
+reso = WSDS.Model(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
 # mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2e_smooth.model')
 # data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.dat')
@@ -216,7 +216,8 @@ else:
 # Just turn the bottom row transparent, since those cells often somehow still have resolution
 rgba = copy.deepcopy(rgb)
 if use_alpha:
-    alpha[-1, :] = alpha[-1, :].clip(max=0.5)
+    # alpha[-1, :] = alpha[-1, :].clip(max=0.5)
+    # alpha[:, :] = 1
     rgba[..., -1] = alpha
 
 

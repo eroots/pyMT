@@ -61,13 +61,13 @@ def normalize_resolution(model, resolution):
                      np.diff(mod.dz)]
     X, Y, Z = np.meshgrid(yCS, xCS, zCS)
     volumes = X * Y * Z
-    res_vals = 1 / resolution.vals
+    res_vals = resolution.vals
     res_vals = res_vals / volumes ** (1 / 3)
     res_vals[res_vals > np.mean(res_vals.flatten())] = np.mean(res_vals.flatten())
     res_vals = res_vals - np.mean(res_vals.flatten())
     res_vals = res_vals / np.std(res_vals.flatten())
-    res_vals = 0.5 + res_vals * np.sqrt(0.5)
-    res_vals[res_vals > 1] = 1
+    res_vals = 0.2 + res_vals * np.sqrt(0.2)
+    res_vals = np.clip(res_vals, a_min=0, a_max=1)
     return res_vals
 
 
@@ -89,6 +89,15 @@ def interpolate_slice(x, y, Z, NP):
                              np.linspace(y[0], y[-1], NP))
     return interp_vals
 
+
+def project_locations(data, zone, letter):
+    data.locations = data.get_locs(mode='latlong')
+    for ii in range(len(data.locations)):
+        easting, northing = utils.project((data.locations[ii, 1],
+                                           data.locations[ii, 0]),
+                                          zone=zone, letter=letter)[2:]
+        data.locations[ii, 1], data.locations[ii, 0] = easting, northing
+    return data
 
 # mod = WSDS.Model(r'C:\Users\eric\Documents' +
 #                  r'\MATLAB\MATLAB\Inversion\Regions' +
@@ -137,16 +146,25 @@ def interpolate_slice(x, y, Z, NP):
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 #########################################################
 # SWAYZE
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/pt/swzPT3_lastIter.rho')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
+# Northern Swayze
+main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
+data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
+backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
+mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_morePers_lastIter.rho')
+#########################################################
 # DRYDEN-ATIKOKAN
-# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+# reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
 #########################################################
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
@@ -158,19 +176,24 @@ mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/sw
 # azi = 35  # Dryden-regional
 azi = -15  # Swayze regional
 # padding = 25000
+reso = []
 padding = 10000
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
-file_name = 'swzRegional_0-5_PT-Z_logScale'
+file_path = r'C:/Users/eric/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
+file_name = 'swayzeR2_north_jet1-5_noMarkers'
 file_types = ['.pdf', '.ps', '.png']
 title_ = 'Standard Inversion'
+rotate_back = 1
 
 save_fig = 0
 save_dat = 0
+annotate_sites = 0
+site_markers = 0
+plot_map = 1
 dpi = 600
 csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
-use_alpha = 0
+use_alpha = 1
 saturation = 0.8
 lightness = 0.4
 
@@ -183,46 +206,59 @@ isolum = False
 # xlim = [-7, 74]
 # zlim = [0, 5]
 lut = 256
-cax = [0, 5]
+cax = [1, 5]
 # cax = [-2, 2]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-cmap_name = 'jet_r'
+# cmap_name = 'jet_r'
 # cmap_name = 'gray'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
 # cmap_name = 'cet_bgy_r'
-# cmap_name = 'jetplus'
+cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
+# main_transect.remove_sites('98-1_073')
+# main_transect.remove_sites(sites=[site for site in main_transect.site_names if 'att' in site.lower()])
+data = project_locations(data, zone=16, letter='U')
+backup_data = project_locations(backup_data, zone=16, letter='U')
+main_transect = project_locations(main_transect, zone=16, letter='U')
+main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]  # Make sure they go north-south
+if plot_map:
+    site_x, site_y = [main_transect.locations[:, 1],
+                      main_transect.locations[:, 0]]
+    qx_map, qy_map = [], []
+    X = np.linspace(site_y[0] - padding, site_y[0], 20)
+    Y = np.interp(X, site_y, site_x)
+    qx_map.append(Y)
+    qy_map.append(X)
+    for ii in range(len(site_x) - 1):
+        X = np.linspace(site_y[ii], site_y[ii + 1], 50)
+        Y = np.interp(X, site_y, site_x)
+        qx_map.append(Y)
+        qy_map.append(X)
+    X = np.linspace(site_y[-1], site_y[-1] + padding, 20)
+    Y = np.interp(X, site_y, site_x)
+    qx_map.append(Y)
+    qy_map.append(X)
+    qx_map = np.concatenate(qx_map).ravel()
+    qy_map = np.concatenate(qy_map).ravel()
 
-data.locations = data.get_locs(mode='latlong')
-for ii in range(len(data.locations)):
-        easting, northing = utils.project((data.locations[ii, 1],
-                                           data.locations[ii, 0]),
-                                          zone=16, letter='U')[2:]
-        data.locations[ii, 1], data.locations[ii, 0] = easting, northing
+data = copy.deepcopy(main_transect)
 data.locations = utils.rotate_locs(data.locations, azi)
-origin = data.origin
+# data.locations = data.get_locs(mode='centered')
+# data.locations[:, 0] += backup_data.origin[1]
+# data.locations[:, 1] += backup_data.origin[0]
+origin = backup_data.origin
 mod.origin = origin
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
 #           np.array(seismic['y']) / 1000)
-site_x, site_y = [main_transect.locations[:, 1] / 1000,
-                  main_transect.locations[:, 0] / 1000]
-qx, qy = [], []
-for ii in range(len(site_x) - 1):
-    qx.append(np.linspace(site_x[ii], site_x[ii + 1], 100).ravel())
-    qy.append(np.linspace(site_y[ii], site_y[ii + 1], 100).ravel())
-qx = np.array(qx).ravel()
-qy = np.array(qy).ravel()
 
-reso = []
-kimberlines = []
-mod.origin = data.origin
+# mod.origin = data.origin
 mod.to_UTM()
 if mod.coord_system == 'UTM':
     mod.dx = [xx / 1000 for xx in mod.dx]
@@ -257,8 +293,6 @@ qx.append(Y)
 qy.append(X)
 qx = np.concatenate(qx).ravel() / 1000
 qy = np.concatenate(qy).ravel() / 1000
-reso = []
-kimberlines = []
 
 x, y, z = [np.zeros((len(mod.dx) - 1)),
            np.zeros((len(mod.dy) - 1)),
@@ -308,7 +342,6 @@ for ix in range(len(qx)):
 if reso:
     alpha = normalize_resolution(mod, reso)
     # alpha = alpha[11, :, :]
-    alpha = alpha[:, 73, :]
 # if mode == 2:
     # vals = interpolate_slice(y, z, vals, 300)
 print('Interpolating...')
@@ -317,7 +350,11 @@ interpolator = RGI((y, x, z), np.transpose(vals, [1, 0, 2]), bounds_error=False,
 vals = interpolator(query_points)
 vals = np.reshape(vals, [len(qx), len(qz)])
 if reso:
-    alpha = interpolate_slice(y, z, alpha, 300)
+    # alpha = interpolate_slice(y, z, alpha, 300)
+    interpolator_alpha = RGI((y, x, z), np.transpose(alpha, [1, 0, 2]), bounds_error=False, fill_value=0)
+    alpha = interpolator_alpha(query_points)
+    alpha = np.reshape(alpha, [len(qx), len(qz)])
+    alpha = np.clip(alpha, a_max=0.99, a_min=0)
 
 norm_vals = (vals - min(cax[0], np.min(vals))) / \
             (max(np.max(vals), cax[1]) - min(cax[0], np.min(vals)))
@@ -332,17 +369,19 @@ else:
 # Just turn the bottom row transparent, since those cells often somehow still have resolution
 # alpha[-1, :] = alpha[-1, :].clip(max=0.5)
 rgba = copy.deepcopy(rgb)
-if reso:
+if reso and use_alpha:
+    alpha[-1, :] = alpha[-1, :].clip(max=0.5)
     rgba[..., -1] = alpha
 
-
-
 # Rotate locations back to true coordinates
-if azi:
+if azi and rotate_back:
     data.locations = utils.rotate_locs(data.locations, azi=-azi)
     p = utils.rotate_locs(np.array((qx, qy)).T, azi=azi)
-    qx = p[:, 0]
-    qy = p[:, 1]
+    qx_rot = p[:, 0]
+    qy_rot = p[:, 1]
+else:
+    qy_rot = qy
+    qx_rot = qx
 # cmap[..., -1] = reso.vals[:, 31, :]
 
 # I had to change the way things plotted, so isolum is unusable right now.
@@ -432,7 +471,7 @@ for ii in range(1, 2):
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
         to_plot = to_plot[1:, 1:]
         im, ax = pcolorimage(ax,
-                             x=(np.array(qy)),
+                             x=(np.array(qy_rot)),
                              y=np.array(qz),
                              A=(to_plot), cmap=cmap)
         # sites = ax.plot(data.locations[:, 0] / 1000,
@@ -466,15 +505,34 @@ for ii in range(1, 2):
 
 ax.autoscale_view(tight=True)
 ax.tick_params(axis='both', labelsize=14)
-locs = ax.plot(data.locations[:, 0] / 1000,
-               np.zeros((data.locations.shape[0])) - 0.5,
-               'kv', markersize=6)[0]
-for jj, site in enumerate(data.site_names):
-    plt.text(s=site,
-             x=data.locations[jj, 0] / 1000,
-             y=-0.5,
-             color='k',
-             rotation=90)
+if site_markers:
+    locs = ax.plot(data.locations[:, 0] / 1000,
+                   np.zeros((data.locations.shape[0])) - 0.5,
+                   'kv', markersize=6)[0]
+    locs.set_clip_on(False)
+if annotate_sites:
+    for jj, site in enumerate(data.site_names):
+        plt.text(s=site,
+                 x=data.locations[jj, 0] / 1000,
+                 y=-5,
+                 color='k',
+                 rotation=45)
+if plot_map:
+    fig2 = plt.figure(2)
+    # win2 = Divider(fig2, (0.1, 0.1, 0.8, 0.8), h, v, aspect=False)
+    # ax2 = Axes(fig2, win2.get_position())
+    # ax2.set_axes_locator(win2.new_locator(nx=1, ny=1))
+    ax2 = fig2.add_subplot(111)
+    # fig2.add_axes(ax2)
+    ax2.plot(backup_data.locations[:, 1], backup_data.locations[:, 0], 'kv', markersize=6)
+    ax2.plot(qx_map, qy_map, 'r--')
+    # for jj, site in enumerate(backup_data.site_names):
+    #     plt.text(s=site,
+    #              x=backup_data.locations[jj, 1],
+    #              y=backup_data.locations[jj, 0],
+    #              color='k')
+    ax2.set_aspect('equal')
+    fig2.canvas.draw()
 # locs.set_clip_on(False)
 # for label in ax.xaxis.get_ticklabels():
 #     label.set_visible(False)
