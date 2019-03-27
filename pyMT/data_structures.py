@@ -541,6 +541,11 @@ class Data(object):
         self.azimuth = 0
         self.origin = None
         self.UTM_zone = None
+        self.error_floors = {'Off-Diagonal Impedance': 0.075,
+                             'Diagonal Impedance': 0.075,
+                             'Tipper': 0.05,
+                             'Rho': 0.05,
+                             'Phase': 0.03}
         if not file_format or file_format in Data.IMPLEMENTED_FORMATS.keys():
             self.file_format = file_format
         else:
@@ -695,6 +700,10 @@ class Data(object):
             #  Full Rho + Phase + 2-D Tipper
             self.inv_type = 15
 
+    def apply_error_floor(self):
+        for site in self.site_names:
+            self.sites[site].apply_error_floor(error_floors=self.error_floors)
+
     def print_lowest_errors(self, components=None):
         all_actual, all_used = ([], [])
         for ii, site in enumerate(self.site_names):
@@ -711,6 +720,8 @@ class Data(object):
             sites = self.site_names
         elif isinstance(sites, str):
             sites = [sites]
+        if not error_floor:
+            error_floor = self.error_floors
         for site in sites:
             self.sites[site].reset_errors(error_floor=error_floor, components=components)
 
@@ -1392,10 +1403,12 @@ class Site(object):
         self.solve_static = solve_static
         self.static_multiplier = 1
         self.minimum_error = 0.0001
-        self.error_floors = {'Z': 0.075,
-                             'T': 0.05,
+        self.use_independent_errors = False
+        self.error_floors = {'Off-Diagonal Impedance': 0.075,
+                             'Diagonal Impedance': 0.075,
+                             'Tipper': 0.05,
                              'Rho': 0.05,
-                             'Phs': 0.03}
+                             'Phase': 0.03}
         self.file_format = file_format
         self.phase_tensors = []
         if errfloorZ is None:
@@ -1454,19 +1467,19 @@ class Site(object):
 
     @property
     def errorfloorZ(self):
-        return self.error_floors['Z']
+        return self.error_floors['Off-Diagonal Impedance']
 
     @errorfloorZ.setter
     def errorfloorZ(self, val):
-        self.error_floors['Z'] = val
+        self.error_floors['Off-Diagonal Impedance'] = val
 
     @property
     def errorfloorT(self):
-        return self.error_floors['T']
+        return self.error_floors['Tipper']
 
     @errorfloorT.setter
     def errorfloorT(self, val):
-        self.error_floors['T'] = val
+        self.error_floors['Tipper'] = val
 
     def validate_data(self):
         for component in self.components:
@@ -1517,23 +1530,26 @@ class Site(object):
         for component in components:
             if 'log10' in component:
                 new_errors = np.log10(1 + error_floors['Rho']) * np.ones(self.data[component].shape)
-            elif 'phs' in component.lower():
-                new_errors = error_floors['Phs'] * 100 * np.ones(self.data[component].shape)
+            elif 'phase' in component.lower():
+                new_errors = error_floors['Phase'] * 100 * np.ones(self.data[component].shape)
             elif 'pt' in component.lower():
-                new_errors = (np.tan(np.deg2rad((error_floors['Phs'] * 100))) *
+                new_errors = (np.tan(np.deg2rad((error_floors['Phase'] * 100))) *
                               np.ones(self.data[component].shape))
             elif component.startswith('Z'):
                 if 'XX' in component or 'YY' in component:
-                    zxy = self.data['ZXYR'] + 1j * self.data['ZXYI']
-                    zyx = self.data['ZYXR'] + 1j * self.data['ZYXI']
-                    offdiag_errors = error_floors['Z'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
-                                                                        zyx * zyx.conjugate())) / 2
-                    diag_errors = np.abs(self.data[component] * error_floors['Z'])
-                    new_errors = np.maximum(offdiag_errors, diag_errors)
+                    if self.use_independent_errors:
+                        new_errors = np.abs(self.data[component] * error_floors['Diagonal Impedance'])
+                    else:
+                        zxy = self.data['ZXYR'] + 1j * self.data['ZXYI']
+                        zyx = self.data['ZYXR'] + 1j * self.data['ZYXI']
+                        offdiag_errors = error_floors['Off-Diagonal Impedance'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
+                                                                            zyx * zyx.conjugate())) / 2
+                        diag_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
+                        new_errors = np.maximum(offdiag_errors, diag_errors)
                 else:
-                    new_errors = np.abs(self.data[component] * error_floors['Z'])
+                    new_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
             elif component.startswith('T'):
-                new_errors = np.abs(np.ones(self.data[component].shape) * error_floors['T'])
+                new_errors = np.abs(np.ones(self.data[component].shape) * error_floors['Tipper'])
             elif 'rho' in component.lower():
                 new_errors = np.abs(self.data[component] * error_floors['Rho'])
             # new_errors[new_errors == 0] = np.median(new_errors)
@@ -1541,10 +1557,11 @@ class Site(object):
             returned_errors[component] = utils.truncate(new_errors)
         return returned_errors
 
-    @utils.enforce_input(error_floor=float, components=list)
     def reset_errors(self, error_floor=None, components=None):
         if not components:
             components = self.components
+        if not isinstance(components, list):
+            components = [components]
         new_errors = self.calculate_error_floor(error_floor=error_floor,
                                                 components=components)
         for component in components:
@@ -1559,7 +1576,7 @@ class Site(object):
             components = self.components
         for component in components:
             size = self.data[component].shape
-            if 'phs' in component.lower():
+            if 'phase' in component.lower():
                 noise = np.random.normal(loc=noise_level * 100,
                                          scale=noise_level * 100, size=size)
             elif 'log10' in component.lower():
@@ -1580,12 +1597,12 @@ class Site(object):
             print('Usage of errfloorZ is depreciated and will be removed in the future.\n')
             print('Please either set the error_floor attribute, or pass a dictionary argument ' +
                   ' as error_floor')
-            self.error_floors['Z'] = errfloorZ
+            self.error_floors['Off-Diagonal Impedance'] = errfloorZ
         if errfloorT:
             print('Usage of errfloorT is depreciated and will be removed in the future.\n')
             print('Please either set the error_floor attribute, or pass a dictionary argumuent ' +
                   ' as error_floor')
-            self.error_floors['T'] = errfloorT
+            self.error_floors['Tipper'] = errfloorT
         if error_floors:
             try:
                 for key in error_floors.keys():
@@ -1598,7 +1615,7 @@ class Site(object):
             new_errors = np.maximum.reduce([floor_errors[component],
                                             self.errors[component] * self.errmap[component]])
             self.used_error[component] = deepcopy(new_errors)
-            self.errors[component] = deepcopy(new_errors)
+            # self.errors[component] = deepcopy(new_errors)
 
         # if errfloorZ is None:
         #     errfloorZ = self.errfloorZ
@@ -1834,14 +1851,18 @@ class Site(object):
         for comp in comps:
             for period in periods:
                 ind = np.argmin(abs(self.periods - period))
-                print(self.errors[comp][ind])
-                if multiplicative:
-                    self.errmap[comp][ind] = mult * self.errmap[comp][ind]
-                else:
-                    self.errmap[comp][ind] = mult
-                    # print(mult)
-                self.used_error[comp][ind] = self.errors[comp][ind] * self.errmap[comp][ind]
-                print(self.errors[comp][ind])
+                if mult > 0:
+                    if multiplicative:
+                        self.errmap[comp][ind] = mult * self.errmap[comp][ind]
+                    else:
+                        self.errmap[comp][ind] = mult
+                        # print(mult)
+                    self.used_error[comp][ind] = self.errors[comp][ind] * self.errmap[comp][ind]
+                elif mult < 0:
+                    self.errmap[comp][ind] = 1
+                    self.errors[comp][ind] = self.used_error[comp][ind] / abs(mult)
+                    self.used_error[comp][ind] /= abs(mult)
+                # print(self.errors[comp][ind])
         # self.apply_error_floor()
 
     @utils.enforce_input(components=list)
@@ -2033,6 +2054,7 @@ class RawData(object):
                            'ZYYR', 'ZYYI',
                            'TZXR', 'TZXI',
                            'TZYR', 'TZYI')
+
     def __init__(self, listfile='', datpath=''):
         """Summary
 
@@ -2053,6 +2075,7 @@ class RawData(object):
             self.site_names = []
             self.locations = []
             self.initialized = False
+        # self.origin = self.center
         self.low_tol = 0.02
         self.high_tol = 0.1
         self.count_tol = 0.5
@@ -2066,9 +2089,20 @@ class RawData(object):
     def origin(self):
         min_x, max_x = (min(self.locations[:, 1]), max(self.locations[:, 1]))
         min_y, max_y = (min(self.locations[:, 0]), max(self.locations[:, 0]))
-        origin = (min_x + (max_x - min_x) / 2,
+        center = (min_x + (max_x - min_x) / 2,
                   min_y + (max_y - min_y) / 2)
-        return origin
+        return center
+
+    # @property
+    # def origin(self):
+    #     return self._origin
+
+    # @origin.setter
+    # def origin(self, value):
+    #     self.locations = self.get_locs(mode='centered')
+    #     self.locations[:, 0] += value[1]
+    #     self.locations[:, 1] += value[0]
+    #     self._origin = value
 
     @property
     def NS(self):
@@ -2341,7 +2375,9 @@ class PhaseTensor(object):
             for k, v in phi.items():
                 setattr(self, k, v)
             if phi_error:
-                self.phi_error = phi_error
+                self.phi_error = np.zeros((2, 2))
+                for k, v in phi_error.items():
+                    setattr(self, k + '_error', v)
             else:
                 self.phi_error = np.array(((self.error_floor, self.error_floor),
                                            (self.error_floor, self.error_floor)))

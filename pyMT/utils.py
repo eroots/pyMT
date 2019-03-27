@@ -586,7 +586,7 @@ def rotate_locs(locs, azi=0):
     locs, center = center_locs(locs)
     R = np.array([[np.cos(azi), -np.sin(azi)], [np.sin(azi), np.cos(azi)]])
     rot_locs = np.matmul(locs, R.T)
-    rot_locs -= center
+    rot_locs += center
     return rot_locs
 
 
@@ -683,19 +683,19 @@ def compute_rho(site, calc_comp=None, errtype='none'):
             det = compute_gav(site)
         elif calc_comp == 'aav':
             det = compute_aav(site)
-        rho_data = det * np.conj(det) * 0.2 * site.periods / MU
+        rho_data = det * np.conj(det) * site.periods / (MU * 2 * np.pi)
         rho_error = rho_log10Err = rho_data * 0
         # Do errors here...
     else:
         comp = ''.join(['Z', calc_comp.upper()])
         z = site.data[''.join([comp, 'R'])] - 1j * site.data[''.join([comp, 'I'])]
-        rho_data = z * np.conj(z) * 0.2 * site.periods / MU
+        rho_data = z * np.conj(z) * site.periods / (MU * 2 * np.pi)
         if errtype.lower() != 'none':
             zeR = getattr(site, errtype)[''.join([comp, 'R'])]
             zeI = getattr(site, errtype)[''.join([comp, 'I'])]
             if len(zeR) == 0:
                 zeR = zeI = z * 0
-            C = 2 * site.periods * 0.2 / MU
+            C = 2 * site.periods / (MU * 2 * np.pi)
             rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
             rho_log10Err = (rho_error * np.sqrt(2) /
                             ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
@@ -932,7 +932,10 @@ def sort_files(files):
         try:
             file_type = (next(x for x in types if x in file))
         except StopIteration:
-            print('{} does not correspond to a recognized file type'.format(file))
+            if '.rho' in file.lower():
+                ret_dict.update({'model': file})
+            else:
+                print('{} does not correspond to a recognized file type'.format(file))
         else:
             ret_dict.update({file_type: file})
     return ret_dict

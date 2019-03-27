@@ -1024,6 +1024,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                         for jj, period in enumerate(data.periods):
                             for component in components_to_write:
                                 component_code = component[:]
+                                # Remember X and Y are switched for Caldwell's def
                                 if component in site.components:
                                     swapped_component = component.replace('X', '1')
                                     swapped_component = swapped_component.replace('Y', 'X')
