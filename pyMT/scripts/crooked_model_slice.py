@@ -137,9 +137,9 @@ def interpolate_slice(x, y, Z, NP):
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 #########################################################
 # SWAYZE
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/pt/swzPT3_lastIter.rho')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
@@ -155,8 +155,20 @@ mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/sw
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R1North_cull2.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
+##########################################################
+# MALARTIC
+main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect.lst')
+data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
+seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
+use_seismic = 1
 # azi = 35  # Dryden-regional
-azi = -15  # Swayze regional
+# azi = -15  # Swayze regional
+azi = 0  # Malartic regional
+# UTM_number = 16
+# UTM_letter = 'U'
+UTM_number = 17
+UTM_letter = 'N'
 # padding = 25000
 padding = 10000
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
@@ -175,7 +187,7 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 50]
+zlim = [0, 75]
 # zlim = [0, 400]
 lut = 64
 isolum = False
@@ -183,18 +195,18 @@ isolum = False
 # xlim = [-7, 74]
 # zlim = [0, 5]
 lut = 256
-cax = [0, 5]
+cax = [0, 4.5]
 # cax = [-2, 2]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-cmap_name = 'jet_r'
+# cmap_name = 'jet_r'
 # cmap_name = 'gray'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
 # cmap_name = 'cet_bgy_r'
-# cmap_name = 'jetplus'
+cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
@@ -203,22 +215,25 @@ data.locations = data.get_locs(mode='latlong')
 for ii in range(len(data.locations)):
         easting, northing = utils.project((data.locations[ii, 1],
                                            data.locations[ii, 0]),
-                                          zone=16, letter='U')[2:]
+                                          zone=UTM_number, letter=UTM_letter)[2:]
         data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 data.locations = utils.rotate_locs(data.locations, azi)
 origin = data.origin
 mod.origin = origin
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-# qx, qy = (np.array(seismic['x'] / 1000),
-#           np.array(seismic['y']) / 1000)
-site_x, site_y = [main_transect.locations[:, 1] / 1000,
-                  main_transect.locations[:, 0] / 1000]
-qx, qy = [], []
-for ii in range(len(site_x) - 1):
-    qx.append(np.linspace(site_x[ii], site_x[ii + 1], 100).ravel())
-    qy.append(np.linspace(site_y[ii], site_y[ii + 1], 100).ravel())
-qx = np.array(qx).ravel()
-qy = np.array(qy).ravel()
+# if seismic:
+#     qx, qy = (np.array(seismic['x'] / 1000),
+#               np.array(seismic['y']) / 1000)
+# else:
+#     qx, qy = [], []
+#     site_x, site_y = [main_transect.locations[:, 1] / 1000,
+#                       main_transect.locations[:, 0] / 1000]
+
+#     for ii in range(len(site_x) - 1):
+#         qx.append(np.linspace(site_x[ii], site_x[ii + 1], 100).ravel())
+#         qy.append(np.linspace(site_y[ii], site_y[ii + 1], 100).ravel())
+#     qx = np.array(qx).ravel()
+#     qy = np.array(qy).ravel()
 
 reso = []
 kimberlines = []
@@ -240,23 +255,27 @@ data.site_names = [site for site in data.site_names if site not in rm_sites]
 data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
 # A little kludge to make sure the last few sites are in the right order (west-east)
 # data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
-X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], 20)
-Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
-qx = []
-qy = []
-qx.append(Y)
-qy.append(X)
-for ii in range(len(data.locations[:, 0]) - 1):
-    X = np.linspace(data.locations[ii, 0], data.locations[ii + 1, 0], 50)
+if use_seismic:
+        qx, qy = (np.array(seismic['x'] / 1000),
+                  np.array(seismic['y']) / 1000)
+else:
+    X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], 20)
+    Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
+    qx = []
+    qy = []
+    qx.append(Y)
+    qy.append(X)
+    for ii in range(len(data.locations[:, 0]) - 1):
+        X = np.linspace(data.locations[ii, 0], data.locations[ii + 1, 0], 50)
+        Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
+        qx.append(Y)
+        qy.append(X)
+    X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + padding, 20)
     Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
     qx.append(Y)
     qy.append(X)
-X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + padding, 20)
-Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
-qx.append(Y)
-qy.append(X)
-qx = np.concatenate(qx).ravel() / 1000
-qy = np.concatenate(qy).ravel() / 1000
+    qx = np.concatenate(qx).ravel() / 1000
+    qy = np.concatenate(qy).ravel() / 1000
 reso = []
 kimberlines = []
 
@@ -472,10 +491,10 @@ locs = ax.plot(data.locations[:, 0] / 1000,
 for jj, site in enumerate(data.site_names):
     plt.text(s=site,
              x=data.locations[jj, 0] / 1000,
-             y=-0.5,
+             y=-7.5,
              color='k',
              rotation=90)
-# locs.set_clip_on(False)
+locs.set_clip_on(False)
 # for label in ax.xaxis.get_ticklabels():
 #     label.set_visible(False)
 # for label in ax.yaxis.get_ticklabels():
@@ -483,16 +502,16 @@ for jj, site in enumerate(data.site_names):
 # ax.tick_params(axis='y', labelsize=10)
 # fig.subplots_adjust(right=0.8)
 
-# divider = make_axes_locatable(ax)
-# cb_ax = divider.append_axes('right', size='2.5%', pad=0.1)
-# cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='vertical', extend='both')
-# cb.set_clim(cax[0], cax[1])
-# cb.ax.tick_params(labelsize=12)
-# cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
-#              rotation=270,
-#              labelpad=30,
-#              fontsize=14)
-# cb.draw_all()
+divider = make_axes_locatable(ax)
+cb_ax = divider.append_axes('right', size='2.5%', pad=0.1)
+cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='vertical', extend='both')
+cb.set_clim(cax[0], cax[1])
+cb.ax.tick_params(labelsize=12)
+cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
+             rotation=270,
+             labelpad=30,
+             fontsize=14)
+cb.draw_all()
 
 # figlegend = plt.figure(figsize=(4, 4))
 # figlegend.legend(sites, ('Site Locations', ''), 'center')

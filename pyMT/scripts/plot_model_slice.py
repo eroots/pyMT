@@ -56,7 +56,7 @@ def normalize_resolution(model, resolution):
     volumes = X * Y * Z
     res_vals = 1 / resolution.vals
     res_vals = res_vals / volumes ** (1 / 3)
-    res_vals[res_vals > np.median(res_vals.flatten())] = np.median(res_vals.flatten())
+    res_vals[res_vals > np.mean(res_vals.flatten())] = np.mean(res_vals.flatten())
     res_vals = res_vals - np.mean(res_vals.flatten())
     res_vals = res_vals / np.std(res_vals.flatten())
     res_vals = 0.5 + res_vals * np.sqrt(0.5)
@@ -105,14 +105,17 @@ def interpolate_slice(x, y, Z, NP):
 #                     datpath=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\TTZ\j2')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Occam\OCCAM2DMT_V3.0\dbrSlantedFaults\faulted_v8L\dbr_occUVT_Left.model')
 # data = WSDS.RawData(listfile=r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\dbr15\j2\allsitesBBMT.lst')
-mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
-data = WSDS.Data(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
-reso = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
+# mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
+# data = WSDS.Data(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
+# reso = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
 # mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2e_smooth.model')
 # data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.dat')
 # data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data',
 #                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
+data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
+reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
@@ -141,7 +144,7 @@ file_path = 'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
 file_name = 'dryden_plan_gray.png'
 title_ = 'Standard Inversion'
 save_fig = 0
-use_alpha = 1
+use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 
@@ -151,7 +154,7 @@ lightness = 0.4
 # zlim = [0, 200]
 xlim = [-100, 100]
 # zlim = [-100, 100]
-zlim = [0, 50]
+zlim = [0, 100]
 lut = 64
 cax = [1, 5]
 isolum = False
@@ -160,13 +163,13 @@ isolum = False
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-cmap_name = 'jet_r'
+# cmap_name = 'jet_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
 # cmap_name = 'cet_bgy_r'
 # cmap_name = 'jetplus'
-# cmap_name = 'gray'
+cmap_name = 'gray'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 
@@ -269,7 +272,7 @@ if isolum and reso:
 
     cmap = colors.ListedColormap(cmap, name='test1')
 
-fig = plt.figure(figsize=(15, 10))
+fig = plt.figure(figsize=(11, 8))
 # fig = plt.gcf()
 for ii in range(1, 2):
     if ii == 0:
@@ -305,7 +308,7 @@ for ii in range(1, 2):
                              y=np.array(mod.dz) / 1000,
                              A=(to_plot), cmap=cmap)
         # plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
-        plt.plot(data.locations[:, 1] / 1000, np.zeros((data.locations[:, 1].shape)), 'k.')
+        plt.plot(data.locations[:, 0] / 1000, np.zeros((data.locations[:, 0].shape)), 'kv')
         # for jj, site in enumerate(data.site_names):
         #     plt.annotate(site,
         #                  xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
@@ -317,9 +320,9 @@ for ii in range(1, 2):
 
     ax.invert_yaxis()
     # ax.invert_xaxis()
-    # ax.set_xlabel('Latitude', fontsize=20)
+    ax.set_xlabel('Distance (km)', fontsize=20)
     
-    # ax.set_ylabel('Depth (km)', fontsize=20)
+    ax.set_ylabel('Depth (km)', fontsize=20)
     # ax.set_title(title_, y=1.02, fontsize=20)
     fig.canvas.draw()
     # if mod.coord_system == 'latlong':
