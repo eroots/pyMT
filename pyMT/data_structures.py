@@ -290,7 +290,7 @@ class Dataset(object):
             assert (self.azimuth % 360 == self.data.azimuth % 360)
         if self.has_dType('raw_data'):
             self.raw_data.rotate_sites(azi=azi)
-            assert (self.azimuth % 360 == self.raw_data.azimuth % 360)
+            assert ((self.azimuth % 360) == (self.raw_data.azimuth % 360))
         if self.has_dType('response'):
             self.response.rotate_sites(azi=azi)
             assert (self.azimuth % 360 == self.response.azimuth % 360)
@@ -344,15 +344,21 @@ class Dataset(object):
             data_site = self.data.sites[site]
             for comp in self.data.sites[site].components:
                 if comp[0].lower() in 'ztp':
-                    error_map = np.zeros(data_site.data[comp].shape)
-                if comp[0].lower() in 'zt':
-                    if comp[0].lower == 'z':
+                    # error_map = np.zeros(data_site.data[comp].shape)
+                    scale = 1
+                    if comp[0].lower() == 'z':
                         scale = np.sqrt(raw_site.periods)
+                        to_smooth = raw_site.data[comp]
+                    elif comp[0].lower() == 't':
+                        to_smooth = raw_site.data[comp]
+                    elif comp[0].lower() == 'p':
+                        to_smooth = [getattr(raw_site.phase_tensors[ii], comp) for ii, p in enumerate(raw_site.periods)]
                     else:
-                        scale = 1
+                        print('Unknown component.')
+                        return
                     # error_map = np.zeros(data_site.data[comp].shape)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
-                                                          scale * raw_site.data[comp],
+                                                          scale * to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))

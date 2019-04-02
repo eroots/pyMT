@@ -5,7 +5,7 @@ import pyMT.utils as utils
 import matplotlib.pyplot as plt
 import e_colours.colourmaps as cm
 
-<<<<<<< HEAD
+
 ########################################
 # SWAYZE
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
@@ -16,13 +16,25 @@ import e_colours.colourmaps as cm
 # model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4.model'
 # data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4_placed.data'
 
-model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
+model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT3_lastIter.rho'
 base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
 data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
 list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
 base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5.model'
+model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5_placed.model'
 data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5_placed.data'
+
+# model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
+# base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
+# data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2north_3b_Z.dat'
+# list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2North_cull3.lst'
+# base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
+# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.model'
+# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.data'
+
+
+
+
 ########################################
 # DRYDEN
 # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/R2central_1/R2central_1d_Z.dat'
@@ -30,21 +42,22 @@ data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South
 # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/R2_central1a.lst'
 # base_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
 # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho'
+
 # model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4.model'
 # data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4_placed.data'
 ########################################
 # WESTERN SUPERIOR - DRYDEN
-model_file = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\wsSC1\wsSC_final.model'
-base_data = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\wsSC1\wsSC_final.dat'
-data_file = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data'
-list_file = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
-base_list = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\j2\southcentral.lst'
-model_out = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry\wst2dry.model'
-data_out = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry.dat'
+# model_file = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\wsSC1\wsSC_final.model'
+# base_data = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\wsSC1\wsSC_final.dat'
+# data_file = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data'
+# list_file = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
+# base_list = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\j2\southcentral.lst'
+# model_out = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry\wst2dry.model'
+# data_out = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry.dat'
 ########################################
 plot_it = 0
 write_it = 1
-azi = 35  # Rotate the non-base data back
+azi = -0  # Rotate the non-base data back
 
 mod = WSDS.Model(model_file)
 data = WSDS.Data(datafile=data_file, listfile=list_file)
@@ -58,7 +71,7 @@ for site in base_data.site_names:
         break
 data.locations[:, 0] -= x_diff
 data.locations[:, 1] -= y_diff
-file_format = 'modem'
+file_format = 'wsinv3dmt'
 depths_per_decade = (8, 10, 12, 14, 10)
 x, y, z = (utils.edge2center(arr) for arr in (mod.dx, mod.dy, mod.dz))
 for ii in range(len(mod.dx) - 1):
@@ -70,6 +83,14 @@ for ii in range(len(mod.dz) - 1):
 # x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 # x_grid, y_grid, z_grid = (np.ravel(arr) for arr in (x_grid, y_grid, z_grid))
 # X, Y = (x, y)
+# bot_edge = -34000
+# top_edge = 10000
+# left_edge = -25000
+# right_edge = 25000
+# bot_edge = 0
+# top_edge = 40000
+# left_edge = -7000
+# right_edge = 18000
 # bot_edge = -230000
 # top_edge = -50000
 # left_edge = -200000
@@ -88,10 +109,11 @@ left_edge = -25000
 right_edge = 25000
 x_interp = 75
 y_interp = 75
-n_xpad = 15
-n_ypad = 15
+n_xpad = 20
+n_ypad = 20
 x_pad_extention = 75000  # These control the total width of the combined padding
 y_pad_extention = 75000
+min_depth = 1
 max_depth = 100000
 # max_depth = mod.dz[-1]
 x_interior = np.linspace(bot_edge, top_edge, x_interp)

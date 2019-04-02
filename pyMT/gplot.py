@@ -712,6 +712,16 @@ class MapView(object):
                 #          self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
                 #     (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
                 #          self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
+                if True:
+                    idx.append(ii)
+                    if 'TZXR' in self.site_data[dType].sites[site].components:
+                        X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
+                    else:
+                        X.append(0)
+                    if 'TZYR' in self.site_data[dType].sites[site].components:
+                        Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
+                    else:
+                        Y.append(0)
                 idx.append(ii)
                 if 'TZXR' in self.site_data[dType].sites[site].components:
                     X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
@@ -814,7 +824,7 @@ class MapView(object):
         elif fill_param in ['Lambda']:
             lower, upper = (np.min(fill_vals), np.max(fill_vals))
         elif fill_param == 'beta':
-            lower, upper = (-10, 10)
+            lower, upper = (-6, 6)
         elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
         elif fill_param in ('delta'):

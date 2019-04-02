@@ -1017,7 +1017,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                     f.write('> {}\n'.format(data.azimuth))
                     f.write('> 0.0 0.0 0.0\n')
                     f.write('> {} {}\n'.format(data.NP, data.NS))
-                    data.inv_type = inv_type
+                    # data.inv_type = inv_type
                     components_to_write = ['PTXX', 'PTXY', 'PTYX', 'PTYY']
                     for ii, site_name in enumerate(data.site_names):
                         site = data.sites[site_name]
@@ -1032,6 +1032,7 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                     value = site.data[swapped_component][jj]
                                     error = site.used_error[swapped_component][jj]
                                 else:
+                                    # Remember X and Y are switched for Caldwell's def
                                     if component == 'PTXX':  # PTXX
                                         value = site.phase_tensors[jj].phi[1, 1]
                                         error = site.phase_tensors[jj].phi_error[1, 1]
