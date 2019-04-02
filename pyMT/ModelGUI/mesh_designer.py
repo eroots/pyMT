@@ -9,6 +9,8 @@ from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtWidgets
 from pyMT.GUI_common.common_functions import check_key_presses
 from pyMT.GUI_common.classes import FileDialog
+from scipy.ndimage import gaussian_filter
+from e_colours import colourmaps as cm
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -43,7 +45,11 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.orientation = 'xy'
         self.site_marker = 'w+'
         self.mesh_color = 'w'
-        self.slice_idx = 0
+        self.x_slice = 0
+        self.y_slice = 0
+        self.z_slice = 0
+        self.rho_cax = [1, 5]
+        self.colourmap = 'jetplus'
         self.mesh_changable = True
         self.fig = Figure()
         self.key_presses = {'Control': False, 'Alt': False, 'Shift': False}
@@ -52,15 +58,15 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.model = copy.deepcopy(model)
         self.file_dialog = FileDialog(self)
         self.revert_model = copy.deepcopy(model)
-        self.overview = self.fig.add_subplot(111)
+        self.plan_view = self.fig.add_subplot(111)
         self.initialized = False
         self.delete_tolerance = 0.5
-        self.overview.autoscale(1, 'both', 1)
+        self.plan_view.autoscale(1, 'both', 1)
         self.addmpl(self.fig)
         self.redraw_pcolor()
-        # self.overview.pcolor(self.model.dy, self.model.dx,
+        # self.plan_view.pcolor(self.model.dy, self.model.dx,
         #                      self.model.vals[:, :, self.slice_idx], edgecolors='w', picker=3)
-        cursor = Cursor(self.overview, useblit=True, color='black', linewidth=2)
+        cursor = Cursor(self.plan_view, useblit=True, color='black', linewidth=2)
         self._widgets = [cursor]
         self.connect_mpl_events()
         self.setup_widgets()
@@ -87,6 +93,69 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.background_resistivity = float(self.bgRho.text())
         self.bgRho.editingFinished.connect(self.validate_background_rho)
         self.setBackgroundRho.clicked.connect(self.set_background_rho)
+        # View page
+        self.xSlice.valueChanged.connect(self.validate_x_slice)
+        self.ySlice.valueChanged.connect(self.validate_y_slice)
+        self.zSlice.valueChanged.connect(self.validate_z_slice)
+        #  Set up colour map selections
+        self.groupColourmaps = QtWidgets.QActionGroup(self)
+        self.groupColourmaps.triggered.connect(self.set_colourmap)
+        self.actionJet.setActionGroup(self.groupColourmaps)
+        self.actionJet_r.setActionGroup(self.groupColourmaps)
+        self.actionJetplus.setActionGroup(self.groupColourmaps)
+        self.actionJetplus_r.setActionGroup(self.groupColourmaps)
+        self.actionBgy.setActionGroup(self.groupColourmaps)
+        self.actionBgy_r.setActionGroup(self.groupColourmaps)
+        self.actionBwr.setActionGroup(self.groupColourmaps)
+        self.actionBwr_r.setActionGroup(self.groupColourmaps)
+        # Set up colour limits
+        self.actionRho_cax.triggered.connect(self.set_rho_cax)
+        # Smoothing
+        self.smoothModel.clicked.connect(self.smooth_model)
+
+    @property
+    def cmap(self):
+        return cm.get_cmap(self.colourmap)
+
+    def set_colourmap(self):
+        if self.actionJet.isChecked():
+            self.colourmap = 'jet'
+        if self.actionJet_r.isChecked():
+            self.colourmap = 'jet_r'
+        if self.actionJetplus.isChecked():
+            self.colourmap = 'jet_plus'
+        if self.actionJetplus_r.isChecked():
+            self.colourmap = 'jet_plus_r'
+        if self.actionBgy.isChecked():
+            self.colourmap = 'bgy'
+        if self.actionBgy_r.isChecked():
+            self.colourmap = 'bgy_r'
+        if self.actionBwr.isChecked():
+            self.colourmap = 'bwr'
+        if self.actionBwr_r.isChecked():
+            self.colourmap = 'bwr_r'
+        self.redraw_pcolor()
+
+    def set_rho_cax(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Lower limit',
+                                                         'Value:',
+                                                         self.rho_cax[0],
+                                                         -100, 100, 2)
+        if ok_pressed:
+            lower = d
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Upper limit',
+                                                         'Value:',
+                                                         self.rho_cax[1],
+                                                         -100, 100, 2)
+        if ok_pressed:
+            upper = d
+        if lower < upper and [lower, upper] != self.rho_cax:
+            self.rho_cax = [lower, upper]
+            self.redraw_pcolor()
+        else:
+            print('Invalid colour limits')
 
     def validate_background_rho(self):
         try:
@@ -94,6 +163,35 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         except ValueError:
             self.messages.setText('Background resistivity must be numeric')
             self.bgRho.setText(str(self.background_resistivity))
+
+    def validate_x_slice(self, value):
+        if value != self.x_slice:
+            if value >= self.model.nx or value < 0:
+                self.xSlice.setValue(self.x_slice)
+            else:
+                self.x_slice = value
+            self.redraw_pcolor()
+
+    def validate_y_slice(self, value):
+        if value != self.y_slice:
+            if value >= self.model.ny or value < 0:
+                self.ySlice.setValue(self.y_slice)
+            else:
+                self.y_slice = value
+            self.redraw_pcolor()
+
+    def validate_z_slice(self, value):
+        if value != self.z_slice:
+            if value >= self.model.nz or value < 0:
+                self.zSlice.setValue(self.z_slice)
+            else:
+                self.z_slice = value
+            self.redraw_pcolor()
+
+    def smooth_model(self):
+        sigma = [self.sigmaX.value(), self.sigmaY.value(), self.sigmaZ.value()]
+        self.model.vals = gaussian_filter(self.model.vals, sigma=sigma)
+        self.redraw_pcolor()
 
     def set_background_rho(self):
         if self.model.is_half_space():
@@ -257,23 +355,24 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
     def redraw_pcolor(self, x_lim=None, y_lim=None):
         if self.initialized:
             if not x_lim:
-                x_lim = self.overview.get_xlim()
+                x_lim = self.plan_view.get_xlim()
             if not y_lim:
-                y_lim = self.overview.get_ylim()
-            print([x_lim, y_lim])
-        self.overview.clear()
-        # self.overview.autoscale(1, 'both', 1)
-        self.mesh_plot = self.overview.pcolormesh(self.model.dy, self.model.dx,
-                                                  self.model.vals[:, :, self.slice_idx],
-                                                  edgecolors=self.mesh_color, picker=3,
-                                                  linewidth=0.1, antialiased=True)
+                y_lim = self.plan_view.get_ylim()
+        self.plan_view.clear()
+        # self.plan_view.autoscale(1, 'both', 1)
+        self.mesh_plot = self.plan_view.pcolormesh(self.model.dy, self.model.dx,
+                                                   np.log10(self.model.vals[:, :, self.z_slice]),
+                                                   edgecolors=self.mesh_color, picker=3,
+                                                   linewidth=0.1, antialiased=True,
+                                                   vmin=self.rho_cax[0], vmax=self.rho_cax[1],
+                                                   cmap=self.cmap)
         if np.any(self.site_locations):
-            self.location_plot = self.overview.plot(self.site_locations[:, 1],
-                                                    self.site_locations[:, 0],
-                                                    self.site_marker)
+            self.location_plot = self.plan_view.plot(self.site_locations[:, 1],
+                                                     self.site_locations[:, 0],
+                                                     self.site_marker)
         if self.initialized:
-            self.overview.set_xlim(x_lim)
-            self.overview.set_ylim(y_lim)
+            self.plan_view.set_xlim(x_lim)
+            self.plan_view.set_ylim(y_lim)
         self.canvas.draw()
         self.update_dimension_labels()
 

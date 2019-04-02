@@ -287,13 +287,13 @@ class Dataset(object):
         self.azimuth = azi
         if self.has_dType('data'):
             self.data.rotate_sites(azi=azi)
-            assert (self.azimuth == self.data.azimuth)
+            assert (self.azimuth % 360 == self.data.azimuth % 360)
         if self.has_dType('raw_data'):
             self.raw_data.rotate_sites(azi=azi)
-            assert (self.azimuth == self.raw_data.azimuth)
+            assert (self.azimuth % 360 == self.raw_data.azimuth % 360)
         if self.has_dType('response'):
             self.response.rotate_sites(azi=azi)
-            assert (self.azimuth == self.response.azimuth)
+            assert (self.azimuth % 360 == self.response.azimuth % 360)
 
     def remove_sites(self, sites):
         """
@@ -1396,7 +1396,7 @@ class Site(object):
         self.azimuth = azimuth
         self.solve_static = solve_static
         self.static_multiplier = 1
-        self.minimum_error = 0.0001
+        self.minimum_error = 0.0005
         self.use_independent_errors = False
         self.error_floors = {'Off-Diagonal Impedance': 0.075,
                              'Diagonal Impedance': 0.075,
@@ -1537,8 +1537,8 @@ class Site(object):
                         zxy = self.data['ZXYR'] + 1j * self.data['ZXYI']
                         zyx = self.data['ZYXR'] + 1j * self.data['ZYXI']
                         offdiag_errors = error_floors['Off-Diagonal Impedance'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
-                                                                            zyx * zyx.conjugate())) / 2
-                        diag_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
+                                                                                                 zyx * zyx.conjugate())) / 2
+                        diag_errors = np.abs(self.data[component] * error_floors['Diagonal Impedance'])
                         new_errors = np.maximum(offdiag_errors, diag_errors)
                 else:
                     new_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
@@ -1559,8 +1559,9 @@ class Site(object):
         new_errors = self.calculate_error_floor(error_floor=error_floor,
                                                 components=components)
         for component in components:
-            self.errors[component] = new_errors[component]
-            self.used_error[component] = new_errors[component]
+            self.errors[component] = deepcopy(new_errors[component])
+            self.used_error[component] = deepcopy(new_errors[component])
+            self.errmap[component] = np.ones(new_errors[component].shape)
 
     @utils.enforce_input(noise_level=float, components=list)
     def add_noise(self, noise_level=5, components=None):
@@ -1841,7 +1842,7 @@ class Site(object):
             return {comp: mult[comp] * np.ones(np.shape(val)) for comp, val in self.data.items()}
 
     @utils.enforce_input(periods=list, comps=list, mult=int, multiplicative=bool)
-    def change_errmap(self, periods, comps, mult, multiplicative=True):
+    def change_errmap(self, periods, comps, mult, multiplicative=False):
         for comp in comps:
             for period in periods:
                 ind = np.argmin(abs(self.periods - period))

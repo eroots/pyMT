@@ -865,6 +865,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def reset_errors(self):
         self.dataset.data.reset_errors()
+        self.update_error_tree()
         self.update_dpm()
 
     def error_floor_changed(self, row, column):
@@ -1465,6 +1466,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def update_error_tree(self):
         try:
             self.error_tree.itemChanged.disconnect()
+            print('Disconnecting tree')
         except TypeError:
             tree_connected = False
         else:
@@ -1499,6 +1501,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
         if tree_connected:
             self.error_tree.itemChanged.connect(self.post_edit_error)
+            print('Reconnecting tree')
 
     def expand_tree_nodes(self, to_expand, expand=True):
         # idx = [self.dataset.data.site_names.index(site) for site in to_expand]
@@ -1577,6 +1580,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         comps = set(comps)
         periods = set(periods)
         for site in set(site_names):
+            print([comps, use_val])
             self.dataset.data.sites[site].change_errmap(periods=periods, mult=use_val,
                                                         comps=comps,
                                                         multiplicative=False)
