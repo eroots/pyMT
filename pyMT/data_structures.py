@@ -1547,7 +1547,10 @@ class Site(object):
                         diag_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
                         new_errors = np.maximum(offdiag_errors, diag_errors)
                 else:
-                    new_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
+                    z = self.data[component[:-1] + 'R'] + 1j * self.data[component[:-1] + 'I']
+                    z = np.sqrt(z * z.conjugate())
+                    new_errors = np.abs(z * error_floors['Off-Diagonal Impedance'])
+                    # new_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
             elif component.startswith('T'):
                 new_errors = np.abs(np.ones(self.data[component].shape) * error_floors['Tipper'])
             elif 'rho' in component.lower():
@@ -1565,8 +1568,8 @@ class Site(object):
         new_errors = self.calculate_error_floor(error_floor=error_floor,
                                                 components=components)
         for component in components:
-            self.errors[component] = new_errors[component]
-            self.used_error[component] = new_errors[component]
+            self.errors[component] = deepcopy(new_errors[component])
+            self.used_error[component] = deepcopy(new_errors[component])
 
     @utils.enforce_input(noise_level=float, components=list)
     def add_noise(self, noise_level=5, components=None):

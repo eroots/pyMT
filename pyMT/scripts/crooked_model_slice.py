@@ -157,10 +157,10 @@ def project_locations(data, zone, letter):
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
 # Northern Swayze
-main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
-data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
-backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
-mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_morePers_lastIter.rho')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
+# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_morePers_lastIter.rho')
 #########################################################
 # DRYDEN-ATIKOKAN
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
@@ -178,11 +178,12 @@ mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1No
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
 ##########################################################
 # MALARTIC
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect.lst')
+main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
 data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
+backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
 mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
 seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 1
+use_seismic = 0
 # azi = 35  # Dryden-regional
 # azi = -15  # Swayze regional
 azi = 0  # Malartic regional
@@ -245,9 +246,9 @@ for ii in range(len(data.locations)):
         data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 # main_transect.remove_sites('98-1_073')
 # main_transect.remove_sites(sites=[site for site in main_transect.site_names if 'att' in site.lower()])
-data = project_locations(data, zone=16, letter='U')
-backup_data = project_locations(backup_data, zone=16, letter='U')
-main_transect = project_locations(main_transect, zone=16, letter='U')
+# data = project_locations(data, zone=16, letter='U')
+# backup_data = project_locations(backup_data, zone=16, letter='U')
+# main_transect = project_locations(main_transect, zone=16, letter='U')
 main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]  # Make sure they go north-south
 if plot_map:
     site_x, site_y = [main_transect.locations[:, 1],
