@@ -16,20 +16,21 @@ import e_colours.colourmaps as cm
 shp_file_base = 'C:/Users/eric/phd/ownCloud/data/ArcMap/test2.shp'
 list_file = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/culled_allSuperior.lst'
 datafile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/cull_allSuperior.data'
-cmap = cm.jet_plus(64)
+# cmap = cm.jet_plus(64)
+cmap = cm.jet_r(32)
 rho_lim = [0, 5]
 n_interp = 250
 period = 14
 padding = 50000
 rho_error_tol = 0.5
 phase_error_tol = 10
-save_fig = 1
+save_fig = 0
 
 save_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/Pseudosections/subprovinces/botCBar/'
 
-# raw = WSDS.RawData(list_file)
-# data = WSDS.Data(datafile=datafile, listfile=list_file)
-use_periods = data.periods
+raw = WSDS.RawData(list_file)
+data = WSDS.Data(datafile=datafile, listfile=list_file)
+use_periods = data.periods[0:1]
 raw.locations = raw.get_locs(mode='latlong')
 # transform = ccrs.PlateCarree()
 # We want the data plotted in UTM, and we will convert them to UTM before plotting
@@ -62,6 +63,7 @@ for idx, period in enumerate(use_periods):
         for ii, site in enumerate(data.site_names):
                 phase_tensor = data.sites[site].phase_tensors[idx]
                 if not(data.periods[idx] < 4 and site.startswith('98')):
+                # if (period == data.periods[14]) or (period == data.periods[21]):
                     rho_vals.append(np.log10(rho[site][idx]))
                     phase_vals.append(pha[site][idx])
                     # # Flip the coords here so X is west-east

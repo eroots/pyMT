@@ -157,16 +157,16 @@ def project_locations(data, zone, letter):
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
 # Northern Swayze
-main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
-data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
-backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
-mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_morePers_lastIter.rho')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect_north.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
+# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/R2north_cull3.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_morePers_lastIter.rho')
 #########################################################
 # DRYDEN-ATIKOKAN
-# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
-# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
+main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
 # reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
 #########################################################
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
@@ -178,17 +178,17 @@ mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1No
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
 ##########################################################
 # MALARTIC
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
-seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 1
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
+# seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
+use_seismic = 0
 # azi = 35  # Dryden-regional
 # azi = -15  # Swayze regional
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
-UTM_number = 17
+UTM_number = 15
 UTM_letter = 'N'
 # padding = 25000
 reso = []
@@ -221,21 +221,24 @@ isolum = False
 # xlim = [-7, 74]
 # zlim = [0, 5]
 lut = 256
-cax = [0, 4.5]
+cax = [0, 5]
 # cax = [-2, 2]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-# cmap_name = 'jet_r'
+cmap_name = 'jet_r'
 # cmap_name = 'gray'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
 # cmap_name = 'cet_bgy_r'
-cmap_name = 'jetplus'
+# cmap_name = 'jetplus'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
+nudge_sites = ['18-dry041m', '18-dry040m', '18-dry037m', '18-dry001m']
+nudge_dist = 10000
+use_nudge = 0
 
 data.locations = data.get_locs(mode='latlong')
 for ii in range(len(data.locations)):
@@ -249,6 +252,10 @@ data = project_locations(data, zone=16, letter='U')
 backup_data = project_locations(backup_data, zone=16, letter='U')
 main_transect = project_locations(main_transect, zone=16, letter='U')
 main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]  # Make sure they go north-south
+nudge_locations = copy.deepcopy(main_transect.locations)
+for ii, site in enumerate(main_transect.site_names):
+    if site in nudge_sites:
+        nudge_locations[ii, 1] += nudge_dist
 if plot_map:
     site_x, site_y = [main_transect.locations[:, 1],
                       main_transect.locations[:, 0]]
@@ -257,13 +264,18 @@ if plot_map:
     Y = np.interp(X, site_y, site_x)
     qx_map.append(Y)
     qy_map.append(X)
-    for ii in range(len(site_x) - 1):
-        X = np.linspace(site_y[ii], site_y[ii + 1], 50)
-        Y = np.interp(X, site_y, site_x)
+    # for ii in range(len(site_x) - 1):
+    for ii, site in enumerate(main_transect.site_names[:-1]):
+        if use_nudge:
+            use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
+        else:
+            use_x, use_y = site_x, site_y
+        X = np.linspace(use_y[ii], use_y[ii + 1], 50)
+        Y = np.interp(X, use_y, use_x)
         qx_map.append(Y)
         qy_map.append(X)
-    X = np.linspace(site_y[-1], site_y[-1] + padding, 20)
-    Y = np.interp(X, site_y, site_x)
+    X = np.linspace(use_y[-1], use_y[-1] + padding, 20)
+    Y = np.interp(X, use_y, use_x)
     qx_map.append(Y)
     qy_map.append(X)
     qx_map = np.concatenate(qx_map).ravel()
@@ -309,6 +321,10 @@ data.site_names = [site for site in data.site_names if site not in rm_sites]
 data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
 # A little kludge to make sure the last few sites are in the right order (west-east)
 # data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
+nudge_locations = copy.deepcopy(data.locations)
+for ii, site in enumerate(data.site_names):
+    if site in nudge_sites:
+        nudge_locations[ii, 1] += nudge_dist
 if use_seismic:
         qx, qy = (np.array(seismic['x'] / 1000),
                   np.array(seismic['y']) / 1000)
@@ -319,13 +335,18 @@ else:
     qy = []
     qx.append(Y)
     qy.append(X)
-    for ii in range(len(data.locations[:, 0]) - 1):
-        X = np.linspace(data.locations[ii, 0], data.locations[ii + 1, 0], 50)
-        Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
+    # for ii in range(len(data.locations[:, 0]) - 1):
+    for ii, site in enumerate(data.site_names[:-1]):
+        if use_nudge:
+            use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
+        else:
+            use_x, use_y = data.locations[:, 1], data.locations[:, 0]
+        X = np.linspace(use_y[ii], use_y[ii + 1], 50)
+        Y = np.interp(X, use_y[:], use_x[:])
         qx.append(Y)
         qy.append(X)
-    X = np.linspace(data.locations[-1, 0], data.locations[-1, 0] + padding, 20)
-    Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
+    X = np.linspace(use_y[-1], use_y[-1] + padding, 20)
+    Y = np.interp(X, use_y[:], use_x[:])
     qx.append(Y)
     qy.append(X)
     qx = np.concatenate(qx).ravel() / 1000
