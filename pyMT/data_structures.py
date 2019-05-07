@@ -345,7 +345,7 @@ class Dataset(object):
             for comp in self.data.sites[site].components:
                 if comp[0].lower() in 'ztp':
                     # error_map = np.zeros(data_site.data[comp].shape)
-                    scale = 1
+                    scale = np.ones(raw_site.periods.shape)
                     if comp[0].lower() == 'z':
                         scale = np.sqrt(raw_site.periods)
                         to_smooth = raw_site.data[comp]
@@ -362,10 +362,16 @@ class Dataset(object):
                                                           fwidth=fwidth, use_log=use_log)
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))
+                        if comp[0].lower() == 'z':
+                            scale = np.sqrt(p)
+                        else:
+                            scale = 1
                         max_error = multiplier * abs(scale * data_site.data[comp][ii] -
-                                                     smoothed_data[ind])
+                                                     smoothed_data[ind]) / scale
                         # error_map[ii] = min([data_site.errmap[comp][ii],
                         # np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
+                        # print(abs(scale * data_site.data[comp][ii] -
+                                                     # smoothed_data[ind]))
                         self.data.sites[site].errors[comp][ii] = max_error
                         self.data.sites[site].used_error[comp][ii] = max_error
                         self.data.sites[site].errmap[comp][ii] = 1
@@ -2155,6 +2161,16 @@ class RawData(object):
         self.locations = Data.get_locs(self)
         self.datpath = datpath
         self.listfile = listfile
+
+    def average_rho(self, fwidth=1):
+        avg = []
+        for site in self.sites.values():
+            to_smooth = utils.compute_rho(site, calc_comp='det', errtype='none')[0]
+            smoothed_data = utils.geotools_filter(np.log10(site.periods),
+                                                  to_smooth,
+                                                  fwidth=fwidth, use_log=True)
+            avg.append(np.mean(smoothed_data))
+        return 10 ** np.mean(np.log10(avg)), avg
 
     def remove_periods(self, site_dict):
         for site, periods in site_dict.items():

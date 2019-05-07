@@ -2,10 +2,22 @@ import pyMT.data_structures as WSDS
 from pyMT.IO import verify_input
 import os
 from pyMT.WSExceptions import WSFileError
+from pyMT.utils import project
+
+
+def transform_locations(dataset, UTM):
+    dataset.raw_data.locations = dataset.raw_data.get_locs(mode='latlong')
+    UTM_number = int(UTM[:2])
+    UTM_letter = UTM[-1]
+    for ii in range(len(dataset.raw_data.locations)):
+        easting, northing = project((dataset.raw_data.locations[ii, 1],
+                                     dataset.raw_data.locations[ii, 0]),
+                                    zone=UTM_number, letter=UTM_letter)[2:]
+        dataset.raw_data.locations[ii, 1], dataset.raw_data.locations[ii, 0] = easting, northing
 
 
 def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
-           datpath=None, origin=None, UTM=None, sea_level=0, resolutionfile=None):
+           datpath=None, origin=None, UTM=None, sea_level=0, resolutionfile=None, transform_coords=None):
     if not outfile:
         print('Output file required!')
         return
@@ -15,15 +27,19 @@ def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
                                listfile=listfile,
                                datpath=datpath)
     model = WSDS.Model(modelfile=modelfile)
-    if not origin and not listfile:
-        print('You must either specify the origin, or the list file to calculate it from.')
-        return
-    elif not origin and listfile:
-        origin = dataset.raw_data.origin()
-        print('Setting origin as {}'.format(origin))
     if not UTM:
         print('Using dummy UTM zone')
         UTM = '999'
+    if transform_coords == 'y':
+        print('Transforming locations to UTM {}'.format(UTM))
+        transform_locations(dataset, UTM)
+
+    if not origin and not listfile:
+        print('You must either specify the origin, or the list file to calculate it from.')
+        return
+    elif (not origin and listfile) or transform_coords == 'y':
+        origin = dataset.raw_data.origin
+        print('Setting origin as {}'.format(origin))
     if modelfile:
         model.origin = origin
         model.UTM_zone = UTM
@@ -80,7 +96,7 @@ def get_inputs():
             except WSFileError as err:
                 print(err.message)
                 # Otherwise just get the data file
-        elif '.data' in datafile:
+        elif '.dat' in datafile:
             args.update({'datafile': datafile})
     origin = verify_input('Input model origin as Easting, Northing',
                           expected='numtuple',
@@ -89,6 +105,12 @@ def get_inputs():
     args.update({'UTM': verify_input('UTM Zone',
                                      expected=str,
                                      default='dummy')})
+    if args['UTM'] != 'dummy':
+        args.update({'transform_coords': verify_input('Do you want to transform the coordinates to this UTM zone?',
+                                                      expected='yn',
+                                                      default='y')})
+    else:
+        args.update({'transform_coords': 'n'})
     sea_level = verify_input('Sea level adjustment (Positive for above sea level)',
                              expected=float, default=0)
     args.update({'sea_level': sea_level})

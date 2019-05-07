@@ -108,16 +108,23 @@ def interpolate_slice(x, y, Z, NP):
 # mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
 # data = WSDS.Data(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
 # reso = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
-mod = WSDS.Model(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
-data = WSDS.Data(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
-reso = WSDS.Model(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
+# mod = WSDS.Model(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.model')
+# data = WSDS.Data(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_cull1i_Z.dat')
+# reso = WSDS.Model(r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
 # mod = WSDS.Model(r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\Resolution.model')
 # mod = WSDS.Model(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2e_smooth.model')
 # data = WSDS.Data(r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\swayze\R1South_2\bb\R1South_2f_bb_Z.dat')
 # data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data',
 #                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
-data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
+#####################################################################
+# MALARTIC
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
+# data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
+#####################################################################
+# DRYDEN
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
+data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.dat')
+#####################################################################
 reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
@@ -140,11 +147,11 @@ mod.origin = data.origin
 if mod.coord_system == 'UTM':
     mod.dx = [xx / 1000 for xx in mod.dx]
     mod.dy = [yy / 1000 for yy in mod.dy]
-slice_num = 34
+slice_num = 39
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = 'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
-file_name = 'dryden_plan_gray.png'
+file_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/slices/dry5norot/'
+file_name = 'dryden_plan_31620m.png'
 title_ = 'Standard Inversion'
 save_fig = 0
 use_alpha = 0
@@ -156,10 +163,10 @@ lightness = 0.4
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
 xlim = [-100, 100]
-# zlim = [-100, 100]
-zlim = [0, 100]
+zlim = [-100, 100]
+# zlim = [0, 100]
 lut = 64
-cax = [1, 5]
+cax = [0, 5]
 isolum = False
 # xlim = [-123.5, -121.5]
 # xlim = [-7, 74]
@@ -195,7 +202,7 @@ else:
 # vals = np.log10(mod.vals[:, 73, :])
 # vals = np.log10(mod.vals[11, :, :])
 # vals = np.log10(mod.vals[:, :, 30])
-vals = np.log10(mod.vals[:, slice_num, :]).T
+vals = np.log10(mod.vals[:, :, slice_num])
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
 vals[vals < cax[0]] = cax[0]
@@ -203,14 +210,16 @@ vals[vals > cax[1]] = cax[1]
 if use_alpha:
     alpha = normalize_resolution(mod, reso)
     # alpha = alpha[11, :, :]
-    alpha = alpha[:, slice_num, :]
+    alpha = alpha[:, :, slice_num]
 if mode == 2:
     vals = interpolate_slice(y, z, vals, 300)
     if use_alpha:
         alpha = interpolate_slice(y, z, alpha, 300)
 
-norm_vals = (vals - np.min(vals)) / \
-            (np.max(vals) - np.min(vals))
+# norm_vals = (vals - np.min(vals)) / \
+            # (np.max(vals) - np.min(vals))
+norm_vals = (vals - min(cax[0], np.min(vals))) / \
+            (max(np.max(vals), cax[1]) - min(cax[0], np.min(vals)))
 if mode == 2:
     rgb = cmap(np.flipud(norm_vals.T))
     if use_alpha:
@@ -308,11 +317,11 @@ for ii in range(1, 2):
     elif mode == 3:
         # mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
-        im, ax = pcolorimage(ax, x=(np.array(mod.dx)) / 1000,
-                             y=np.array(mod.dz) / 1000,
+        im, ax = pcolorimage(ax, x=(np.array(mod.dy)) / 1000,
+                             y=np.array(mod.dx) / 1000,
                              A=(to_plot), cmap=cmap)
-        # plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
-        plt.plot(data.locations[:, 0] / 1000, np.zeros((data.locations[:, 0].shape)), 'kv')
+        plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
+        # plt.plot(data.locations[:, 0] / 1000, np.zeros((data.locations[:, 0].shape)), 'kv')
         # for jj, site in enumerate(data.site_names):
         #     plt.annotate(site,
         #                  xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
@@ -322,7 +331,7 @@ for ii in range(1, 2):
     if zlim:
         ax.set_ylim(zlim)
 
-    ax.invert_yaxis()
+    # ax.invert_yaxis()
     # ax.invert_xaxis()
     ax.set_xlabel('Distance (km)', fontsize=20)
     
