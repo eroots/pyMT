@@ -154,6 +154,10 @@ def project_locations(data, zone, letter):
 # backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/pt/swzPT3_lastIter.rho')
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/swz_lastIter.rho')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
 # Northern Swayze
@@ -167,6 +171,10 @@ main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth
 data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
 backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
 mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/bg800/dry5norot_lastIter.rho')
 # reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
 #########################################################
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
@@ -183,6 +191,20 @@ mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
 # seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
 use_seismic = 0
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
+# seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
+#########################################################
+# A-G / ROUYN
+main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/rouyn/j2/main_transect_more.lst')
+data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/j2/center_fewer3.lst')
+backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/j2/center_fewer3.lst')
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/centerMore_ModEM/NLCG_NLCG_120.rho')
+seismic = pd.read_table('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/rouyn/rou_seismic_traces.txt',
+                        header=0, names=('trace', 'x', 'y'), sep='\s+')
+use_seismic = 0
 # azi = 35  # Dryden-regional
 # azi = -15  # Swayze regional
 azi = 0  # Malartic regional
@@ -190,6 +212,7 @@ azi = 0  # Malartic regional
 # UTM_letter = 'U'
 UTM_number = 15
 UTM_letter = 'N'
+# UTM_letter = 'U'
 # padding = 25000
 reso = []
 padding = 10000
@@ -200,11 +223,12 @@ file_name = 'swayzeR2_north_jet1-5_noMarkers'
 file_types = ['.pdf', '.ps', '.png']
 title_ = 'Standard Inversion'
 rotate_back = 1
+linear_xaxis = True
 
 save_fig = 0
 save_dat = 0
-annotate_sites = 0
-site_markers = 0
+annotate_sites = 1
+site_markers = 1
 plot_map = 1
 dpi = 600
 csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
@@ -222,6 +246,7 @@ isolum = False
 # zlim = [0, 5]
 lut = 256
 cax = [0, 5]
+# cax = [1, 5]
 # cax = [-2, 2]
 isolum = 0
 # cmap_name = 'gist_rainbow'
@@ -248,15 +273,15 @@ for ii in range(len(data.locations)):
         data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 # main_transect.remove_sites('98-1_073')
 # main_transect.remove_sites(sites=[site for site in main_transect.site_names if 'att' in site.lower()])
-data = project_locations(data, zone=16, letter='U')
-backup_data = project_locations(backup_data, zone=16, letter='U')
-main_transect = project_locations(main_transect, zone=16, letter='U')
+# data = project_locations(data, zone=16, letter='U')
+# backup_data = project_locations(backup_data, zone=16, letter='U')
+# main_transect = project_locations(main_transect, zone=16, letter='U')
 main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]  # Make sure they go north-south
 nudge_locations = copy.deepcopy(main_transect.locations)
 for ii, site in enumerate(main_transect.site_names):
     if site in nudge_sites:
         nudge_locations[ii, 1] += nudge_dist
-if plot_map:
+if plot_map and not use_seismic:
     site_x, site_y = [main_transect.locations[:, 1],
                       main_transect.locations[:, 0]]
     qx_map, qy_map = [], []
@@ -328,6 +353,9 @@ for ii, site in enumerate(data.site_names):
 if use_seismic:
         qx, qy = (np.array(seismic['x'] / 1000),
                   np.array(seismic['y']) / 1000)
+        if plot_map:
+            qx_map = copy.deepcopy(qx) * 1000
+            qy_map = copy.deepcopy(qy) * 1000
 else:
     X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], 20)
     Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
@@ -442,6 +470,16 @@ if azi and rotate_back:
 else:
     qy_rot = qy
     qx_rot = qx
+if linear_xaxis:
+    linear_x = np.zeros(qx_rot.shape)
+    linear_x[1:] = np.sqrt((qx_rot[1:] - qx_rot[:-1]) ** 2 + (qy_rot[1:] - qy_rot[:-1]) ** 2)
+    linear_x = np.cumsum(linear_x)
+    nodes = np.array([qy_rot * 1000, qx_rot * 1000]).T
+    linear_site = np.zeros((len(data.locations)))
+    for ii, (x, y) in enumerate(data.locations):
+        dist = np.sum((nodes - np.array([x, y])) ** 2, axis=1)
+        idx = np.argmin(dist)
+        linear_site[ii] = linear_x[idx]
 # cmap[..., -1] = reso.vals[:, 31, :]
 
 # I had to change the way things plotted, so isolum is unusable right now.
@@ -529,11 +567,16 @@ for ii in range(1, 2):
     elif mode == 3:
         # mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
+        if linear_xaxis:
+            x_axis = linear_x
+        else:
+            x_axis = qy_rot
         to_plot = to_plot[1:, 1:]
         im, ax = pcolorimage(ax,
-                             x=(np.array(qy_rot)),
+                             x=(np.array(x_axis)),
                              y=np.array(qz),
                              A=(to_plot), cmap=cmap)
+
         # sites = ax.plot(data.locations[:, 0] / 1000,
         #                 np.zeros(len(data.locations[:, 1])) - 0.5,
         #                 'wv', mec='k', markersize=7)
@@ -562,10 +605,14 @@ for ii in range(1, 2):
     #     ax.set_xlabel('X (km)', fontsize=20)
     # for line in kimberlines:
     #     ax.plot([line, line], [0, 200], 'w-', lw=0.5)
-
+if linear_xaxis:
+    site_x = linear_site
+    ax.set_xlabel('Distance (km)', fontsize=14)
+else:
+    site_x = data.locations[:, 0] / 1000
 ax.autoscale_view(tight=True)
 ax.tick_params(axis='both', labelsize=14)
-locs = ax.plot(data.locations[:, 0] / 1000,
+locs = ax.plot(site_x,
                np.zeros((data.locations.shape[0])) - 0.5,
                'kv', markersize=6)[0]
 for jj, site in enumerate(data.site_names):
@@ -576,14 +623,16 @@ for jj, site in enumerate(data.site_names):
              rotation=90)
 locs.set_clip_on(False)
 if site_markers:
-    locs = ax.plot(data.locations[:, 0] / 1000,
+    locs = ax.plot(site_x,
                    np.zeros((data.locations.shape[0])) - 0.5,
                    'kv', markersize=6)[0]
     locs.set_clip_on(False)
 if annotate_sites:
     for jj, site in enumerate(data.site_names):
+        if site.startswith('18-'):
+            site = site[3:]
         plt.text(s=site,
-                 x=data.locations[jj, 0] / 1000,
+                 x=site_x[jj],
                  y=-5,
                  color='k',
                  rotation=45)
@@ -597,10 +646,12 @@ if plot_map:
     ax2.plot(backup_data.locations[:, 1], backup_data.locations[:, 0], 'kv', markersize=6)
     ax2.plot(qx_map, qy_map, 'r--')
     # for jj, site in enumerate(backup_data.site_names):
-    #     plt.text(s=site,
-    #              x=backup_data.locations[jj, 1],
-    #              y=backup_data.locations[jj, 0],
-    #              color='k')
+    for jj, site in enumerate(data.site_names):
+        plt.text(s=site,
+                 x=data.locations[jj, 1],
+                 y=data.locations[jj, 0],
+                 color='k')
+    ax2.plot(main_transect.locations[:, 1], main_transect.locations[:, 0], 'kv', markersize=6)
     ax2.set_aspect('equal')
     fig2.canvas.draw()
 # locs.set_clip_on(False)

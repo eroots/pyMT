@@ -1006,7 +1006,8 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                         Lat, Long,
                                         X, Y, Z,
                                         component_code.upper(), Z_real, Z_imag,
-                                        site.used_error[component][jj]))
+                                        max(site.used_error[component[:-1] + 'R'][jj],
+                                            site.used_error[component[:-1] + 'I'][jj])))
             # If inv_type is greater than 5, do phase tensors?
             else:
                 for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
