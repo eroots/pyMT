@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1322</width>
-    <height>841</height>
+    <width>1358</width>
+    <height>911</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -26,8 +32,17 @@
    <property name="autoFillBackground">
     <bool>true</bool>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
+   <layout class="QGridLayout" name="gridLayout_5">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetMaximumSize</enum>
+    </property>
+    <property name="leftMargin">
+     <number>4</number>
+    </property>
+    <property name="horizontalSpacing">
+     <number>2</number>
+    </property>
+    <item row="0" column="0">
      <layout class="QVBoxLayout" name="mplvl">
       <property name="sizeConstraint">
        <enum>QLayout::SetNoConstraint</enum>
@@ -42,8 +57,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1322</width>
-     <height>21</height>
+     <width>1358</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWrite_Model">
@@ -54,18 +69,39 @@
     <addaction name="saveProgress"/>
     <addaction name="revertProgress"/>
    </widget>
+   <widget class="QMenu" name="menuColours">
+    <property name="title">
+     <string>Colours</string>
+    </property>
+    <widget class="QMenu" name="menuColour_Map">
+     <property name="title">
+      <string>Colour Map</string>
+     </property>
+     <addaction name="actionJet"/>
+     <addaction name="actionJet_r"/>
+     <addaction name="actionJetplus"/>
+     <addaction name="actionJetplus_r"/>
+     <addaction name="actionBwr"/>
+     <addaction name="actionBwr_r"/>
+     <addaction name="actionBgy"/>
+     <addaction name="actionBgy_r"/>
+    </widget>
+    <addaction name="actionRho_cax"/>
+    <addaction name="menuColour_Map"/>
+   </widget>
    <addaction name="menuWrite_Model"/>
+   <addaction name="menuColours"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
     <size>
-     <width>200</width>
+     <width>300</width>
      <height>500</height>
     </size>
    </property>
@@ -80,18 +116,24 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_3">
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QToolBox" name="toolBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="page_3">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>282</width>
-          <height>649</height>
+          <width>278</width>
+          <height>650</height>
          </rect>
         </property>
         <attribute name="label">
@@ -252,10 +294,10 @@
            <widget class="QGroupBox" name="groupBox_2">
             <property name="geometry">
              <rect>
-              <x>0</x>
+              <x>10</x>
               <y>220</y>
-              <width>277</width>
-              <height>361</height>
+              <width>251</width>
+              <height>331</height>
              </rect>
             </property>
             <property name="title">
@@ -264,7 +306,7 @@
             <widget class="QPushButton" name="genDepths">
              <property name="geometry">
               <rect>
-               <x>126</x>
+               <x>120</x>
                <y>130</y>
                <width>111</width>
                <height>31</height>
@@ -315,7 +357,7 @@
             <widget class="QLineEdit" name="maxDepth">
              <property name="geometry">
               <rect>
-               <x>126</x>
+               <x>120</x>
                <y>100</y>
                <width>111</width>
                <height>22</height>
@@ -340,7 +382,7 @@
             <widget class="QLineEdit" name="minDepth">
              <property name="geometry">
               <rect>
-               <x>126</x>
+               <x>120</x>
                <y>51</y>
                <width>111</width>
                <height>22</height>
@@ -350,7 +392,7 @@
             <widget class="QLabel" name="label_7">
              <property name="geometry">
               <rect>
-               <x>126</x>
+               <x>120</x>
                <y>80</y>
                <width>121</width>
                <height>16</height>
@@ -372,7 +414,7 @@
                <x>10</x>
                <y>210</y>
                <width>261</width>
-               <height>151</height>
+               <height>101</height>
               </rect>
              </property>
              <property name="sizePolicy">
@@ -402,8 +444,8 @@
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>580</y>
-              <width>121</width>
+              <y>560</y>
+              <width>131</width>
               <height>16</height>
              </rect>
             </property>
@@ -415,7 +457,7 @@
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>600</y>
+              <y>580</y>
               <width>113</width>
               <height>20</height>
              </rect>
@@ -425,8 +467,8 @@
             <property name="geometry">
              <rect>
               <x>130</x>
-              <y>600</y>
-              <width>91</width>
+              <y>580</y>
+              <width>111</width>
               <height>23</height>
              </rect>
             </property>
@@ -443,8 +485,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>282</width>
-          <height>649</height>
+          <width>278</width>
+          <height>650</height>
          </rect>
         </property>
         <attribute name="label">
@@ -521,26 +563,160 @@
          </layout>
         </widget>
        </widget>
+       <widget class="QWidget" name="page_5">
+        <attribute name="label">
+         <string>Page</string>
+        </attribute>
+        <layout class="QFormLayout" name="formLayout_2">
+         <item row="0" column="0">
+          <widget class="QGroupBox" name="groupBox_4">
+           <property name="title">
+            <string>Slices</string>
+           </property>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>X</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Y</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Z</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="xSlice"/>
+            </item>
+            <item row="1" column="1">
+             <widget class="QSpinBox" name="ySlice"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="QSpinBox" name="zSlice"/>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QGroupBox" name="groupBox_5">
+           <property name="title">
+            <string>Views</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="weSlice">
+              <property name="text">
+               <string>West-East</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="planSlice">
+              <property name="text">
+               <string>Plan View</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="nsSlice">
+              <property name="text">
+               <string>South-North</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="smoothModel">
+           <property name="text">
+            <string>Smooth Model</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Sigma X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QDoubleSpinBox" name="sigmaX">
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="text">
+            <string>Sigma Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="sigmaY">
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Sigma Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QDoubleSpinBox" name="sigmaZ">
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="nyLabel">
+      <widget class="QLabel" name="nxLabel">
        <property name="text">
-        <string>NY:</string>
+        <string>NX: </string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="nzLabel">
        <property name="text">
         <string>NZ:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="nxLabel">
+     <item row="2" column="0">
+      <widget class="QLabel" name="nyLabel">
        <property name="text">
-        <string>NX: </string>
+        <string>NY:</string>
        </property>
       </widget>
      </item>
@@ -570,6 +746,75 @@
   <action name="revertProgress">
    <property name="text">
     <string>Revert Progress</string>
+   </property>
+  </action>
+  <action name="actionRho_cax">
+   <property name="text">
+    <string>Colour Scale</string>
+   </property>
+  </action>
+  <action name="actionJet">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jet</string>
+   </property>
+  </action>
+  <action name="actionJet_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jet_r</string>
+   </property>
+  </action>
+  <action name="actionJetplus">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jetplus</string>
+   </property>
+  </action>
+  <action name="actionBwr">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bwr</string>
+   </property>
+  </action>
+  <action name="actionBwr_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bwr_r</string>
+   </property>
+  </action>
+  <action name="actionBgy">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bgy</string>
+   </property>
+  </action>
+  <action name="actionBgy_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>bgy_r</string>
+   </property>
+  </action>
+  <action name="actionJetplus_r">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>jetplus_r</string>
    </property>
   </action>
  </widget>
