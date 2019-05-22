@@ -194,3 +194,25 @@ class FileDialog(QtWidgets.QInputDialog):
                     return file, ret
             else:
                 return file, 0
+
+
+class ColourMenu(QtWidgets.QMenu):
+    def __init__(self, parent=None):
+        super(QtWidgets.QMenu, self).__init__(parent)
+        self.all_maps = {x: None for x in ('bgy', 'bgy_r',
+                                           'jet', 'jet_r',
+                                           'jet_plus', 'jet_plus_r',
+                                           'bwr', 'bwr_r',
+                                           'greys', 'greys_r')}
+        self.action_group = QtWidgets.QActionGroup(self)
+        self.setTitle('Colour Options')
+        self.map = self.addMenu('Colour Map')
+        self.limits = self.addAction('Colour Limits')
+
+        # Add all the colour maps
+        for item in self.all_maps.keys():
+            self.all_maps[item] = QtWidgets.QAction(item, parent, checkable=True)
+            self.map.addAction(self.all_maps[item])
+            self.action_group.addAction(self.all_maps[item])
+            # self.map.addMenu(item)
+        self.action_group.setExclusive(True)

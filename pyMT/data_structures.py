@@ -379,6 +379,11 @@ class Dataset(object):
                     # self.data.sites[site].errmap[comp] = error_map
             self.data.apply_no_data_map()
             self.data.sites[site].apply_error_floor()
+            self.data.equalize_complex_errors()
+
+    def equalize_complex_errors(self):
+        for site in self.data.site.names:
+            self.data.sites[site].equalize_complex_errors()
 
     def apply_error_floor(self):
         for site in self.site_names:
@@ -705,6 +710,10 @@ class Data(object):
         elif set(self.used_components) == set(Data.INVERSION_TYPES[14]):
             #  Full Rho + Phase + 2-D Tipper
             self.inv_type = 15
+
+    def equalize_complex_errors(self):
+        for site in self.site_names:
+            self.sites[site].equalize_complex_errors()
 
     def apply_error_floor(self):
         for site in self.site_names:
@@ -1408,7 +1417,7 @@ class Site(object):
         self.azimuth = azimuth
         self.solve_static = solve_static
         self.static_multiplier = 1
-        self.minimum_error = 0.0005
+        self.minimum_error = 0.00005
         self.use_independent_errors = False
         self.error_floors = {'Off-Diagonal Impedance': 0.075,
                              'Diagonal Impedance': 0.075,
@@ -1516,6 +1525,16 @@ class Site(object):
             all_actual.append(min_actual)
             all_used.append(min_used)
         return all_actual, all_used
+
+    def equalize_complex_errors(self):
+        components = set([component[:3] for component in self.components])
+        for comp in components:
+            if comp.lower().startswith(('t', 'z')):
+                error = np.maximum(self.used_error[comp + 'R'], self.used_error[comp + 'I'])
+                self.used_error[comp + 'R'] = deepcopy(error)
+                self.used_error[comp + 'I'] = deepcopy(error)
+                self.errors[comp + 'R'] = deepcopy(error)
+                self.errors[comp + 'I'] = deepcopy(error)
 
     def calculate_error_floor(self, error_floor=None, components=None):
         if error_floor is None:
