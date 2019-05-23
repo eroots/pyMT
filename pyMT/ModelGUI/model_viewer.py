@@ -1,32 +1,51 @@
 # TODO
-# Camera controls (e.g., Zoom to XY, XZ, YZ views)
+# Basic things to add before pushing:
+# Labels for 2-D slices
+# Labels for tabs
+# Colour limits
+# Colour map (currently updates 3D view but not 2D)
+# Colour map LUT (currently just uses default)
+# Colour bar (on 2-D)
+# Data cursor (should be able to get info on pointed locations and resistivity)
+# Gridlines? Less important.
+# Will eventually want to be able to save images.
 # Single rotated slices? Path slice?
 # Bring in data and start plotting sites, RMS, tipper, etc...
 # 2-D views. Can each tab be run separately? e.g., when in 3-D tab, halt updates
 # to 2-D views and vice-versa?
-import os
+# Still have to do above
+# Can also think about separate tabs for X, Y, Z slices to be plotted on their own
+# Can these plots just be copies (linked) to the original ones? That way they auto-update?
+from os import path as ospath
 import sys
 from copy import deepcopy
 from PyQt5 import Qt
 import numpy as np
 import pyvista as pv
 import pyMT.data_structures as WSDS
+from pyMT.utils import sort_files, check_file
 import e_colours.colourmaps as cm
 from pyMT.GUI_common import classes
+from pyMT import gplot
 from PyQt5.uic import loadUiType
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.figure import Figure
+from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
 
-path = os.path.dirname(os.path.realpath(__file__))
-# Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
-# UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
-UI_ModelWindow, QModelWindow = loadUiType(os.path.join(path, 'model_viewer.ui'))
-model_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzall2_lastIter.rho'
+path = ospath.dirname(ospath.realpath(__file__))
+# Ui_MainWindow, QMainWindow = loadUiType(ospath.join(path, 'data_plot.ui'))
+# UiPopupMain, QPopupWindow = loadUiType(ospath.join(path, 'saveFile.ui'))
+UI_ModelWindow, QModelWindow = loadUiType(ospath.join(path, 'model_viewer.ui'))
+# model_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzall2_lastIter.rho'
+model_path = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzall2_lastIter.rho'
+data_path = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swz_cull1M_all.dat'
+resp_path = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzall2_lastIter.dat'
+list_path = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst'
 
 
 def model_to_rectgrid(model):
@@ -39,18 +58,29 @@ def model_to_rectgrid(model):
 
 
 class ModelWindow(QModelWindow, UI_ModelWindow):
-    def __init__(self, parent=None, show=True):
+    def __init__(self, files, parent=None, data=None):
         super(ModelWindow, self).__init__()
         self.setupUi(self)
 
+        # Add the model
+        self.model = WSDS.Model(files['model'])
+        self.clip_model = WSDS.Model(files['model'])
+        self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                    datafile=files['dat'])
+                                    # listfile=list_path,
+                                    # responsefile=resp_path)
+        self.dataset.data.locations /= 1000
+        if data:
+            self.plot_locations = True
+        else:
+            self.plot_locations = False
         # Make sure the frame fills the tab
-        vlayout = Qt.QVBoxLayout()
-
+        vlayout3D = Qt.QVBoxLayout()
         # add the pyvista interactor object
         self.vtk_widget = pv.QtInteractor(self.frame3D)
-        vlayout.addWidget(self.vtk_widget)
+        vlayout3D.addWidget(self.vtk_widget)
+        self.frame3D.setLayout(vlayout3D)
 
-        self.frame3D.setLayout(vlayout)
         # simple menu to demo functions
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('File')
@@ -61,24 +91,21 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         exitButton.triggered.connect(self.close)
         fileMenu.addAction(exitButton)
 
-        # allow adding a sphere
-        meshMenu = mainMenu.addMenu('Mesh')
-        self.add_sphere_action = Qt.QAction('Add Sphere', self)
-        self.add_sphere_action.triggered.connect(self.render_3D)
-        meshMenu.addAction(self.add_sphere_action)
-
-        # Add the model
-        self.model = WSDS.Model(model_path)
-        self.clip_model = WSDS.Model(model_path)
-        # self.rect_grid = pv.RectilinearGrid(np.array(self.model.dx),
-        #                                     np.array(self.model.dy),
-        #                                     np.array(self.model.dz))
-        # self.rect_grid.cell_arrays['Resitivity'] = np.log10(self.model.vals.flatten(order='F'))
+        self.plot_data = {'stations': []}
+        if data:
+            self.locs_3D = np.zeros((len(self.dataset.data.locations), 3))
+            self.plot_data['stations'] = pv.PolyData(self.locs_3D)
+            self.locs_3D[:, 0] = self.dataset.data.locations[:,1] / 1000
+            self.locs_3D[:, 1] = self.dataset.data.locations[:,0] / 1000
+        else:
+            self.locs_3D = np.zeros((1, 3))
         self.rect_grid = model_to_rectgrid(self.clip_model)
+        self.colourmap = 'jet_plus'
         self.cmap = cm.jet_plus(64)
         self.clim = [1, 5]
         self.actors = {'X': [], 'Y': [], 'Z': []}
         self.slices = {'X': [], 'Y': [], 'Z': []}
+        self.transect_picking = False
         self.init_widgets()
         # self.clip_volume()
         self.connect_widgets()
@@ -86,8 +113,129 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.view_xy()
         # self.vtk_widget.view_isometric()
         # self.vtk_widget.view_xy()
-        if show:
-            self.show()
+
+        # Set up 2-D views
+        self.fig_2D = Figure()
+        self.spec = {'X': [], 'Y': [], 'Z': []}
+        self.spec['Y'] = GridSpec(3, 3).new_subplotspec((0, 2), colspan=1, rowspan=2)
+        self.spec['X'] = GridSpec(3, 3).new_subplotspec((2, 0), colspan=2, rowspan=1)
+        self.spec['Z'] = GridSpec(3, 3).new_subplotspec((0, 0), colspan=2, rowspan=2)
+        self.fig_2D.add_subplot(self.spec['Z'])
+        self.fig_2D.add_subplot(self.spec['Y'])
+        self.fig_2D.add_subplot(self.spec['X'])        
+        self.map = gplot.MapView(figure=self.fig_2D)
+        self.init_map(self.dataset)
+        self.add_mpl(self.map.window['figure'])
+
+        self.update_plan_view()
+        self.update_2D_X()
+        self.update_2D_Y()
+
+    def add_mpl(self, fig):
+        self.canvas = FigureCanvas(fig)
+        self.widget2D.addWidget(self.canvas)
+        # self.toolbar = NavigationToolbar(canvas=self.canvas,
+                                         # parent=self.mplwindow, coordinates=True)
+        self.canvas.draw()
+        # self.mplvl.addWidget(self.toolbar)
+
+    def init_map(self, dataset):
+        self.map.dataset = dataset
+        self.map.data = dataset.data
+        self.map.raw_data = dataset.raw_data
+        self.map.response = dataset.response
+        self.map.site_names = dataset.data.site_names
+        self.map.model = self.model
+        self.map.colourmap = self.colourmap
+        self.map.cax = self.clim
+        self.map._active_sites = []
+        self.map.site_locations['generic'] = self.map.get_locations(
+            sites=self.map.generic_sites)
+        self.map.site_locations['active'] = self.map.get_locations(
+            sites=self.map.active_sites)
+        self.map.site_locations['all'] = self.map.get_locations(self.map.site_names)
+
+    def update_2D_X(self):
+        self.map.window['axes'][2].clear()
+        self.map.plot_x_slice(x_slice=self.x_slice, ax=self.map.window['axes'][2])
+        bounds = np.array([self.clip_model.dy[0], self.clip_model.dy[-1],
+                           self.clip_model.dz[0], self.clip_model.dz[-1]]) / 1000
+        self.map.set_axis_limits(ax=self.map.window['axes'][2], bounds=bounds)
+        if not self.map.window['axes'][2].yaxis_inverted():
+            self.map.window['axes'][2].invert_yaxis()
+        self.canvas.draw()
+
+    def update_2D_Y(self):
+        self.map.window['axes'][1].clear()
+        self.map.plot_y_slice(y_slice=self.y_slice, ax=self.map.window['axes'][1])
+        bounds = np.array([self.clip_model.dx[0], self.clip_model.dx[-1],
+                           self.clip_model.dz[0], self.clip_model.dz[-1]]) / 1000
+        self.map.set_axis_limits(ax=self.map.window['axes'][1], bounds=bounds)
+        if not self.map.window['axes'][1].yaxis_inverted():
+            self.map.window['axes'][1].invert_yaxis()
+        self.canvas.draw()
+
+    def update_plan_view(self):
+        # Currently redraws the whole map every time
+        # This should be changed to just destroy and redraw whatever features are needed
+        # print(self.map.site_locations['generic'])
+        # Also there should be a mechanism that makes sure this is only redrawn if something changes
+        self.map.window['axes'][0].clear()
+        if self.map.window['colorbar']:
+            self.map.window['colorbar'].remove()
+            self.map.window['colorbar'] = None
+        # DEBUG
+        # print('I am updating the map')
+        # pseudosection_toggles = self.get_pseudosection_toggles()
+        # if pseudosection_toggles['data'] and pseudosection_toggles['fill']:
+        #     fill_param = ''.join([pseudosection_toggles['fill'],
+        #                           pseudosection_toggles['component']])
+        #     self.map.plan_pseudosection(data_type=pseudosection_toggles['data'],
+        #                                 fill_param=fill_param,
+        #                                 period_idx=self.active_period,
+        #                                 n_interp=self.nInterp.value())
+        # self.map.plot_rms = self.plotRMS.checkState()
+        # self.map.plot_locations()
+        # PT_toggles = self.get_PT_toggles()
+        # if 'None' not in PT_toggles['data']:
+        #     self.map.plot_phase_tensor(data_type=PT_toggles['data'],
+        #                                fill_param=PT_toggles['fill'],
+        #                                period_idx=self.active_period)
+        # induction_toggles = self.get_induction_toggles()
+        # if induction_toggles['data']:
+        #     self.map.plot_induction_arrows(data_type=induction_toggles['data'],
+        #                                    normalize=induction_toggles['normalize'],
+        #                                    period_idx=self.active_period)
+        # self.toolbar.update()
+        # self.toolbar.push_current()
+        bounds = np.array([self.clip_model.dy[0], self.clip_model.dy[-1],
+                           self.clip_model.dx[0], self.clip_model.dx[-1]]) / 1000
+        self.map.plot_plan_view(z_slice=self.z_slice, ax=self.map.window['axes'][0])
+        self.update_slice_indicators('xy')
+        if self.plot_locations:
+            self.map.plot_locations()
+        self.map.set_axis_limits(bounds=bounds)
+        # DEBUG
+        # print('Updating Map')
+        self.canvas.draw()
+
+    def update_slice_indicators(self, direction='xy', redraw=True):
+        x_slice_loc = self.model.dx[self.x_slice] / 1000
+        y_slice_loc = self.model.dy[self.y_slice] / 1000
+        x_slice_limits = (self.clip_model.dy[0] / 1000, self.clip_model.dy[-1] / 1000)
+        y_slice_limits = (self.clip_model.dx[0] / 1000, self.clip_model.dx[-1] / 1000)
+        if 'y' in direction.lower() and redraw:
+            self.plot_data['Y_indicator'], = self.map.window['axes'][0].plot((y_slice_loc, y_slice_loc),
+                                                                             y_slice_limits,
+                                                                             'w--')
+        if 'x' in direction.lower() and redraw:
+            self.plot_data['X_indicator'], = self.map.window['axes'][0].plot(x_slice_limits,
+                                                                             (x_slice_loc, x_slice_loc),
+                                                                             'w--')
+        if 'x' in direction.lower() and not redraw:
+            self.plot_data['X_indicator'].set_ydata((x_slice_loc, x_slice_loc))
+        if 'y' in direction.lower() and not redraw:
+            self.plot_data['Y_indicator'].set_xdata((y_slice_loc, y_slice_loc))
 
     def init_widgets(self):
         # Set up all the slicing widgets
@@ -112,8 +260,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.xSliceSlider.setMinimum(1)
         self.ySliceSlider.setMinimum(1)
         self.zSliceSlider.setMinimum(1)
-        self.xSliceSlider.setMaximum(self.model.nx)
-        self.ySliceSlider.setMaximum(self.model.ny)
+        self.xSliceSlider.setMaximum(self.model.nx - 1)
+        self.ySliceSlider.setMaximum(self.model.ny - 1)
         self.zSliceSlider.setMaximum(self.model.nz - 1)
         self.xSliceCheckbox.setCheckState(2)
         self.ySliceCheckbox.setCheckState(2)
@@ -152,7 +300,31 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Colour options
         self.colourMenu.action_group.triggered.connect(self.change_cmap)
 
+        # View buttons
+        self.viewXY.triggered.connect(self.view_xy)
+        self.viewXZ.triggered.connect(self.view_xz)
+        self.viewYZ.triggered.connect(self.view_yz)
+        # Interpolation widgets
+        self.interpButton.clicked.connect(self.transect_pick)
+
+    def transect_pick(self):
+        if self.transect_picking:
+            self.vtk_widget.enable_cell_picking()
+            self.transect_picking = False
+            print('Done picking')
+            print(self.picks[0].points)
+        else:
+            self.transect_picking = True
+            self.picks = []
+            print('Start picking')
+            self.vtk_widget.enable_cell_picking(mesh=self.slices['Z'], callback=self.save_picks)
+
+    def save_picks(self, picks):
+        self.picks.append(picks)
+        print('Saving picks')
+
     def change_cmap(self):
+        self.colourmap = self.colourMenu.action_group.checkedAction().text()
         self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text())
         self.render_3D()
 
@@ -210,7 +382,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def x_text_change(self):
         try:
-            x = int(self.ySliceEdit.text())
+            x = int(self.xSliceEdit.text())
         except ValueError:
             self.xSliceEdit.setText(str(self.x_slice))
             return
@@ -272,6 +444,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.actors['X'] = self.vtk_widget.add_mesh(self.slices['X'],
                                                         cmap=self.cmap,
                                                         clim=self.clim)
+        self.update_2D_X()
+        self.update_slice_indicators(direction='x', redraw=False)
+        self.fig_2D.canvas.draw()
         self.vtk_widget.update()
         self.show_bounds()
 
@@ -285,6 +460,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.actors['Y'] = self.vtk_widget.add_mesh(self.slices['Y'],
                                                         cmap=self.cmap,
                                                         clim=self.clim)
+        self.update_2D_Y()
+        self.update_slice_indicators(direction='y', redraw=False)
+        self.fig_2D.canvas.draw()
         self.vtk_widget.update()
         self.show_bounds()
 
@@ -297,20 +475,21 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.actors['Z'] = self.vtk_widget.add_mesh(self.slices['Z'],
                                                         cmap=self.cmap,
                                                         clim=self.clim)
+        self.update_plan_view()
         self.vtk_widget.update()
         self.show_bounds()
 
     def generate_slice(self, normal='X'):
         if normal == 'x':
-            slice_loc = self.clip_model.dx[self.x_slice] / 1000
+            slice_loc = self.model.dx[self.x_slice] / 1000
             gen_slice = self.rect_grid.slice(normal='y',
-                                             origin=(0, slice_loc, 0))
+                                             origin=(0, slice_loc, -self.model.dz[self.z_clip[0] + 1] / 1000))
         elif normal == 'y':
-            slice_loc = self.clip_model.dy[self.y_slice] / 1000
+            slice_loc = self.model.dy[self.y_slice] / 1000
             gen_slice = self.rect_grid.slice(normal='x',
-                                             origin=(slice_loc, 0, 0))
+                                             origin=(slice_loc, 0, -self.model.dz[self.z_clip[0] + 1] / 1000))
         elif normal == 'z':
-            slice_loc = -self.clip_model.dz[self.z_slice] / 1000
+            slice_loc = -self.model.dz[self.z_slice] / 1000
             gen_slice = self.rect_grid.slice(normal=normal,
                                              origin=(0, 0, slice_loc))
         return gen_slice
@@ -334,11 +513,59 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.clip_model.dz_delete(0)
         for iz in range(self.z_clip[1]):
             self.clip_model.dz_delete(self.clip_model.nz)
+        # self.map.model = self.clip_model
         self.rect_grid = model_to_rectgrid(self.clip_model)
-        self.xSliceSlider.setMaximum(self.clip_model.nx)
-        self.ySliceSlider.setMaximum(self.clip_model.ny)
-        self.zSliceSlider.setMaximum(self.clip_model.nz - 1)
+        self.validate_slice_locations()
+        self.xSliceSlider.setMinimum(self.x_clip[0] + 1)
+        self.ySliceSlider.setMinimum(self.y_clip[0] + 1)
+        self.zSliceSlider.setMinimum(self.z_clip[0] + 1)
+        self.xSliceSlider.setMaximum(self.model.nx  - self.x_clip[1] - 1)
+        self.ySliceSlider.setMaximum(self.model.ny  - self.y_clip[1] - 1)
+        self.zSliceSlider.setMaximum(self.model.nz  - self.z_clip[1] - 1)
+        
+        print((self.x_slice, self.y_slice, self.z_slice))
         self.render_3D()
+        self.update_2D_X()
+        self.update_2D_Y()
+        self.update_plan_view()
+
+    def validate_slice_locations(self):
+        self.xSliceSlider.valueChanged.disconnect(self.x_slider_change)
+        self.ySliceSlider.valueChanged.disconnect(self.y_slider_change)
+        self.zSliceSlider.valueChanged.disconnect(self.z_slider_change)
+        self.xSliceEdit.editingFinished.disconnect(self.x_text_change)
+        self.ySliceEdit.editingFinished.disconnect(self.y_text_change)
+        self.zSliceEdit.editingFinished.disconnect(self.z_text_change)
+        if self.x_slice < self.x_clip[0]:
+            self.x_slice = self.x_clip[0] + 1
+            self.xSliceSlider.setValue(self.x_slice)
+            self.xSliceEdit.setText(str(self.x_slice))
+        if self.y_slice < self.y_clip[0]:
+            self.y_slice = self.y_clip[0] + 1
+            self.ySliceSlider.setValue(self.y_slice)
+            self.ySliceEdit.setText(str(self.y_slice))
+        if self.z_slice < self.z_clip[0]:
+            self.z_slice = self.z_clip[0] + 1
+            self.zSliceSlider.setValue(self.z_slice)
+            self.zSliceEdit.setText(str(self.z_slice))
+        if self.x_slice > self.model.nx - self.x_clip[1]:
+            self.x_slice = self.model.nx - self.x_clip[1] - 1
+            self.xSliceSlider.setValue(self.x_slice)
+            self.xSliceEdit.setText(str(self.x_slice))
+        if self.y_slice > self.model.ny - self.y_clip[1]:
+            self.y_slice = self.model.ny - self.y_clip[1] - 1
+            self.ySliceSlider.setValue(self.y_slice)
+            self.ySliceEdit.setText(str(self.y_slice))
+        if self.z_slice > self.model.nz - self.z_clip[1]:
+            self.z_slice = self.model.nz - self.z_clip[1] - 1
+            self.zSliceSlider.setValue(self.z_slice)
+            self.zSliceEdit.setText(str(self.z_slice))
+        self.xSliceSlider.valueChanged.connect(self.x_slider_change)
+        self.ySliceSlider.valueChanged.connect(self.y_slider_change)
+        self.zSliceSlider.valueChanged.connect(self.z_slider_change)
+        self.xSliceEdit.editingFinished.connect(self.x_text_change)
+        self.ySliceEdit.editingFinished.connect(self.y_text_change)
+        self.zSliceEdit.editingFinished.connect(self.z_text_change)
 
     def render_3D(self):
         """ add a sphere to the pyqt frame """
@@ -365,6 +592,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.actors['Z'] = self.vtk_widget.add_mesh(self.slices['Z'],
                                                         cmap=self.cmap,
                                                         clim=self.clim)
+        # Checkbox for sites?
+        if self.plot_locations:
+            self.actors['stations'] = self.vtk_widget.add_mesh(self.plot_data['stations'])
         self.vtk_widget.update()
         self.show_bounds()
         self.vtk_widget.reset_camera()
@@ -383,9 +613,44 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.vtk_widget.view_xy()
         self.vtk_widget.update()
 
+    def view_xz(self):
+        self.vtk_widget.view_xz()
+        # self.vtk_widget.view_vector([0, 0, 1])
+        # self.vtk_widget.view_xy()
+        self.vtk_widget.update()
+
+    def view_yz(self):
+        self.vtk_widget.view_yz()
+        # self.vtk_widget.view_vector([0, 0, 1])
+        # self.vtk_widget.view_xy()
+        self.vtk_widget.update()
+
+
+def main():
+    files = sys.argv[1:]
+    for file in files:
+        if not check_file(file):
+            print('File {} not found.'.format(file))
+            return
+    files = sort_files(files=files)
+    try:
+        data = WSDS.Data(datafile=files['dat'])
+    except KeyError:
+        print('No data file given. Site locations will not be available.')
+        data = None
+    try:
+        model = WSDS.Model(files['model'])
+    except KeyError:
+        print('Model must be specified')
+        return
+    app = Qt.QApplication(sys.argv)
+    viewer = ModelWindow(files)
+    viewer.show()
+    ret = app.exec_()
+    sys.exit(ret)
+
 
 if __name__ == '__main__':
-    app = Qt.QApplication(sys.argv)
-    window = ModelWindow()
-    sys.exit(app.exec_())
+    main()
+    
     # window.disconnect_mpl_events()

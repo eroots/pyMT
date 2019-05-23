@@ -22,5 +22,6 @@ setup(name='pyMT',
                'pyMT/scripts/ws2modem.py',
                'pyMT/scripts/f2l.py'],
       entry_points={'console_scripts': ['data_plot = pyMT.DataGUI.data_plot:main',
-                                        'mesh_designer = pyMT.ModelGUI.mesh_designer:main']},
+                                        'mesh_designer = pyMT.ModelGUI.mesh_designer:main',
+                                        'model_viewer = pyMT.ModelGUI.model_viewer.py:main']},
       include_package_data=True)

@@ -2,3 +2,4 @@
 __pycache__/
 *.vtk
 *.pyc
+pyMT/scripts/crooked_model_slice.py

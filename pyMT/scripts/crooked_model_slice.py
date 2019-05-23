@@ -190,7 +190,6 @@ mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
 # seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 0
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
 # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
@@ -198,12 +197,12 @@ use_seismic = 0
 # seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # A-G / ROUYN
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/rouyn/j2/main_transect_more.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/j2/center_fewer3.lst')
-backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/j2/center_fewer3.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/centerMore_ModEM/NLCG_NLCG_120.rho')
-seismic = pd.read_table('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/rouyn/rou_seismic_traces.txt',
-                        header=0, names=('trace', 'x', 'y'), sep='\s+')
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/rouyn/j2/main_transect_more.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/j2/center_fewer3.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/j2/center_fewer3.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/centerMore_ModEM/NLCG_NLCG_120.rho')
+# seismic = pd.read_table('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/rouyn/rou_seismic_traces.txt',
+#                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 use_seismic = 0
 # azi = 35  # Dryden-regional
 # azi = -15  # Swayze regional
@@ -263,14 +262,15 @@ cmap_name = 'jet_r'
 # cmap_name = 'jetplus'
 nudge_sites = ['18-dry041m', '18-dry040m', '18-dry037m', '18-dry001m']
 nudge_dist = 10000
-use_nudge = 0
+use_nudge = 1
 
-data.locations = data.get_locs(mode='latlong')
-for ii in range(len(data.locations)):
-        easting, northing = utils.project((data.locations[ii, 1],
-                                           data.locations[ii, 0]),
-                                          zone=UTM_number, letter=UTM_letter)[2:]
-        data.locations[ii, 1], data.locations[ii, 0] = easting, northing
+data.to_utm(UTM_number, UTM_letter)
+# data.locations = data.get_locs(mode='latlong')
+# for ii in range(len(data.locations)):
+#         easting, northing = utils.project((data.locations[ii, 1],
+#                                            data.locations[ii, 0]),
+#                                           zone=UTM_number, letter=UTM_letter)[2:]
+#         data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 # main_transect.remove_sites('98-1_073')
 # main_transect.remove_sites(sites=[site for site in main_transect.site_names if 'att' in site.lower()])
 # data = project_locations(data, zone=16, letter='U')

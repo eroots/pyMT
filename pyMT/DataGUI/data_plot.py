@@ -49,9 +49,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
     def __init__(self, dataset, sites, active_sites):
         super(MapMain, self).__init__()
         self.setupUi(self)
-        self.fig = Figure()
+        # self.fig = Figure()
         self.active_period = 0
-        self.map = gplot.MapView(figure=self.fig)
+        self.map = gplot.MapView()
+        self.fig = self.map.window['figure']
         self.init_map(dataset, sites, active_sites)
         self.periods = self.map.site_data['data'].periods
         self.set_period_label()

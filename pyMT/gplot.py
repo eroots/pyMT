@@ -483,10 +483,10 @@ class DataPlotManager(object):
 class MapView(object):
     COORD_SYSTEMS = ('local', 'utm', 'latlong')
 
-    def __init__(self, fig=None, **kwargs):
+    def __init__(self, figure=None, **kwargs):
         self.window = {'figure': None, 'axes': None, 'canvas': None, 'colorbar': None}
-        if fig:
-            self.window = {'figure': fig, 'axes': fig.axes, 'canvas': fig.canvas, 'colorbar': None}
+        if figure:
+            self.window = {'figure': figure, 'axes': figure.axes, 'canvas': figure.canvas, 'colorbar': None}
         self.axis_padding = 0.1
         self.fake_im = []
         self.colour = 'k'
@@ -518,10 +518,10 @@ class MapView(object):
         self.induction_error_tol = 0.5
         self.rho_error_tol = 1
         self.phase_error_tol = 30
-        if fig is None:
+        if figure is None:
             self.new_figure()
         else:
-            self.window['figure'] = fig
+            self.window['figure'] = figure
         self.create_axes()
 
     @property
@@ -633,15 +633,21 @@ class MapView(object):
         elif coordinate_system.lower() == 'latlong':
             return self.site_data['raw_data'].get_locs(sites=sites, mode='latlong')
 
-    def set_axis_limits(self):
-        min_x, max_x = (min(self.site_data['data'].locations[:, 1]),
-                        max(self.site_data['data'].locations[:, 1]))
-        min_y, max_y = (min(self.site_data['data'].locations[:, 0]),
-                        max(self.site_data['data'].locations[:, 0]))
-        x_pad = (max_x - min_x) / self.padding_scale
-        y_pad = (max_y - min_y) / self.padding_scale
-        self.window['axes'][0].set_xlim([min_x - x_pad, max_x + x_pad])
-        self.window['axes'][0].set_ylim([min_y - y_pad, max_y + y_pad])
+    def set_axis_limits(self, bounds=None, ax=None):
+        if ax is None:
+            ax = self.window['axes'][0]
+        if bounds is None:
+            min_x, max_x = (min(self.site_data['data'].locations[:, 1]),
+                            max(self.site_data['data'].locations[:, 1]))
+            min_y, max_y = (min(self.site_data['data'].locations[:, 0]),
+                            max(self.site_data['data'].locations[:, 0]))
+            x_pad = (max_x - min_x) / self.padding_scale
+            y_pad = (max_y - min_y) / self.padding_scale
+            ax.set_xlim([min_x - x_pad, max_x + x_pad])
+            ax.set_ylim([min_y - y_pad, max_y + y_pad])
+        else:
+            ax.set_xlim(bounds[:2])
+            ax.set_ylim(bounds[2:])
 
     def plot_locations(self):
         # if not self.window['figure']:
@@ -905,9 +911,12 @@ class MapView(object):
             vals = np.array(vals[0])
             diff = False
         else:
-            #  Should be response - data so a larger response gives a +ve percent difference
-            vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
             diff = True
+            #  Should be response - data so a larger response gives a +ve percent difference
+            if 'rho' in fill_param.lower():
+                vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
+            elif 'pha' in fill_param.lower():
+                vals = (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
         loc_x, loc_y = (data.locations[:, 1], data.locations[:, 0])
         loc_z = np.zeros(loc_x.shape)
         points = np.transpose(np.array((loc_x, loc_y, loc_z)))
@@ -925,9 +934,12 @@ class MapView(object):
                        [min_y, max_y, n_interp * 1j],
                        [0, 1, 1]]
         grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))
-        if diff:
+        if diff and 'rho' in fill_param.lower():
             cax = self.diff_cax
             fill_param = '% Difference'
+        elif diff and 'pha' in fill_param.lower():
+            cax = self.diff_cax
+            fill_param = r'Difference ($^{\circ}$)'
         elif 'rho' in fill_param.lower():
             # grid_vals = np.log10(grid_vals)
             cax = self.rho_cax
@@ -964,3 +976,37 @@ class MapView(object):
         else:
             label = ''
         return label
+
+    def plot_plan_view(self, ax=None, z_slice=0):
+        if not ax:
+            ax = self.window['axes'][0]
+        ax.pcolormesh(np.array(self.model.dy) / 1000,
+                      np.array(self.model.dx) / 1000,
+                      np.log10(self.model.vals[:, :, z_slice]),
+                      cmap=self.cmap,
+                      vmin=self.cax[0], vmax=self.cax[1],
+                      zorder=0)
+        # ax.set_xlim(bounds[:2])
+        # ax.set_ylim(bounds[2:])
+
+    def plot_x_slice(self, ax=None, x_slice=0):
+        if not ax:
+            ax = ax
+        ax.pcolormesh(np.array(self.model.dy) / 1000,
+                      np.array(self.model.dz) / 1000,
+                      np.squeeze(np.log10(self.model.vals[x_slice, :, :])).T,
+                      cmap=self.cmap,
+                      vmin=self.cax[0], vmax=self.cax[1],
+                      zorder=0)
+
+    def plot_y_slice(self, ax=None, y_slice=0):
+        if not ax:
+            ax = ax
+        ax.pcolormesh(np.array(self.model.dx) / 1000,
+                      np.array(self.model.dz) / 1000,
+                      np.squeeze(np.log10(self.model.vals[:, y_slice, :])).T,
+                      cmap=self.cmap,
+                      vmin=self.cax[0], vmax=self.cax[1],
+                      zorder=0)
+        
+        

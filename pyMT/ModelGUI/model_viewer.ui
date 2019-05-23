@@ -22,7 +22,7 @@
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Tab 1</string>
+        <string>3-D View</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
@@ -39,18 +39,11 @@
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
-        <string>Tab 2</string>
+        <string>2-D View</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">
-         <widget class="QFrame" name="frame2D">
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="widget2D"/>
         </item>
        </layout>
       </widget>
@@ -67,6 +60,15 @@
      <height>26</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>3-D Options</string>
+    </property>
+    <addaction name="viewXY"/>
+    <addaction name="viewXZ"/>
+    <addaction name="viewYZ"/>
+   </widget>
+   <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget_2">
@@ -94,21 +96,21 @@
             <item row="2" column="3">
              <widget class="QLabel" name="label_4">
               <property name="text">
-               <string>Right</string>
+               <string>East</string>
               </property>
              </widget>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label">
               <property name="text">
-               <string>Bottom</string>
+               <string>South</string>
               </property>
              </widget>
             </item>
             <item row="1" column="3">
              <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Top</string>
+               <string>North</string>
               </property>
              </widget>
             </item>
@@ -118,7 +120,7 @@
             <item row="2" column="0">
              <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>Left</string>
+               <string>West</string>
               </property>
              </widget>
             </item>
@@ -170,6 +172,20 @@
               </property>
              </widget>
             </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Top</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="3">
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>Bottom</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -194,18 +210,11 @@
              <height>0</height>
             </size>
            </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>X</string>
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -223,54 +232,11 @@
              <height>0</height>
             </size>
            </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="zSliceCheckbox">
-           <property name="text">
-            <string>CheckBox</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QCheckBox" name="xSliceCheckbox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>CheckBox</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="ySliceCheckbox">
-           <property name="text">
-            <string>CheckBox</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -300,19 +266,6 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_7">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Z</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="3">
           <widget class="QLineEdit" name="xSliceEdit">
            <property name="sizePolicy">
@@ -329,7 +282,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>1000</width>
+             <width>60</width>
              <height>16777215</height>
             </size>
            </property>
@@ -375,6 +328,72 @@
            </property>
           </widget>
          </item>
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="checkBox">
+           <property name="text">
+            <string>Transect</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="xSliceCheckbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>X</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="ySliceCheckbox">
+           <property name="text">
+            <string>Y</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="zSliceCheckbox">
+           <property name="text">
+            <string>Z</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4">
+          <widget class="QPushButton" name="interpButton">
+           <property name="text">
+            <string>Select Points</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </widget>
@@ -382,6 +401,21 @@
     </layout>
    </widget>
   </widget>
+  <action name="viewXY">
+   <property name="text">
+    <string>Zoom to XY</string>
+   </property>
+  </action>
+  <action name="viewXZ">
+   <property name="text">
+    <string>Zoom to XZ</string>
+   </property>
+  </action>
+  <action name="viewYZ">
+   <property name="text">
+    <string>Zoom toYZ</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
