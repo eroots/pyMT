@@ -11,7 +11,7 @@
 # Will eventually want to be able to save images.
 # Single rotated slices? Path slice?
 # Bring in data and start plotting sites, RMS, tipper, etc...
-# 2-D views. Can each tab be run separately? e.g., when in 3-D tab, halt updates
+# 2-D views. Can each tab be run separately? e.g., when in images. 3-D tab, halt updates
 # to 2-D views and vice-versa?
 # Still have to do above
 # Can also think about separate tabs for X, Y, Z slices to be plotted on their own
