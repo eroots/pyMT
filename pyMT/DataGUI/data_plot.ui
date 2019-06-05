@@ -71,8 +71,16 @@
      <addaction name="actionDataErrors"/>
      <addaction name="actionRawErrors"/>
     </widget>
+    <widget class="QMenu" name="menuPhase_Tensor_Units">
+     <property name="title">
+      <string>Phase Tensor Units</string>
+     </property>
+     <addaction name="actionDegrees"/>
+     <addaction name="actionUnitless"/>
+    </widget>
     <addaction name="actionPhase_Wrap"/>
     <addaction name="menuError_Bars"/>
+    <addaction name="menuPhase_Tensor_Units"/>
    </widget>
    <widget class="QMenu" name="menuWrite">
     <property name="title">
@@ -943,6 +951,25 @@
    </property>
    <property name="text">
     <string>Raw</string>
+   </property>
+  </action>
+  <action name="actionDegrees">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Degrees</string>
+   </property>
+  </action>
+  <action name="actionUnitless">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Unitless</string>
    </property>
   </action>
  </widget>

@@ -35,6 +35,7 @@ import sys
 import os
 from pyMT import gplot, utils, data_structures
 from pyMT.GUI_common.classes import FileDialog
+from pyMT.IO import debug_print
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -336,7 +337,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.update_map()
 
     def set_period_label(self):
-        self.PeriodLabel.setText(' '.join([str(self.periods[self.active_period]), 's']))
+        period = self.periods[self.active_period]
+        self.periodLabel.setText('Period: {:>6.4g} s\n Frequency: {:>6.4g} Hz'.format(period,
+                                                                                      1 / period))
 
     def change_period(self, idx):
         self.active_period = idx - 1
@@ -502,6 +505,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             else:
                 self.stored_datasets.update({dname: dataset})
         self.site_names = self.dataset.data.site_names[:6]
+        self.ptActionGroup = QtWidgets.QActionGroup(self.menuPhase_Tensor_Units)
         self.update_error_floor_table()
         self.setup_widgets()
         self.init_dpm()
@@ -860,9 +864,24 @@ class DataMain(QMainWindow, Ui_MainWindow):
         #  Set up connect to which errors are plotted
         self.actionDataErrors.changed.connect(self.dummy_update_dpm)
         self.actionRawErrors.changed.connect(self.dummy_update_dpm)
+        # Set up units for phase tensors
+        self.ptActionGroup.addAction(self.actionDegrees)
+        self.ptActionGroup.addAction(self.actionUnitless)
+        self.ptActionGroup.setExclusive(True)
+        self.ptActionGroup.triggered.connect(self.change_pt_units)
+        # self.actionDegrees.changed.connect(self.dummy_update_dpm)
+        # self.actionUnitless.changed.connect(self.dummy_update_dpm)
         # Super hacky axis limits setters. Fix this at some point
         # self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
         # self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
+
+    def change_pt_units(self):
+        if self.actionDegrees.isChecked():
+            self.dpm.pt_units = 'degrees'
+        elif self.actionUnitless.isChecked():
+            self.dpm.pt_units = 'unitless'
+        if set(self.dpm.components).issubset(set(self.dataset.data.PHASE_TENSOR_COMPONENTS)):
+            self.update_dpm()
 
     def reset_errors(self):
         self.dataset.data.reset_errors()
@@ -1033,6 +1052,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.set_data_toggles()
         # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
         # self.error_tree.itemChanged.disconnect()
+        debug_print('self.sites: {}\n dataset sites: {}'.format(self.site_names, self.dataset.site_names), 'debug.log')
         self.sort_sites()
         self.update_error_tree()
         self.back_or_forward_button(shift=0)
@@ -1114,8 +1134,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
             new_sites = []
             for ii, site in enumerate(intersect):
                 dont_add_these = set(idx_plotted) | set(to_add)
-                to_add.append(next(x for x in range(start, end, direction)
-                                   if x not in dont_add_these))
+                try:
+                    to_add.append(next(x for x in range(start, end, direction)
+                                       if x not in dont_add_these))
+                except StopIteration:
+                    print('No more sites to add')
+                    to_add.append(end)
                 new_sites.append(self.dataset.data.site_names[to_add[ii]])
             nsites = self.dataset.get_sites(site_names=new_sites, dTypes='all')
             self.dpm.replace_sites(sites_out=intersect, sites_in=nsites)
@@ -1190,6 +1214,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             new_val = (current_val + 1) % 359
         self.AzimuthScrollBar.setValue(new_val)
         self.azimuthEdit.setText(str(new_val))
+        self.set_azimuth()
 
     def set_azimuth(self):
         text = self.azimuthEdit.text()
@@ -1203,7 +1228,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 self.azimuthEdit.setText(str(azi))
             self.dataset.rotate_sites(azi=azi)
             self.update_dpm()
-            self.draw_map()
+            self.map_view.init_map(dataset=self.dataset,
+                                   sites=self.dataset.data.site_names,
+                                   active_sites=self.site_names)
+            # self.map_view.init_map(dataset=self.dataset,
+                                   # active_sites=self.site_names,
+                                   # sites=self.dataset.data.site_names)
+            self.map_view.update_map()
 
     def change_scaling(self, index):
         self.dpm.scale = self.scalingBox.itemText(index).lower()
@@ -1345,6 +1376,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if set(self.site_names) == set(self.dpm.site_names) and shift != 0:
             return
         sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
+        debug_print('returned sites: {}'.format(sites), 'debug.log')
         self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
         self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
         # self.dpm.fig.canvas.draw()
@@ -1371,6 +1403,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if any(x > num_sites - 1 for x in idx_toplot):
             overflow = idx_toplot[-1] - num_sites
             idx_toplot = [x - overflow - 1 for x in idx_toplot]
+        debug_print((self.dataset.data.site_names, idx_toplot), 'debug.log')
+        # return(self.dataset.data.site_names[:6])
         return [self.dataset.data.site_names[idx] for idx in idx_toplot]
 
     @utils.enforce_input(updated_sites=list, updated_comps=list, remove_sites=list)

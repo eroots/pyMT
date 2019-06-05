@@ -90,6 +90,7 @@ class Dataset(object):
         self.raw_data = RawData(listfile=listfile, datpath=datpath)
         self.response = Data(listfile=listfile, datafile=responsefile)
         self.rms = self.calculate_RMS()
+        self._spatial_units = 'm'
         if not self.data.site_names:
             self.get_data_from_raw()
         azi = []
@@ -115,6 +116,31 @@ class Dataset(object):
                 self.freqset = None
         else:
             self.freqset = None
+
+    @property
+    def spatial_units(self):
+        return self._spatial_units
+
+    @spatial_units.setter
+    def spatial_units(self, units):
+        try:
+            units = units.lower()
+            if units in ('m', 'km'):
+                if units != self._spatial_units:
+                    self._spatial_units = units
+                    if self.has_dType('data'):
+                        self.data.spatial_units = units
+                    # if self.has_dType('model'):
+                    if self.has_dType('raw_data'):
+                        self.raw_data.spatial_units = units
+                    if self.has_dType('response'):
+                        self.response.spatial_units = units
+                    self.model.spatial_units = units
+            else:
+                print('Units {} not understood'.format(units))
+                return
+        except ValueError:
+            print('Units {} not understood'.format(units))
 
     def has_dType(self, dType):
         if dType in self.data_types:
@@ -318,8 +344,15 @@ class Dataset(object):
             self.raw_data.add_site(site['raw_data'])
 
     def sort_sites(self, order=None):
+        if self.raw_data.site_names:
+            site_names = self.raw_data.site_names
+        elif self.data.site_names:
+            site_names = self.data.site_names
+        else:
+            print('Nothing is initialized. Cannot perform this operation (sort sites)')
+            return
         if order in (None, 'Default'):
-            self.data.site_names = [site for site in self.raw_data.site_names
+            self.data.site_names = [site for site in site_names
                                     if site in self.data.site_names]
         elif order.lower() == 'west-east':
             self.data.site_names = sorted(self.data.site_names,
@@ -346,15 +379,19 @@ class Dataset(object):
                 if comp[0].lower() in 'ztp':
                     # error_map = np.zeros(data_site.data[comp].shape)
                     scale = np.ones(raw_site.periods.shape)
-                    if comp[0].lower() == 'z':
-                        scale = np.sqrt(raw_site.periods)
-                        to_smooth = raw_site.data[comp]
-                    elif comp[0].lower() == 't':
-                        to_smooth = raw_site.data[comp]
-                    elif comp[0].lower() == 'p':
-                        to_smooth = [getattr(raw_site.phase_tensors[ii], comp) for ii, p in enumerate(raw_site.periods)]
-                    else:
-                        print('Unknown component.')
+                    try:
+                        if comp[0].lower() == 'z':
+                            scale = np.sqrt(raw_site.periods)
+                            to_smooth = raw_site.data[comp]
+                        elif comp[0].lower() == 't':
+                            to_smooth = raw_site.data[comp]
+                        elif comp[0].lower() == 'p':
+                            to_smooth = [getattr(raw_site.phase_tensors[ii], comp) for ii, p in enumerate(raw_site.periods)]
+                        else:
+                            print('Unknown component.')
+                            return
+                    except KeyError:
+                        print('Component {} not found'.format(comp))
                         return
                     # error_map = np.zeros(data_site.data[comp].shape)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
@@ -493,31 +530,35 @@ class Data(object):
                            'ZYYR', 'ZYYI'),
                        6: ('PTXX', 'PTXY',  # 6 is ModEM Phase Tensor inversion
                            'PTYX', 'PTYY'),
-                       7: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
+                       7: ('PTXX', 'PTXY',
+                           'PTYX', 'PTYY',
+                           'TZXR', 'TZXI',
+                           'TZYR', 'TZYI'),
+                       8: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
                            'RhoZXY', 'PhszXY',
                            'RhoZYX', 'PhszYX',
                            'RhoZYY', 'PhszYY'),
-                       8: ('RhoZXY', 'PhsZXY',
+                       9: ('RhoZXY', 'PhsZXY',
                            'RhoZYX', 'PhsZYX'),
-                       9: ('TZYR', 'TZYI'),
-                       10: ('RhoZXY', 'PhsZXY',
+                       10: ('TZYR', 'TZYI'),
+                       11: ('RhoZXY', 'PhsZXY',
                             'RhoZYX', 'PhsZYX',
                             'TZYR', 'TZYI'),
-                       11: ('RhoZXX', 'PhsZXX',
+                       12: ('RhoZXX', 'PhsZXX',
                             'RhoZXY', 'PhsZXY',
                             'RhoZYX', 'PhsZYX',
                             'RhoZYY', 'PhsZYY',
                             'TZYR', 'TZYI'),
-                       12: ('log10RhoZXX', 'PhsZXX',
+                       13: ('log10RhoZXX', 'PhsZXX',
                             'log10RhoXY', 'PhsXY',
                             'log10RhoYX', 'PhsYX',
                             'log10RhoYY', 'PhsYY'),
-                       13: ('log10RhoZXY', 'PhsZXY',
-                            'log10RhoZYX', 'PhsZYX'),
                        14: ('log10RhoZXY', 'PhsZXY',
+                            'log10RhoZYX', 'PhsZYX'),
+                       15: ('log10RhoZXY', 'PhsZXY',
                             'log10RhoZYX', 'PhsZYX',
                             'TZYR', 'TZYI'),
-                       15: ('log10RhoZXX', 'PhsZXX',
+                       16: ('log10RhoZXX', 'PhsZXX',
                             'log10RhoZXY', 'PhsZXY',
                             'log10RhoZYX', 'PhsZYX',
                             'log10RhoZYY', 'PhsZYY',
@@ -552,11 +593,13 @@ class Data(object):
         self.azimuth = 0
         self.origin = None
         self.UTM_zone = None
+        self._spatial_units = 'm'
         self.error_floors = {'Off-Diagonal Impedance': 0.075,
                              'Diagonal Impedance': 0.075,
                              'Tipper': 0.05,
                              'Rho': 0.05,
                              'Phase': 0.03}
+        self._spatial_units = 'm'
         if not file_format or file_format in Data.IMPLEMENTED_FORMATS.keys():
             self.file_format = file_format
         else:
@@ -648,6 +691,29 @@ class Data(object):
             self.sites = {}
         if invType:
             self.inv_type = invType
+
+    @property
+    def spatial_units(self):
+        return self._spatial_units
+
+    @spatial_units.setter
+    def spatial_units(self, units):
+        try:
+            units = units.lower()
+            if units in ('m', 'km'):
+                if units != self._spatial_units:
+                    self._spatial_units = units
+                    if units == 'm':
+                        self.locations *= 1000
+                    else:
+                        self.locations /= 1000
+                    for site in self.site_names:
+                        self.sites[site].spatial_units = units
+            else:
+                print('Units {} not understood'.format(units))
+                return
+        except ValueError:
+            print('Units {} not understood'.format(units))
 
     def auto_set_inv_type(self):
 
@@ -823,7 +889,7 @@ class Data(object):
             raise Exception('{} is not a valid inversion type'.format(val))
         self._inv_type = val
 
-    def write(self, outfile, to_write=None, file_format=None):
+    def write(self, outfile, to_write=None, file_format='ModEM'):
         '''
             Write data to file.
                 INPUTS:
@@ -833,7 +899,10 @@ class Data(object):
         '''
         if not file_format:
             file_format = self.file_format
+        units = deepcopy(self.spatial_units)
+        self.spatial_units = 'm'
         WS_io.write_data(data=self, outfile=outfile, to_write=to_write, file_format=file_format)
+        self.spatial_units = units
 
     def write_list(self, outfile):
         WS_io.write_list(data=self, outfile=outfile)
@@ -850,8 +919,8 @@ class Data(object):
         if azi != self.azimuth:
             if azi < 0:
                 azi = 360 + azi
-            locs = self.get_locs()
-            theta = self.azimuth - azi
+            locs = self.locations
+            theta = azi - self.azimuth
             self.locations = utils.rotate_locs(locs, theta)
             for site_name in self.site_names:
                 self.sites[site_name].rotate_data(azi)
@@ -869,11 +938,15 @@ class Data(object):
     def get_locs(self, site_list=None, azi=0):
         if site_list is None:
             site_list = self.site_names
-        locs = np.array([[self.sites[name].locations['X'],
-                          self.sites[name].locations['Y']]
-                         for name in site_list])
-        if azi != 0:
-            locs = utils.rotate_locs(locs, azi)
+        if azi % 360 != 0:
+            idx = [ii for ii in range(self.NS) if self.site_names[ii] in site_list]
+            locs = np.array([self.locations[ii, :] for ii in idx])
+        else:
+            locs = np.array([[self.sites[name].locations['X'],
+                              self.sites[name].locations['Y']]
+                             for name in site_list])
+            if azi % 360 != 0:
+                locs = utils.rotate_locs(locs, azi)
         return locs
 
     def set_locs(self):
@@ -881,6 +954,16 @@ class Data(object):
         for ii, site in enumerate(self.site_names):
             self.sites[site].locations['X'] = self.locations[ii, 0]
             self.sites[site].locations['Y'] = self.locations[ii, 1]
+
+    def check_azi(self):
+        azi = []
+        for site in self.sites.values():
+            azi.append(site.azimuth)
+        if len(set(azi)) != 1:
+            print('Inconsistent set of azimuths in data file')
+            return False
+        else:
+            return azi[0]
 
     def add_site(self, site):
         """
@@ -1043,6 +1126,7 @@ class Model(object):
         self.origin = (0, 0)
         self.UTM_zone = None
         self.coord_system = 'local'
+        self._spatial_units = 'm'
         if modelfile:
             self.__read__(modelfile=modelfile)
         elif data:
@@ -1057,10 +1141,47 @@ class Model(object):
             self.update_vals()
 
     @property
+    def spatial_units(self):
+        return self._spatial_units
+
+    @spatial_units.setter
+    def spatial_units(self, units):
+        try:
+            units = units.lower()
+            if units in ('m', 'km'):
+                if units != self._spatial_units:
+                    self._spatial_units = units
+                    if units == 'm':
+                        self._dx = [x * 1000 for x in self._dx]
+                        self._dy = [y * 1000 for y in self._dy]
+                        self._dz = [z * 1000 for z in self._dz]
+                    else:
+                        self._dx = [x / 1000 for x in self._dx]
+                        self._dy = [y / 1000 for y in self._dy]
+                        self._dz = [z / 1000 for z in self._dz]
+            else:
+                print('Units {} not understood'.format(units))
+                return
+        except ValueError:
+            print('Units {} not understood'.format(units))
+
+    @property
     def center(self):
         x, y = (np.mean(self.dx), np.mean(self.dy))
         x, y = (np.around(x, decimals=5), np.around(y, decimals=5))
         return x, y
+
+    def cell_centers(self):
+        x, y, z = [np.zeros(self.nx),
+                   np.zeros(self.ny),
+                   np.zeros(self.nz)]
+        for ii in range(len(self.dx) - 1):
+            x[ii] = (self.dx[ii] + self.dx[ii + 1]) / 2
+        for ii in range(len(self.dy) - 1):
+            y[ii] = (self.dy[ii] + self.dy[ii + 1]) / 2
+        for ii in range(len(self.dz) - 1):
+            z[ii] = (self.dz[ii] + self.dz[ii + 1]) / 2
+        return x, y, z
 
     def generate_half_space(self):
         self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
@@ -1334,7 +1455,10 @@ class Model(object):
         self.update_vals()
 
     def write(self, outfile, file_format='modem'):
+        units = deepcopy(self.spatial_units)
+        self.spatial_units = 'm'
         WS_io.write_model(self, outfile, file_format)
+        self.spatial_units = units
 
 
 class Response(Data):
@@ -1342,8 +1466,10 @@ class Response(Data):
     """
 
     def write(self, outfile):
+        units = deepcopy(self.spatial_units)
+        self.spatial_units = 'm'
         WS_io.write_response(self, outfile)
-
+        self.spatial_units = units
 
 class Site(object):
     """Contains data for a given site.
@@ -1409,6 +1535,7 @@ class Site(object):
         """
         self.name = name
         self.data = data
+        self._spatial_units = 'm'
         self.periods = utils.truncate(periods)
         self.locations = locations
         self.errors = errors
@@ -1471,6 +1598,31 @@ class Site(object):
 
         # Rotate all sites to 0 degrees to start
         # self.rotate_data(azi=0)
+
+    @property
+    def spatial_units(self):
+        return self._spatial_units
+
+    @spatial_units.setter
+    def spatial_units(self, units):
+        try:
+            units = units.lower()
+            if units in ('m', 'km'):
+                if units != self._spatial_units:
+                    self._spatial_units = units
+                    if units == 'm':
+                        self.locations['X'] *= 1000
+                        self.locations['Y'] *= 1000
+                        self.locations['elev'] *= 1000
+                    else:
+                        self.locations['X'] /= 1000
+                        self.locations['Y'] /= 1000
+                        self.locations['elev'] /= 1000
+            else:
+                print('Units {} not understood'.format(units))
+                return
+        except ValueError:
+            print('Units {} not understood'.format(units))
 
     @property
     def NP(self):
@@ -1577,7 +1729,10 @@ class Site(object):
                     new_errors = np.abs(z * error_floors['Off-Diagonal Impedance'])
                     # new_errors = np.abs(self.data[component] * error_floors['Off-Diagonal Impedance'])
             elif component.startswith('T'):
-                new_errors = np.abs(np.ones(self.data[component].shape) * error_floors['Tipper'])
+                const_error = np.abs(np.ones(self.data[component].shape) * error_floors['Tipper'])
+                perc_error = self.data[component] * error_floors['Tipper']
+                # new_errors = np.abs(np.ones(self.data[component].shape) * error_floors['Tipper'])
+                new_errors = np.maximum(const_error, perc_error)
             elif 'rho' in component.lower():
                 new_errors = np.abs(self.data[component] * error_floors['Rho'])
             # new_errors[new_errors == 0] = np.median(new_errors)
@@ -1677,22 +1832,23 @@ class Site(object):
     def rotate_data(self, azi=0):
         # This function is needlessly long, but I want to make sure it does it's job right...
         def rotz(zxx, zxy, zyx, zyy, theta):
-            theta = 2 * np.deg2rad(theta)  # Make use of double angle identities
+            theta = -2 * np.deg2rad(theta)  # Make use of double angle identities
             return ((zxx + zyy) + (zxx - zyy) * np.cos(theta) + (zxy + zyx) * np.sin(theta)) / 2
+        if azi < 0:
+            azi += 360
+        theta = azi - self.azimuth
+        if theta < 0:
+            theta += 360
+        if theta == 0:
+            if DEBUG:
+                print('{}: No rotation required.'.format(self.name))
+            return
+        else:
+            if DEBUG:
+                    print('Rotating site {} by {} degrees'.format(self.name, theta))
+        # theta = -theta
         if set(['ZXXR', 'ZXXI', 'ZXYR', 'ZXYI',
                 'ZYXR', 'ZYXI', 'ZYYR', 'ZYYI']).issubset(set(self.components)):
-            if azi < 0:
-                azi += 360
-            theta = azi - self.azimuth
-            if theta < 0:
-                theta += 360
-            if theta == 0:
-                if DEBUG:
-                    print('{}: No rotation required.'.format(self.name))
-                return
-            else:
-                if DEBUG:
-                    print('Rotating site {} by {} degrees'.format(self.name, theta))
             # print('Azi: {}, Theta:{}, Self.Azi: {}'.format(azi, theta, self.azimuth))
             zxxR = {'data': [], 'errors': []}
             zxyR = {'data': [], 'errors': []}
@@ -1719,36 +1875,30 @@ class Site(object):
                                                         np.imag(zyxR['errors'])]
             self.errors['ZYYR'], self.errors['ZYYI'] = [np.real(zyyR['errors']),
                                                         np.imag(zyyR['errors'])]
-            if 'TZXR' in self.components:
-                theta_rad = np.deg2rad(theta)  # This is what was missing... Obviously it was something dumb.
-                self.data['TZXR'], self.data['TZYR'] = (self.data['TZXR'] * np.cos(theta_rad) -
-                                                        self.data['TZYR'] * np.sin(theta_rad),
-                                                        self.data['TZXR'] * np.sin(theta_rad) +
-                                                        self.data['TZYR'] * np.cos(theta_rad))
-                self.data['TZXI'], self.data['TZYI'] = (self.data['TZXI'] * np.cos(theta_rad) -
-                                                        self.data['TZYI'] * np.sin(theta_rad),
-                                                        self.data['TZXI'] * np.sin(theta_rad) +
-                                                        self.data['TZYI'] * np.cos(theta_rad))
-                # tX = self.data['TZXR'] * np.cos(theta) - self.data['TZYR'] * np.sin(theta)
-                # tY = self.data['TZXR'] * np.sin(theta) + self.data['TZYR'] * np.cos(theta)
-                # self.data['TZXR'] = tX
-                # self.data['TZYR'] = tY
-                # tX = self.data['TZXI'] * np.cos(theta) - self.data['TZYI'] * np.sin(theta)
-                # tY = self.data['TZXI'] * np.sin(theta) + self.data['TZYI'] * np.cos(theta)
-                # self.data['TZXI'] = tX
-                # self.data['TZYI'] = tY
+            self.azimuth = azi
+            self.calculate_phase_tensors()
+        if 'TZXR' in self.components:
+            theta_rad = np.deg2rad(theta)  # This is what was missing... Obviously it was something dumb.
+            self.data['TZXR'], self.data['TZYR'] = (self.data['TZXR'] * np.cos(theta_rad) -
+                                                    self.data['TZYR'] * np.sin(theta_rad),
+                                                    self.data['TZXR'] * np.sin(theta_rad) +
+                                                    self.data['TZYR'] * np.cos(theta_rad))
+            self.data['TZXI'], self.data['TZYI'] = (self.data['TZXI'] * np.cos(theta_rad) -
+                                                    self.data['TZYI'] * np.sin(theta_rad),
+                                                    self.data['TZXI'] * np.sin(theta_rad) +
+                                                    self.data['TZYI'] * np.cos(theta_rad))
 
-                self.errors['TZXR'], self.errors['TZYR'] = (self.errors['TZXR'] * np.cos(theta) -
-                                                            self.errors['TZYR'] * np.sin(theta),
-                                                            self.errors['TZXR'] * np.sin(theta) +
-                                                            self.errors['TZYR'] * np.cos(theta))
-                self.errors['TZXI'], self.errors['TZYI'] = (self.errors['TZXI'] * np.cos(theta) -
-                                                            self.errors['TZYI'] * np.sin(theta),
-                                                            self.errors['TZXI'] * np.sin(theta) +
-                                                            self.errors['TZYI'] * np.cos(theta))
+            self.errors['TZXR'], self.errors['TZYR'] = (self.errors['TZXR'] * np.cos(theta) -
+                                                        self.errors['TZYR'] * np.sin(theta),
+                                                        self.errors['TZXR'] * np.sin(theta) +
+                                                        self.errors['TZYR'] * np.cos(theta))
+            self.errors['TZXI'], self.errors['TZYI'] = (self.errors['TZXI'] * np.cos(theta) -
+                                                        self.errors['TZYI'] * np.sin(theta),
+                                                        self.errors['TZXI'] * np.sin(theta) +
+                                                        self.errors['TZYI'] * np.cos(theta))
             self.azimuth = azi
         else:
-            print('Cannot rotate data. Required components not available.')
+            print('Cannot rotate Tipper data. Required components not available.')
 
     def add_periods(self, site):
         """
@@ -2111,6 +2261,7 @@ class RawData(object):
         self.master_periods = self.master_period_list()
         self.narrow_periods = self.narrow_period_list()
         self.azimuth = 0
+        self._spatial_units = 'm'
         for site_name in self.site_names:
             self.sites[site_name].rotate_data(azi=0)
 
@@ -2122,6 +2273,16 @@ class RawData(object):
                   min_y + (max_y - min_y) / 2)
         return center
 
+    def check_azi(self):
+        azi = []
+        for site in self.sites.values():
+            azi.append(site.azimuth)
+        if len(set(azi)) != 1:
+            print('Inconsistent set of azimuths in raw data files')
+            return False
+        else:
+            return azi[0]
+
     # @property
     # def origin(self):
     #     return self._origin
@@ -2132,6 +2293,29 @@ class RawData(object):
     #     self.locations[:, 0] += value[1]
     #     self.locations[:, 1] += value[0]
     #     self._origin = value
+
+    @property
+    def spatial_units(self):
+        return self._spatial_units
+
+    @spatial_units.setter
+    def spatial_units(self, units):
+        try:
+            units = units.lower()
+            if units in ('m', 'km'):
+                if units != self._spatial_units:
+                    self._spatial_units = units
+                    if units == 'm':
+                        self.locations *= 1000
+                    else:
+                        self.locations /= 1000
+                    for site in self.site_names:
+                        self.sites[site].spatial_units = units
+            else:
+                print('Units {} not understood'.format(units))
+                return
+        except ValueError:
+            print('Units {} not understood'.format(units))
 
     @property
     def NS(self):
@@ -2251,7 +2435,10 @@ class RawData(object):
             self.locations[ii, 1], self.locations[ii, 0] = E, N
 
     def write_locations(self, out_file, file_format='csv'):
+        units = deepcopy(self.spatial_units)
+        self.spatial_units = 'm'
         WS_io.write_locations(self, out_file=out_file, file_format=file_format)
+        self.spatial_units = units
 
     def master_period_list(self):
         """Summary
@@ -2332,7 +2519,7 @@ class RawData(object):
         if azi != self.azimuth:
             if azi < 0:
                 azi = 360 + azi
-            theta = self.azimuth - azi
+            theta = azi - self.azimuth
             self.azimuth = azi
             locs = self.locations
             self.locations = utils.rotate_locs(locs, theta)

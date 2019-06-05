@@ -5,6 +5,7 @@ import os
 import copy
 import re
 import shapefile
+import datetime
 
 
 if os.name is 'nt':
@@ -854,7 +855,7 @@ def write_locations(data, out_file=None, file_format='csv'):
         print('Not implemented yet')
 
 
-def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
+def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
     #  Writes out the contents of a Data object into format specified by 'file_format'
     #  Currently implemented options include WSINV3DMT and ModEM3D.
     #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
@@ -993,6 +994,9 @@ def write_data(data, outfile=None, to_write=None, file_format='WSINV3DMT'):
                                 X, Y, Z = (site.locations['X'],
                                            site.locations['Y'],
                                            site.locations.get('elev', 0))
+                                # X, Y, Z = (data.locations[ii, 0],
+                                #            data.locations[ii, 1],
+                                #            site.locations.get('elev', 0))
                                 X, Y, Z = (data.locations[ii, 0],
                                            data.locations[ii, 1],
                                            site.locations.get('elev', 0))
@@ -1614,6 +1618,12 @@ def read_occam_response(respfile, data, sites):
                                                                  'yx')
         return response
 
+
+def debug_print(items, file):
+    with open(file, 'a+') as f:
+        datetime_obj = datetime.datetime.now()
+        f.write(str(datetime_obj) + '\n')
+        f.write('{}\n'.format(items))
 
 # def occam2ws(respfile, datafile, listfile=None, datpath=None):
 
