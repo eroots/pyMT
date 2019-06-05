@@ -586,9 +586,9 @@ def rotate_locs(locs, azi=0):
     locs, center = center_locs(locs)
     R = np.array([[np.cos(azi), -np.sin(azi)], [np.sin(azi), np.cos(azi)]])
     # Rotates with +ve azis moving clockwise from North
-    # rot_locs = np.matmul(locs, R.T)
+    rot_locs = np.matmul(locs, R.T)
     # Rotates with +ve azimuth moving counter-clockwise from East
-    rot_locs = np.matmul(locs, R)
+    # rot_locs = np.matmul(locs, R)
     rot_locs += center
     return rot_locs
 

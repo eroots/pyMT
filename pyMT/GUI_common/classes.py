@@ -1,6 +1,6 @@
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, Qt
 import pyMT.utils as utils
 
 
@@ -196,6 +196,39 @@ class FileDialog(QtWidgets.QInputDialog):
                 return file, 0
 
 
+class TwoInputDialog(QtWidgets.QDialog):
+    def __init__(self, label_1, label_2, initial_1=None, initial_2=None, parent=None):
+        super(QtWidgets.QDialog, self).__init__(parent)
+        label1 = QtWidgets.QLabel(label_1, self)
+        label2 = QtWidgets.QLabel(label_2, self)
+        hbox = QtWidgets.QHBoxLayout()
+        self.setLayout(hbox)
+        hbox.addWidget(label1)
+        hbox.addWidget(label2)
+        self.value_1 = initial_1
+        self.value_2 = initial_2
+        self.line_edit1 = QtWidgets.QLineEdit(initial_1)
+        self.line_edit2 = QtWidgets.QLineEdit(initial_2)
+        hbox.addWidget(self.line_edit1)
+        hbox.addWidget(self.line_edit2)
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel,
+                                             self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        hbox.addWidget(buttons)
+        # self.cancel.slicked.connect(self.cancel_button)
+
+    def inputs(self):
+        return self.line_edit1.text(), self.line_edit2.text()
+
+    @staticmethod
+    def get_inputs(label_1, label_2, initial_1=None, initial_2=None, parent=None):
+        dialog = TwoInputDialog(label_1, label_2, initial_1, initial_2, parent)
+        result = dialog.exec_()
+        inputs = dialog.inputs()
+        return inputs, result
+
+
 class ColourMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
         super(QtWidgets.QMenu, self).__init__(parent)
@@ -216,3 +249,8 @@ class ColourMenu(QtWidgets.QMenu):
             self.action_group.addAction(self.all_maps[item])
             # self.map.addMenu(item)
         self.action_group.setExclusive(True)
+
+    def set_clim(self, initial_1='1', initial_2='5'):
+        inputs, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                           initial_1=initial_1, initial_2=initial_2, parent=self)
+        return inputs, ret

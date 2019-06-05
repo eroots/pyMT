@@ -353,7 +353,7 @@ Resistivity</string>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="PeriodLabel">
+      <widget class="QLabel" name="periodLabel">
        <property name="text">
         <string>Period: </string>
        </property>

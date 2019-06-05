@@ -3,6 +3,7 @@ from matplotlib.figure import Figure
 from matplotlib.colorbar import ColorbarBase
 import matplotlib.colorbar as colorbar
 import pyMT.utils as utils
+from pyMT.IO import debug_print
 from e_colours import colourmaps as cm
 import naturalneighbor as nn
 # import matplotlib.pyplot as plt
@@ -42,7 +43,7 @@ import naturalneighbor as nn
 # from the data that is plotted.
 # ========================= #
 
-def format_coords(x, y):
+def format_data_coords(x, y):
     freq = np.log10(1 / 10**x)
     return '\n'.join(['Log10: period={}, frequency={}, y={}',
                       'period={}, frequency={}']).format(utils.truncate(x),
@@ -50,6 +51,40 @@ def format_coords(x, y):
                                                          utils.truncate(y),
                                                          utils.truncate(10**x),
                                                          utils.truncate(10**freq))
+
+
+class format_model_coords(object):
+    def __init__(self, im, X, Y, x_label='y', y_label='y'):
+        self.im = im
+        self.x_label = x_label
+        self.y_label = y_label
+        self.X = X
+        self.Y = Y
+
+    def __call__(self, x, y):
+        # col = int(x + 0.5)
+        # row = int(y + 0.5)
+        # if col >=0 and col < numcols and row >=0 and row < numrows:
+        # val = X[row, col]
+        x_idx = (np.abs(self.X - x + 0.5)).argmin() - 1
+        y_idx = (np.abs(self.Y - y + 0.5)).argmin() - 1
+        # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
+        vals = np.array(self.im.get_array())
+        # print((vals.shape, len(self.X), len(self.Y), len(self.X) * len(self.Y)))
+        vals = 10 ** np.reshape(vals, (len(self.Y) - 1, len(self.X) - 1))[y_idx, x_idx]
+        # z = vals[x_idx, y_idx]
+        # print((x_idx, y_idx))
+        # z = self.im.get_array()[x_idx * len(self.X) + y_idx]
+        # z = self.im.get_array()[x_idx * len(self.Y) + y_idx]
+        # z = self.im.get_array()[y_idx * len(self.X) + x_idx]
+        # z = self.im.get_array()[y_idx * len(self.Y) + x_idx]
+        # print(dir(self.im))
+        # print(z)
+        return '\t'.join(['{}: {:>4.4g} {}',
+                          '{}: {:>4.4g} {}\n',
+                          'Resistivity: {} {}']).format(self.x_label, utils.truncate(self.X[x_idx]), 'km',
+                                                        self.y_label, utils.truncate(self.Y[y_idx]), 'km',
+                                                        utils.truncate(vals), 'ohm-m')
 
 
 class DataPlotManager(object):
@@ -79,6 +114,7 @@ class DataPlotManager(object):
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
                          't': 'Transfer Function', 'p': 'Phase', 'b': 'Apparent Resistivity'}
+        self.pt_units = 'degrees'
         if fig is None:
             self.new_figure()
         else:
@@ -414,10 +450,11 @@ class DataPlotManager(object):
                                               comp.upper() + '_error')
                                       for ii in range(site.NP)])
                     # Convert to degrees
-                    toplot = np.rad2deg(np.arctan(toplot))
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
-                        toplotErr = np.rad2deg(np.arctan(e))
-                        # toplotErr = e
+                        toplotErr = e
+                    if self.pt_units.lower() == 'degrees':
+                        toplot = np.rad2deg(np.arctan(toplot))
+                        toplotErr = np.rad2deg(np.arctan(toplotErr))
                 elif 'bost' in comp.lower():
                     toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
                     toplot = np.log10(toplot)
@@ -461,7 +498,7 @@ class DataPlotManager(object):
                 ax.aname = 'data'
             elif Type == 'raw_data':
                 ax.aname = 'raw_data'
-        ax.format_coord = format_coords
+        ax.format_coord = format_data_coords
         # ax.set_title(site.name)
         return ax, max(ma), min(mi), artist
 
@@ -510,6 +547,7 @@ class MapView(object):
         self.rho_cax = [1, 5]
         self.phase_cax = [0, 90]
         self.diff_cax = [-10, 10]
+        self.model_cax = [1, 5]
         self.padding_scale = 5
         self.plot_rms = False
         self.use_colourbar = True
@@ -518,6 +556,7 @@ class MapView(object):
         self.induction_error_tol = 0.5
         self.rho_error_tol = 1
         self.phase_error_tol = 30
+        self.units = 'm'
         if figure is None:
             self.new_figure()
         else:
@@ -627,11 +666,21 @@ class MapView(object):
         else:
             self.coordinate_system = coordinate_system
         if coordinate_system == 'local':
-            return self.site_data['data'].get_locs(site_list=sites)
+            azi = self.site_data['data'].azimuth
+            check_azi = self.site_data['data'].check_azi()
+            locs = self.site_data['data'].get_locs(site_list=sites, azi=azi)
         elif coordinate_system.lower() == 'utm':
-            return self.site_data['raw_data'].get_locs(sites=sites, mode='utm')
+            azi = self.site_data['raw_data'].azimuth
+            check_azi = self.site_data['raw_data'].check_azi()
+            locs = self.site_data['raw_data'].get_locs(sites=sites, mode='utm')
         elif coordinate_system.lower() == 'latlong':
-            return self.site_data['raw_data'].get_locs(sites=sites, mode='latlong')
+            azi = self.site_data['raw_data'].azimuth
+            check_azi = self.site_data['raw_data'].check_azi()
+            locs = self.site_data['raw_data'].get_locs(sites=sites, mode='latlong')
+        if azi % 360 != check_azi % 360:
+            print('Rotating')
+            locs = utils.rotate_locs(locs, azi)
+        return locs
 
     def set_axis_limits(self, bounds=None, ax=None):
         if ax is None:
@@ -670,14 +719,22 @@ class MapView(object):
         else:
             marker = self.site_marker
             facecolour = self.facecolour
-        if not self.site_locations['generic'] == []:
-            self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
-                                           self.site_locations['generic'][:, 0],
-                                           marker=marker,
-                                           s=marker_size['generic'],
-                                           edgecolors=self.site_colour,
-                                           linewidths=self.edgewidth,
-                                           facecolors=facecolour)
+        if len(self.site_locations['generic']) > 0:
+            try:
+                self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
+                                               self.site_locations['generic'][:, 0],
+                                               marker=marker,
+                                               s=marker_size['generic'],
+                                               edgecolors=self.site_colour,
+                                               linewidths=self.edgewidth,
+                                               facecolors=facecolour)
+            except IndexError:
+                debug_print(len(self.site_locations['generic']), 'debug.log')
+
+            # print('Hi Should be plotting now')
+            # print(self.site_locations['generic'])
+            # print(marker_size['generic'])
+            # print(marker)
         if self.active_sites:
             self.window['axes'][0].scatter(self.site_locations['active'][:, 1],
                                            self.site_locations['active'][:, 0],
@@ -698,10 +755,13 @@ class MapView(object):
 
     @utils.enforce_input(data_type=list, normalize=bool, period_idx=int)
     def plot_induction_arrows(self, data_type='data', normalize=True, period_idx=1):
-        max_length = np.sqrt((np.max(self.site_locations['all'][:, 0]) -
-                              np.min(self.site_locations['all'][:, 0])) ** 2 +
-                             (np.max(self.site_locations['all'][:, 1]) -
-                              np.min(self.site_locations['all'][:, 1])) ** 2) / 10
+        # max_length = np.sqrt((np.max(self.site_locations['all'][:, 0]) -
+        #                       np.min(self.site_locations['all'][:, 0])) ** 2 +
+        #                      (np.max(self.site_locations['all'][:, 1]) -
+        #                       np.min(self.site_locations['all'][:, 1])) ** 2) / 10
+        x_max, x_min = (np.max(self.site_locations['all'][:, 0]), np.min(self.site_locations['all'][:, 0]))
+        y_max, y_min = (np.max(self.site_locations['all'][:, 1]), np.min(self.site_locations['all'][:, 1]))
+        max_length = np.max((x_max - x_min, y_max - y_min)) / 1000
 
         for dType in data_type:
             X, Y = [], []
@@ -741,17 +801,19 @@ class MapView(object):
                 arrows = np.transpose(np.array((X, Y)))
                 # arrows = utils.normalize_arrows(arrows)
                 lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                largest_arrow = np.max(lengths)
                 lengths[lengths == 0] = 1
-                arrows[lengths > 1, 0] = arrows[lengths > 1, 0] / lengths[lengths > 1]
-                arrows[lengths > 1, 1] = arrows[lengths > 1, 1] / lengths[lengths > 1]
+                # arrows[lengths > 1, 0] = arrows[lengths > 1, 0] / lengths[lengths > 1]
+                # arrows[lengths > 1, 1] = arrows[lengths > 1, 1] / lengths[lengths > 1]
                 # print('Hello I am inside')
                 # print(normalize)
                 if normalize:
                     arrows = arrows / np.transpose(np.tile(lengths, [2, 1]))
                     # print('Normalizing...')
                 else:
-                    arrows = arrows / np.max(lengths)
-                    arrows *= max_length / 50000
+                    arrows = max_length * arrows / largest_arrow
+                    # arrows = arrows / np.max(lengths)
+                    # arrows *= max_length / 50000
                     # print('Shrinking arrows')
                 #     print('Not normalizing')
                 arrows = arrows * self.induction_scale / 50
@@ -759,8 +821,10 @@ class MapView(object):
                 # print(arrows)
                 # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
                 # print(self.site_locations['all'])
-                headwidth = max(3 * self.induction_scale / 5, 1)
-                width = 0.0025 * self.induction_scale / 5
+                # headwidth = max(3 * self.induction_scale / 5, 1)
+                # width = 0.0025 * self.induction_scale / 5
+                headwidth = max(3, 1)
+                width = 0.0025
                 self.window['axes'][0].quiver(self.site_locations['all'][idx, 1],
                                               self.site_locations['all'][idx, 0],
                                               arrows[:, 1],
@@ -980,33 +1044,58 @@ class MapView(object):
     def plot_plan_view(self, ax=None, z_slice=0):
         if not ax:
             ax = self.window['axes'][0]
-        ax.pcolormesh(np.array(self.model.dy) / 1000,
-                      np.array(self.model.dx) / 1000,
-                      np.log10(self.model.vals[:, :, z_slice]),
-                      cmap=self.cmap,
-                      vmin=self.cax[0], vmax=self.cax[1],
-                      zorder=0)
-        # ax.set_xlim(bounds[:2])
-        # ax.set_ylim(bounds[2:])
+        X = np.array(self.model.dy)
+        Y = np.array(self.model.dx)
+        im = ax.pcolormesh(X,
+                           Y,
+                           np.log10(self.model.vals[:, :, z_slice]),
+                           cmap=self.cmap,
+                           vmin=self.model_cax[0], vmax=self.model_cax[1],
+                           zorder=0)
+        ax.set_ylabel('Northing (km)')
+        ax.format_coord = format_model_coords(im,
+                                              X=X, Y=Y,
+                                              x_label='Easting', y_label='Northing')
 
     def plot_x_slice(self, ax=None, x_slice=0):
         if not ax:
             ax = ax
-        ax.pcolormesh(np.array(self.model.dy) / 1000,
-                      np.array(self.model.dz) / 1000,
-                      np.squeeze(np.log10(self.model.vals[x_slice, :, :])).T,
-                      cmap=self.cmap,
-                      vmin=self.cax[0], vmax=self.cax[1],
-                      zorder=0)
+        X = np.array(self.model.dy)
+        Y = np.array(self.model.dz)
+        im = ax.pcolormesh(X,
+                           Y,
+                           np.squeeze(np.log10(self.model.vals[x_slice, :, :])).T,
+                           cmap=self.cmap,
+                           vmin=self.model_cax[0], vmax=self.model_cax[1],
+                           zorder=0)
+        ax.set_xlabel('Easting (km)')
+        ax.set_ylabel('Depth (km)')
+        ax.format_coord = format_model_coords(im,
+                                              X=X, Y=Y,
+                                              x_label='Easting', y_label='Depth')
 
-    def plot_y_slice(self, ax=None, y_slice=0):
+    def plot_y_slice(self, ax=None, y_slice=0, orientation='xz'):
+        if orientation.lower() == 'xz':
+            X = np.array(self.model.dx)
+            Y = np.array(self.model.dz)
+            to_plot = np.squeeze(np.log10(self.model.vals[:, y_slice, :])).T
+            x_label = 'Northing (km)'
+            y_label = 'Depth (km)'
+        else:
+            Y = np.array(self.model.dx)
+            X = np.array(self.model.dz)
+            to_plot = np.squeeze(np.log10(self.model.vals[:, y_slice, :]))
+            y_label = 'Northing (km)'
+            x_label = 'Depth (km)'
         if not ax:
             ax = ax
-        ax.pcolormesh(np.array(self.model.dx) / 1000,
-                      np.array(self.model.dz) / 1000,
-                      np.squeeze(np.log10(self.model.vals[:, y_slice, :])).T,
-                      cmap=self.cmap,
-                      vmin=self.cax[0], vmax=self.cax[1],
-                      zorder=0)
-        
-        
+        im = ax.pcolormesh(X, Y, to_plot,
+                           cmap=self.cmap,
+                           vmin=self.model_cax[0], vmax=self.model_cax[1],
+                           zorder=0)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+        ax.format_coord = format_model_coords(im, X=X, Y=Y,
+                                              x_label=x_label.split()[0],
+                                              y_label=y_label.split()[0])
+
