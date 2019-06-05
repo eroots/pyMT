@@ -20,12 +20,14 @@ Description: 'pyMT' python project.
         	tests: Contains modules used to test the various parts of the project
         	ModelGUI: Contains the modules and UI's for creating model meshes. Currently supports 3-D models for ModEM and WSINV3DMT
         
-        Note: This package does not automatically install dependencies. You will need to manually install them.
+        Note: This package does not automatically install dependencies. You will need to manually install them (Some may come automatically with newer versions of Anaconda). Some may require you to specify where to download it from. If the default 'conda install ___' doesn't work, do a quick Google search.
         Dependencies include:
         	matplotlib
         	numpy
         	pyproj
+        	pyshp
         	pyqt5
         	e_colours (Ask me to about getting this one. If it becomes a problem, I can include it directly in the package)
-        
+        	pyvista
+        	vtk
 Platform: UNKNOWN

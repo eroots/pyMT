@@ -32,6 +32,8 @@ pyMT/GUI_common/classes.py
 pyMT/GUI_common/common_functions.py
 pyMT/ModelGUI/mesh_designer.py
 pyMT/ModelGUI/mesh_designer.ui
+pyMT/ModelGUI/model_viewer.py
+pyMT/ModelGUI/model_viewer.ui
 pyMT/scripts/DraggablePoint.py
 pyMT/scripts/__init__.py
 pyMT/scripts/add_occam_noise.py
@@ -51,7 +53,9 @@ pyMT/scripts/mod_errors.py
 pyMT/scripts/period_to_depth.py
 pyMT/scripts/phase_tensor_map.py
 pyMT/scripts/phase_tensor_test.py
+pyMT/scripts/plan_PT_shapefile.py
 pyMT/scripts/plan_pseudosection.py
+pyMT/scripts/plan_pseudosection_shapefile.py
 pyMT/scripts/plot_dataset.py
 pyMT/scripts/plot_model_slice.py
 pyMT/scripts/plot_occam.py
@@ -59,11 +63,16 @@ pyMT/scripts/plot_pseudosection.py
 pyMT/scripts/plot_rhopha_nice.py
 pyMT/scripts/plot_transect.py
 pyMT/scripts/plot_well.py
+pyMT/scripts/pt2csv.py
 pyMT/scripts/pt_pseudosection.py
 pyMT/scripts/read_csr.py
 pyMT/scripts/read_edi_test.py
+pyMT/scripts/read_shape_plot.py
 pyMT/scripts/resolution_sandbox.py
+pyMT/scripts/rose_plot.py
 pyMT/scripts/scatter_bostick.py
 pyMT/scripts/test_misfit.py
+pyMT/scripts/test_pt_plot.py
+pyMT/scripts/time_series_test.py
 pyMT/scripts/to_vtk.py
 pyMT/scripts/ws2modem.py
