@@ -64,10 +64,12 @@ pyMT/scripts/plot_occam.py
 pyMT/scripts/plot_pseudosection.py
 pyMT/scripts/plot_rhopha_nice.py
 pyMT/scripts/plot_transect.py
+pyMT/scripts/plot_well.py
 pyMT/scripts/pt2csv.py
 pyMT/scripts/pt_pseudosection.py
 pyMT/scripts/pv_transect_test.py
 pyMT/scripts/read_csr.py
+pyMT/scripts/read_edi_test.py
 pyMT/scripts/read_shape_plot.py
 pyMT/scripts/resolution_sandbox.py
 pyMT/scripts/rose_plot.py
