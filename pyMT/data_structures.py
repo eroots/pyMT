@@ -2709,13 +2709,18 @@ class PhaseTensor(object):
         phi_1 = (self.phi[0, 0] + self.phi[1, 1]) / 2
         phi_2 = np.sqrt(np.abs(det_phi))
         phi_3 = skew_phi / 2
+        # Note there is no abs on det_phi here by recommendation of Moorkamp (2007)
         phi_max = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) +
                    np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
         phi_min = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) -
                    np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
         # alpha = 0.5 * np.arctan2((self.phi[0, 0] - self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
         alpha = 0.5 * np.arctan2((self.phi[0, 1] + self.phi[1, 0]), (self.phi[0, 0] - self.phi[1, 1]))
-        Lambda = (phi_max - phi_min) / (phi_max + phi_min)
+        # Lambda = (phi_max - phi_min) / (phi_max + phi_min)
+        Lambda = (np.sqrt((self.phi[0, 0] - self.phi[1, 1]) ** 2 +
+                          (self.phi[0, 1] + self.phi[1, 0]) ** 2) /
+                  np.sqrt((self.phi[0, 0] + self.phi[1, 1]) ** 2 +
+                          (self.phi[0, 1] - self.phi[1, 0]) ** 2))
         # beta = 0.5 * np.arctan(2 * phi_3 / 2 * phi_1)
         # beta = 0.5 * np.arctan2((self.phi[0, 0] + self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
         beta = 0.5 * np.arctan2((self.phi[0, 1] - self.phi[1, 0]), (self.phi[0, 0] + self.phi[1, 1]))

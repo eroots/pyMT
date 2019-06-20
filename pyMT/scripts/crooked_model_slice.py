@@ -146,18 +146,18 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 #########################################################
 # SWAYZE
-# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
 # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 # backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/pt/swzPT3_lastIter.rho')
-# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
-# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/swz_lastIter.rho')
+# # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/pt/swzPT3_lastIter.rho')
+# # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
+# # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzFinish_lastIter.rho')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
 # Northern Swayze
@@ -167,10 +167,11 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_morePers_lastIter.rho')
 #########################################################
 # DRYDEN-ATIKOKAN
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+# # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/finish/dry5Finish_lastIter.rho')
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
 # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
@@ -186,14 +187,19 @@ mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dr
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_lastIter.rho')
 ##########################################################
 # MALARTIC
-# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
-# seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
+# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
+# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
+# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/moresites/finish/mal5_lastIter.rho')
+# seismic = pd.read_table(r'C:\Users\eric\phd\ownCloud\Metal Earth\Data\Seismic\ME_Seismic_PostStack_Migrated_Sections\MAL_LN131_R1_KMIG\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
-# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
+# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
+mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/Hex2Mod/HexMal_Z.model')
+main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst')
+data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_hex.lst')
+backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_hex.lst')
+ # seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
 # seismic = pd.read_table(r'C:\Users\eroots\Downloads\Malartic Seismic Receivers location (1)\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # A-G / ROUYN
@@ -209,22 +215,24 @@ use_seismic = 0
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
-UTM_number = 15
+UTM_number = 17
 UTM_letter = 'N'
 # UTM_letter = 'U'
 # padding = 25000
 reso = []
+ninterp = 20
 padding = 10000
+ninterp_padding = 50
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eric/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
-file_name = 'swayzeR2_north_jet1-5_noMarkers'
-file_types = ['.pdf', '.ps', '.png']
+file_path = r'C:/Users/eric/phd/ownCloud/Documents/Malartic/RoughFigures/'
+file_name = 'MAL_Hex_ChicobiR2_jet0-5'
+file_types = ['.png']
 title_ = 'Standard Inversion'
-rotate_back = 1
-linear_xaxis = True
+rotate_back = 0
+linear_xaxis = False
 
-save_fig = 0
+save_fig = 1
 save_dat = 0
 annotate_sites = 1
 site_markers = 1
@@ -236,17 +244,12 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 75]
+zlim = [0, 20]
 # zlim = [0, 400]
 lut = 64
 isolum = False
-# xlim = [-123.5, -121.5]
-# xlim = [-7, 74]
-# zlim = [0, 5]
 lut = 256
 cax = [0, 5]
-# cax = [1, 5]
-# cax = [-2, 2]
 isolum = 0
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
@@ -261,10 +264,11 @@ cmap_name = 'jet_r'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
 nudge_sites = ['18-dry041m', '18-dry040m', '18-dry037m', '18-dry001m']
-nudge_dist = 10000
-use_nudge = 1
+nudge_sites = main_transect.site_names[1:]
+nudge_dist = 1000
+use_nudge = 0
 
-data.to_utm(UTM_number, UTM_letter)
+# data.to_utm(UTM_number, UTM_letter)
 # data.locations = data.get_locs(mode='latlong')
 # for ii in range(len(data.locations)):
 #         easting, northing = utils.project((data.locations[ii, 1],
@@ -273,9 +277,9 @@ data.to_utm(UTM_number, UTM_letter)
 #         data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 # main_transect.remove_sites('98-1_073')
 # main_transect.remove_sites(sites=[site for site in main_transect.site_names if 'att' in site.lower()])
-# data = project_locations(data, zone=16, letter='U')
-# backup_data = project_locations(backup_data, zone=16, letter='U')
-# main_transect = project_locations(main_transect, zone=16, letter='U')
+data = project_locations(data, zone=16, letter='U')
+backup_data = project_locations(backup_data, zone=16, letter='U')
+main_transect = project_locations(main_transect, zone=16, letter='U')
 main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]  # Make sure they go north-south
 nudge_locations = copy.deepcopy(main_transect.locations)
 for ii, site in enumerate(main_transect.site_names):
@@ -285,7 +289,7 @@ if plot_map and not use_seismic:
     site_x, site_y = [main_transect.locations[:, 1],
                       main_transect.locations[:, 0]]
     qx_map, qy_map = [], []
-    X = np.linspace(site_y[0] - padding, site_y[0], 20)
+    X = np.linspace(site_y[0] - padding, site_y[0], ninterp_padding)
     Y = np.interp(X, site_y, site_x)
     qx_map.append(Y)
     qy_map.append(X)
@@ -295,11 +299,11 @@ if plot_map and not use_seismic:
             use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
         else:
             use_x, use_y = site_x, site_y
-        X = np.linspace(use_y[ii], use_y[ii + 1], 50)
+        X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
         Y = np.interp(X, use_y, use_x)
         qx_map.append(Y)
         qy_map.append(X)
-    X = np.linspace(use_y[-1], use_y[-1] + padding, 20)
+    X = np.linspace(use_y[-1], use_y[-1] + padding, ninterp_padding)
     Y = np.interp(X, use_y, use_x)
     qx_map.append(Y)
     qy_map.append(X)
@@ -357,7 +361,7 @@ if use_seismic:
             qx_map = copy.deepcopy(qx) * 1000
             qy_map = copy.deepcopy(qy) * 1000
 else:
-    X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], 20)
+    X = np.linspace(data.locations[0, 0] - padding, data.locations[0, 0], ninterp_padding)
     Y = np.interp(X, data.locations[:, 0], data.locations[:, 1])
     qx = []
     qy = []
@@ -369,11 +373,11 @@ else:
             use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
         else:
             use_x, use_y = data.locations[:, 1], data.locations[:, 0]
-        X = np.linspace(use_y[ii], use_y[ii + 1], 50)
+        X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
         Y = np.interp(X, use_y[:], use_x[:])
         qx.append(Y)
         qy.append(X)
-    X = np.linspace(use_y[-1], use_y[-1] + padding, 20)
+    X = np.linspace(use_y[-1], use_y[-1] + padding, ninterp_padding)
     Y = np.interp(X, use_y[:], use_x[:])
     qx.append(Y)
     qy.append(X)
@@ -529,7 +533,7 @@ if isolum and reso:
 
     cmap = colors.ListedColormap(cmap, name='test1')
 
-fig = plt.figure(1, figsize=(8, 4.5))
+fig = plt.figure(1, figsize=(15, 10))
 h = [Size.Fixed(0.), Size.Fixed(6.5)]
 v = [Size.Fixed(0.5), Size.Fixed(3.25)]
 win = Divider(fig, (0.1, 0.1, 0.8, 0.8), h, v, aspect=False)
@@ -580,7 +584,7 @@ for ii in range(1, 2):
         # sites = ax.plot(data.locations[:, 0] / 1000,
         #                 np.zeros(len(data.locations[:, 1])) - 0.5,
         #                 'wv', mec='k', markersize=7)
-        # ax.set_aspect('equal')
+        ax.set_aspect('equal')
         # sites[0].set_clip_on(False)
     if xlim:
         ax.set_xlim(xlim)
@@ -633,7 +637,7 @@ if annotate_sites:
             site = site[3:]
         plt.text(s=site,
                  x=site_x[jj],
-                 y=-5,
+                 y=-7.5,
                  color='k',
                  rotation=45)
 if plot_map:
@@ -664,7 +668,7 @@ if plot_map:
 
 divider = make_axes_locatable(ax)
 cb_ax = divider.append_axes('right', size='2.5%', pad=0.1)
-cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='vertical', extend='both')
+cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='vertical')  # , extend='both'   Gives pointy ends
 cb.set_clim(cax[0], cax[1])
 cb.ax.tick_params(labelsize=12)
 cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',

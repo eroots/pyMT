@@ -441,6 +441,7 @@ class DataPlotManager(object):
                     if comp in site.components:
                         toplot = site.data[comp]
                         e = site.used_error[comp]
+                        # debug_print(e, 'PT_debug.log')
                     # Otherwise use the associated PT object
                     else:
                         toplot = np.array([getattr(site.phase_tensors[ii],
@@ -449,12 +450,17 @@ class DataPlotManager(object):
                         e = np.array([getattr(site.phase_tensors[ii],
                                               comp.upper() + '_error')
                                       for ii in range(site.NP)])
+                        # debug_print(e, 'PT_debug.log')
                     # Convert to degrees
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
                         toplotErr = e
                     if self.pt_units.lower() == 'degrees':
+                            # debug_print(toplotErr, 'debug.log')
                         toplot = np.rad2deg(np.arctan(toplot))
-                        toplotErr = np.rad2deg(np.arctan(toplotErr))
+                        try:
+                            toplotErr = np.rad2deg(np.arctan(toplotErr))
+                        except AttributeError:  # If plotting PTs, toplotErr will be None
+                            toplotErr = None
                 elif 'bost' in comp.lower():
                     toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
                     toplot = np.log10(toplot)
@@ -892,7 +898,7 @@ class MapView(object):
         if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
             lower, upper = (0, 90)
         elif fill_param in ['Lambda']:
-            lower, upper = (np.min(fill_vals), np.max(fill_vals))
+            lower, upper = (0, 1)
         elif fill_param == 'beta':
             lower, upper = (-6, 6)
         elif fill_param in ['alpha', 'azimuth']:
