@@ -425,10 +425,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # DEBUG
         # print('Updating Map')
         self.canvas.draw()
-
     def get_pseudosection_toggles(self):
         toggles = {'data': [], 'fill': None, 'component': None}
         if self.toggle_dataPseudo.checkState() and self.map.dataset.data.sites:
+
             toggles['data'].append('data')
         if self.toggle_responsePseudo.checkState() and self.map.dataset.data.sites:
             toggles['data'].append('response')

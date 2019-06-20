@@ -122,9 +122,13 @@ def interpolate_slice(x, y, Z, NP):
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
 #####################################################################
 # DRYDEN
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
-data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.dat')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
+# data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.dat')
 #####################################################################
+# AFTON
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton1/afton2_lastIter.rho')
+# data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton1/afton2_lastIter.dat')
+data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/regions/afton/j2/afton_cull1.lst')
 reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
@@ -139,21 +143,21 @@ mod.origin = data.origin
 #                             0.345390352E+05, 0.372428438E+05, 0.394137422E+05,
 #                             0.433482109E+05, 0.467561680E+05, 0.507770469E+05,
 #                             0.534360625E+05, 0.653211367E+05]]) / 1000
-# mod.to_UTM()
+mod.to_UTM()
 # mod.to_latlong('10N')
 # data.rotate_sites(azi=-14)
 # data.locations = data.get_locs(mode='centered')
 # mod.to_latlong('13W')
-if mod.coord_system == 'UTM':
-    mod.dx = [xx / 1000 for xx in mod.dx]
-    mod.dy = [yy / 1000 for yy in mod.dy]
-slice_num = 39
+# if mod.coord_system == 'UTM':
+#     mod.dx = [xx / 1000 for xx in mod.dx]
+#     mod.dy = [yy / 1000 for yy in mod.dy]
+slice_num = 45
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/slices/dry5norot/'
-file_name = 'dryden_plan_31620m.png'
+file_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/Report/depth_slices/'
+file_name = ''.join(['afton_plan_', str(int(mod.dz[slice_num])), 'm.png'])
 title_ = 'Standard Inversion'
-save_fig = 0
+save_fig = 1
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -162,24 +166,24 @@ lightness = 0.4
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
 # xlim = [5250000, 5450000]
 # zlim = [0, 200]
-xlim = [-100, 100]
-zlim = [-100, 100]
+xlim = [672, 679]
+zlim = [5610, 5620]
 # zlim = [0, 100]
 lut = 64
-cax = [0, 5]
+cax = [0, 4]
 isolum = False
 # xlim = [-123.5, -121.5]
 # xlim = [-7, 74]
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-# cmap_name = 'jet_r'
+cmap_name = 'jet_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
 # cmap_name = 'cet_bgy_r'
 # cmap_name = 'jetplus'
-cmap_name = 'gray'
+# cmap_name = 'gray'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 
@@ -333,9 +337,10 @@ for ii in range(1, 2):
 
     # ax.invert_yaxis()
     # ax.invert_xaxis()
-    ax.set_xlabel('Distance (km)', fontsize=20)
-    
-    ax.set_ylabel('Depth (km)', fontsize=20)
+    ax.set_xlabel('Easting (km)', fontsize=20)
+    # ax.set_xlabel('Distance (km)', fontsize=20)
+    ax.set_ylabel('Northing (km)', fontsize=20)
+    # ax.set_ylabel('Depth (km)', fontsize=20)
     # ax.set_title(title_, y=1.02, fontsize=20)
     fig.canvas.draw()
     # if mod.coord_system == 'latlong':
@@ -361,9 +366,10 @@ ax.tick_params(axis='both', labelsize=18)
 # for label in ax.yaxis.get_ticklabels():
 #     label.set_visible(False)
 # ax.tick_params(axis='y', labelsize=10)
-fig.subplots_adjust(right=0.8)
-cb_ax = fig.add_axes([0.825, 0.15, 0.02, 0.7])
-cb = fig.colorbar(im, cmap=cmap, cax=cb_ax)
+# fig.subplots_adjust(right=0.8)
+# cb_ax = fig.add_axes([0.825, 0.15, 0.02, 0.7])
+# cb = fig.colorbar(im, cmap=cmap, cax=cb_ax)
+cb = fig.colorbar(im, cmap=cmap)
 cb.set_clim(cax[0], cax[1])
 cb.ax.tick_params(labelsize=12)
 cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
@@ -373,8 +379,9 @@ cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
 cb.draw_all()
 
 fig.set_dpi(300)
-# ax.set_aspect(3)
+ax.set_aspect(1)
 if save_fig:
     fig.savefig(file_path + file_name, dpi=1200,
                 transparent=True, pad_inches=3)
-plt.show()
+else:
+    plt.show()
