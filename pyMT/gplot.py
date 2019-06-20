@@ -454,6 +454,8 @@ class DataPlotManager(object):
                     # Convert to degrees
                     if Type.lower() != 'response' and self.errors.lower() != 'none':
                         toplotErr = e
+                    else:
+                        toplotErr = e * 0
                     if self.pt_units.lower() == 'degrees':
                             # debug_print(toplotErr, 'debug.log')
                         toplot = np.rad2deg(np.arctan(toplot))
@@ -986,7 +988,7 @@ class MapView(object):
             if 'rho' in fill_param.lower():
                 vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
             elif 'pha' in fill_param.lower():
-                vals = (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
+                vals = (np.array(vals[1]) - np.array(vals[0]))  # / np.array(vals[0])
         loc_x, loc_y = (data.locations[:, 1], data.locations[:, 0])
         loc_z = np.zeros(loc_x.shape)
         points = np.transpose(np.array((loc_x, loc_y, loc_z)))

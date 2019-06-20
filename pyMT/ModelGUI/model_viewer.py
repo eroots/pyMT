@@ -1,9 +1,11 @@
 # TODO
-# Basic things to add before pushing:
 # Gridlines? Less important.
+# Menu for point options (marker shape, size, annotations)
+# Inclusion of data plotting (induction arrows, phase tensors, etc.)
 # Will eventually want to be able to save images.
 # File entry for new model files
 #   - Which also means a mechanism to switch between models
+# Single rotated slices?
 # Single rotated slices? Path slice?
 # Bring in data and start plotting sites, RMS, tipper, etc...
 # 2-D views. Can each tab be run separately? e.g., when in images. 3-D tab, halt updates

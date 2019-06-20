@@ -383,10 +383,17 @@ class Dataset(object):
                         if comp[0].lower() == 'z':
                             scale = np.sqrt(raw_site.periods)
                             to_smooth = raw_site.data[comp]
+                            data_comp = data_site.data[comp]
                         elif comp[0].lower() == 't':
                             to_smooth = raw_site.data[comp]
+                            data_comp = data_site.data[comp]
                         elif comp[0].lower() == 'p':
                             to_smooth = [getattr(raw_site.phase_tensors[ii], comp) for ii, p in enumerate(raw_site.periods)]
+                            data_comp = data_site.data[comp]
+                            # Tried smoothing phase in degrees, but it takes a very large phase
+                            # error to equate to a small error in the actual inverted data
+                            # to_smooth = np.rad2deg(np.arctan(np.array(to_smooth)))
+                            # data_comp = np.rad2deg(np.arctan(data_site.data[comp]))
                         else:
                             print('Unknown component.')
                             return
@@ -403,8 +410,10 @@ class Dataset(object):
                             scale = np.sqrt(p)
                         else:
                             scale = 1
-                        max_error = multiplier * abs(scale * data_site.data[comp][ii] -
+                        max_error = multiplier * abs(scale * data_comp[ii] -
                                                      smoothed_data[ind]) / scale
+                        # if comp[0].lower() == 'p':
+                        #     max_error = np.tan(np.deg2rad(max_error))
                         # error_map[ii] = min([data_site.errmap[comp][ii],
                         # np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
                         # print(abs(scale * data_site.data[comp][ii] -

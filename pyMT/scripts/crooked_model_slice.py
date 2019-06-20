@@ -146,18 +146,17 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
 #########################################################
 # SWAYZE
-# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/pt/swzPT3_lastIter.rho')
-# # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
-# # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1k.lst')
-# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzFinish_lastIter.rho')
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# # # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# # # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller.model')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
+# reso = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller_Resolution.model')
+# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
+                        # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
 # Northern Swayze
@@ -167,11 +166,14 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/R1North_1/finish/finish2_morePers_lastIter.rho')
 #########################################################
 # DRYDEN-ATIKOKAN
-# main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
-# # mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
-# mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/finish/dry5Finish_lastIter.rho')
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
+# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Dryden\Plots\Shapefiles\DRYDEN_LN341_R1_KMIG_SUGETHW_UTM.txt',)
+                        # header=0, names=('trace', 'x', 'y'), sep='\s+')
+# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Atikoken\Plots\Shapefiles\ATIKOKAN_LN351_R1_KMIG_SUGETHW_UTM.txt',))
+                        # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
 # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
@@ -193,7 +195,6 @@ def project_locations(data, zone, letter):
 # seismic = pd.read_table(r'C:\Users\eric\phd\ownCloud\Metal Earth\Data\Seismic\ME_Seismic_PostStack_Migrated_Sections\MAL_LN131_R1_KMIG\MAL_LN131_R1_KMIG_SUGETHW_UTM.txt', header=0, names=('trace', 'x', 'y'), sep='\s+')
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
-# backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_bb_cull1.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
 mod = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/Hex2Mod/HexMal_Z.model')
 main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst')
@@ -209,14 +210,35 @@ backup_data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/m
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/abi-gren/centerMore_ModEM/NLCG_NLCG_120.rho')
 # seismic = pd.read_table('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/rouyn/rou_seismic_traces.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
+#########################################################
+# MATHESON
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_westLine.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/mat3/mat3_lastIter.rho')
+#########################################################
+# AFTON
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/l0.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/afton_cull1.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/afton_cull1.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/afton2_lastIter.rho')
+#########################################################
+# GERALDTON
+main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/main_transect.lst')
+data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
+backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
+mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/ger_cull4/ger_NLCG_155.rho')
+seismic = pd.read_table(r'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' + 
+                        r'GERALDTON_LN301_R1_KMIG/GERALDTON_LN301_R1_KMIG_SUGETHW_UTM.txt',
+                        header=0, names=('trace', 'x', 'y'), sep='\s+')
 use_seismic = 0
 # azi = 35  # Dryden-regional
 # azi = -15  # Swayze regional
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
-UTM_number = 17
-UTM_letter = 'N'
+UTM_number = 10
+UTM_letter = 'U'
 # UTM_letter = 'U'
 # padding = 25000
 reso = []
@@ -225,12 +247,21 @@ padding = 10000
 ninterp_padding = 50
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = r'C:/Users/eric/phd/ownCloud/Documents/Malartic/RoughFigures/'
-file_name = 'MAL_Hex_ChicobiR2_jet0-5'
+# file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
+# file_name = 'dry_norotMeshFinish_linear_jet_siteMarkers'
+# file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
+file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Geraldton/RoughFigures/'
+# file_name = 'swz_norotMeshFinish_linear_bgy_siteMarkers'
+# file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Malartic/RoughFigures/')
+# file_path = r'C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/Report/profiles/')
+# file_name = 'mal_bg800_nudgeWest_jet0-5_siteMarkers'
+# file_name = 'swz_norotFinish_nudge5000_linear_jet1-5'
+file_name = 'gercull4_iter155_linear_jet0-5'
+# file_types = ['.pdf', '.png']
 file_types = ['.png']
 title_ = 'Standard Inversion'
 rotate_back = 0
-linear_xaxis = False
+linear_xaxis = True
 
 save_fig = 1
 save_dat = 0
@@ -239,16 +270,19 @@ site_markers = 1
 plot_map = 1
 dpi = 600
 csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
-use_alpha = 1
+use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 20]
+zlim = [0, 50]
 # zlim = [0, 400]
 lut = 64
 isolum = False
-lut = 256
+# xlim = [-123.5, -121.5]
+# xlim = [-7, 74]
+# zlim = [0, 5]
+# lut = 256
 cax = [0, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
@@ -263,12 +297,18 @@ cmap_name = 'jet_r'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
-nudge_sites = ['18-dry041m', '18-dry040m', '18-dry037m', '18-dry001m']
-nudge_sites = main_transect.site_names[1:]
-nudge_dist = 1000
-use_nudge = 0
+# nudge_sites = ['18-dry043m.dat', '18-dry041m', '18-dry040m',
+#                '18-dry038m.dat', '18-dry037m', '18-dry001m']
+# nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
+#                '18-swz006m', '18-swz001m', '18-swz125m']
+# nudge_sites = ['MAL007M', 'MAL005M', 'MAL004M']
+nudge_sites = ['GER007M', 'GER006M', 'GER005M', 'GER004M']
+reverse_nudge = ['MAL008M', 'MAL009M', 'MAL010L']
 
-# data.to_utm(UTM_number, UTM_letter)
+nudge_dist = 7500
+use_nudge = 1
+
+data.to_utm(UTM_number, UTM_letter)
 # data.locations = data.get_locs(mode='latlong')
 # for ii in range(len(data.locations)):
 #         easting, northing = utils.project((data.locations[ii, 1],
@@ -277,14 +317,21 @@ use_nudge = 0
 #         data.locations[ii, 1], data.locations[ii, 0] = easting, northing
 # main_transect.remove_sites('98-1_073')
 # main_transect.remove_sites(sites=[site for site in main_transect.site_names if 'att' in site.lower()])
-data = project_locations(data, zone=16, letter='U')
-backup_data = project_locations(backup_data, zone=16, letter='U')
-main_transect = project_locations(main_transect, zone=16, letter='U')
-main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]  # Make sure they go north-south
+# data = project_locations(data, zone=16, letter='U')
+# backup_data = project_locations(backup_data, zone=16, letter='U')
+# main_transect = project_locations(main_transect, zone=16, letter='U')
+
+# Make sure the sites go north-south
+main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]
+# Sort the site names so the same is true
+main_transect.site_names = sorted(main_transect.site_names,
+                                  key=lambda x: main_transect.sites[x].locations['X'])
 nudge_locations = copy.deepcopy(main_transect.locations)
 for ii, site in enumerate(main_transect.site_names):
     if site in nudge_sites:
         nudge_locations[ii, 1] += nudge_dist
+    elif site in reverse_nudge:
+        nudge_locations[ii, 1] -= nudge_dist
 if plot_map and not use_seismic:
     site_x, site_y = [main_transect.locations[:, 1],
                       main_transect.locations[:, 0]]
@@ -383,7 +430,6 @@ else:
     qy.append(X)
     qx = np.concatenate(qx).ravel() / 1000
     qy = np.concatenate(qy).ravel() / 1000
-reso = []
 kimberlines = []
 
 x, y, z = [np.zeros((len(mod.dx) - 1)),
@@ -533,7 +579,7 @@ if isolum and reso:
 
     cmap = colors.ListedColormap(cmap, name='test1')
 
-fig = plt.figure(1, figsize=(15, 10))
+fig = plt.figure(1, figsize=(12, 8))
 h = [Size.Fixed(0.), Size.Fixed(6.5)]
 v = [Size.Fixed(0.5), Size.Fixed(3.25)]
 win = Divider(fig, (0.1, 0.1, 0.8, 0.8), h, v, aspect=False)
@@ -616,28 +662,30 @@ else:
     site_x = data.locations[:, 0] / 1000
 ax.autoscale_view(tight=True)
 ax.tick_params(axis='both', labelsize=14)
-locs = ax.plot(site_x,
-               np.zeros((data.locations.shape[0])) - 0.5,
-               'kv', markersize=6)[0]
-for jj, site in enumerate(data.site_names):
-    plt.text(s=site,
-             x=data.locations[jj, 0] / 1000,
-             y=-7.5,
-             color='k',
-             rotation=90)
-locs.set_clip_on(False)
 if site_markers:
     locs = ax.plot(site_x,
-                   np.zeros((data.locations.shape[0])) - 0.5,
+                   np.zeros((data.locations.shape[0])) - zlim[1] / 100,
                    'kv', markersize=6)[0]
     locs.set_clip_on(False)
+# for jj, site in enumerate(data.site_names):
+#     plt.text(s=site,
+#              x=data.locations[jj, 0] / 1000,
+#              y=-7.5,
+#              color='k',
+#              rotation=90)
+
+# if site_markers:
+#     locs = ax.plot(site_x,
+#                    np.zeros((data.locations.shape[0])) - 0.5,
+#                    'kv', markersize=6)[0]
+    # locs.set_clip_on(False)
 if annotate_sites:
     for jj, site in enumerate(data.site_names):
         if site.startswith('18-'):
             site = site[3:]
         plt.text(s=site,
                  x=site_x[jj],
-                 y=-7.5,
+                 y=-zlim[1] / 12,
                  color='k',
                  rotation=45)
 if plot_map:

@@ -6,7 +6,6 @@ Home-page: http://github.com/eroots/pyMT
 Author: Eric Roots
 Author-email: eroots087@gmail.com
 License: UNKNOWN
-Description-Content-Type: UNKNOWN
 Description: 'pyMT' python project.
         Base Modules include:
         	data_structures: Contains classes used for storing and manipulating MT inversion data and models.
