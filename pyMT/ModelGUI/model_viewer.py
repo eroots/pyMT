@@ -435,14 +435,20 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         except ValueError:
             self.x0ClipEdit.setText(str(self.x_clip[0]))
             self.x1ClipEdit.setText(str(self.x_clip[1]))
-        if x0 > np.ceil(self.model.nx / 2):
+        if x0 + x1 > self.model.nx:
             self.x0ClipEdit.setText(str(self.x_clip[0]))
-        else:
-            self.x_clip[0] = x0
-        if x1 > np.ceil(self.model.nx / 2):
             self.x1ClipEdit.setText(str(self.x_clip[1]))
         else:
+            self.x_clip[0] = x0
             self.x_clip[1] = x1
+        # if x0 > np.ceil(self.model.nx):
+        #     self.x0ClipEdit.setText(str(self.x_clip[0]))
+        # else:
+        #     self.x_clip[0] = x0
+        # if x1 > np.ceil(self.model.nx):
+        #     self.x1ClipEdit.setText(str(self.x_clip[1]))
+        # else:
+        #     self.x_clip[1] = x1
         # self.clip_volume()
         # self.render_3D()
 
@@ -453,13 +459,17 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         except ValueError:
             self.y0ClipEdit.setText(str(self.y_clip[0]))
             self.y1ClipEdit.setText(str(self.y_clip[1]))
-        if y0 > np.ceil(self.model.ny / 2):
+        if y0 + y1 > self.model.ny:
             self.y0ClipEdit.setText(str(self.y_clip[0]))
+            self.y1ClipEdit.setText(str(self.y_clip[1]))
+        # if y0 > np.ceil(self.model.ny):
+        #     self.y0ClipEdit.setText(str(self.y_clip[0]))
+        # else:
+        #     self.y_clip[0] = y0
+        # if y1 > np.ceil(self.model.ny):
+        #     self.y1ClipEdit.setText(str(self.y_clip[1]))
         else:
             self.y_clip[0] = y0
-        if y1 > np.ceil(self.model.ny / 2):
-            self.y1ClipEdit.setText(str(self.y_clip[1]))
-        else:
             self.y_clip[1] = y1
         # self.clip_volume()
         # self.render_3D()
@@ -580,18 +590,20 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.show_bounds()
 
     def generate_slice(self, normal='X'):
+        ox = max(0, self.model.dx[self.x_clip[0]])
+        oy = max(0, self.model.dy[self.y_clip[0]])
         if normal == 'x':
             slice_loc = self.model.dx[self.x_slice]
             gen_slice = self.rect_grid.slice(normal='y',
-                                             origin=(0, slice_loc, -self.model.dz[self.z_clip[0] + 1]))
+                                             origin=(oy, slice_loc, -self.model.dz[self.z_clip[0] + 1]))
         elif normal == 'y':
             slice_loc = self.model.dy[self.y_slice]
             gen_slice = self.rect_grid.slice(normal='x',
-                                             origin=(slice_loc, 0, -self.model.dz[self.z_clip[0] + 1]))
+                                             origin=(slice_loc, ox, -self.model.dz[self.z_clip[0] + 1]))
         elif normal == 'z':
             slice_loc = -self.model.dz[self.z_slice]
             gen_slice = self.rect_grid.slice(normal=normal,
-                                             origin=(0, 0, slice_loc))
+                                             origin=(oy, ox, slice_loc))
         return gen_slice
 
     def clip_volume(self):
@@ -616,6 +628,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.map.model = self.clip_model
         self.rect_grid = model_to_rectgrid(self.clip_model)
         self.validate_slice_locations()
+        debug_print([self.model.dy[self.y_slice], self.model.dy[self.y_clip[0]], self.model.dy[self.model.ny]], 'C:/Users/eric/Desktop/debug.log')
         self.xSliceSlider.setMinimum(self.x_clip[0] + 1)
         self.ySliceSlider.setMinimum(self.y_clip[0] + 1)
         self.zSliceSlider.setMinimum(self.z_clip[0] + 1)
@@ -631,15 +644,15 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.xSliceEdit.editingFinished.disconnect(self.x_text_change)
         self.ySliceEdit.editingFinished.disconnect(self.y_text_change)
         self.zSliceEdit.editingFinished.disconnect(self.z_text_change)
-        if self.x_slice < self.x_clip[0]:
+        if self.x_slice <= self.x_clip[0]:
             self.x_slice = self.x_clip[0] + 1
             self.xSliceSlider.setValue(self.x_slice)
             self.xSliceEdit.setText(str(self.x_slice))
-        if self.y_slice < self.y_clip[0]:
+        if self.y_slice <= self.y_clip[0]:
             self.y_slice = self.y_clip[0] + 1
             self.ySliceSlider.setValue(self.y_slice)
             self.ySliceEdit.setText(str(self.y_slice))
-        if self.z_slice < self.z_clip[0]:
+        if self.z_slice <= self.z_clip[0]:
             self.z_slice = self.z_clip[0] + 1
             self.zSliceSlider.setValue(self.z_slice)
             self.zSliceEdit.setText(str(self.z_slice))

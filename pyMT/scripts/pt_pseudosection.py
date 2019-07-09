@@ -7,6 +7,9 @@ from mpl_toolkits.axes_grid1 import Divider, Size
 from mpl_toolkits.axes_grid1.mpl_axes import Axes
 
 
+local_path = 'C:/Users/eric/'
+
+
 def generate_ellipse(phi):
     step_size = np.pi / 30
     jx = np.cos(np.arange(0, 2 * np.pi + step_size, step_size))
@@ -16,9 +19,7 @@ def generate_ellipse(phi):
     return phi_x, phi_y
 
 
-# cmap = cm.jet_plus_r(64)
-cmap = cm.jet(64)
-# cmap = cm.bwr(64)
+
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
@@ -27,8 +28,8 @@ cmap = cm.jet(64)
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst'
 # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
 # main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
-listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_eastLine.lst'
-main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_eastLine.lst'
+# listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_eastLine.lst'
+# main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_eastLine.lst'
 # main_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
 # datafile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/test.data'
@@ -37,11 +38,39 @@ main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\sturgeon\stu3\stu2_j2Rot2.dat')
 # main_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst'
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst'
-# data = WSDS.Data(datafile)
-# ds = WSDS.Dataset(listfile=listfile, datafile=datafile)
-# data = ds.data
+###########################################
+# DRYDEN
+# listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
+# main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect_pt.lst'
+###########################################
+# MALARTIC
+listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
+main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
+
 data = WSDS.RawData(listfile)
 main_transect = WSDS.RawData(main_list)
+
+# data = WSDS.RawData(listfile=listfile)
+normalize = 1
+fill_param = 'phi_2'
+# fill_param = 'beta'
+# fill_param = 'Lambda'
+use_periods = sorted(list(data.narrow_periods.keys()))
+# use_periods = data.sites[data.site_names[0]].periods
+save_fig = 0
+freq_skip = 1
+radius = 0.25
+label_offset = -4.5
+file_path = 'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/PT_round2/'
+file_name = 'pt_pseudosection_phi2'
+file_types = ['.pdf', '.png']  #, '.ps', '.png')
+dpi = 600
+linear_xaxis = False
+# cmap = cm.jet_plus_r(64)
+cmap = cm.jet(64)
+# cmap = cm.bwr(64)
+
+
 data.locations = data.get_locs(mode='latlong')
 main_transect.locations = main_transect.get_locs(mode='latlong')
 for ii, site in enumerate(data.site_names):
@@ -56,29 +85,32 @@ for ii, site in enumerate(main_transect.site_names):
                                       zone=16, letter='U')[2:]
     main_transect.locations[ii, 1], main_transect.locations[ii, 0] = easting, northing
     main_transect.sites[site].locations['X'], main_transect.sites[site].locations['Y'] = northing, easting
-# data = WSDS.RawData(listfile=listfile)
-normalize = 1
-fill_param = 'phi_2'
-# fill_param = 'beta'
-# fill_param = 'Lambda'
-use_periods = sorted(list(data.narrow_periods.keys()))
-# use_periods = data.sites[data.site_names[0]].periods
-save_fig = 0
-freq_skip = 1
-radius = 50
-file_path = 'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/PT_round2/'
-file_name = 'pt_pseudosection_phi2'
-file_types = ['.pdf', '.png']  #, '.ps', '.png')
-dpi = 600
-x_lim = [min(main_transect.locations[:, 0]) / 10000 - 0.1,
-         max(main_transect.locations[:, 0]) / 10000 + 0.1]
+main_transect.spatial_units = 'km'
+data.spatial_units = 'km'
+if linear_xaxis:
+    linear_x = np.zeros(main_transect.locations.shape[0])
+    linear_x[1:] = np.sqrt((main_transect.locations[1:, 0] - main_transect.locations[1:, 0]) ** 2 +
+                           (main_transect.locations[1:, 1] - main_transect.locations[:-1, 1]) ** 2)
+    linear_x = np.cumsum(linear_x)
+    nodes = np.array([main_transect.locations[:, 0], main_transect.locations[:, 1]]).T
+    linear_site = np.zeros((len(main_transect.locations)))
+    for ii, (x, y) in enumerate(main_transect.locations):
+        dist = np.sum((nodes - np.array([x, y])) ** 2, axis=1)
+        idx = np.argmin(dist)
+        linear_site[ii] = linear_x[idx]
+    x_lim = [0, linear_site[-1]]
+    x_scale = (linear_site[-1] - linear_site[0])
+else:
+    x_lim = [min(main_transect.locations[:, 0]) - 0.1,
+             max(main_transect.locations[:, 0]) + 0.1]
 # scale = np.sqrt((len(data.site_names) - 1) ** 2 +
 #                 (np.log10(np.max(periods)) -
 #                  np.log10(np.min(periods))) ** 2)
-x_scale = np.sqrt((np.max(data.locations[:, 0] / 1000) -
-                   np.min(data.locations[:, 0]) / 1000) ** 2)
+    x_scale = np.sqrt((np.max(data.locations[:, 0] / 1000) -
+                       np.min(data.locations[:, 0]) / 1000) ** 2)
 y_scale = np.sqrt((np.log10(np.max(use_periods)) -
-                 np.log10(np.min(use_periods))) ** 2)
+                   np.log10(np.min(use_periods))) ** 2)
+x_scale, y_scale = 1, 3
 # scale = 2
 periods = []
 loc = []
@@ -88,7 +120,7 @@ fill_vals = []
 ellipses = []
 main_sites = []
 questionable_periods, not_perfectly_matched_but_still_ok_periods = 0, 0
-for ii, site_name in enumerate(data.site_names):
+for ii, site_name in enumerate(main_transect.site_names):
     if site_name in main_transect.site_names:
         main_sites.append(site_name)
         site = data.sites[site_name]
@@ -107,19 +139,22 @@ for ii, site_name in enumerate(data.site_names):
                 periods.append(np.log10(period))
                 # loc_x = ii
                 # loc_x = site.locations['Lat'] # / 1000
-                loc_x = site.locations['X'] / 10000
+                if linear_xaxis:
+                    loc_x = linear_site[ii]
+                else:
+                    loc_x = site.locations['X']
                 loc.append(loc_x)
                 phi_x, phi_y = generate_ellipse(site.phase_tensors[kk].phi)
                 #  These numbers may have to be changed to scale with the width of the plot
-                phi_x, phi_y = (10 * phi_x / np.abs(site.phase_tensors[kk].phi_max),
-                                40 * phi_y / np.abs(site.phase_tensors[kk].phi_max))
+                phi_x, phi_y = (phi_x / np.abs(site.phase_tensors[kk].phi_max),
+                                phi_y / np.abs(site.phase_tensors[kk].phi_max))
                 # radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
                 # radius = np.max(np.maximum(phi_x, phi_y))
-                radius = 100
+                # radius = 100
                 # if radius > 1000:
                 # phi_x, phi_y = [(scale / (radius * 1000)) * x for x in (phi_x, phi_y)]
-                phi_x *= (1 / (radius * x_scale))
-                phi_y *= (1 / (radius * y_scale))
+                phi_x *= (radius / (x_scale))
+                phi_y *= (radius / (y_scale))
                 # ellipses.append([np.log10(period) - phi_x, ii - phi_y])
                 ellipses.append([loc_x - phi_x, np.log10(period) - phi_y])
                 fill_vals.append(getattr(site.phase_tensors[kk], fill_param))
@@ -176,8 +211,8 @@ def plot_it():
     plt.ylabel(r'$\log_{10}$ Period (s)', fontsize=16)
     # ax.set_aspect(1)
     ax.tick_params(axis='both', labelsize=14)
-    locs, labels = plt.xticks()
-    plt.xticks(locs, [int(x * 10) for x in locs])
+    # locs, labels = plt.xticks()
+    # plt.xticks(locs, [int(x * 10) for x in locs])
     fake_vals = np.linspace(lower, upper, len(fill_vals))
     fake_im = ax.scatter(loc,
                          periods,
@@ -203,8 +238,12 @@ def plot_it():
     # ax.set_xlim(x_lim)
     for ii, site in enumerate(main_sites):
         txt = site[-4:-1]
-        ax.text(main_transect.sites[site].locations['X'] / 10000,
-                -4.7, site, rotation=45)  # 3.6
+        if linear_xaxis:
+            ax.text(linear_site[ii],
+                    label_offset, site, rotation=45)  # 3.6
+        else:
+            ax.text(main_transect.sites[site].locations['X'],
+                    label_offset, site, rotation=45)  # 3.6
 
     plt.show()
     return fig

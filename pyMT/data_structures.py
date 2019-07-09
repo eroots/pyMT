@@ -1622,11 +1622,11 @@ class Site(object):
                     if units == 'm':
                         self.locations['X'] *= 1000
                         self.locations['Y'] *= 1000
-                        self.locations['elev'] *= 1000
+                        # self.locations['elev'] *= 1000
                     else:
                         self.locations['X'] /= 1000
                         self.locations['Y'] /= 1000
-                        self.locations['elev'] /= 1000
+                        # self.locations['elev'] /= 1000
             else:
                 print('Units {} not understood'.format(units))
                 return

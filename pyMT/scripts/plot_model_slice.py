@@ -11,6 +11,9 @@ import colorsys
 import e_colours.colourmaps
 
 
+local_path = 'C:/Users/eric/'
+
+
 def extents(f):
     delta = f[1] - f[0]
     return [f[0] - delta / 2, f[1] + delta / 2]
@@ -120,16 +123,22 @@ def interpolate_slice(x, y, Z, NP):
 # MALARTIC
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
+mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/Hex2Mod/HexMal_Z.model')
+data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_hex.lst')
 #####################################################################
 # DRYDEN
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.dat')
 #####################################################################
 # AFTON
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton1/afton2_lastIter.rho')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton1/afton2_lastIter.rho')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton1/afton2_lastIter.dat')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/regions/afton/j2/afton_cull1.lst')
-reso = []
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/regions/afton/j2/afton_cull1.lst')
+#####################################################################
+# LARDER
+# data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
+# mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
+# reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
@@ -151,26 +160,30 @@ mod.to_UTM()
 # if mod.coord_system == 'UTM':
 #     mod.dx = [xx / 1000 for xx in mod.dx]
 #     mod.dy = [yy / 1000 for yy in mod.dy]
-slice_num = 45
+slice_num = 87
+plane = 'xz'
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/Report/depth_slices/'
-file_name = ''.join(['afton_plan_', str(int(mod.dz[slice_num])), 'm.png'])
+# file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Malartic/RoughFigures/MAL_R1_slices/NS_slices/'
+file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Larder/RoughFigures/LAR_R1_slices/'
+file_name = ''.join(['MAL_NS_', str(int(mod.dy[slice_num])), 'm.png'])
 title_ = 'Standard Inversion'
-save_fig = 1
+save_fig = 0
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 
 # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
-# xlim = [5250000, 5450000]
+xlim = [5390, 5412]
+# xlim = list(np.array([min(data.locations[:, 0]) - 20000, max(data.locations[:, 0]) + 20000]) / 1000)
+# xlim = list(np.array([min(data.locations[:, 0]) - 2000, max(data.locations[:, 0]) + 2000]) / 1000)
 # zlim = [0, 200]
-xlim = [672, 679]
-zlim = [5610, 5620]
-# zlim = [0, 100]
+# xlim = [672, 679]
+# zlim = [5610, 5620]
+zlim = [0, 20]
 lut = 64
-cax = [0, 4]
+cax = [0, 5]
 isolum = False
 # xlim = [-123.5, -121.5]
 # xlim = [-7, 74]
@@ -206,7 +219,18 @@ else:
 # vals = np.log10(mod.vals[:, 73, :])
 # vals = np.log10(mod.vals[11, :, :])
 # vals = np.log10(mod.vals[:, :, 30])
-vals = np.log10(mod.vals[:, :, slice_num])
+if plane.lower() == 'xy':
+    vals = np.log10(mod.vals[:, :, slice_num]).T
+    x_ax = np.array(mod.dy)
+    y_ax = np.array(mod.dx)
+elif plane.lower() == 'xz':
+    vals = np.log10(mod.vals[:, slice_num, :]).T
+    x_ax = np.array(mod.dx)
+    y_ax = np.array(mod.dz)
+elif plane.lower() == 'yz':
+    vals = np.log10(mod.vals[slice_num, :, :]).T
+    x_ax = np.array(mod.dy)
+    y_ax = np.array(mod.dz)
 #  Important step. Since we are normalizing values to fit into the colour map,
 #  we first have to threshold to make sure our colourbar later will make sense.
 vals[vals < cax[0]] = cax[0]
@@ -289,7 +313,7 @@ if isolum and reso:
 
     cmap = colors.ListedColormap(cmap, name='test1')
 
-fig = plt.figure(figsize=(11, 8))
+fig = plt.figure(1, figsize=(12, 8))
 # fig = plt.gcf()
 for ii in range(1, 2):
     if ii == 0:
@@ -321,26 +345,31 @@ for ii in range(1, 2):
     elif mode == 3:
         # mod.dx[0] = (mod.dx[0] + mod.dx[1]) / 2
         # mod.dx[-1] = (mod.dx[-1] + mod.dx[-2]) / 2
-        im, ax = pcolorimage(ax, x=(np.array(mod.dy)) / 1000,
-                             y=np.array(mod.dx) / 1000,
+        im, ax = pcolorimage(ax, x=x_ax / 1000,
+                             y=y_ax / 1000,
                              A=(to_plot), cmap=cmap)
-        plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
+        # plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
         # plt.plot(data.locations[:, 0] / 1000, np.zeros((data.locations[:, 0].shape)), 'kv')
-        # for jj, site in enumerate(data.site_names):
-        #     plt.annotate(site,
-        #                  xy=(data.locations[jj, 1] / 1000, data.locations[jj, 0] / 1000),
-        #                  color='w')
+        for jj, site in enumerate(data.site_names):
+            plt.text(s=site,
+                     x=data.locations[jj, 0] / 1000,
+                     y=-zlim[1] / 6,
+                     color='k',
+                     rotation=90)
+            # plt.annotate(site,
+                         # xy=(data.locations[jj, 0] / 1000, 0),  #data.locations[jj, 0] / 1000),
+                         # color='k')
     if xlim:
         ax.set_xlim(xlim)
     if zlim:
         ax.set_ylim(zlim)
-
-    # ax.invert_yaxis()
+    if plane.lower() in ['xz', 'yz']:
+        ax.invert_yaxis()
     # ax.invert_xaxis()
-    ax.set_xlabel('Easting (km)', fontsize=20)
+    # ax.set_xlabel('Easting (km)', fontsize=20)
     # ax.set_xlabel('Distance (km)', fontsize=20)
-    ax.set_ylabel('Northing (km)', fontsize=20)
-    # ax.set_ylabel('Depth (km)', fontsize=20)
+    ax.set_xlabel('Northing (km)', fontsize=20)
+    ax.set_ylabel('Depth (km)', fontsize=20)
     # ax.set_title(title_, y=1.02, fontsize=20)
     fig.canvas.draw()
     # if mod.coord_system == 'latlong':
@@ -359,7 +388,7 @@ for ii in range(1, 2):
 
 ax.autoscale_view(tight=True)
 ax.tick_params(axis='both', labelsize=18)
-# locs = ax.plot(data.locations[1, :], np.zeros((data.locations.shape[1])) - 0.05, 'kv', markersize=10)[0]
+# locs = ax.plot(data.locations[:, 0]/1000, np.zeros((data.locations.shape[0])) - 0.2, 'kv', markersize=8)[0]
 # locs.set_clip_on(False)
 # for label in ax.xaxis.get_ticklabels():
 #     label.set_visible(False)
@@ -369,19 +398,19 @@ ax.tick_params(axis='both', labelsize=18)
 # fig.subplots_adjust(right=0.8)
 # cb_ax = fig.add_axes([0.825, 0.15, 0.02, 0.7])
 # cb = fig.colorbar(im, cmap=cmap, cax=cb_ax)
-cb = fig.colorbar(im, cmap=cmap)
-cb.set_clim(cax[0], cax[1])
-cb.ax.tick_params(labelsize=12)
-cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
-             rotation=270,
-             labelpad=20,
-             fontsize=18)
-cb.draw_all()
+# cb = fig.colorbar(im, cmap=cmap)
+# cb.set_clim(cax[0], cax[1])
+# cb.ax.tick_params(labelsize=12)
+# cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
+#              rotation=270,
+#              labelpad=20,
+#              fontsize=18)
+# cb.draw_all()
 
 fig.set_dpi(300)
 ax.set_aspect(1)
 if save_fig:
-    fig.savefig(file_path + file_name, dpi=1200,
-                transparent=True, pad_inches=3)
+    fig.savefig(file_path + file_name, dpi=300,
+                transparent=True, pad_inches=1)
 else:
     plt.show()
