@@ -4,7 +4,7 @@ from matplotlib.colorbar import ColorbarBase
 import matplotlib.colorbar as colorbar
 import pyMT.utils as utils
 from pyMT.IO import debug_print
-from e_colours import colourmaps as cm
+from pyMT.e_colours import colourmaps as cm
 import naturalneighbor as nn
 # import matplotlib.pyplot as plt
 

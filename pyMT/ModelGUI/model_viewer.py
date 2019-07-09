@@ -23,7 +23,7 @@ import numpy as np
 import pyvista as pv
 import pyMT.data_structures as WSDS
 from pyMT.utils import sort_files, check_file
-import e_colours.colourmaps as cm
+import pyMT.e_colours.colourmaps as cm
 from pyMT.GUI_common import classes
 from pyMT import gplot
 from PyQt5.uic import loadUiType

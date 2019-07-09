@@ -10,7 +10,7 @@ from PyQt5 import QtCore, QtWidgets
 from pyMT.GUI_common.common_functions import check_key_presses
 from pyMT.GUI_common.classes import FileDialog
 from scipy.ndimage import gaussian_filter
-from e_colours import colourmaps as cm
+from pyMT.e_colours import colourmaps as cm
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
