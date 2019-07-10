@@ -502,10 +502,10 @@ class DataPlotManager(object):
                 artist = ax.text(0, 0, 'No Data')
                 ma.append(0)
                 mi.append(0)
-            if Type == 'data':
-                ax.aname = 'data'
-            elif Type == 'raw_data':
-                ax.aname = 'raw_data'
+            # if Type == 'data':
+            #     ax.aname = 'data'
+            # elif Type == 'raw_data':
+            #     ax.aname = 'raw_data'
         ax.format_coord = format_data_coords
         # ax.set_title(site.name)
         return ax, max(ma), min(mi), artist

@@ -4,10 +4,6 @@ pyMT/IO.py
 pyMT/WSExceptions.py
 pyMT/__init__.py
 pyMT/data_structures.py
-pyMT/data_structures_BACKUP_9368.py
-pyMT/data_structures_BASE_9368.py
-pyMT/data_structures_LOCAL_9368.py
-pyMT/data_structures_REMOTE_9368.py
 pyMT/decoreTest.py
 pyMT/gplot.py
 pyMT/test.py
@@ -16,6 +12,7 @@ pyMT.egg-info/PKG-INFO
 pyMT.egg-info/SOURCES.txt
 pyMT.egg-info/dependency_links.txt
 pyMT.egg-info/entry_points.txt
+pyMT.egg-info/requires.txt
 pyMT.egg-info/top_level.txt
 pyMT/scripts/autogen_report.py
 pyMT/scripts/f2l.py
@@ -38,6 +35,9 @@ pyMT/ModelGUI/mesh_designer.py
 pyMT/ModelGUI/mesh_designer.ui
 pyMT/ModelGUI/model_viewer.py
 pyMT/ModelGUI/model_viewer.ui
+pyMT/e_colours/__init__.py
+pyMT/e_colours/colourmaps.py
+pyMT/e_colours/utils.py
 pyMT/scripts/DraggablePoint.py
 pyMT/scripts/__init__.py
 pyMT/scripts/add_occam_noise.py
@@ -46,10 +46,12 @@ pyMT/scripts/autogen_report.py
 pyMT/scripts/bost1D.py
 pyMT/scripts/bostick_compare.py
 pyMT/scripts/crooked_model_slice.py
+pyMT/scripts/crooked_model_slice_backup.py
 pyMT/scripts/f2l.py
 pyMT/scripts/interp_rhopha.py
 pyMT/scripts/j2ws3d.py
 pyMT/scripts/lst2kml.py
+pyMT/scripts/mask_edi.py
 pyMT/scripts/mesh_edit_test.py
 pyMT/scripts/mod_errors.py
 pyMT/scripts/period_to_depth.py
@@ -67,7 +69,6 @@ pyMT/scripts/plot_transect.py
 pyMT/scripts/plot_well.py
 pyMT/scripts/pt2csv.py
 pyMT/scripts/pt_pseudosection.py
-pyMT/scripts/pv_transect_test.py
 pyMT/scripts/read_csr.py
 pyMT/scripts/read_edi_test.py
 pyMT/scripts/read_shape_plot.py

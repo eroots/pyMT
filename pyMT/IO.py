@@ -459,7 +459,7 @@ def read_startup(file=None):
     return s_dict
 
 
-def read_data(datafile='', site_names='', file_format='WSINV3DMT', invType=None):
+def read_data(datafile='', site_names='', file_format='modem', invType=None):
     """Summary
 
     Args:
