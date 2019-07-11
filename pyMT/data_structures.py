@@ -543,31 +543,35 @@ class Data(object):
                            'PTYX', 'PTYY',
                            'TZXR', 'TZXI',
                            'TZYR', 'TZYI'),
-                       8: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
-                           'RhoZXY', 'PhszXY',
-                           'RhoZYX', 'PhszYX',
-                           'RhoZYY', 'PhszYY'),
-                       9: ('RhoZXY', 'PhsZXY',
-                           'RhoZYX', 'PhsZYX'),
-                       10: ('TZYR', 'TZYI'),
-                       11: ('RhoZXY', 'PhsZXY',
+                       8: ('ZXYR', 'ZXYI'),  # 2-D ModEM inversion of TE mode
+                       9: ('ZYXR', 'ZYXI'),  # 2-D ModEM inversion of TM mode
+                       10: ('ZXYR', 'ZXYI',  # 2-D ModEM inversion of TE+TM modes
+                            'ZYXR', 'ZYXI'),
+                       11: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
+                            'RhoZXY', 'PhszXY',
+                            'RhoZYX', 'PhszYX',
+                            'RhoZYY', 'PhszYY'),
+                       12: ('RhoZXY', 'PhsZXY',
+                            'RhoZYX', 'PhsZYX'),
+                       13: ('TZYR', 'TZYI'),
+                       14: ('RhoZXY', 'PhsZXY',
                             'RhoZYX', 'PhsZYX',
                             'TZYR', 'TZYI'),
-                       12: ('RhoZXX', 'PhsZXX',
+                       15: ('RhoZXX', 'PhsZXX',
                             'RhoZXY', 'PhsZXY',
                             'RhoZYX', 'PhsZYX',
                             'RhoZYY', 'PhsZYY',
                             'TZYR', 'TZYI'),
-                       13: ('log10RhoZXX', 'PhsZXX',
+                       16: ('log10RhoZXX', 'PhsZXX',
                             'log10RhoXY', 'PhsXY',
                             'log10RhoYX', 'PhsYX',
                             'log10RhoYY', 'PhsYY'),
-                       14: ('log10RhoZXY', 'PhsZXY',
+                       17: ('log10RhoZXY', 'PhsZXY',
                             'log10RhoZYX', 'PhsZYX'),
-                       15: ('log10RhoZXY', 'PhsZXY',
+                       18: ('log10RhoZXY', 'PhsZXY',
                             'log10RhoZYX', 'PhsZYX',
                             'TZYR', 'TZYI'),
-                       16: ('log10RhoZXX', 'PhsZXX',
+                       19: ('log10RhoZXX', 'PhsZXX',
                             'log10RhoZXY', 'PhsZXY',
                             'log10RhoZYX', 'PhsZYX',
                             'log10RhoZYY', 'PhsZYY',
@@ -676,6 +680,7 @@ class Data(object):
             self.inv_type = other_info['inversion_type']
             self.origin = other_info['origin']
             self.UTM_zone = other_info['UTM_zone']
+            self.dimensionality = other_info['dimensionality']
             self.sites = {}
 
             for site_name, site in all_data.items():
@@ -1121,7 +1126,7 @@ class Model(object):
     """Summary
     """
 
-    def __init__(self, modelfile='', data=None):
+    def __init__(self, modelfile='', file_format='modem3d', data=None):
         self._xCS = []
         self._yCS = []
         self._zCS = []
@@ -1137,7 +1142,7 @@ class Model(object):
         self.coord_system = 'local'
         self._spatial_units = 'm'
         if modelfile:
-            self.__read__(modelfile=modelfile)
+            self.__read__(modelfile=modelfile, file_format=file_format)
         elif data:
             self.generate_dummy_model()
             x_size = (np.max(data.locations[:, 1]) - np.min(data.locations[:, 1])) / 60
@@ -1204,9 +1209,9 @@ class Model(object):
             self.yCS = [1] * 60
             self.zCS = [1] * 60
 
-    def __read__(self, modelfile=''):
+    def __read__(self, modelfile='', file_format='modem3d'):
         if modelfile:
-            mod = WS_io.read_model(modelfile=modelfile)
+            mod = WS_io.read_model(modelfile=modelfile, file_format=file_format)
             # Set up these first so update_vals isn't called
             self._xCS = mod['xCS']
             self._yCS = mod['yCS']

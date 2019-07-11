@@ -97,42 +97,82 @@ def get_components(invType=None, NR=None):
     return comps
 
 
-def read_model(modelfile=''):
-    if not modelfile:
-        return None
+def read_model(modelfile='', file_format='modem3d'):
 
-    with open(modelfile, 'r') as f:
-        mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': []}
-        # while True:
-        header = next(f)
-        header = next(f)
-        # if header[0] != '#':
-        # break
-        NX, NY, NZ, *MODTYPE = [h for h in header.split()]
-        NX, NY, NZ = int(NX), int(NY), int(NZ)
-        loge_flag = False
-        if len(MODTYPE) == 1:
-            MODTYPE = int(MODTYPE[0])
-        else:
-            if MODTYPE[1] == 'LOGE':
+    def read_3d(modelfile):
+        with open(modelfile, 'r') as f:
+            mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': []}
+            # while True:
+            header = next(f)
+            header = next(f)
+            # if header[0] != '#':
+            # break
+            NX, NY, NZ, *MODTYPE = [h for h in header.split()]
+            NX, NY, NZ = int(NX), int(NY), int(NZ)
+            loge_flag = False
+            if len(MODTYPE) == 1:
+                MODTYPE = int(MODTYPE[0])
+            else:
+                if MODTYPE[1] == 'LOGE':
+                    loge_flag = True
+                MODTYPE = int(MODTYPE[0])
+            lines = f.readlines()
+            lines = [x.split() for x in lines]
+            lines = [item for sublist in lines for item in sublist]
+            lines = [float(x) for x in lines]
+            mod['xCS'] = lines[:NX]
+            mod['yCS'] = lines[NX: NX + NY]
+            mod['zCS'] = lines[NX + NY: NX + NY + NZ]
+            if MODTYPE == 1:
+                mod['vals'] = np.ones([NX, NY, NZ]) * lines[NX + NY + NZ]
+            else:
+                # vals = lines[NX + NY + NZ: ]
+                mod['vals'] = np.flipud(np.reshape(np.array(lines[NX + NY + NZ: NX + NY + NZ + NX * NY * NZ]),
+                                                   [NX, NY, NZ], order='F'))
+        return mod, loge_flag
+
+    def read_2d(modelfile):
+        with open(modelfile, 'r') as f:
+            mod = {'xCS': [100] * 10, 'yCS': [], 'zCS': [], 'vals': []}
+            # while True:
+            header = next(f)
+            # if header[0] != '#':
+            # break
+            NX = 10
+            NY, NZ, MODTYPE = [h for h in header.split()]
+            NY, NZ = int(NY), int(NZ)
+            loge_flag = False
+            if MODTYPE == 'LOGE':
                 loge_flag = True
-            MODTYPE = int(MODTYPE[0])
-        lines = f.readlines()
-        lines = [x.split() for x in lines]
-        lines = [item for sublist in lines for item in sublist]
-        lines = [float(x) for x in lines]
-        mod['xCS'] = lines[:NX]
-        mod['yCS'] = lines[NX: NX + NY]
-        mod['zCS'] = lines[NX + NY: NX + NY + NZ]
-        if MODTYPE == 1:
-            mod['vals'] = np.ones([NX, NY, NZ]) * lines[NX + NY + NZ]
-        else:
-            # vals = lines[NX + NY + NZ: ]
-            mod['vals'] = np.flipud(np.reshape(np.array(lines[NX + NY + NZ: NX + NY + NZ + NX * NY * NZ]),
-                                               [NX, NY, NZ], order='F'))
-        if loge_flag:
-            mod['vals'] = np.exp(mod['vals'])
-        return mod
+            lines = f.readlines()
+            lines = [x.split() for x in lines]
+            lines = [item for sublist in lines for item in sublist]
+            lines = [float(x) for x in lines]
+            mod['yCS'] = lines[:NY]
+            # mod['yCS'] = lines[NX: NX + NY]
+            mod['zCS'] = lines[NY: NY + NZ]
+            # if MODTYPE == 1:
+                # mod['vals'] = np.ones([NX, NY, NZ]) * lines[NX + NY + NZ]
+            # else:
+                # vals = lines[NX + NY + NZ: ]
+            mod['vals'] = np.reshape(np.array(lines[NY + NZ: NY + NZ + NY * NZ]),
+                                     [NY, NZ], order='F')
+            mod['vals'] = np.tile(mod['vals'][np.newaxis, :, :], [NX, 1, 1])
+        return mod, loge_flag
+    if not modelfile:
+        print('No model to read')
+        return None
+    if file_format.lower() == 'modem3d':
+        try:
+            mod, loge_flag = read_3d(modelfile)
+        except ValueError:
+            print('Model not in ModEM3D format. Trying 2D')
+            mod, loge_flag = read_2d(modelfile)
+    elif file_format.lower() == 'modem2d':
+        mod, loge_flag = read_2d(modelfile)
+    if loge_flag:
+        mod['vals'] = np.exp(mod['vals'])
+    return mod
 
 
 def read_raw_data(site_names, datpath=''):
@@ -567,7 +607,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         other_info = {'inversion_type': invType,
                       'site_names': site_names,
                       'UTM_zone': 'Undefined',
-                      'origin': (0, 0)}
+                      'origin': (0, 0),
+                      'dimensionality': '3D'}
         return sites, other_info
 
     def read_modem_data(datafile='', site_names='', invType=None):
@@ -609,79 +650,142 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             o_y = o_y[0]
             NP, NS = [int(x) for x in lines[line_number + 7].split('>')[1].strip().split()]
             if data_type == 'Full_Impedance':
+                dimensionality = '3D'
                 if inv_type == 3:
                     inv_type = 5
                 else:
                     inv_type = 1
             #     components = ('ZXX', 'ZYY', 'ZXY', 'ZYR')
             elif data_type == 'Full_Vertical_Components':
+                dimensionality = '3D'
                 if inv_type == 1:
                     inv_type = 5
                 elif inv_type == 2:
                     inv_type = 4
+                elif inv_type == 6:
+                    inv_type = 7
                 else:
                     inv_type = 3
             #     components = ('TX', 'TY')
             elif data_type == 'Off_Diagonal_Impedance':
+                dimensionality = '3D'
                 if inv_type == 3:
                     inv_type = 4
                 else:
                     inv_type = 2
             #     # components = ('ZXY', 'ZYX')
             elif data_type == 'Phase_Tensor':
-                inv_type = 6
-            for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
-                line = line_string.split()
-                periods.append(float(line[0]))
-                site_name = line[1]
-                X, Y, Z = [float(x) for x in line[4:7]]
-                if site_name not in site_data.keys():
-                    site_data.update({site_name: {}})
-                    site_error.update({site_name: {}})
-                    site_locations.update({site_name: {'X': [],
-                                                       'Y': [],
-                                                       'elev': []}})
-                if site_name not in new_site_names:
-                    new_site_names.append(site_name)
-                site_locations[site_name]['X'] = X
-                site_locations[site_name]['Y'] = Y
-                site_locations[site_name]['elev'] = Z
+                dimensionality = '3D'
+                if inv_type == 3:
+                    inv_type = 7
+                else:
+                    inv_type = 6
+            elif data_type == 'TE_Impedance':
+                dimensionality = '2D'
+                if inv_type == 9:
+                    inv_type = 10
+                else:
+                    inv_type = 8
+            elif data_type == 'TM_Impedance':
+                dimensionality = '2D'
+                if inv_type == 8:
+                    inv_type = 10
+                else:
+                    inv_type = 9
+            if dimensionality == '3D':
+                for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
+                    line = line_string.split()
+                    periods.append(float(line[0]))
+                    site_name = line[1]
+                    X, Y, Z = [float(x) for x in line[4:7]]
+                    if site_name not in site_data.keys():
+                        site_data.update({site_name: {}})
+                        site_error.update({site_name: {}})
+                        site_locations.update({site_name: {'X': [],
+                                                           'Y': [],
+                                                           'elev': []}})
+                    if site_name not in new_site_names:
+                        new_site_names.append(site_name)
+                    site_locations[site_name]['X'] = X
+                    site_locations[site_name]['Y'] = Y
+                    site_locations[site_name]['elev'] = Z
 
-                component = line[7]
-                if inv_type <= 5:
+                    component = line[7]
+                    if inv_type <= 5:
+                        real, imag = [float(x) for x in line[8:10]]
+                        error = float(line[10])
+                        if component == 'TX' or component == 'TY':
+                            component = component[0] + 'Z' + component[1]
+                        if component + 'R' not in site_data[site_name].keys():
+                            site_data[site_name].update({component + 'R': []})
+                        if component + 'I' not in site_data[site_name].keys():
+                            site_data[site_name].update({component + 'I': []})
+                        if component + 'R' not in site_error[site_name].keys():
+                            site_error[site_name].update({component + 'R': []})
+                        if component + 'I' not in site_error[site_name].keys():
+                            site_error[site_name].update({component + 'I': []})
+                        # if component not in site_errmap.keys():
+                        #     site_errmap[site_name].update({component + 'R': []})
+                        #     site_errmap[site_name].update({component + 'I': []})
+                        site_data[site_name][component + 'R'].append(real)
+                        site_data[site_name][component + 'I'].append(imag)
+                        site_error[site_name][component + 'R'].append(error)
+                        site_error[site_name][component + 'I'].append(error)
+                    else:
+                        real = float(line[8])
+                        error = float(line[9])
+                        # For now we are swapping the X and Y's to conform with the Caldwell et al. definition
+                        swapped_component = component.replace('X', '1')
+                        swapped_component = swapped_component.replace('Y', 'X')
+                        swapped_component = swapped_component.replace('1', 'Y')
+                        if swapped_component not in site_data[site_name].keys():
+                            site_data[site_name].update({swapped_component: []})
+                        if swapped_component not in site_error[site_name].keys():
+                            site_error[site_name].update({swapped_component: []})
+                        site_data[site_name][swapped_component].append(real)
+                        site_error[site_name][swapped_component].append(error)
+                    # print(site_data[site_lookup[code]][component + 'R'])
+            elif dimensionality == '2D':
+                for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
+                    line = line_string.split()
+                    periods.append(float(line[0]))
+                    site_name = line[1]
+                    X, Y, Z = [float(x) for x in line[4:7]]
+                    if site_name not in site_data.keys():
+                        site_data.update({site_name: {}})
+                        site_error.update({site_name: {}})
+                        site_locations.update({site_name: {'X': [],
+                                                           'Y': [],
+                                                           'elev': []}})
+                    if site_name not in new_site_names:
+                        new_site_names.append(site_name)
+                    site_locations[site_name]['X'] = X
+                    site_locations[site_name]['Y'] = Y
+                    site_locations[site_name]['elev'] = Z
+
+                    component = line[7]
                     real, imag = [float(x) for x in line[8:10]]
                     error = float(line[10])
-                    if component == 'TX' or component == 'TY':
-                        component = component[0] + 'Z' + component[1]
-                    if component + 'R' not in site_data[site_name].keys():
-                        site_data[site_name].update({component + 'R': []})
-                    if component + 'I' not in site_data[site_name].keys():
-                        site_data[site_name].update({component + 'I': []})
-                    if component + 'R' not in site_error[site_name].keys():
-                        site_error[site_name].update({component + 'R': []})
-                    if component + 'I' not in site_error[site_name].keys():
-                        site_error[site_name].update({component + 'I': []})
-                    # if component not in site_errmap.keys():
-                    #     site_errmap[site_name].update({component + 'R': []})
-                    #     site_errmap[site_name].update({component + 'I': []})
-                    site_data[site_name][component + 'R'].append(real)
-                    site_data[site_name][component + 'I'].append(imag)
-                    site_error[site_name][component + 'R'].append(error)
-                    site_error[site_name][component + 'I'].append(error)
-                else:
-                    real = float(line[8])
-                    error = float(line[9])
-                    # For now we are swapping the X and Y's to conform with the Caldwell et al. definition
-                    swapped_component = component.replace('X', '1')
-                    swapped_component = swapped_component.replace('Y', 'X')
-                    swapped_component = swapped_component.replace('1', 'Y')
-                    if swapped_component not in site_data[site_name].keys():
-                        site_data[site_name].update({swapped_component: []})
-                    if swapped_component not in site_error[site_name].keys():
-                        site_error[site_name].update({swapped_component: []})
-                    site_data[site_name][swapped_component].append(real)
-                    site_error[site_name][swapped_component].append(error)
-                # print(site_data[site_lookup[code]][component + 'R'])
+                    if component == 'TE':
+                        if 'ZXYR' not in site_data[site_name].keys():
+                            site_data[site_name].update({'ZXYR': []})
+                            site_data[site_name].update({'ZXYI': []})
+                            site_error[site_name].update({'ZXYR': []})
+                            site_error[site_name].update({'ZXYI': []})
+                        site_data[site_name]['ZXYR'].append(real)
+                        site_data[site_name]['ZXYI'].append(imag)
+                        site_error[site_name]['ZXYR'].append(error)
+                        site_error[site_name]['ZXYI'].append(error)
+                    if component == 'TM':
+                        if 'ZYXR' not in site_data[site_name].keys():
+                            site_data[site_name].update({'ZYXR': []})
+                            site_data[site_name].update({'ZYXI': []})
+                            site_error[site_name].update({'ZYXR': []})
+                            site_error[site_name].update({'ZYXI': []})
+                        site_data[site_name]['ZYXR'].append(real)
+                        site_data[site_name]['ZYXI'].append(imag)
+                        site_error[site_name]['ZYXR'].append(error)
+                        site_error[site_name]['ZYXI'].append(error)
         periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
                 # site_errmap[site][component] = np.array(site_errmap[site][component])
@@ -713,7 +817,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         other_info = {'inversion_type': inv_type,
                       'site_names': site_names,
                       'origin': (o_x, o_y),
-                      'UTM_zone': UTM_zone}
+                      'UTM_zone': UTM_zone,
+                      'dimensionality': dimensionality}
         return sites, other_info
 
     def read_mare2dem_data(datafile='', site_names='', invType=None):
@@ -1186,10 +1291,104 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
                                                                                      data_point,
                                                                                      error_point))
 
+    def write_ModEM2D(data, out_file):
+        if '.dat' not in out_file:
+            out_file = ''.join([out_file, '.dat'])
+        units = []
+        data_type = []
+        temp_inv_type = []
+        actual_inv_type = copy.deepcopy(data.inv_type)
+        with open(out_file, 'w') as f:
+            z_title = '# Written using pyMT. UTM Zone: {}\n' + \
+                      '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
+                      'Component Real Imag Error\n'.format(data.UTM_zone)
+            if data.inv_type == 10:
+                data_type.append('> TE_Impedance\n')
+                units.append('> Ohm\n')
+                data_type.append('> TM_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(8)
+                temp_inv_type.append(9)
+            elif data.inv_type == 8:
+                data_type.append('> TE_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(8)
+            elif data.inv_type == 9:
+                data_type.append('> TM_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(9)
+            # If inverting impedances
+            # If locations haven't been projected
+            azi = copy.deepcopy(data.azimuth)
+            if np.any(data.locations[:, 0]):
+                # Reset the data locations
+                data.rotate_sites(azi=0)
+                # Rotate the data to coincide with the chosen direction
+                for site_name in data.site_names:
+                    data.sites[site_name].rotate_data(azi)  # There is a negative in the data_structures code that has to be countered here
+                # Project the station locations onto the line
+                xy = np.fliplr(data.locations)
+                xy = utils.project_to_line(xy, azi=(azi + 90) % 180)
+                xy, center = utils.center_locs(xy)
+                center = xy[0, :]
+                for ii, (x, y) in enumerate(xy):
+                    if x < center[0]:
+                        if y < center[1]:
+                            center = xy[ii, :]
+                y_locs = []
+                for x, y in xy:
+                    y_locs.append(np.sqrt((x - center[0]) ** 2 + (y - center[0]) ** 2))
+            else:
+                y_locs = data.locations[:, 1]
+            for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                f.write(z_title)
+                f.write(data_type_string)
+                f.write('> exp(-i\\omega t)\n')
+                f.write(unit)
+                f.write('> {}\n'.format(azi))
+                f.write('> 0.0 0.0 0.0\n')
+                f.write('> {} {}\n'.format(data.NP, data.NS))
+                data.inv_type = inv_type
+                components_to_write = [component for component in data.used_components
+                                       if 'i' not in component.lower()]
+                for ii, site_name in enumerate(data.site_names):
+                    site = data.sites[site_name]
+                    for jj, period in enumerate(data.periods):
+                        for component in components_to_write:
+                            if component[:3] == 'ZXY':
+                                component_code = 'TE'
+                            elif component[:3] == 'ZYX':
+                                component_code = 'TM'
+                            Z_real = site.data[component][jj]
+                            Z_imag = site.data[component[:3] + 'I'][jj]
+                            # X, Y, Z = (site.locations['X'],
+                            #            site.locations['Y'],
+                            #            site.locations.get('elev', 0))
+                            # X, Y, Z = (data.locations[ii, 0],
+                            #            data.locations[ii, 1],
+                            #            site.locations.get('elev', 0))
+                            Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                            f.write(' '.join(['{:>14.7E} {:>14}',
+                                              '{:>8.3f} {:>8.3f}',
+                                              '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                              '{:>6} {:>14.7E} {:>14.7E}',
+                                              '{:>14.7E}\n']).format(
+                                    period, site_name,
+                                    Lat, Long,
+                                    0, y_locs[ii], 0,
+                                    component_code.upper(), Z_real, Z_imag,
+                                    max(site.used_error[component[:-1] + 'R'][jj],
+                                        site.used_error[component[:-1] + 'I'][jj])))
+
     if file_format.lower() == 'wsinv3dmt':
         write_ws(data, outfile, to_write)
     elif file_format.lower() == 'modem':
-        write_ModEM3D(data, outfile)
+        if data.dimensionality.lower() == '3d':
+            write_ModEM3D(data, outfile)
+        elif data.dimensionality.lower() == '2d' or data.inv_type in (8, 9, 10):
+            write_ModEM2D(data, outfile)
+        else:
+            print('Unable to write data; dimensionality not defined')
     elif file_format.lower() == 'mare2dem':
         write_MARE2DEM(data, outfile)
     elif file_format.lower() == 'occam':
@@ -1512,8 +1711,50 @@ def write_model(model, outfile, file_format='modem'):
                         for xx in range(model.nx):
                             # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
                             f.write('{:<10.7f}\n'.format(vals[model.nx - xx - 1, yy, zz]))
+
+    def write_model_2d(model, outfile):
+        if '.model' not in outfile:
+            outfile = ''.join([outfile, '.model'])
+        # is_half_space = int(model.is_half_space())
+        # if file_format.lower() == 'modem':
+        header_four = 'LOGE'
+        is_half_space = 0
+        # else:
+            # header_four = ''
+        with open(outfile, 'w') as f:
+            f.write('{} {} {}\n'.format(model.nx, model.nz, header_four))
+            for x in model.xCS:
+                f.write('{:<10.7f}  '.format(x))
+            f.write('\n')
+            # for y in model.yCS:
+            #     f.write('{:<10.7f}  '.format(y))
+            # f.write('\n')
+            for z in model.zCS:
+                f.write('{:<10.7f}  '.format(z))
+            f.write('\n')
+            if header_four == 'LOGE':
+                if np.any(model.vals < 0):
+                    print('Negative values detected in model.')
+                    print('I hope you know what you\'re doing.')
+                    vals = np.sign(model.vals) * np.log(np.abs(model.vals))
+                    vals = np.nan_to_num(vals)
+                else:
+                    vals = np.log(model.vals)
+            else:
+                vals = model.vals
+            if is_half_space and header_four != 'LOGE':
+                f.write(str(model.vals[0, 0, 0]))
+            else:
+                for zz in range(model.nz):
+                    for yy in range(model.ny):
+                    # for xx in range(model.nx):
+                            # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                        f.write('{:<10.7f}\n'.format(vals[0, yy, zz]))
+
     if file_format.lower() in ('modem', 'wsinv', 'wsinv3dmt'):
         write_inv_model(model=model, outfile=outfile, file_format=file_format)
+    elif file_format.lower() in ('modem2d'):
+        write_model_2d(model=model, outfile=outfile)
     elif file_format.lower() in ('ubc', 'ubc-gif'):
         to_ubc(model=model, outfile=outfile)
     else:

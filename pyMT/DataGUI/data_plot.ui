@@ -110,6 +110,9 @@
     <addaction name="inv_type3"/>
     <addaction name="inv_type4"/>
     <addaction name="inv_type5"/>
+    <addaction name="inv_type8"/>
+    <addaction name="inv_type9"/>
+    <addaction name="inv_type10"/>
    </widget>
    <addaction name="menuWS_Data_Plot"/>
    <addaction name="menuDisplay_Options"/>
@@ -970,6 +973,30 @@
    </property>
    <property name="text">
     <string>Unitless</string>
+   </property>
+  </action>
+  <action name="inv_type8">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>8 (2-D TE Impedance)</string>
+   </property>
+  </action>
+  <action name="inv_type9">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>9 (2-D TM Impedance)</string>
+   </property>
+  </action>
+  <action name="inv_type10">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>10 (2-D TE+TM Impedance)</string>
    </property>
   </action>
  </widget>

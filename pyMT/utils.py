@@ -593,6 +593,17 @@ def rotate_locs(locs, azi=0):
     return rot_locs
 
 
+def project_to_line(locs, azi):
+    a = np.array([0, 0])
+    b = np.array([np.tan(np.deg2rad(azi)), 1])
+    projected_locs = np.zeros(locs.shape)
+    for ii in range(len(locs)):
+        ap = locs[ii, :] - a
+        ab = b - a
+        projected_locs[ii, :] = a + np.dot(ap, ab) / np.dot(ab, ab) * ab
+    return projected_locs
+
+
 def list2np(data):
     """Summary
 
@@ -930,7 +941,7 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
 def sort_files(files):
     ret_dict = {}
     print(files)
-    types = ('model', 'resp', 'lst', 'dat')
+    types = ('model', 'dat', 'resp', 'lst')
     for file in files:
         try:
             file_type = (next(x for x in types if x in file))
