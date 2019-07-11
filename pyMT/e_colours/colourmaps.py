@@ -1,7 +1,7 @@
 from scipy.interpolate import interp2d
 from matplotlib import colors, cm
 import numpy as np
-from e_colours.utils import rgb2hls, hls2rgb
+from pyMT.e_colours.utils import rgb2hls, hls2rgb
 import colorcet  # This needs to be imported to register the cet colourmaps into mpl
 
 
