@@ -1,0 +1,3 @@
+HELP
+====
+For feature requests, bug fixes, or anything else contact Eric at eroots@laurentian.ca
