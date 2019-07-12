@@ -860,6 +860,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type3)
         self.InversionTypeGroup.addAction(self.inv_type4)
         self.InversionTypeGroup.addAction(self.inv_type5)
+        self.InversionTypeGroup.addAction(self.inv_type8)
+        self.InversionTypeGroup.addAction(self.inv_type9)
+        self.InversionTypeGroup.addAction(self.inv_type10)
         self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
         #  Set up connect to which errors are plotted
         self.actionDataErrors.changed.connect(self.dummy_update_dpm)
@@ -1307,11 +1310,21 @@ class DataMain(QMainWindow, Ui_MainWindow):
             return 4
         elif self.inv_type5.isChecked():
             return 5
+        elif self.inv_type8.isChecked():
+            return 8
+        elif self.inv_type9.isChecked():
+            return 9
+        elif self.inv_type10.isChecked():
+            return 10
         else:
             return self.dataset.data.inv_type
 
     def WriteData(self, file_format='WSINV3DMT'):
         self.dataset.data.inv_type = self.check_inv_type()
+        if self.dataset.data.inv_type in range(1, 8):
+            self.dataset.data.dimensionality = '3D'
+        else:
+            self.dataset.data.dimensionality = '2D'
         keep_going = True
         if self.sortSites.itemText(self.sortSites.currentIndex()) != 'Default':
             reply = QtWidgets.QMessageBox.question(self, 'Message',
