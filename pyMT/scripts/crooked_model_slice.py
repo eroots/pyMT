@@ -18,6 +18,9 @@ import colorsys
 import e_colours.colourmaps
 
 
+local_path = 'C:/Users/eroots'
+
+
 def extents(f):
     delta = f[1] - f[0]
     return [f[0] - delta / 2, f[1] + delta / 2]
@@ -123,18 +126,22 @@ def project_locations(data, zone, letter):
 #########################################################
 # DRYDEN-ATIKOKAN
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
-# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Dryden\Plots\Shapefiles\DRYDEN_LN341_R1_KMIG_SUGETHW_UTM.txt',)
-                        # header=0, names=('trace', 'x', 'y'), sep='\s+')
-# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Atikoken\Plots\Shapefiles\ATIKOKAN_LN351_R1_KMIG_SUGETHW_UTM.txt',))
-                        # header=0, names=('trace', 'x', 'y'), sep='\s+')
-# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/bg800/dry5norot_lastIter.rho')
-# reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
+# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Dryden\Plots\Shapefiles\DRYDEN_LN341_R1_KMIG_SUGETHW_UTM.txt',
+#                         header=0, names=('trace', 'x', 'y'), sep='\s+')
+seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Atikoken\Plots\Shapefiles\ATIKOKAN_LN351_R1_KMIG_SUGETHW_UTM.txt',
+                        header=0, names=('trace', 'x', 'y'), sep='\s+')
+# # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+# # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/bg800/dry5norot_lastIter.rho')
+# # reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
+main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
+backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst') 
+mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/dry2_lastIter.rho')
 #########################################################
 # seismic = pd.read_table('F:/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # qx, qy = (np.array(seismic['x'] / 1000),
@@ -177,22 +184,23 @@ def project_locations(data, zone, letter):
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/afton_cull1.lst')
 # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/afton_cull1.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/afton2_lastIter.rho')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton_rot/aftonrot_NLCG_069.rho')
 #########################################################
 # GERALDTON
-main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/main_transect.lst')
-data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
-backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/ger_cull4/ger_NLCG_155.rho')
-seismic = pd.read_table(r'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' + 
-                        r'GERALDTON_LN301_R1_KMIG/GERALDTON_LN301_R1_KMIG_SUGETHW_UTM.txt',
-                        header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 0
+# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/main_transect.lst')
+# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
+# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/geraldton/ger_cull4/ger_NLCG_155.rho')
+# seismic = pd.read_table(r'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' + 
+#                         r'GERALDTON_LN301_R1_KMIG/GERALDTON_LN301_R1_KMIG_SUGETHW_UTM.txt',
+#                         header=0, names=('trace', 'x', 'y'), sep='\s+')
+use_seismic = 1
 # azi = 35  # Dryden-regional
 # azi = -15  # Swayze regional
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
-UTM_number = 10
+UTM_number = 15
 UTM_letter = 'U'
 # UTM_letter = 'U'
 # padding = 25000
@@ -200,27 +208,28 @@ reso = []
 padding = 10000
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-# file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/'
-# file_name = 'dry_norotMeshFinish_linear_jet_siteMarkers'
+file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/'
+file_name = 'dry2_noOOQ_linear_jet0-5_siteMarkers_alongATTSeis'
 # file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
-file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Geraldton/RoughFigures/'
+# file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Geraldton/RoughFigures/'
 # file_name = 'swz_norotMeshFinish_linear_bgy_siteMarkers'
 # file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Malartic/RoughFigures/')
-# file_path = r'C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/Report/profiles/')
+# file_path = r'C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/Report/profiles/'
+# file_name = 'aftonrot_l0'
 # file_name = 'mal_bg800_nudgeWest_jet0-5_siteMarkers'
 # file_name = 'swz_norotFinish_nudge5000_linear_jet1-5'
-file_name = 'gercull4_iter155_linear_jet0-5'
+# file_name = 'gercull4_iter155_linear_jet0-5'
 # file_types = ['.pdf', '.png']
 file_types = ['.png']
 title_ = 'Standard Inversion'
 rotate_back = 0
 linear_xaxis = True
 
-save_fig = 0
+save_fig = 1
 save_dat = 0
-annotate_sites = 1
+annotate_sites = 0
 site_markers = 1
-plot_map = 1
+plot_map = 0
 dpi = 600
 csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
 use_alpha = 0
@@ -230,7 +239,7 @@ lightness = 0.4
 xlim = []
 zlim = [0, 50]
 # zlim = [0, 400]
-lut = 64
+lut = 32
 isolum = False
 # xlim = [-123.5, -121.5]
 # xlim = [-7, 74]
@@ -252,15 +261,15 @@ cmap_name = 'jet_r'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
-# nudge_sites = ['18-dry043m.dat', '18-dry041m', '18-dry040m',
-#                '18-dry038m.dat', '18-dry037m', '18-dry001m']
+nudge_sites = ['18-dry043m.dat', '18-dry041m', '18-dry040m',
+               '18-dry038m.dat', '18-dry037m', '18-dry001m']
 # nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
 #                '18-swz006m', '18-swz001m', '18-swz125m']
 # nudge_sites = ['MAL007M', 'MAL005M', 'MAL004M']
-nudge_sites = ['GER007M', 'GER006M', 'GER005M', 'GER004M']
+# nudge_sites = ['GER007M', 'GER006M', 'GER005M', 'GER004M']
 reverse_nudge = ['MAL008M', 'MAL009M', 'MAL010L']
 
-nudge_dist = 7500
+nudge_dist = 5000
 use_nudge = 1
 
 data.to_utm(UTM_number, UTM_letter)

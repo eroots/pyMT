@@ -19,5 +19,5 @@ Dependencies include:
 	pyshp
 	pyqt5
 	e_colours (Ask me to about getting this one. If it becomes a problem, I can include it directly in the package)
-	pyvista
-	vtk
+	pyvista *NEW*
+	vtk	*NEW*

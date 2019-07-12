@@ -844,11 +844,20 @@ def write_locations(data, out_file=None, file_format='csv'):
                 w.record(X, Y, Z, site)
             w.save(outfile)
 
+    def write_csv(data, outfile):
+        with open(outfile, 'w') as f:
+            f.write('Station, X, Y, Elevation\n')
+            for ii, site in enumerate(data.site_names):
+                f.write('{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}\n'.format(site,
+                                                                        data.locations[ii, 1],
+                                                                        data.locations[ii, 0],
+                                                                        data.sites[site].locations['elev']))
+
     if file_format.lower() not in ('csv', 'shp', 'kml'):
         print('File format {} not supported'.format(file_format))
         return
     if file_format.lower() == 'csv':
-        print('Not implemented yet')
+        write_csv(data, out_file)
     elif file_format.lower() == 'shp':
         write_shapefile(data, out_file)
     elif file_format.lower() == 'kml':

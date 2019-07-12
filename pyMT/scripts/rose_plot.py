@@ -13,9 +13,10 @@ def gen_tiling(num_plots):
         return tiling
 
 
-data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/afton_cull1.dat',
-                 listfile='C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/afton_cull1.lst')
-
+# data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/afton/afton1/afton_cull1.dat',
+#                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/afton_cull1.lst')
+data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/moresites/finish/mal5_all.dat',
+                 listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal5.lst')
 plots_per_fig = 6
 N = 45
 bottom = 0
@@ -25,6 +26,7 @@ width = np.pi / N
 theta = np.linspace(plot_range[0], plot_range[1], N, endpoint=False)
 
 figures = {}
+figures_TF = {}
 p_idx = 0
 tiling = gen_tiling(plots_per_fig)
 for ii in range(int(np.ceil(data.NP / plots_per_fig))):
@@ -38,5 +40,17 @@ for ii in range(int(np.ceil(data.NP / plots_per_fig))):
             axes[jj].bar(theta, radii, width=width, bottom=bottom)
             axes[jj].set_title('Period: {:>5.4g} s'.format(data.periods[p_idx]))
             p_idx += 1
-
+p_idx = 0
+for ii in range(int(np.ceil(data.NP / plots_per_fig))):
+    figures_TF.update({ii: plt.figure()})
+    axes = []
+    for jj in range(min(plots_per_fig, data.NP - p_idx)):
+        TY = np.array([data.sites[site].data['TZYR'][p_idx] for site in data.site_names])
+        TX = np.array([data.sites[site].data['TZXR'][p_idx] for site in data.site_names])
+        azimuths = (np.arctan(TY / TX))
+        radii = np.histogram(azimuths, range=plot_range, bins=N)[0]
+        axes.append(figures_TF[ii].add_subplot(tiling[0], tiling[1], jj + 1, polar=True))
+        axes[jj].bar(theta, radii, width=width, bottom=bottom)
+        axes[jj].set_title('Period: {:>5.4g} s'.format(data.periods[p_idx]))
+        p_idx += 1
 plt.show()
