@@ -51,6 +51,14 @@ Mesh Designer
     content/mesh_designer/getting_started
     content/mesh_designer/main_window
 
+Examples
+--------
+
+.. toctree::
+    :maxdepth: 2
+
+    content/examples/recipes
+
 
 Other Info
 ==========

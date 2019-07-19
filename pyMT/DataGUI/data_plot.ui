@@ -25,12 +25,12 @@
      <number>1</number>
     </property>
     <property name="bottomMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="verticalSpacing">
      <number>1</number>
     </property>
-    <item row="0" column="0">
+    <item row="2" column="0">
      <widget class="QWidget" name="mplwindow" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -216,6 +216,9 @@
          </property>
         </widget>
         <widget class="QPushButton" name="DEBUG_BUTTON">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -228,20 +231,10 @@
           <string>DEBUG</string>
          </property>
         </widget>
-        <widget class="QLineEdit" name="azimuthEdit">
-         <property name="geometry">
-          <rect>
-           <x>110</x>
-           <y>180</y>
-           <width>51</width>
-           <height>22</height>
-          </rect>
-         </property>
-        </widget>
         <widget class="QLabel" name="label_2">
          <property name="geometry">
           <rect>
-           <x>110</x>
+           <x>120</x>
            <y>160</y>
            <width>53</width>
            <height>16</height>
@@ -400,19 +393,6 @@
           </rect>
          </property>
         </widget>
-        <widget class="QScrollBar" name="AzimuthScrollBar">
-         <property name="geometry">
-          <rect>
-           <x>160</x>
-           <y>170</y>
-           <width>20</width>
-           <height>41</height>
-          </rect>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-        </widget>
         <widget class="QGroupBox" name="groupBox_6">
          <property name="geometry">
           <rect>
@@ -441,6 +421,41 @@
            </widget>
           </item>
          </layout>
+        </widget>
+        <widget class="QTextEdit" name="debugInfo">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="geometry">
+          <rect>
+           <x>710</x>
+           <y>10</y>
+           <width>511</width>
+           <height>201</height>
+          </rect>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="acceptRichText">
+          <bool>false</bool>
+         </property>
+        </widget>
+        <widget class="QSpinBox" name="azimuthEdit">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>180</y>
+           <width>51</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="wrapping">
+          <bool>true</bool>
+         </property>
+         <property name="maximum">
+          <number>359</number>
+         </property>
         </widget>
        </widget>
        <widget class="QWidget" name="PlotOptions">
@@ -571,7 +586,7 @@
             <enum>QAbstractScrollArea::AdjustToContents</enum>
            </property>
            <property name="editTriggers">
-            <set>QAbstractItemView::CurrentChanged</set>
+            <set>QAbstractItemView::NoEditTriggers</set>
            </property>
            <property name="dragDropOverwriteMode">
             <bool>false</bool>

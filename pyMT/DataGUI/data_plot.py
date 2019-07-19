@@ -833,8 +833,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.toggleRaw.setCheckState(bool(self.dataset.raw_data.sites) * 2)
         self.toggleData.setCheckState(bool(self.dataset.data.sites) * 2)
         self.toggleResponse.setCheckState(bool(self.dataset.response.sites) * 2)
-        self.azimuthEdit.editingFinished.connect(self.set_azimuth)
-        self.azimuthEdit.setText(str(self.dataset.azimuth))
+        self.azimuthEdit.valueChanged.connect(self.set_azimuth)
+        self.azimuthEdit.setValue(self.dataset.azimuth)
         self.removeSites.clicked.connect(self.remove_sites)
         self.addSites.clicked.connect(self.add_sites)
         if len(self.stored_datasets) > 1:
@@ -875,7 +875,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type8)
         self.InversionTypeGroup.addAction(self.inv_type9)
         self.InversionTypeGroup.addAction(self.inv_type10)
-        self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
+        # self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
         #  Set up connect to which errors are plotted
         self.actionDataErrors.changed.connect(self.dummy_update_dpm)
         self.actionRawErrors.changed.connect(self.dummy_update_dpm)
@@ -1189,12 +1189,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.set_nparam_labels()
 
     def print_periods(self):
+        lines = []
         periods = list(self.dataset.raw_data.narrow_periods.keys())
         periods.sort()
         pretty_periods = [(per, self.dataset.raw_data.narrow_periods[per]) for
                           per in periods]
-        print('{:>21} {:>15} {:>15}'.format('Period', 'Log(Period)', 'Perc'))
-        print('-' * 56)
+        lines.append('{:>21} {:>15} {:>15}'.format('Period', 'Log(Period)', 'Perc'))
+        lines.append('-' * 56)
         for t in pretty_periods:
             k, v = t
             log_k = np.log10(k)
@@ -1209,7 +1210,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 idx = self.dataset.freqset.index(cp) + 1
             else:
                 idx = ''
-            print('{:>2} {:>2} {:15.5} {:15.5} {:15.5} {:<2}'.format(yn, idx, k, log_k, v, yn))
+            lines.append('{:>2} {:>2} {:15.5} {:15.5} {:15.5} {:<2}'.format(yn, idx, k, log_k, v, yn))
+        self.debugInfo.setText('\n'.join(lines))
         # for t in self.dataset.data.periods:
         #     if t < 1:
         #         t = -1 / t
@@ -1235,16 +1237,17 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.azimuthEdit.setText(str(new_val))
         self.set_azimuth()
 
-    def set_azimuth(self):
-        text = self.azimuthEdit.text()
-        azi = utils.validate_input(text, float)
-        if azi is False:
-            self.azimuthEdit.setText(str(self.dataset.azimuth))
-            return
+    def set_azimuth(self, azi):
+        # text = self.azimuthEdit.text()
+        # azi = utils.validate_input(text, float)
+        # if azi is False:
+            # self.azimuthEdit.setText(str(self.dataset.azimuth))
+            # return
         if azi != self.dataset.azimuth:
-            if azi <= 0:
-                azi += 360
-                self.azimuthEdit.setText(str(azi))
+            # if azi <= 0:
+            #     azi += 360
+            #     self.azimuthEdit.setText(str(azi))
+            azi = azi % 360
             self.dataset.rotate_sites(azi=azi)
             self.update_dpm()
             self.map_view.init_map(dataset=self.dataset,
@@ -1253,6 +1256,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             # self.map_view.init_map(dataset=self.dataset,
                                    # active_sites=self.site_names,
                                    # sites=self.dataset.data.site_names)
+            self.azimuthEdit.setValue(azi)
             self.map_view.update_map()
 
     def change_scaling(self, index):
@@ -1337,6 +1341,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def WriteData(self, file_format='WSINV3DMT'):
         self.dataset.data.inv_type = self.check_inv_type()
+        if not self.dataset.data.inv_type:
+            reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                                   'No inversion type selected. Please choose one before writing',
+                                                   QtWidgets.QMessageBox.Ok)
+            return
         if self.dataset.data.inv_type in range(1, 8):
             self.dataset.data.dimensionality = '3D'
         else:

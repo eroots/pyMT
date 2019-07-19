@@ -606,7 +606,7 @@ class Data(object):
         self.origin = None
         self.UTM_zone = None
         self._spatial_units = 'm'
-        self.error_floors = {'Off-Diagonal Impedance': 0.075,
+        self.error_floors = {'Off-Diagonal Impedance': 0.05,
                              'Diagonal Impedance': 0.075,
                              'Tipper': 0.05,
                              'Rho': 0.05,
