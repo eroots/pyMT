@@ -91,7 +91,7 @@ class Dataset(object):
         self.response = Data(listfile=listfile, datafile=responsefile)
         self.rms = self.calculate_RMS()
         self._spatial_units = 'm'
-        if not self.data.site_names:
+        if not self.data.site_names and self.raw_data.initialized:
             self.get_data_from_raw()
         azi = []
         num_dTypes = 0
@@ -112,7 +112,6 @@ class Dataset(object):
             try:
                 self.freqset = WS_io.read_freqset(self.raw_data.datpath)
             except FileNotFoundError:
-                print('Freqset not found')
                 self.freqset = None
         else:
             self.freqset = None
@@ -2274,10 +2273,10 @@ class RawData(object):
         self.count_tol = 0.5
         self.master_periods = self.master_period_list()
         self.narrow_periods = self.narrow_period_list()
-        self.azimuth = 0
         self._spatial_units = 'm'
-        for site_name in self.site_names:
-            self.sites[site_name].rotate_data(azi=0)
+        self.azimuth = 0  # Note this may not be true if the EDI files have been rotated.
+        # for site_name in self.site_names:
+        #     self.sites[site_name].rotate_data(azi=0)
 
     @property
     def origin(self):

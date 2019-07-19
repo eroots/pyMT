@@ -59,8 +59,11 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.setupUi(self)
 
         # Add the model
-        self.dataset = WSDS.Dataset(modelfile=files['model'],
-                                    datafile=files['dat'])
+        try:
+            self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                        datafile=files['dat'])
+        except KeyError:
+            self.dataset = WSDS.Dataset(modelfile=files['model'])
         self.model = self.dataset.model
         self.clip_model = deepcopy(self.model)
 
@@ -86,7 +89,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         fileMenu.addAction(exitButton)
 
         self.plot_data = {'stations': []}
-        if files['dat']:
+        if 'dat' in files.keys():
             self.plot_locations = True
             self.locs_3D = np.zeros((len(self.dataset.data.locations), 3))
             self.plot_data['stations'] = pv.PolyData(self.locs_3D)
@@ -628,7 +631,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.map.model = self.clip_model
         self.rect_grid = model_to_rectgrid(self.clip_model)
         self.validate_slice_locations()
-        debug_print([self.model.dy[self.y_slice], self.model.dy[self.y_clip[0]], self.model.dy[self.model.ny]], 'C:/Users/eric/Desktop/debug.log')
+        # debug_print([self.model.dy[self.y_slice], self.model.dy[self.y_clip[0]], self.model.dy[self.model.ny]], 'C:/Users/eric/Desktop/debug.log')
         self.xSliceSlider.setMinimum(self.x_clip[0] + 1)
         self.ySliceSlider.setMinimum(self.y_clip[0] + 1)
         self.zSliceSlider.setMinimum(self.z_clip[0] + 1)

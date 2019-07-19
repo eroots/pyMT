@@ -49,7 +49,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.y_slice = 0
         self.z_slice = 0
         self.rho_cax = [1, 5]
-        self.colourmap = 'jetplus'
+        self.colourmap = 'jet_plus'
         self.mesh_changable = True
         self.fig = Figure()
         self.key_presses = {'Control': False, 'Alt': False, 'Shift': False}
@@ -70,7 +70,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self._widgets = [cursor]
         self.connect_mpl_events()
         self.setup_widgets()
-        self.update_decade_list()
+        self.init_decade_list()
+        # self.update_decade_list()
         self.initialized = True
 
     def setup_widgets(self):
@@ -89,7 +90,10 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.minY.setText(str(min(self.model.yCS)))
         self.maxX.setText(str(max(self.model.xCS)))
         self.maxY.setText(str(max(self.model.yCS)))
-        self.bgRho.setText('2500')
+        if self.model.is_half_space():
+            self.bgRho.setText(str(self.model.vals[0, 0, 0]))
+        else:
+            self.bgRho.setText('2500')
         self.background_resistivity = float(self.bgRho.text())
         self.bgRho.editingFinished.connect(self.validate_background_rho)
         self.setBackgroundRho.clicked.connect(self.set_background_rho)
@@ -108,6 +112,11 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.actionBgy_r.setActionGroup(self.groupColourmaps)
         self.actionBwr.setActionGroup(self.groupColourmaps)
         self.actionBwr_r.setActionGroup(self.groupColourmaps)
+        # Mesh line colours
+        self.groupMeshColours = QtWidgets.QActionGroup(self)
+        self.groupMeshColours.triggered.connect(self.set_mesh_colour)
+        self.action_meshWhite.setActionGroup(self.groupMeshColours)
+        self.action_meshBlack.setActionGroup(self.groupMeshColours)
         # Set up colour limits
         self.actionRho_cax.triggered.connect(self.set_rho_cax)
         # Smoothing
@@ -134,6 +143,13 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             self.colourmap = 'bwr'
         if self.actionBwr_r.isChecked():
             self.colourmap = 'bwr_r'
+        self.redraw_pcolor()
+
+    def set_mesh_colour(self):
+        if self.action_meshWhite.isChecked():
+            self.mesh_color = 'w'
+        elif self.action_meshBlack.isChecked():
+            self.mesh_color = 'k'
         self.redraw_pcolor()
 
     def set_rho_cax(self):
@@ -204,6 +220,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                 self.model.vals[:, :, :] = self.background_resistivity
             else:
                 return
+        self.redraw_pcolor()
 
     def update_dimension_labels(self):
         self.nxLabel.setText(' : '.join(['NX', str(self.model.nx)]))
@@ -250,6 +267,28 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                               QtCore.Qt.ItemIsEnabled)
                 self.zPerDecade.insertItem(idx, item)
             idx = self.zPerDecade.count() - 1
+
+    def init_decade_list(self):
+        min_depth = self.model.zCS[0]
+        max_depth = self.model.dz[-1]
+        # num_decade = int(np.ceil(np.log10(max_depth)) - np.floor(np.log10(min_dep)))
+        idx = 1
+        decade = np.log10(min_depth)
+        num_per_decade = []
+        for iz, z in enumerate(self.model.dz[1:]):
+            if np.abs(decade - np.log10(z)) >= 1:
+                decade += 1
+                num_per_decade.append(idx - 1)
+                idx = 1
+            else:
+                idx += 1
+        num_per_decade.append(idx)
+        for num in num_per_decade:
+            item = QtWidgets.QListWidgetItem(str(num))
+            item.setFlags(QtCore.Qt.ItemIsEditable |
+                          QtCore.Qt.ItemIsSelectable |
+                          QtCore.Qt.ItemIsEnabled)
+            self.zPerDecade.insertItem(idx, item)
 
     def generate_depths(self):
         min_depth = float(self.minDepth.text())

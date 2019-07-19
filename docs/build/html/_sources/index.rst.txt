@@ -1,20 +1,83 @@
 .. pyMT documentation master file, created by Eric Roots
 
 
-Contents
+Getting Started
 ================================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Getting Started
 
-   content/misc/LICENSE
-   content/misc/help
+   content/api_core/installation
+   content/api_core/testing_installation
 
-.. data_plot
-.. =========
-.. 	print('hello')
-.. 	>> hello
+API
+===
+
+.. toctree::
+    :maxdepth: 3
+
+    content/api_core/data_structures
+    content/api_core/input_files
+
+GUIs
+=========
+
+Data Plot
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   content/data_plot/getting_started
+   content/data_plot/main_window
+   content/data_plot/map_viewer
+
+Model Viewer
+------------
+
+.. toctree::
+    :maxdepth: 2
+
+    content/model_viewer/getting_started
+    content/model_viewer/main_window
+
+Mesh Designer
+-------------
+
+.. toctree::
+    :maxdepth: 2
+
+    content/mesh_designer/getting_started
+    content/mesh_designer/main_window
+
+
+Other Info
+==========
+
+License
+-------
+
+.. toctree::
+    :maxdepth: 2
+
+    content/misc/LICENSE
+
+Help
+----
+.. toctree::
+    :maxdepth: 2
+
+    content/misc/help
+
+Disclaimer
+----------
+
+.. toctree::
+    :maxdepth: 2
+
+    content/misc/DISCLAIMER
+
 
 Indices and tables
 ==================

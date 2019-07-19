@@ -8,7 +8,7 @@ from scipy.interpolate import RectBivariateSpline as RBS
 import copy
 # import colorcet as cc
 import colorsys
-import e_colours.colourmaps
+from pyMT.e_colours import colourmaps
 
 
 local_path = 'C:/Users/eric/'
@@ -123,8 +123,8 @@ def interpolate_slice(x, y, Z, NP):
 # MALARTIC
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
-mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/Hex2Mod/HexMal_Z.model')
-data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_hex.lst')
+# mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/Hex2Mod/HexMal_Z.model')
+# data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_hex.lst')
 #####################################################################
 # DRYDEN
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
@@ -136,8 +136,9 @@ data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/regions/afton/j2/afton_cull1.lst')
 #####################################################################
 # LARDER
-# data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
+data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
 # mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
+mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
 # reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
@@ -160,29 +161,31 @@ mod.to_UTM()
 # if mod.coord_system == 'UTM':
 #     mod.dx = [xx / 1000 for xx in mod.dx]
 #     mod.dy = [yy / 1000 for yy in mod.dy]
-slice_num = 87
+slice_num = 53
 plane = 'xz'
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Malartic/RoughFigures/MAL_R1_slices/NS_slices/'
 file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Larder/RoughFigures/LAR_R1_slices/'
-file_name = ''.join(['MAL_NS_', str(int(mod.dy[slice_num])), 'm.png'])
+# file_name = ''.join(['LL_ZStatic_NS_', str(int(mod.dy[slice_num])), 'm.png'])
+file_name = ''.join(['LL_ZStatic_NS_', str(slice_num), 'm.png'])
 title_ = 'Standard Inversion'
-save_fig = 0
+save_fig = 1
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
-
+annotate_sites = False
 # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
 #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
-xlim = [5390, 5412]
+# xlim = [5390, 5412]
+xlim = [5300, 5370]  # Larder Hex
 # xlim = list(np.array([min(data.locations[:, 0]) - 20000, max(data.locations[:, 0]) + 20000]) / 1000)
 # xlim = list(np.array([min(data.locations[:, 0]) - 2000, max(data.locations[:, 0]) + 2000]) / 1000)
 # zlim = [0, 200]
 # xlim = [672, 679]
 # zlim = [5610, 5620]
-zlim = [0, 20]
-lut = 64
+zlim = [0, 50]
+lut = 32
 cax = [0, 5]
 isolum = False
 # xlim = [-123.5, -121.5]
@@ -210,7 +213,7 @@ for ii in range(len(mod.dy) - 1):
 for ii in range(len(mod.dz) - 1):
     z[ii] = (mod.dz[ii] + mod.dz[ii + 1]) / 2
 if cmap_name == 'jetplus':
-    cmap = e_colours.colourmaps.jet_plus(lut)
+    cmap = colourmaps.jet_plus(lut)
 else:
     cmap = cm.get_cmap(cmap_name, lut)
 
@@ -350,12 +353,13 @@ for ii in range(1, 2):
                              A=(to_plot), cmap=cmap)
         # plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'k.')
         # plt.plot(data.locations[:, 0] / 1000, np.zeros((data.locations[:, 0].shape)), 'kv')
-        for jj, site in enumerate(data.site_names):
-            plt.text(s=site,
-                     x=data.locations[jj, 0] / 1000,
-                     y=-zlim[1] / 6,
-                     color='k',
-                     rotation=90)
+        if annotate_sites:
+            for jj, site in enumerate(data.site_names):
+                plt.text(s=site,
+                         x=data.locations[jj, 0] / 1000,
+                         y=-zlim[1] / 6,
+                         color='k',
+                         rotation=90)
             # plt.annotate(site,
                          # xy=(data.locations[jj, 0] / 1000, 0),  #data.locations[jj, 0] / 1000),
                          # color='k')
@@ -386,7 +390,7 @@ for ii in range(1, 2):
     # for line in kimberlines:
     #     ax.plot([line, line], [0, 200], 'w-', lw=0.5)
 
-ax.autoscale_view(tight=True)
+# ax.autoscale_view(tight=True)
 ax.tick_params(axis='both', labelsize=18)
 # locs = ax.plot(data.locations[:, 0]/1000, np.zeros((data.locations.shape[0])) - 0.2, 'kv', markersize=8)[0]
 # locs.set_clip_on(False)

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Data Plot</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -20,8 +20,17 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QVBoxLayout" name="mplvl">
-    <item>
+   <layout class="QGridLayout" name="mplvl">
+    <property name="topMargin">
+     <number>1</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <property name="verticalSpacing">
+     <number>1</number>
+    </property>
+    <item row="0" column="0">
      <widget class="QWidget" name="mplwindow" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -121,10 +130,28 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dock">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>836</width>
+     <height>330</height>
+    </size>
+   </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_4">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="3">
       <widget class="QPushButton" name="ReadDataButton">
@@ -133,6 +160,13 @@
        </property>
        <property name="text">
         <string>Read Data</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="ForwardButton">
+       <property name="text">
+        <string>Forward</string>
        </property>
       </widget>
      </item>
@@ -153,22 +187,14 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QPushButton" name="ForwardButton">
-       <property name="text">
-        <string>Forward</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="2">
-      <widget class="QScrollBar" name="siteSlider">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="4">
+     <item row="1" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="currentIndex">
         <number>1</number>
        </property>
@@ -387,205 +413,238 @@
           <enum>Qt::Vertical</enum>
          </property>
         </widget>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>10</y>
+           <width>100</width>
+           <height>79</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string># Params</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_NP_2">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_NS_2">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
        <widget class="QWidget" name="PlotOptions">
         <attribute name="title">
          <string>Plot Options</string>
         </attribute>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>0</y>
-           <width>131</width>
-           <height>171</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string>Toggle Plots</string>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QCheckBox" name="toggleRaw">
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="3" column="3">
+          <widget class="QComboBox" name="scalingBox">
+           <item>
             <property name="text">
-             <string>Raw Data</string>
+             <string>None</string>
             </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="toggleData">
+           </item>
+           <item>
             <property name="text">
-             <string>Data</string>
+             <string>Periods</string>
             </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="toggleResponse">
+           </item>
+           <item>
             <property name="text">
-             <string>Response</string>
+             <string>Sqrt(Periods)</string>
             </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="showOutliers">
-            <property name="text">
-             <string>Show Outliers</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="LockAxes">
-            <property name="text">
-             <string>Lock Axes</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QLabel" name="label_6">
-         <property name="geometry">
-          <rect>
-           <x>40</x>
-           <y>170</y>
-           <width>53</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Scaling</string>
-         </property>
-        </widget>
-        <widget class="QComboBox" name="scalingBox">
-         <property name="geometry">
-          <rect>
-           <x>20</x>
-           <y>190</y>
-           <width>91</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <item>
-          <property name="text">
-           <string>None</string>
-          </property>
+           </item>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Periods</string>
-          </property>
+         <item row="0" column="2" rowspan="3" colspan="2">
+          <widget class="QGroupBox" name="groupBox_3">
+           <property name="title">
+            <string>Error Bars</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QRadioButton" name="dataErrRadio">
+              <property name="text">
+               <string>Data Errors</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="usedErrRadio">
+              <property name="text">
+               <string>Used Errors</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="noErrRadio">
+              <property name="text">
+               <string>No Errors</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Sqrt(Periods)</string>
-          </property>
+         <item row="3" column="2">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Scaling</string>
+           </property>
+          </widget>
          </item>
-        </widget>
-        <widget class="QLineEdit" name="numSubplots">
-         <property name="geometry">
-          <rect>
-           <x>260</x>
-           <y>190</y>
-           <width>41</width>
-           <height>22</height>
-          </rect>
-         </property>
-        </widget>
-        <widget class="QLabel" name="label_7">
-         <property name="geometry">
-          <rect>
-           <x>240</x>
-           <y>170</y>
-           <width>81</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string># Subplots</string>
-         </property>
-        </widget>
-        <widget class="QGroupBox" name="groupBox_3">
-         <property name="geometry">
-          <rect>
-           <x>140</x>
-           <y>0</y>
-           <width>151</width>
-           <height>131</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string>Error Bars</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QRadioButton" name="dataErrRadio">
-            <property name="text">
-             <string>Data Errors</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="usedErrRadio">
-            <property name="text">
-             <string>Used Errors</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="noErrRadio">
-            <property name="text">
-             <string>No Errors</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QPushButton" name="showMap">
-         <property name="geometry">
-          <rect>
-           <x>130</x>
-           <y>180</y>
-           <width>91</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Show Map</string>
-         </property>
-        </widget>
-        <widget class="QTableWidget" name="comp_table">
-         <property name="geometry">
-          <rect>
-           <x>320</x>
-           <y>10</y>
-           <width>371</width>
-           <height>192</height>
-          </rect>
-         </property>
-         <property name="editTriggers">
-          <set>QAbstractItemView::CurrentChanged</set>
-         </property>
-         <property name="dragDropOverwriteMode">
-          <bool>false</bool>
-         </property>
-        </widget>
+         <item row="0" column="4">
+          <widget class="QGroupBox" name="groupBox_5">
+           <property name="title">
+            <string># Params</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_NP">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_NS">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string># Subplots</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4">
+          <widget class="QLineEdit" name="numSubplots">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5" rowspan="4">
+          <widget class="QTableWidget" name="comp_table">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>800</height>
+            </size>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::CurrentChanged</set>
+           </property>
+           <property name="dragDropOverwriteMode">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4">
+          <widget class="QPushButton" name="showMap">
+           <property name="text">
+            <string>Show Map</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" rowspan="4">
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>Toggle Plots</string>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QCheckBox" name="toggleRaw">
+              <property name="text">
+               <string>Raw Data</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="toggleData">
+              <property name="text">
+               <string>Data</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="toggleResponse">
+              <property name="text">
+               <string>Response</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="showOutliers">
+              <property name="text">
+               <string>Show Outliers</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="LockAxes">
+              <property name="text">
+               <string>Lock Axes</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="ErrorMap">
         <attribute name="title">
@@ -661,31 +720,24 @@
         <widget class="QGroupBox" name="groupBox_2">
          <property name="geometry">
           <rect>
-           <x>0</x>
+           <x>10</x>
            <y>10</y>
-           <width>163</width>
+           <width>171</width>
            <height>201</height>
           </rect>
          </property>
          <property name="title">
           <string>Group Manipulations</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QPushButton" name="refreshErrorTree">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Refresh</string>
+             <string>Filter Length</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="regErrors">
-            <property name="text">
-             <string>Regulate Errors</string>
-            </property>
-           </widget>
-          </item>
-          <item>
+          <item row="5" column="1">
            <widget class="QDoubleSpinBox" name="width">
             <property name="minimum">
              <double>0.100000000000000</double>
@@ -695,7 +747,7 @@
             </property>
            </widget>
           </item>
-          <item>
+          <item row="6" column="1">
            <widget class="QDoubleSpinBox" name="mult">
             <property name="minimum">
              <double>0.100000000000000</double>
@@ -705,7 +757,28 @@
             </property>
            </widget>
           </item>
-          <item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Multiplier</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QPushButton" name="regErrors">
+            <property name="text">
+             <string>Regulate Errors</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QPushButton" name="refreshErrorTree">
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0" colspan="2">
            <widget class="QPushButton" name="resetErrors">
             <property name="text">
              <string>Reset Errors</string>
@@ -715,10 +788,13 @@
          </layout>
         </widget>
         <widget class="QGroupBox" name="groupBox_4">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="geometry">
           <rect>
-           <x>1120</x>
-           <y>20</y>
+           <x>990</x>
+           <y>30</y>
            <width>139</width>
            <height>92</height>
           </rect>
@@ -784,7 +860,7 @@
         <widget class="QTableWidget" name="errorFloorTable">
          <property name="geometry">
           <rect>
-           <x>180</x>
+           <x>230</x>
            <y>10</y>
            <width>281</width>
            <height>192</height>

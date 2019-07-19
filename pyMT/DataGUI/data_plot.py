@@ -517,13 +517,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.error_tree.itemChanged.connect(self.post_edit_error)
         # self.update_comp_list()
         self.update_comp_table()
-        
         if self.dataset.rms:
             self.init_rms_tables()
         self.stored_key_presses = []
         self.map_view = MapMain(dataset=self.dataset,
                                 active_sites=self.site_names,
                                 sites=self.dataset.data.site_names)
+
+        self.set_nparam_labels()
 
     def init_rms_tables(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -568,6 +569,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
         pass
         # ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
         #                  if comp in self.dataset.data.components]
+
+    def set_nparam_labels(self):
+        self.label_NP.setText('Periods: ' + str(self.dataset.data.NP))
+        self.label_NS.setText('Sites: ' + str(self.dataset.data.NS))
+        self.label_NP_2.setText('Periods: ' + str(self.dataset.data.NP))
+        self.label_NS_2.setText('Sites: ' + str(self.dataset.data.NS))
 
     @property
     def error_type(self):
@@ -707,6 +714,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         for ii in range(max_len):
             self.comp_table.verticalHeader().setSectionResizeMode(ii,
                                                                   QtWidgets.QHeaderView.ResizeToContents)
+        self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        # col_width = sum([self.comp_table.columnWidth(ii) for ii, header in enumerate(header)])
+        # self.comp_table.setFixedWidth(col_width + 50)
+        # self.comp_table.resizeColumnsToContents()
+        # self.comp_table.resizeRowsToContents()
 
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -1061,6 +1073,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.back_or_forward_button(shift=0)
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         self.map_view.update_map()
+        self.set_nparam_labels()
         # self.error_tree.itemChanged.connect(self.post_edit_error)
 
     def num_subplots(self):
@@ -1154,6 +1167,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map_view.map.active_sites = self.site_names
         self.map_view.map.set_locations()
         self.map_view.update_map()
+        # Also update the label
+        self.set_nparam_labels()
 
     def add_sites(self):
         # This method and the relevent methods in ws.data_structures are
@@ -1171,6 +1186,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map_view.map.active_sites = self.site_names
         self.map_view.map.set_locations()
         self.map_view.update_map()
+        self.set_nparam_labels()
 
     def print_periods(self):
         periods = list(self.dataset.raw_data.narrow_periods.keys())
@@ -1645,6 +1661,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.mplvl.addWidget(self.canvas)
         self.toolbar = NavigationToolbar(canvas=self.canvas,
                                          parent=self.mplwindow, coordinates=True)
+        self.toolbar.setFixedHeight(36)
+        self.toolbar.setIconSize(QtCore.QSize(36, 36))
         # Connect check box to instance
         self.canvas.draw()
         self.mplvl.addWidget(self.toolbar)
@@ -1716,6 +1734,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     self.update_dpm(updated_sites=self.dpm.site_names,
                                     updated_comp=self.dataset.data.components)
                     self.update_map_data()
+                    self.set_nparam_labels()
         if event.button == 2:
             if israw:
                 # print(ind)
@@ -1740,6 +1759,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 print('Removing period {}, freq {}'.format(period, 1 / period))
                 self.update_dpm()
                 self.update_map_data()
+                self.set_nparam_labels()
         #     print('Right Mouse')
         # if self.dpm.axes[ax_index].lines[2].contains(event):
             # print('Yep, thats a point')

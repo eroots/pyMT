@@ -86,8 +86,16 @@
      <addaction name="actionBgy"/>
      <addaction name="actionBgy_r"/>
     </widget>
+    <widget class="QMenu" name="menuMesh_Lines">
+     <property name="title">
+      <string>Mesh Lines</string>
+     </property>
+     <addaction name="action_meshBlack"/>
+     <addaction name="action_meshWhite"/>
+    </widget>
     <addaction name="actionRho_cax"/>
     <addaction name="menuColour_Map"/>
+    <addaction name="menuMesh_Lines"/>
    </widget>
    <addaction name="menuWrite_Model"/>
    <addaction name="menuColours"/>
@@ -564,6 +572,14 @@
         </widget>
        </widget>
        <widget class="QWidget" name="page_5">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>278</width>
+          <height>650</height>
+         </rect>
+        </property>
         <attribute name="label">
          <string>Page</string>
         </attribute>
@@ -773,6 +789,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>jetplus</string>
    </property>
@@ -815,6 +834,25 @@
    </property>
    <property name="text">
     <string>jetplus_r</string>
+   </property>
+  </action>
+  <action name="action_meshBlack">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black</string>
+   </property>
+  </action>
+  <action name="action_meshWhite">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>White</string>
    </property>
   </action>
  </widget>
