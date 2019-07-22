@@ -1,3 +1,3 @@
 HELP
 ====
-For feature requests, bug fixes, or anything else contact Eric at eroots@laurentian.ca
+For feature requests, bug fixes, design suggestions, or anything else contact me at eroots087@gmail.com

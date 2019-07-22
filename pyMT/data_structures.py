@@ -1133,7 +1133,7 @@ class Model(object):
         self._dy = []
         self._dz = []
         self.vals = []
-        self.background_resistivity = 10000
+        self.background_resistivity = 2500
         self.resolution = []
         self.file = modelfile
         self.origin = (0, 0)

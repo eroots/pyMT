@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Mesh Designer</string>
   </property>
   <widget class="QWidget" name="mplwindow">
    <property name="sizePolicy">
@@ -118,6 +118,9 @@
      <width>300</width>
      <height>524287</height>
     </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -581,11 +584,14 @@
          </rect>
         </property>
         <attribute name="label">
-         <string>Page</string>
+         <string>Smoothing</string>
         </attribute>
         <layout class="QFormLayout" name="formLayout_2">
          <item row="0" column="0">
           <widget class="QGroupBox" name="groupBox_4">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="title">
             <string>Slices</string>
            </property>
@@ -625,6 +631,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QGroupBox" name="groupBox_5">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="title">
             <string>Views</string>
            </property>
