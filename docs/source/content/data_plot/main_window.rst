@@ -53,6 +53,8 @@ The 'Display Options' menu, as the name implies, gives a few options for changin
 * Inversion Type: Used to control which data components are written to a data file. If nothing is selected, it defaults to all components that were originally read in.
 	* Note that some inversion types only work with certain file formats. Inversion types 1-5 work for both WSINV3DMT and ModEM, while inversion types 6-10 only work with ModEM.
 
+.. _Forward and Back Buttons:
+
 Forward and Back Buttons
 ------------------------
 

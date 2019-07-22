@@ -64,10 +64,6 @@ The currently plotted period / frequency is seen near the buttom of the Control 
 Induction Arrows
 ^^^^^^^^^^^^^^^^
 
-.. figure:: ../../images/map_viewer_control_dock.png
-    :align: center
-    :scale: 50 %
-
 The Induction Arrows group box allows for plotting of the induction arrows (in Parkinson convention) within the `Map Window`_.
 
 The Data and Response buttons plot the the induction arrows from the inversion data and response files in black and red, respectively.
@@ -83,14 +79,14 @@ The Data and Response checkboxes plot the phase tensor ellipses from the inversi
 If both checkboxes are selected, the phase tensor misfit tensor is plotted, as defined in Heise et al. (2007):
 
 .. math ::
-	\mathbf{\Delta} = \mathbf{I} - \frac{1}{2}(\mathbf{\Phi})^{-1}(\mathbf{\Phi}) + (\mathbf{\Phi})(\mathbf{\Phi})^{-1})
+	\mathbf{\Delta} = \mathbf{I} - \frac{1}{2}(\mathbf{\Phi}^{-1}\mathbf{\Phi} + \mathbf{\Phi}\mathbf{\Phi}^{-1})
 
 In this case, the colour of the ellispes may also be filled by the :math:`\delta` value give as a percentage, defined by:
 
 .. math ::
 	\delta = 100 * \left| \mathbf{\Delta} / \mathbf{\Phi} \right|
 
-All other phase tensor fill values are defined as in Cadwell et al., 2004. This includes the skew value :math:`\beta`, and so the recommended upper limit for approximate two-dimensionality is :math:`\beta = left|3\degree \right|`
+All other phase tensor fill values are defined as in Cadwell et al., 2004. This includes the skew value :math:`\beta`, and so the recommended upper limit for approximate two-dimensionality is :math:`\beta \leq \left|3^{\circ} \right|`
 
 Pseudosection
 ^^^^^^^^^^^^^

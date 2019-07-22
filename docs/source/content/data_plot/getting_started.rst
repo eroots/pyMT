@@ -50,7 +50,7 @@ A few things to note about the default behavior of data_plot:
 * The :ref:`Map Viewer` plot is updated any time a contained element is changed. In general this operation is fast. However, if a pseudosection is being plotted in the :ref:`Map Window`, any operation involving a new plot (including changing the viewed sites using the :ref:`Forward and Back Buttons`) may become quite slow.
 
 * When only a :ref:`List File` is specified for the loaded dataset, a :ref:`Data` object will be initialized by taking logarithmically spaced periods.
-	* In this instance, the :ref:`Map View` is not initialized properly, and no site locations are shown. The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.
+	* In this instance, the :ref:`Map Viewer` is not initialized properly, and no site locations are shown. The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.
 
 * When multiple datasets are loaded in, the misfit table may not be properly updated to reflect the currently selected dataset.
 

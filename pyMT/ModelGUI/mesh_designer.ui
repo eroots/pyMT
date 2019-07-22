@@ -136,7 +136,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="page_3">
         <property name="geometry">
@@ -362,7 +362,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Depths per decade</string>
+              <string>Depths Per Decade</string>
              </property>
             </widget>
             <widget class="QLineEdit" name="maxDepth">
@@ -484,7 +484,7 @@
              </rect>
             </property>
             <property name="text">
-             <string>Set background</string>
+             <string>Set Background</string>
             </property>
            </widget>
           </widget>

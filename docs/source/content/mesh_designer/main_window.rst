@@ -59,5 +59,67 @@ When adding pads, the size of the new pad is determined by taking the size of th
 	* If it is not, the definition of the mesh relative to the station locations may not be the same as appears while using this GUI.
 * Always double check the output mesh and data files with another tool afterwards (e.g., with :ref:`Model Viewer`)
 
-Z Mesh
-^^^^^^
+The depth mesh is controlled through the Z Mesh groupbox.  The thickness of the first slice (in meters) is specified in the First Depth edit line. The final depth (i.e., the maximum depth to use in the mode) is specified in the Last Depth edit line.
+
+Specification of the mesh between the first and last depth is controlled in the Depths per decade list. This list will be automatically populated with a list of values. The length of this list is such that there is one value per decade of depth.
+
+Once each of these values has been specified, hit the Generate Depths button to generate the Z mesh.
+
+For example, for a first depth of 1 m and a last depth of 500000 m, the Depths per will be populated with 6 values. From top to bottom, they correspond to the number of layers used between depths of:
+
+* 1-10 m
+* 10-100 m
+* 100-1000 m
+* 1000-10000 m
+* 10000-100000 m
+* 100000-500000 m
+
+In this instance, each value corresponds to the number of logarithmically spaced layers to use within each decade.
+
+As a general rule of thumb, it is best to ensure that the sizes of the layers are always increasing. In accordance with this, the program will check the 2nd derivative of the generated mesh. If the derivative is negative anywhere, a message will appear saying so. 
+
+The backround resistivity of the model may be changed by editing the corresponding line and clicking the Set Background button.
+
+Reset Mesh
+^^^^^^^^^^
+
+The Reset Mesh tab is used to generate a new, uniformly spaced mesh from scratch.
+
+Set the nominal cell spacing for the X and Y directions in the corresponding boxes, and hit Regenerate Mesh.
+
+A new mesh will be generated using these spacings, extending to the bounds set by the station locations.
+
+Smoothing
+^^^^^^^^^
+
+The Smoothing tab is used to smooth the resistivity values of an inverted model.
+
+* This tab is somewhat experimental at the moment *
+
+Set the smoothing length in the X, Y, and Z direction using the corresponding spinboxes, and hit Smooth Model to apply a Gaussian smoother with those parameters.
+
+Plot Window
+-----------
+
+.. figure:: ../../images/mesh_designer_plot_window.png
+    :align: center
+    :scale: 50 %
+
+The Plot Window shows the current mesh, and if a data file was included, the station locations.
+
+Fine grained modification of the mesh is done within this window.
+
+Left click anywhere within the mesh to add a new vertical mesh line. Right click to add a horizontal mesh line.
+
+Holding CTRL while left or right clicking will remove the nearest vertical / horizontal mesh line, respectively.
+
+Refrain from double clicking within this window. Although some precautions have been implemented to avoid generated invalid meshes, double clicking can sometimes result in multiple mesh lines in the same location, i.e., a cell with 0 width, which will subsequently crash ModEM.
+
+At the bottom of the Plot window is a toolbar. From here, you can pan and zoom into the plot, as well as return to the home view using the corresponding buttons.
+
+Note that panning and zooming *is* stored within this window, which allows you to zoom into an area of high site density and add additional mesh:
+
+* Click the zoom button and draw a rectangle around the area of interest.
+* Unclick the zoom button to return the click functionality back to mesh modification. 
+* Modifiy the mesh as required. 
+* Hit the Home button in the toolbar to return to your original (un-zoomed) view.

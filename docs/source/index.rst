@@ -52,7 +52,7 @@ Mesh Designer
     content/mesh_designer/main_window
 
 Examples
---------
+========
 
 .. toctree::
     :maxdepth: 2
