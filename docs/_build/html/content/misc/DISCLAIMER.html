@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>DISCLAIMER &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="HELP" href="help.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="help.html" title="HELP"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="disclaimer">
+<h1>DISCLAIMER<a class="headerlink" href="#disclaimer" title="Permalink to this headline">¶</a></h1>
+<p>This code base has been cobbled together over a few years. Parts of it were written to fulfill a specific need at a specific time and then promptly forgotten, while others were written when I was still figuring out the difference between a class and a method. While I have tried to address bugs as I come across them, this code is not unit tested (yet), and so is best used with an understanding of the the expected outcome is. There are some <a class="reference internal" href="#known-bugs">known bugs</a>, but any further unexpected behavior can be reported.</p>
+</div>
+<div class="section" id="known-bugs">
+<span id="id1"></span><h1>KNOWN BUGS<a class="headerlink" href="#known-bugs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="general">
+<h2>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Text is occasionally printed to the terminal. This text is usually meant to convey some information about something unexpected, and the codes attempts to work around it. Occasionally text will be printed that was meant for debugging purposes, and has just not been removed. Generally, any text that is printed that isn’t followed by a crash is fine.</p></li>
+</ul>
+</div>
+<div class="section" id="data-plot-gui">
+<h2>Data Plot GUI<a class="headerlink" href="#data-plot-gui" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>When only a <a class="reference internal" href="../api_core/input_files.html#list-file"><span class="std std-ref">List File</span></a> is specified for the loaded dataset, a <a class="reference internal" href="../api_core/data_structures.html#data"><span class="std std-ref">Data</span></a> object will be initialized by taking logarithmically spaced periods.</dt><dd><ul>
+<li><p>In this instance, the <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> is not initialized properly, and no site locations are shown.</p></li>
+<li><p>The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>When multiple datasets are loaded, the misfit table may not be properly updated to reflect the currently selected dataset.</p></li>
+<li><dl class="simple">
+<dt>Rotating the data / stations using the ‘Azimuth’ box has a few associated bugs</dt><dd><ul>
+<li><p>The station locations and annotations in the <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> may not be accurate</p></li>
+<li><dl class="simple">
+<dt>The Azimuth editor is meant to be used for 3-D data, and rotates the data accordingly: Station locations are rotated clockwise from north, and the data is rotated counter-clockwise to maintain a measurement coordinate system that is consistent with the model space (see <a class="reference external" href="https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/">https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/</a>)</dt><dd><ul>
+<li><p>A consequence of this setup is that the GUI is not suitable to rotation and projection into 2-D.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>The ‘Write All Plots’ action sometimes crashes the GUI.</dt><dd><ul>
+<li><p>Known instances of this are when you attempt to overwrite an open PDF file. A permission error is thrown and not caught, resulting in a crash</p></li>
+<li><p>Occasionally, if the number of subplots in the final saved plot is different from that specified within the ‘Plot Options’ tab, the next action taken can result in a crash.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>If more subplots are used than there are stations available, one station will be re-plotted in order to fill the unused subplots.</p></li>
+<li><p>If more than one dataset is loaded into the GUI, switching between datasets may not update the misfit table.</p></li>
+<li><p>Blank items in the <a class="reference internal" href="../data_plot/main_window.html#data-component-table"><span class="std std-ref">Data Component Table</span></a> are selectable. However, this results in the first available component being plotted instead, and so should not break the GUI.</p></li>
+<li><p>The RMS misfits as shown in the <a class="reference internal" href="../data_plot/main_window.html#misfit-table"><span class="std std-ref">Misfit Table</span></a> may differ slightly from what logged by ModEM as pyMT always applies an error floor to any data read in. ModEM does not explicitly use (or store) an applied error floor, and so the hard-coded error floors of pyMT (see <a class="reference internal" href="../api_core/data_structures.html#error-floors"><span class="std std-ref">Error Floors</span></a>) may differ from those used in the inversion. As a result, if you used a lower error floor than those coded into pyMT, the misfits shown in this table will be lower.</p></li>
+</ul>
+</div>
+<div class="section" id="model-viewer-gui">
+<h2>Model Viewer GUI<a class="headerlink" href="#model-viewer-gui" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Hovering over the plots within the 2-D will show location and resistivity information about the cursors position. This seem to generally be correct, however sometimes the resistivity shown does not match the plot itself. Likely an issue with matching the cursors location to model cells near the edges of the model.</p></li>
+<li><dl class="simple">
+<dt>The 2-D transect plot shows left-right in the order that was clicked.</dt><dd><ul>
+<li><p>This means that if you select points from north to south, the figure will plot from north on the left to south on the right.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>The 2-D transect plot does not respond to changes in the model trim. The workaround currently is to trim the volume, and then re-select the desired points for the transect plot.</p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">DISCLAIMER</a></li>
+<li><a class="reference internal" href="#known-bugs">KNOWN BUGS</a><ul>
+<li><a class="reference internal" href="#general">General</a></li>
+<li><a class="reference internal" href="#data-plot-gui">Data Plot GUI</a></li>
+<li><a class="reference internal" href="#model-viewer-gui">Model Viewer GUI</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="help.html"
+                        title="previous chapter">HELP</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/misc/DISCLAIMER.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="help.html" title="HELP"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>data_structures &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Input File Types" href="input_files.html" />
+    <link rel="prev" title="Testing Installation" href="testing_installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="input_files.html" title="Input File Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="testing_installation.html" title="Testing Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="data-structures">
+<h1>data_structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dataset">
+<span id="id1"></span><h2>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="data">
+<span id="id2"></span><h2>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="error-floors">
+<span id="id3"></span><h2>Error Floors<a class="headerlink" href="#error-floors" title="Permalink to this headline">¶</a></h2>
+<p>Error floors may be set in a Data object by setting the corresponding value in the error_floors attribute.
+Data.error_floors initialized as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Data</span><span class="o">.</span><span class="n">error_floors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Off-Diagonal Impedance&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                 <span class="s1">&#39;Diagonal Impedance&#39;</span><span class="p">:</span> <span class="mf">0.075</span><span class="p">,</span>
+                 <span class="s1">&#39;Tipper&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                 <span class="s1">&#39;Rho&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                 <span class="s1">&#39;Phase&#39;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The corresponding entries may be modified as any dictionary and then accesing the apply_error_floor method. For instance, to change the error floor of the ZXY and ZYX components to 7.5%, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">error_floors</span><span class="p">[</span><span class="s1">&#39;Off-Diagonal Impedance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.075</span>
+<span class="n">data</span><span class="o">.</span><span class="n">apply_error_floor</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="rawdata">
+<span id="id4"></span><h2>RawData<a class="headerlink" href="#rawdata" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="response">
+<span id="id5"></span><h2>Response<a class="headerlink" href="#response" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="site">
+<span id="id6"></span><h2>Site<a class="headerlink" href="#site" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="model">
+<span id="id7"></span><h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">data_structures</a><ul>
+<li><a class="reference internal" href="#dataset">Dataset</a></li>
+<li><a class="reference internal" href="#data">Data</a></li>
+<li><a class="reference internal" href="#error-floors">Error Floors</a></li>
+<li><a class="reference internal" href="#rawdata">RawData</a></li>
+<li><a class="reference internal" href="#response">Response</a></li>
+<li><a class="reference internal" href="#site">Site</a></li>
+<li><a class="reference internal" href="#model">Model</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="testing_installation.html"
+                        title="previous chapter">Testing Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="input_files.html"
+                        title="next chapter">Input File Types</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/api_core/data_structures.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="input_files.html" title="Input File Types"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="testing_installation.html" title="Testing Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

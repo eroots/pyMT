@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mesh Designer - Main Window &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Recipes" href="../examples/recipes.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../examples/recipes.html" title="Recipes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="getting_started.html" title="Getting Started"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mesh-designer-main-window">
+<h1>Mesh Designer - Main Window<a class="headerlink" href="#mesh-designer-main-window" title="Permalink to this headline">¶</a></h1>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/mesh_designer.png"><img alt="../../_images/mesh_designer.png" src="../../_images/mesh_designer.png" style="width: 688.0px; height: 479.0px;" /></a>
+</div>
+<p>The Mesh Designer has 3 areas: The <a class="reference internal" href="#menu-bar">Menu Bar</a>, <a class="reference internal" href="#control-dock">Control Dock</a>, and <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<div class="section" id="menu-bar">
+<h2>Menu Bar<a class="headerlink" href="#menu-bar" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/mesh_designer_menu_bar.png"><img alt="../../_images/mesh_designer_menu_bar.png" src="../../_images/mesh_designer_menu_bar.png" style="width: 688.0px; height: 479.5px;" /></a>
+</div>
+<p>The Save / Revert menu has options for writing the model to a file, as well as saving and reverting progess within the Mesh Designer.</p>
+<p>The Write Model sub-menu will open a dialog box that asks for the name of the file to be written to. You will be prompted again if this operation is going to overwrite an existing file.</p>
+<ul class="simple">
+<li><p>The only file format available from here is that of a ModEM 3-D file. This is the same as the WSINV3DMT file format, except that the resistivity values will be given as the natural logarithm.</p></li>
+<li><p>If you need the file in WSINV3DMT format, the workaround at present is to change the file format programmatically (see <a class="reference internal" href="../examples/recipes.html#recipes"><span class="std std-ref">Recipes</span></a>)</p></li>
+</ul>
+<p>The Save Progress sub-menu internally saves any changes you’ve made to the mesh. This checkpoint can then be reverted to later by using the Revert Progress sub-menu.</p>
+<p>The Colours menu is controls the colour map and colour limits used, as well as the colour of the mesh lines.</p>
+<ul class="simple">
+<li><p>As this GUI is meant mainly for editing the mesh, these options are mainly to ensure good visibility of the mesh lines regardless of the resistivity used</p></li>
+</ul>
+</div>
+<div class="section" id="control-dock">
+<h2>Control Dock<a class="headerlink" href="#control-dock" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/mesh_designer_control_dock.png"><img alt="../../_images/mesh_designer_control_dock.png" src="../../_images/mesh_designer_control_dock.png" style="width: 688.0px; height: 479.0px;" /></a>
+</div>
+<p>The Control Dock is the main control panel for manipulating the mesh and model. It is broken into 3 tabs:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#manipulate-mesh">Manipulate Mesh</a></p></li>
+<li><p><a class="reference internal" href="#reset-mesh">Reset Mesh</a></p></li>
+<li><p><a class="reference internal" href="#smoothing">Smoothing</a></p></li>
+</ul>
+<div class="section" id="manipulate-mesh">
+<h3>Manipulate Mesh<a class="headerlink" href="#manipulate-mesh" title="Permalink to this headline">¶</a></h3>
+<p>The Manipulate Mesh tab is used to, as the name suggests, to modify and manipulate the mesh used.</p>
+<p>Specifically, there are 3 things that can be modified from this tab: The XY Padding, the Z mesh (or depth mesh), and the background resistivity.</p>
+<p>The XY Padding groupbox is used to add and remove padding cells in the XY plane.</p>
+<p>The Add Pad and Remove Pad buttons add and remove pads from the left / right / top bottom/ of the XY plane, depending on which of the corresponding checkboxes are selected.</p>
+<p>When adding pads, the size of the new pad is determined by taking the size of the outer most cell and multiplying it by the value in the Pad Size Multiplier spinbox.</p>
+<ul class="simple">
+<li><p>Note: As the definition of the mesh within the ModEM and WSINV3DMT file formats has no explicit origin, all models generated here will have their origins placed in the center of the mesh.</p></li>
+<li><dl class="simple">
+<dt>For this reason, it is important to ensure that the model is even on the left / right and top / bottom.</dt><dd><ul>
+<li><p>If it is not, the definition of the mesh relative to the station locations may not be the same as appears while using this GUI.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Always double check the output mesh and data files with another tool afterwards (e.g., with <a class="reference internal" href="../model_viewer/main_window.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a>)</p></li>
+</ul>
+<p>The depth mesh is controlled through the Z Mesh groupbox.  The thickness of the first slice (in meters) is specified in the First Depth edit line. The final depth (i.e., the maximum depth to use in the mode) is specified in the Last Depth edit line.</p>
+<p>Specification of the mesh between the first and last depth is controlled in the Depths per decade list. This list will be automatically populated with a list of values. The length of this list is such that there is one value per decade of depth.</p>
+<p>Once each of these values has been specified, hit the Generate Depths button to generate the Z mesh.</p>
+<p>For example, for a first depth of 1 m and a last depth of 500000 m, the Depths per will be populated with 6 values. From top to bottom, they correspond to the number of layers used between depths of:</p>
+<ul class="simple">
+<li><p>1-10 m</p></li>
+<li><p>10-100 m</p></li>
+<li><p>100-1000 m</p></li>
+<li><p>1000-10000 m</p></li>
+<li><p>10000-100000 m</p></li>
+<li><p>100000-500000 m</p></li>
+</ul>
+<p>In this instance, each value corresponds to the number of logarithmically spaced layers to use within each decade.</p>
+<p>As a general rule of thumb, it is best to ensure that the sizes of the layers are always increasing. In accordance with this, the program will check the 2nd derivative of the generated mesh. If the derivative is negative anywhere, a message will appear saying so.</p>
+<p>The backround resistivity of the model may be changed by editing the corresponding line and clicking the Set Background button.</p>
+</div>
+<div class="section" id="reset-mesh">
+<h3>Reset Mesh<a class="headerlink" href="#reset-mesh" title="Permalink to this headline">¶</a></h3>
+<p>The Reset Mesh tab is used to generate a new, uniformly spaced mesh from scratch.</p>
+<p>Set the nominal cell spacing for the X and Y directions in the corresponding boxes, and hit Regenerate Mesh.</p>
+<p>A new mesh will be generated using these spacings, extending to the bounds set by the station locations.</p>
+</div>
+<div class="section" id="smoothing">
+<h3>Smoothing<a class="headerlink" href="#smoothing" title="Permalink to this headline">¶</a></h3>
+<p>The Smoothing tab is used to smooth the resistivity values of an inverted model.</p>
+<ul class="simple">
+<li><p>This tab is somewhat experimental at the moment *</p></li>
+</ul>
+<p>Set the smoothing length in the X, Y, and Z direction using the corresponding spinboxes, and hit Smooth Model to apply a Gaussian smoother with those parameters.</p>
+</div>
+</div>
+<div class="section" id="plot-window">
+<h2>Plot Window<a class="headerlink" href="#plot-window" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/mesh_designer_plot_window.png"><img alt="../../_images/mesh_designer_plot_window.png" src="../../_images/mesh_designer_plot_window.png" style="width: 688.0px; height: 479.0px;" /></a>
+</div>
+<p>The Plot Window shows the current mesh, and if a data file was included, the station locations.</p>
+<p>Fine grained modification of the mesh is done within this window.</p>
+<p>Left click anywhere within the mesh to add a new vertical mesh line. Right click to add a horizontal mesh line.</p>
+<p>Holding CTRL while left or right clicking will remove the nearest vertical / horizontal mesh line, respectively.</p>
+<p>Refrain from double clicking within this window. Although some precautions have been implemented to avoid generated invalid meshes, double clicking can sometimes result in multiple mesh lines in the same location, i.e., a cell with 0 width, which will subsequently crash ModEM.</p>
+<p>At the bottom of the Plot window is a toolbar. From here, you can pan and zoom into the plot, as well as return to the home view using the corresponding buttons.</p>
+<p>Note that panning and zooming <em>is</em> stored within this window, which allows you to zoom into an area of high site density and add additional mesh:</p>
+<ul class="simple">
+<li><p>Click the zoom button and draw a rectangle around the area of interest.</p></li>
+<li><p>Unclick the zoom button to return the click functionality back to mesh modification.</p></li>
+<li><p>Modifiy the mesh as required.</p></li>
+<li><p>Hit the Home button in the toolbar to return to your original (un-zoomed) view.</p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Mesh Designer - Main Window</a><ul>
+<li><a class="reference internal" href="#menu-bar">Menu Bar</a></li>
+<li><a class="reference internal" href="#control-dock">Control Dock</a><ul>
+<li><a class="reference internal" href="#manipulate-mesh">Manipulate Mesh</a></li>
+<li><a class="reference internal" href="#reset-mesh">Reset Mesh</a></li>
+<li><a class="reference internal" href="#smoothing">Smoothing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plot-window">Plot Window</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="getting_started.html"
+                        title="previous chapter">Getting Started</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../examples/recipes.html"
+                        title="next chapter">Recipes</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/mesh_designer/main_window.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../examples/recipes.html" title="Recipes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="getting_started.html" title="Getting Started"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Recipes &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="LICENSE" href="../misc/LICENSE.html" />
+    <link rel="prev" title="Mesh Designer - Main Window" href="../mesh_designer/main_window.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../misc/LICENSE.html" title="LICENSE"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../mesh_designer/main_window.html" title="Mesh Designer - Main Window"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="recipes">
+<span id="id1"></span><h1>Recipes<a class="headerlink" href="#recipes" title="Permalink to this headline">¶</a></h1>
+<p>All the following recipes assume pyMT modules have been imported as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyMT.data_structures</span> <span class="k">as</span> <span class="nn">ds</span>
+<span class="kn">import</span> <span class="nn">pyMT.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+</pre></div>
+</div>
+<div class="section" id="adding-data-to-an-existing-data-file">
+<h2>Adding Data to an Existing Data File<a class="headerlink" href="#adding-data-to-an-existing-data-file" title="Permalink to this headline">¶</a></h2>
+<p>Adding new periods to an existing data file is supported through the <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> GUI. However, it is assumed that the list file and data file used are consistent, i.e., that they have the same stations and in the same order.
+Therefore, adding new stations to an existing data file must be done using the pyMT API.</p>
+<p>This example uses the <a class="reference internal" href="../api_core/data_structures.html#data"><span class="std std-ref">Data</span></a>, and <a class="reference internal" href="../api_core/data_structures.html#rawdata"><span class="std std-ref">RawData</span></a> classes as well as the Data.get_data and Data.add_site methods.</p>
+<p>Assuming the data file we want to modify is ‘demo.dat’, and the list file we want to pull in new sites from is ‘raw/all.lst’:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="s1">&#39;demo.dat&#39;</span><span class="p">)</span>  <span class="c1"># Load in the data file</span>
+    <span class="n">raw_data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">RawData</span><span class="p">(</span><span class="s1">&#39;raw/all.lst&#39;</span><span class="p">)</span> <span class="c1"># Load in the raw data</span>
+    <span class="c1"># Get the new site to add with the same periods and components as &#39;data&#39;</span>
+    <span class="n">to_add</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">periods</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">periods</span><span class="p">,</span>
+                                                       <span class="n">components</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">components</span><span class="p">,</span>
+                                                       <span class="n">sites</span><span class="o">=</span><span class="s1">&#39;test_1&#39;</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">add_site</span><span class="p">(</span><span class="n">to_add</span><span class="p">[</span><span class="s1">&#39;test_1&#39;</span><span class="p">])</span> <span class="c1"># Add the new site to the data object</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;new_data&#39;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s1">&#39;modem&#39;</span><span class="p">)</span>  <span class="c1"># Write the new data out.</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Recipes</a><ul>
+<li><a class="reference internal" href="#adding-data-to-an-existing-data-file">Adding Data to an Existing Data File</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../mesh_designer/main_window.html"
+                        title="previous chapter">Mesh Designer - Main Window</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../misc/LICENSE.html"
+                        title="next chapter">LICENSE</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/examples/recipes.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../misc/LICENSE.html" title="LICENSE"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../mesh_designer/main_window.html" title="Mesh Designer - Main Window"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>
