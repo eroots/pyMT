@@ -11,10 +11,16 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Model Viewer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
+    <property name="bottomMargin">
+     <number>1</number>
+    </property>
+    <property name="verticalSpacing">
+     <number>1</number>
+    </property>
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget_2">
       <property name="sizePolicy">
@@ -97,6 +103,9 @@
   <widget class="QDockWidget" name="dockWidget_2">
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
@@ -435,6 +444,9 @@
               </item>
               <item row="3" column="4">
                <widget class="QPushButton" name="clearTransect">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>PushButton</string>
                 </property>
