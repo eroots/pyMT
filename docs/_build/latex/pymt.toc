@@ -1,0 +1,99 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}Installation}{1}{chapter.1}
+\contentsline {section}{\numberline {1.1}Dependencies}{1}{section.1.1}
+\contentsline {section}{\numberline {1.2}Installing pyMT}{1}{section.1.2}
+\contentsline {chapter}{\numberline {2}Testing Installation}{3}{chapter.2}
+\contentsline {chapter}{\numberline {3}API}{5}{chapter.3}
+\contentsline {section}{\numberline {3.1}data\_structures}{5}{section.3.1}
+\contentsline {subsection}{\numberline {3.1.1}Dataset}{5}{subsection.3.1.1}
+\contentsline {subsection}{\numberline {3.1.2}Data}{5}{subsection.3.1.2}
+\contentsline {subsection}{\numberline {3.1.3}Error Floors}{5}{subsection.3.1.3}
+\contentsline {subsection}{\numberline {3.1.4}RawData}{5}{subsection.3.1.4}
+\contentsline {subsection}{\numberline {3.1.5}Response}{5}{subsection.3.1.5}
+\contentsline {subsection}{\numberline {3.1.6}Site}{5}{subsection.3.1.6}
+\contentsline {subsection}{\numberline {3.1.7}Model}{5}{subsection.3.1.7}
+\contentsline {section}{\numberline {3.2}Input File Types}{5}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}Startup File}{5}{subsection.3.2.1}
+\contentsline {subsection}{\numberline {3.2.2}Data File}{6}{subsection.3.2.2}
+\contentsline {subsection}{\numberline {3.2.3}Response File}{6}{subsection.3.2.3}
+\contentsline {subsection}{\numberline {3.2.4}List File}{6}{subsection.3.2.4}
+\contentsline {subsection}{\numberline {3.2.5}Model File}{7}{subsection.3.2.5}
+\contentsline {chapter}{\numberline {4}GUIs}{9}{chapter.4}
+\contentsline {section}{\numberline {4.1}Data Plot}{9}{section.4.1}
+\contentsline {subsection}{\numberline {4.1.1}Getting Started}{9}{subsection.4.1.1}
+\contentsline {subsubsection}{Launching the GUI}{9}{subsubsection*.3}
+\contentsline {subsubsection}{Required Files}{9}{subsubsection*.4}
+\contentsline {subsubsection}{Default Behavior}{10}{subsubsection*.5}
+\contentsline {subsection}{\numberline {4.1.2}Data Plot - Main Window}{10}{subsection.4.1.2}
+\contentsline {subsubsection}{Menu Bar}{11}{subsubsection*.6}
+\contentsline {subsubsection}{Forward and Back Buttons}{12}{subsubsection*.7}
+\contentsline {subsubsection}{Tabs Window}{12}{subsubsection*.8}
+\contentsline {paragraph}{Data Selection}{14}{paragraph*.9}
+\contentsline {subparagraph}{Adding and Removing Periods}{14}{subparagraph*.10}
+\contentsline {subparagraph}{Sorting Sites}{14}{subparagraph*.11}
+\contentsline {subparagraph}{Current Dataset}{14}{subparagraph*.12}
+\contentsline {subparagraph}{Print Periods}{15}{subparagraph*.13}
+\contentsline {subparagraph}{Azimuth}{15}{subparagraph*.14}
+\contentsline {subparagraph}{Site List}{15}{subparagraph*.15}
+\contentsline {subparagraph}{Diagnostic Windows}{15}{subparagraph*.16}
+\contentsline {paragraph}{Plot Options}{15}{paragraph*.17}
+\contentsline {subparagraph}{Toggle Plots}{16}{subparagraph*.18}
+\contentsline {subparagraph}{Error Bars}{16}{subparagraph*.19}
+\contentsline {subparagraph}{Scaling}{16}{subparagraph*.20}
+\contentsline {subparagraph}{Subplots}{16}{subparagraph*.21}
+\contentsline {subparagraph}{Show Map}{16}{subparagraph*.22}
+\contentsline {subparagraph}{Data Component Table}{17}{subparagraph*.23}
+\contentsline {paragraph}{Misfit Table}{17}{paragraph*.24}
+\contentsline {paragraph}{Error Multipliers}{17}{paragraph*.25}
+\contentsline {paragraph}{Error Manipulations}{18}{paragraph*.26}
+\contentsline {subsubsection}{Plot Window}{19}{subsubsection*.27}
+\contentsline {subsubsection}{Toolbar}{19}{subsubsection*.28}
+\contentsline {subsection}{\numberline {4.1.3}Data Plot - Map Viewer}{19}{subsection.4.1.3}
+\contentsline {subsubsection}{Menu Bar}{20}{subsubsection*.29}
+\contentsline {paragraph}{Colour Options}{20}{paragraph*.30}
+\contentsline {paragraph}{Point Options}{21}{paragraph*.31}
+\contentsline {subsubsection}{Control Dock}{21}{subsubsection*.32}
+\contentsline {paragraph}{Induction Arrows}{22}{paragraph*.33}
+\contentsline {paragraph}{Phase Tensor}{22}{paragraph*.34}
+\contentsline {paragraph}{Pseudosection}{22}{paragraph*.35}
+\contentsline {paragraph}{Plot RMS}{22}{paragraph*.36}
+\contentsline {subsubsection}{Map Window}{23}{subsubsection*.37}
+\contentsline {section}{\numberline {4.2}Model Viewer}{23}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}Getting Started}{23}{subsection.4.2.1}
+\contentsline {subsubsection}{Launching the GUI}{23}{subsubsection*.38}
+\contentsline {subsubsection}{Required Files}{23}{subsubsection*.39}
+\contentsline {subsubsection}{Default Behavior}{24}{subsubsection*.40}
+\contentsline {subsection}{\numberline {4.2.2}Model Viewer - Main Window}{24}{subsection.4.2.2}
+\contentsline {subsubsection}{Menu Bar}{24}{subsubsection*.41}
+\contentsline {subsubsection}{Control Dock}{26}{subsubsection*.42}
+\contentsline {subsubsection}{Plot Window}{26}{subsubsection*.43}
+\contentsline {paragraph}{3D View}{27}{paragraph*.44}
+\contentsline {paragraph}{2D View}{27}{paragraph*.45}
+\contentsline {paragraph}{Transect}{28}{paragraph*.46}
+\contentsline {section}{\numberline {4.3}Mesh Designer}{28}{section.4.3}
+\contentsline {subsection}{\numberline {4.3.1}Getting Started}{28}{subsection.4.3.1}
+\contentsline {subsubsection}{Launching the GUI}{28}{subsubsection*.47}
+\contentsline {subsubsection}{Required Files}{28}{subsubsection*.48}
+\contentsline {subsubsection}{Default Behavior}{28}{subsubsection*.49}
+\contentsline {subsection}{\numberline {4.3.2}Mesh Designer - Main Window}{29}{subsection.4.3.2}
+\contentsline {subsubsection}{Menu Bar}{29}{subsubsection*.50}
+\contentsline {subsubsection}{Control Dock}{30}{subsubsection*.51}
+\contentsline {paragraph}{Manipulate Mesh}{30}{paragraph*.52}
+\contentsline {paragraph}{Reset Mesh}{32}{paragraph*.53}
+\contentsline {paragraph}{Smoothing}{32}{paragraph*.54}
+\contentsline {subsubsection}{Plot Window}{32}{subsubsection*.55}
+\contentsline {chapter}{\numberline {5}Examples}{35}{chapter.5}
+\contentsline {section}{\numberline {5.1}Recipes}{35}{section.5.1}
+\contentsline {subsection}{\numberline {5.1.1}Adding Data to an Existing Data File}{35}{subsection.5.1.1}
+\contentsline {chapter}{\numberline {6}Other Info}{37}{chapter.6}
+\contentsline {section}{\numberline {6.1}License}{37}{section.6.1}
+\contentsline {subsection}{\numberline {6.1.1}LICENSE}{37}{subsection.6.1.1}
+\contentsline {section}{\numberline {6.2}Help}{44}{section.6.2}
+\contentsline {subsection}{\numberline {6.2.1}HELP}{44}{subsection.6.2.1}
+\contentsline {section}{\numberline {6.3}Disclaimer}{44}{section.6.3}
+\contentsline {subsection}{\numberline {6.3.1}DISCLAIMER}{44}{subsection.6.3.1}
+\contentsline {subsection}{\numberline {6.3.2}KNOWN BUGS}{44}{subsection.6.3.2}
+\contentsline {subsubsection}{General}{44}{subsubsection*.56}
+\contentsline {subsubsection}{Data Plot GUI}{45}{subsubsection*.57}
+\contentsline {subsubsection}{Model Viewer GUI}{45}{subsubsection*.58}
+\contentsline {chapter}{\numberline {7}Indices and tables}{47}{chapter.7}

@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Model Viewer - Main Window &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Getting Started" href="../mesh_designer/getting_started.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../mesh_designer/getting_started.html" title="Getting Started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="getting_started.html" title="Getting Started"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="model-viewer-main-window">
+<span id="model-viewer"></span><h1>Model Viewer - Main Window<a class="headerlink" href="#model-viewer-main-window" title="Permalink to this headline">¶</a></h1>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/model_viewer.png"><img alt="../../_images/model_viewer.png" src="../../_images/model_viewer.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Model Viewer window is has 3 sections: The <a class="reference internal" href="#menu-bar">Menu Bar</a>, <a class="reference internal" href="#control-dock">Control Dock</a>, and <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<p>This GUI is still under development, so there may be some widgets in the GUI that have not been fully implemented yet.</p>
+<div class="section" id="menu-bar">
+<h2>Menu Bar<a class="headerlink" href="#menu-bar" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/model_viewer_menu_bar.png"><img alt="../../_images/model_viewer_menu_bar.png" src="../../_images/model_viewer_menu_bar.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Menu bar currently has two sub-menus.</p>
+<p>The 3-D Options sub-menu has options for resetting the <a class="reference internal" href="#d-view">3D View</a> to an XY, XZ, and YZ view.</p>
+<p>The Colour Options sub-menu has options for changing the colour map, as well as the colour limits of all plots.</p>
+</div>
+<div class="section" id="control-dock">
+<h2>Control Dock<a class="headerlink" href="#control-dock" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/model_viewer_control_dock.png"><img alt="../../_images/model_viewer_control_dock.png" src="../../_images/model_viewer_control_dock.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Control Dock contains options for navigating through the model. Only the Mesh tab has been implemented in this release. The Control Dock can be detached from the main window to make more space for the <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<p>The Mesh tab has two groupboxes: Trim and Slices</p>
+<p>The Trim groupbox is used to adjust the bounds of the model that are plotted.</p>
+<p>By default, the full model is shown. Edit each line beside the South, North, etc., labels to define how many cells to trim from the corresponding directions. Hit the Trim Volume button to perform the operation. This operation will generate new model plots for all of the subplots in the <a class="reference internal" href="#id1">2D View</a>, as well as for the <a class="reference internal" href="#d-view">3D View</a>.</p>
+<p>The Slices groupbox controls which slices are plotted. The X, Y, and Z checkboxes are used to turn off/on the corresponding slices in within the <a class="reference internal" href="#d-view">3D View</a>. The nearby line edits and slider bars are used to control the location of the each plotted slice.</p>
+<p>The last line in the Slices groupbox is used to generate a transect slice along a specified set of points.</p>
+<ul class="simple">
+<li><p>Hit the Select Points button to begin picking. Picking must be performed within the Plan View plot of the <a class="reference internal" href="#id1">2D View</a> (hitting the Select Points button will automatically switch the tab focus accordingly).</p></li>
+<li><p>Click within the Plan View window to assign points through which the slice will go through.</p></li>
+<li><p>When all the desired points have been selected, hit the Select Points button again.</p></li>
+<li><dl class="simple">
+<dt>A set of points will appear on the Plan View plot indicating your clicks, and the corresponding transect will be plotted within the <a class="reference internal" href="#transect">Transect</a> tab, as well as within the <a class="reference internal" href="#d-view">3D View</a>.</dt><dd><ul>
+<li><p>The transect slice within the 3D View can be toggled with the Transect checkbox.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="plot-window">
+<h2>Plot Window<a class="headerlink" href="#plot-window" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/model_viewer_3D_view.png"><img alt="../../_images/model_viewer_3D_view.png" src="../../_images/model_viewer_3D_view.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Plot window is where the model is plotted. It has 3 tabs: <a class="reference internal" href="#d-view">3D View</a>, <a class="reference internal" href="#id1">2D View</a> and <a class="reference internal" href="#transect">Transect</a></p>
+<div class="section" id="d-view">
+<h3>3D View<a class="headerlink" href="#d-view" title="Permalink to this headline">¶</a></h3>
+<p>The 3D View tab shows the model in a rotatable, zoomable 3D view (similar to in Paraview).</p>
+<p>Rotating of the model is done by left-clicking and dragging.</p>
+<p>To zoom, either use the scroll wheel or click and hold the right mouse button and drag in or out.</p>
+<dl class="simple">
+<dt>To pan, hold the middle mouse button and drag.</dt><dd><ul class="simple">
+<li><p>Panning also changes the center point of the plot (i.e., the point around which rotations will be focused)</p></li>
+<li><p>To reset to the original center point, hit ‘r’</p></li>
+</ul>
+</dd>
+</dl>
+<p>You can quick-zoom to certain angles using the options in the 3-D Options menu of the <a class="reference internal" href="#menu-bar">Menu Bar</a>.</p>
+<p>Change which slices are plotting using the controls within the Slices groupbox of the Mesh tab in the <a class="reference internal" href="#control-dock">Control Dock</a>.</p>
+<p>Use the ‘W’ and ‘S’ keys to toggle between surface and wireframe representations of the model. The default view is surface. The wireframe represention can be used to see the model mesh.</p>
+</div>
+<div class="section" id="id1">
+<h3>2D View<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../../_images/model_viewer_2D_view.png"><img alt="../../_images/model_viewer_2D_view.png" src="../../_images/model_viewer_2D_view.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The 2D View tab shows slices through the model in 2-D. It consists of:</p>
+<ul class="simple">
+<li><p>A Plan View plot, showing slices through the XY plane (top left plot)</p></li>
+<li><p>An XZ view, showing depth slices through the XZ plane (top right plot)</p></li>
+<li><p>A YZ view, showing depth slices through the YZ plane (bottom left plot)</p></li>
+</ul>
+<p>The toolbar at the bottom can be used as in normal matplotlib figures.</p>
+<p>The bottom right of the toolbar shows location and resistivity information when the mouse is hovered over any of the 2-D plots.</p>
+<ul class="simple">
+<li><p>Note: Still troubleshooting this feature a bit. It seems to work for the most part, but occasionally the displayed resistivity value seems to not match the feature seen in the plot.</p></li>
+</ul>
+</div>
+<div class="section" id="transect">
+<h3>Transect<a class="headerlink" href="#transect" title="Permalink to this headline">¶</a></h3>
+<p>Once a transect path is selected using the Select Points button, the corresponding slice through the model will be displayed here.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>This plot does not currently properly update when changing certain plot options.</dt><dd><ul>
+<li><p>Changes the colour map, colour limits, and Trim are not reflected in this plot.</p></li>
+<li><p>The workaround until this is fixed is to change the plot options first, then reselect the transect plot points with the Select Points button.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Model Viewer - Main Window</a><ul>
+<li><a class="reference internal" href="#menu-bar">Menu Bar</a></li>
+<li><a class="reference internal" href="#control-dock">Control Dock</a></li>
+<li><a class="reference internal" href="#plot-window">Plot Window</a><ul>
+<li><a class="reference internal" href="#d-view">3D View</a></li>
+<li><a class="reference internal" href="#id1">2D View</a></li>
+<li><a class="reference internal" href="#transect">Transect</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="getting_started.html"
+                        title="previous chapter">Getting Started</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../mesh_designer/getting_started.html"
+                        title="next chapter">Getting Started</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/model_viewer/main_window.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../mesh_designer/getting_started.html" title="Getting Started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="getting_started.html" title="Getting Started"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>
