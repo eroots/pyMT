@@ -6,13 +6,16 @@ import numpy as np
 import e_colours.colourmaps as cm
 
 
-cmap = cm.jet_plus(64)
+# cmap = cm.jet_plus(64)
+cmap = cm.bgy(32)
+local_path = 'C:/Users/eric'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst')
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Test_Models\dimensionality\synthLayer.data'
-# data = WSDS.RawData(listfile=listfile)
-data = WSDS.Data(datafile='C:/Users/eric/phd/Kilauea/stitched/1_day/Z/Kilauea_may_daily.data')
+listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+data = WSDS.RawData(listfile=listfile)
+# data = WSDS.Data(datafile='C:/Users/eric/phd/Kilauea/stitched/1_day/Z/Kilauea_may_daily.data')
 days = (501, 530)
 hour_or_day = 1  # sets the interval in labels, so choose appropriately
 n_interp = 300
@@ -22,7 +25,8 @@ cax_rho = [0, 4]
 # data.remove_sites(rmsites)
 # data.sort_sites(order='west-east')
 rho = {site.name: utils.compute_rho(site)[0] for site in data.sites.values()}
-pha = {site.name: utils.compute_phase(site)[0] for site in data.sites.values()}
+pha = {site.name: utils.geotools_filter(np.log10(site.periods), utils.compute_phase(site)[0], 0.8, 1) for site in data.sites.values()}
+# pha = {site.name: utils.compute_phase(site)[0] for site in data.sites.values()}
 bost = {site.name: utils.compute_bost1D(site)[0] for site in data.sites.values()}
 depths = {site.name: utils.compute_bost1D(site)[1] for site in data.sites.values()}
 periods = []
@@ -39,7 +43,8 @@ for jj, site in enumerate(data.site_names):
         rhovals.append(rho[site][ii])
         phavals.append(pha[site][ii])
         # loc.append(data.sites[site].locations['Y'])
-        loc.append(jj)
+        # loc.append(jj)
+        loc.append(data.sites[site].locations['X'])
 phavals = np.array(phavals)
 rhovals = np.log10(np.array(rhovals))
 depth_vals = np.array(depth_vals)
@@ -48,15 +53,15 @@ periods = np.log10(np.array(periods))
 locs = np.array(loc)
 points = np.transpose(np.array((locs, periods)))
 points_d = np.transpose(np.array((locs, depth_vals)))
-xticks = np.arange(0, loc[-1], hour_or_day)
-xtick_labels = [str(x) for x in np.arange(days[0], days[1] + 1)]
+# xticks = np.arange(0, loc[-1], hour_or_day)
+# xtick_labels = [str(x) for x in np.arange(days[0], days[1] + 1)]
 
 min_x, max_x = (min(loc), max(loc))
 min_p, max_p = (min(periods), max(periods))
 min_d, max_d = (min(depth_vals), max(depth_vals))
 grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp),
                              np.log10(np.logspace(min_p, max_p, n_interp)))
-grid_pha = griddata(points, phavals, (grid_x, grid_y), method='linear')
+grid_pha = griddata(points, phavals, (grid_x, grid_y), method='cubic')
 grid_rho = griddata(points, rhovals, (grid_x, grid_y), method='linear')
 
 grid_xd, grid_d = np.meshgrid(np.linspace(min_x, max_x, n_interp),
@@ -67,7 +72,7 @@ grid_bost = griddata(points_d, bostvals, (grid_xd, grid_d), method='cubic')
 def plot_pha():
     plt.figure()
     plt.pcolor(grid_x, grid_y, grid_pha, cmap=cmap)
-    plt.xticks(xticks, xtick_labels)
+    # plt.xticks(xticks, xtick_labels)
     plt.clim([0, 90])
     plt.gca().invert_yaxis()
     cb_pha = plt.colorbar()
@@ -84,7 +89,7 @@ def plot_pha():
 def plot_rho():
     plt.figure()
     plt.pcolor(grid_x, grid_y, grid_rho, cmap=cmap)
-    plt.xticks(xticks, xtick_labels)
+    # plt.xticks(xticks, xtick_labels)
     plt.clim(cax_rho)
     cb_rho = plt.colorbar()
     cb_rho.set_clim(cax_rho[0], cax_rho[1])
@@ -101,7 +106,7 @@ def plot_rho():
 def plot_bost():
     plt.figure()
     plt.pcolor(grid_xd, grid_d, grid_bost, cmap=cmap)
-    plt.xticks(xticks, xtick_labels)
+    # plt.xticks(xticks, xtick_labels)
     plt.clim(cax_rho)
     cb_rho = plt.colorbar()
     cb_rho.set_clim(cax_rho[0], cax_rho[1])
@@ -115,7 +120,7 @@ def plot_bost():
     plt.ylabel(r'Depths (m)')
 
 
-plot_rho()
+# plot_rho()
 plot_pha()
-plot_bost()
+# plot_bost()
 plt.show()

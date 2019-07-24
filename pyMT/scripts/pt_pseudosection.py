@@ -23,8 +23,8 @@ def generate_ellipse(phi):
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
-# listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/main_transect.lst'
-# main_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/main_transect.lst'
+main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst'
 # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
 # main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
@@ -40,12 +40,16 @@ def generate_ellipse(phi):
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst'
 ###########################################
 # DRYDEN
-# listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
-# main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect_pt.lst'
+listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
+main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect_pt.lst'
 ###########################################
 # MALARTIC
-listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
-main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
+# listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
+# main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
+###########################################
+# LARDER
+# listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
+# main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
 
 data = WSDS.RawData(listfile)
 main_transect = WSDS.RawData(main_list)
@@ -57,15 +61,16 @@ fill_param = 'phi_2'
 # fill_param = 'Lambda'
 use_periods = sorted(list(data.narrow_periods.keys()))
 # use_periods = data.sites[data.site_names[0]].periods
-save_fig = 0
-freq_skip = 1
-radius = 0.25
+x_scale, y_scale = 1, 120
+save_fig = 1
+freq_skip = 2
+radius = 20
 label_offset = -4.5
-file_path = 'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/PT_round2/'
+file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/'
 file_name = 'pt_pseudosection_phi2'
 file_types = ['.pdf', '.png']  #, '.ps', '.png')
 dpi = 600
-linear_xaxis = False
+linear_xaxis = True
 # cmap = cm.jet_plus_r(64)
 cmap = cm.jet(64)
 # cmap = cm.bwr(64)
@@ -106,11 +111,11 @@ else:
 # scale = np.sqrt((len(data.site_names) - 1) ** 2 +
 #                 (np.log10(np.max(periods)) -
 #                  np.log10(np.min(periods))) ** 2)
-    x_scale = np.sqrt((np.max(data.locations[:, 0] / 1000) -
-                       np.min(data.locations[:, 0]) / 1000) ** 2)
-y_scale = np.sqrt((np.log10(np.max(use_periods)) -
-                   np.log10(np.min(use_periods))) ** 2)
-x_scale, y_scale = 1, 3
+#     x_scale = np.sqrt((np.max(data.locations[:, 0] / 1000) -
+#                        np.min(data.locations[:, 0]) / 1000) ** 2)
+# y_scale = np.sqrt((np.log10(np.max(use_periods)) -
+                   # np.log10(np.min(use_periods))) ** 2)
+
 # scale = 2
 periods = []
 loc = []
@@ -224,26 +229,26 @@ def plot_it():
     # cb = plt.colorbar(mappable=fake_im)
     #############################################
     # Colour bar and site labelling
-    cbaxes = fig.add_axes([0.925, 0.1351, 0.015, 0.72])
-    cb = plt.colorbar(fake_im, cax=cbaxes)
-    if 'phi' in fill_param[:3]:
-        label = r'${}{}(\degree)$'.format('\phi', fill_param[-2:])
-    else:
-        label = r'$\{}(\degree)$'.format(fill_param)
-    cb.set_label(label,
-                 rotation=270,
-                 labelpad=20,
-                 fontsize=18)
+    # cbaxes = fig.add_axes([0.925, 0.1351, 0.015, 0.72])
+    # cb = plt.colorbar(fake_im)
+    # if 'phi' in fill_param[:3]:
+    #     label = r'${}{}(\degree)$'.format('\phi', fill_param[-2:])
+    # else:
+    #     label = r'$\{}(\degree)$'.format(fill_param)
+    # cb.set_label(label,
+    #              rotation=270,
+    #              labelpad=20,
+    #              fontsize=18)
     # ax.tick_params(axis='both', labelsize=14)
     # ax.set_xlim(x_lim)
-    for ii, site in enumerate(main_sites):
-        txt = site[-4:-1]
-        if linear_xaxis:
-            ax.text(linear_site[ii],
-                    label_offset, site, rotation=45)  # 3.6
-        else:
-            ax.text(main_transect.sites[site].locations['X'],
-                    label_offset, site, rotation=45)  # 3.6
+    # for ii, site in enumerate(main_sites):
+    #     txt = site[-4:-1]
+    #     if linear_xaxis:
+    #         ax.text(linear_site[ii],
+    #                 label_offset, site, rotation=45)  # 3.6
+    #     else:
+    #         ax.text(main_transect.sites[site].locations['X'],
+    #                 label_offset, site, rotation=45)  # 3.6
 
     plt.show()
     return fig

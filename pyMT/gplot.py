@@ -882,11 +882,13 @@ class MapView(object):
                     phi_x, phi_y = generate_ellipse(phase_tensor.phi)
                     norm_x, norm_y = (phi_x, phi_y)
             else:
-                phase_tensor = (self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx] -
-                                self.site_data[data_type[1]].sites[site_name].phase_tensors[period_idx])
-                phi_x, phi_y = generate_ellipse(phase_tensor.phi)
-                norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
-                cont = 1
+                if True:  # Buffer for error tolerances at some point...
+                    phase_tensor = (self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx] -
+                                    self.site_data[data_type[1]].sites[site_name].phase_tensors[period_idx])
+                    good_idx.append(ii)
+                    phi_x, phi_y = generate_ellipse(phase_tensor.phi)
+                    norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
+                    cont = 1
             if cont:
                 X, Y = X_all[ii], Y_all[ii]
                 phi_x, phi_y = (1000 * phi_x / phase_tensor.phi_max,

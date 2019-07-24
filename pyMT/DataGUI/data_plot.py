@@ -517,13 +517,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.error_tree.itemChanged.connect(self.post_edit_error)
         # self.update_comp_list()
         self.update_comp_table()
-        
         if self.dataset.rms:
             self.init_rms_tables()
         self.stored_key_presses = []
         self.map_view = MapMain(dataset=self.dataset,
                                 active_sites=self.site_names,
                                 sites=self.dataset.data.site_names)
+
+        self.set_nparam_labels()
 
     def init_rms_tables(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -568,6 +569,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
         pass
         # ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
         #                  if comp in self.dataset.data.components]
+
+    def set_nparam_labels(self):
+        self.label_NP.setText('Periods: ' + str(self.dataset.data.NP))
+        self.label_NS.setText('Sites: ' + str(self.dataset.data.NS))
+        self.label_NP_2.setText('Periods: ' + str(self.dataset.data.NP))
+        self.label_NS_2.setText('Sites: ' + str(self.dataset.data.NS))
 
     @property
     def error_type(self):
@@ -707,6 +714,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         for ii in range(max_len):
             self.comp_table.verticalHeader().setSectionResizeMode(ii,
                                                                   QtWidgets.QHeaderView.ResizeToContents)
+        self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        # col_width = sum([self.comp_table.columnWidth(ii) for ii, header in enumerate(header)])
+        # self.comp_table.setFixedWidth(col_width + 50)
+        # self.comp_table.resizeColumnsToContents()
+        # self.comp_table.resizeRowsToContents()
 
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -821,8 +833,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.toggleRaw.setCheckState(bool(self.dataset.raw_data.sites) * 2)
         self.toggleData.setCheckState(bool(self.dataset.data.sites) * 2)
         self.toggleResponse.setCheckState(bool(self.dataset.response.sites) * 2)
-        self.azimuthEdit.editingFinished.connect(self.set_azimuth)
-        self.azimuthEdit.setText(str(self.dataset.azimuth))
+        self.azimuthEdit.valueChanged.connect(self.set_azimuth)
+        self.azimuthEdit.setValue(self.dataset.azimuth)
         self.removeSites.clicked.connect(self.remove_sites)
         self.addSites.clicked.connect(self.add_sites)
         if len(self.stored_datasets) > 1:
@@ -863,7 +875,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type8)
         self.InversionTypeGroup.addAction(self.inv_type9)
         self.InversionTypeGroup.addAction(self.inv_type10)
-        self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
+        # self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
         #  Set up connect to which errors are plotted
         self.actionDataErrors.changed.connect(self.dummy_update_dpm)
         self.actionRawErrors.changed.connect(self.dummy_update_dpm)
@@ -1061,6 +1073,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.back_or_forward_button(shift=0)
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         self.map_view.update_map()
+        self.set_nparam_labels()
         # self.error_tree.itemChanged.connect(self.post_edit_error)
 
     def num_subplots(self):
@@ -1154,6 +1167,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map_view.map.active_sites = self.site_names
         self.map_view.map.set_locations()
         self.map_view.update_map()
+        # Also update the label
+        self.set_nparam_labels()
 
     def add_sites(self):
         # This method and the relevent methods in ws.data_structures are
@@ -1171,14 +1186,16 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map_view.map.active_sites = self.site_names
         self.map_view.map.set_locations()
         self.map_view.update_map()
+        self.set_nparam_labels()
 
     def print_periods(self):
+        lines = []
         periods = list(self.dataset.raw_data.narrow_periods.keys())
         periods.sort()
         pretty_periods = [(per, self.dataset.raw_data.narrow_periods[per]) for
                           per in periods]
-        print('{:>21} {:>15} {:>15}'.format('Period', 'Log(Period)', 'Perc'))
-        print('-' * 56)
+        lines.append('{:>21} {:>15} {:>15}'.format('Period', 'Log(Period)', 'Perc'))
+        lines.append('-' * 56)
         for t in pretty_periods:
             k, v = t
             log_k = np.log10(k)
@@ -1193,7 +1210,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 idx = self.dataset.freqset.index(cp) + 1
             else:
                 idx = ''
-            print('{:>2} {:>2} {:15.5} {:15.5} {:15.5} {:<2}'.format(yn, idx, k, log_k, v, yn))
+            lines.append('{:>2} {:>2} {:15.5} {:15.5} {:15.5} {:<2}'.format(yn, idx, k, log_k, v, yn))
+        self.debugInfo.setText('\n'.join(lines))
         # for t in self.dataset.data.periods:
         #     if t < 1:
         #         t = -1 / t
@@ -1219,16 +1237,17 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.azimuthEdit.setText(str(new_val))
         self.set_azimuth()
 
-    def set_azimuth(self):
-        text = self.azimuthEdit.text()
-        azi = utils.validate_input(text, float)
-        if azi is False:
-            self.azimuthEdit.setText(str(self.dataset.azimuth))
-            return
+    def set_azimuth(self, azi):
+        # text = self.azimuthEdit.text()
+        # azi = utils.validate_input(text, float)
+        # if azi is False:
+            # self.azimuthEdit.setText(str(self.dataset.azimuth))
+            # return
         if azi != self.dataset.azimuth:
-            if azi <= 0:
-                azi += 360
-                self.azimuthEdit.setText(str(azi))
+            # if azi <= 0:
+            #     azi += 360
+            #     self.azimuthEdit.setText(str(azi))
+            azi = azi % 360
             self.dataset.rotate_sites(azi=azi)
             self.update_dpm()
             self.map_view.init_map(dataset=self.dataset,
@@ -1237,6 +1256,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             # self.map_view.init_map(dataset=self.dataset,
                                    # active_sites=self.site_names,
                                    # sites=self.dataset.data.site_names)
+            self.azimuthEdit.setValue(azi)
             self.map_view.update_map()
 
     def change_scaling(self, index):
@@ -1321,6 +1341,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def WriteData(self, file_format='WSINV3DMT'):
         self.dataset.data.inv_type = self.check_inv_type()
+        if not self.dataset.data.inv_type:
+            reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                                   'No inversion type selected. Please choose one before writing',
+                                                   QtWidgets.QMessageBox.Ok)
+            return
         if self.dataset.data.inv_type in range(1, 8):
             self.dataset.data.dimensionality = '3D'
         else:
@@ -1645,6 +1670,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.mplvl.addWidget(self.canvas)
         self.toolbar = NavigationToolbar(canvas=self.canvas,
                                          parent=self.mplwindow, coordinates=True)
+        self.toolbar.setFixedHeight(36)
+        self.toolbar.setIconSize(QtCore.QSize(36, 36))
         # Connect check box to instance
         self.canvas.draw()
         self.mplvl.addWidget(self.toolbar)
@@ -1716,6 +1743,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     self.update_dpm(updated_sites=self.dpm.site_names,
                                     updated_comp=self.dataset.data.components)
                     self.update_map_data()
+                    self.set_nparam_labels()
         if event.button == 2:
             if israw:
                 # print(ind)
@@ -1740,6 +1768,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 print('Removing period {}, freq {}'.format(period, 1 / period))
                 self.update_dpm()
                 self.update_map_data()
+                self.set_nparam_labels()
         #     print('Right Mouse')
         # if self.dpm.axes[ax_index].lines[2].contains(event):
             # print('Yep, thats a point')

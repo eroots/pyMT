@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Input File Types &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Getting Started" href="../data_plot/getting_started.html" />
+    <link rel="prev" title="data_structures" href="data_structures.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../data_plot/getting_started.html" title="Getting Started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="data_structures.html" title="data_structures"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="input-file-types">
+<h1>Input File Types<a class="headerlink" href="#input-file-types" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="startup-file">
+<span id="id1"></span><h2>Startup File<a class="headerlink" href="#startup-file" title="Permalink to this headline">¶</a></h2>
+<p>The startup file specifies the relevant paths and files, as well as the roles of those files.
+The startup file is broken into seperate data sets, with a ‘%’ denoting the beginning of a new data set specification, and the subsequent lines giving the role and paths of the files to be used. Lines starting with a ‘#’ will be ignored, which allows the insertion of comments.
+A data set can contain one <a class="reference internal" href="#list-file">List File</a>, <a class="reference internal" href="#data-file">Data File</a>, and <a class="reference internal" href="#response-file">Response File</a>, or any permutation thereof (as long as only one of each is specified per data set). Additionally, you can specify a common path to each file, as well as a separate path which points to the location of the raw data files (EDI or j-format files), although this has not been fully tested, and so specifying relative or absolute paths is the safer option for now.
+An example startup file is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># This specification assumes allsites.lst, inv.dat, and the EDI/j-format files are all in the same folder as pystart</span>
+<span class="o">%</span> <span class="n">data_set1</span>
+<span class="nb">list</span> <span class="n">allsites</span><span class="o">.</span><span class="n">lst</span>
+<span class="n">data</span> <span class="n">inv</span><span class="o">.</span><span class="n">dat</span>
+<span class="c1"># The list and EDI files are in a folder ./EDIs</span>
+<span class="o">%</span> <span class="n">data_set2</span>
+<span class="nb">list</span> <span class="n">EDIs</span><span class="o">/</span><span class="n">broadband</span><span class="o">.</span><span class="n">lst</span>
+<span class="c1"># The list file and EDIs are in ./EDIs and the data and response files are in ./inversion2</span>
+<span class="o">%</span> <span class="n">data_set3</span>
+<span class="nb">list</span> <span class="n">EDIs</span><span class="o">/</span><span class="n">broadband</span><span class="o">.</span><span class="n">lst</span>
+<span class="n">data</span> <span class="n">inversion2</span><span class="o">/</span><span class="n">broadband</span><span class="o">.</span><span class="n">dat</span>
+<span class="n">resp</span> <span class="n">inversion2</span><span class="o">/</span><span class="n">inv_response</span><span class="o">.</span><span class="n">dat</span>
+</pre></div>
+</div>
+<p>Assuming this file is called ‘pystart’ and the terminal is in the same folder, the GUI can be launched with (for example):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data_plot</span> <span class="o">-</span><span class="n">n</span> <span class="n">pystart</span> <span class="o">-</span><span class="n">c</span> <span class="n">data_set1</span><span class="p">:</span><span class="n">data_set2</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-file">
+<span id="id2"></span><h2>Data File<a class="headerlink" href="#data-file" title="Permalink to this headline">¶</a></h2>
+<p>The data files are those that are used as input to your inversions.
+Currently implemented formats are:</p>
+<ul class="simple">
+<li><p>ModEM (2-D)</p></li>
+<li><p>ModEM (3-D)</p></li>
+<li><p>WSINV3DMT</p></li>
+<li><p>Occam2D</p></li>
+<li><p>MARE2DEM</p></li>
+</ul>
+<p>Thus far, only ModEM and WSINV3DMT file formats have been used extensively. Other formats, while implemented, have not been thoroughly tested.</p>
+<p>Data file handling is implemented through the <a class="reference internal" href="data_structures.html#data"><span class="std std-ref">Data</span></a> class.</p>
+</div>
+<div class="section" id="response-file">
+<span id="id3"></span><h2>Response File<a class="headerlink" href="#response-file" title="Permalink to this headline">¶</a></h2>
+<p>The response file output from an inversion. If the format of data and response files is the same for your given inversion code (as is the case for ModEM), then data and response files may be used interchangeably.</p>
+<p>Currently implemented formats are the same as for the <a class="reference internal" href="#data-file">Data File</a>
+Response file handling is implemented through the <a class="reference internal" href="data_structures.html#response"><span class="std std-ref">Response</span></a> class, which is largely just a subclass of <a class="reference internal" href="data_structures.html#data"><span class="std std-ref">Data</span></a>.</p>
+</div>
+<div class="section" id="list-file">
+<span id="id4"></span><h2>List File<a class="headerlink" href="#list-file" title="Permalink to this headline">¶</a></h2>
+<p>A list file specifies the EDI or j-format files you would like to import.
+The first line specifies the number of stations contained in the file, and each subsequent line is the name of a station. The names can specify .EDI or .dat to specifically read in EDI or j-format files. The file-reader will look for both if no format is specified, preferentially selecting j-format files if both formats are present.</p>
+<p>List files can be used to assign station names to when read into a <a class="reference internal" href="data_structures.html#data"><span class="std std-ref">Data</span></a> object (for instance, a normal WSINV3DMT data file does not contain station names), or to specify the files to be read into a <a class="reference internal" href="data_structures.html#rawdata"><span class="std std-ref">RawData</span></a> object.</p>
+</div>
+<div class="section" id="model-file">
+<span id="id5"></span><h2>Model File<a class="headerlink" href="#model-file" title="Permalink to this headline">¶</a></h2>
+<p>The model files that are used as input to and output from the inversions.
+Currently implemented formats are:</p>
+<ul class="simple">
+<li><p>ModEM (2-D)</p></li>
+<li><p>ModEM (3-D)</p></li>
+<li><p>WSINV3DMT</p></li>
+</ul>
+<p>Thus far, only ModEM and WSINV3DMT file formats have been used extensively. Other formats, while implemented, have not been thoroughly tested. Furthermore, 2-D ModEM model files have not been used much, and so may result in some unpredictable behavior.</p>
+<p>Model file handling is implemented through the <a class="reference internal" href="data_structures.html#model"><span class="std std-ref">Model</span></a> class.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Input File Types</a><ul>
+<li><a class="reference internal" href="#startup-file">Startup File</a></li>
+<li><a class="reference internal" href="#data-file">Data File</a></li>
+<li><a class="reference internal" href="#response-file">Response File</a></li>
+<li><a class="reference internal" href="#list-file">List File</a></li>
+<li><a class="reference internal" href="#model-file">Model File</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="data_structures.html"
+                        title="previous chapter">data_structures</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../data_plot/getting_started.html"
+                        title="next chapter">Getting Started</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/api_core/input_files.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../data_plot/getting_started.html" title="Getting Started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="data_structures.html" title="data_structures"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Mesh Designer</string>
   </property>
   <widget class="QWidget" name="mplwindow">
    <property name="sizePolicy">
@@ -86,8 +86,16 @@
      <addaction name="actionBgy"/>
      <addaction name="actionBgy_r"/>
     </widget>
+    <widget class="QMenu" name="menuMesh_Lines">
+     <property name="title">
+      <string>Mesh Lines</string>
+     </property>
+     <addaction name="action_meshBlack"/>
+     <addaction name="action_meshWhite"/>
+    </widget>
     <addaction name="actionRho_cax"/>
     <addaction name="menuColour_Map"/>
+    <addaction name="menuMesh_Lines"/>
    </widget>
    <addaction name="menuWrite_Model"/>
    <addaction name="menuColours"/>
@@ -111,6 +119,9 @@
      <height>524287</height>
     </size>
    </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
@@ -125,7 +136,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="page_3">
         <property name="geometry">
@@ -351,7 +362,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Depths per decade</string>
+              <string>Depths Per Decade</string>
              </property>
             </widget>
             <widget class="QLineEdit" name="maxDepth">
@@ -473,7 +484,7 @@
              </rect>
             </property>
             <property name="text">
-             <string>Set background</string>
+             <string>Set Background</string>
             </property>
            </widget>
           </widget>
@@ -564,12 +575,23 @@
         </widget>
        </widget>
        <widget class="QWidget" name="page_5">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>278</width>
+          <height>650</height>
+         </rect>
+        </property>
         <attribute name="label">
-         <string>Page</string>
+         <string>Smoothing</string>
         </attribute>
         <layout class="QFormLayout" name="formLayout_2">
          <item row="0" column="0">
           <widget class="QGroupBox" name="groupBox_4">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="title">
             <string>Slices</string>
            </property>
@@ -609,6 +631,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QGroupBox" name="groupBox_5">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="title">
             <string>Views</string>
            </property>
@@ -773,6 +798,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>jetplus</string>
    </property>
@@ -815,6 +843,25 @@
    </property>
    <property name="text">
     <string>jetplus_r</string>
+   </property>
+  </action>
+  <action name="action_meshBlack">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black</string>
+   </property>
+  </action>
+  <action name="action_meshWhite">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>White</string>
    </property>
   </action>
  </widget>

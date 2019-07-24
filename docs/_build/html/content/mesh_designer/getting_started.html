@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Getting Started &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Mesh Designer - Main Window" href="main_window.html" />
+    <link rel="prev" title="Model Viewer - Main Window" href="../model_viewer/main_window.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="main_window.html" title="Mesh Designer - Main Window"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../model_viewer/main_window.html" title="Model Viewer - Main Window"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="launching-the-gui">
+<h2>Launching the GUI<a class="headerlink" href="#launching-the-gui" title="Permalink to this headline">¶</a></h2>
+<p>The mesh designer GUI is launched from the command line via the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mesh_designer</span> <span class="o">&lt;</span><span class="n">model_file</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">data_file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The order of the files does not matter.</p>
+</div>
+<div class="section" id="required-files">
+<h2>Required Files<a class="headerlink" href="#required-files" title="Permalink to this headline">¶</a></h2>
+<p>The model plotting GUI requires one or both of the following:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api_core/input_files.html#model-file"><span class="std std-ref">Model File</span></a></p></li>
+<li><p><a class="reference internal" href="../api_core/input_files.html#data-file"><span class="std std-ref">Data File</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="default-behavior">
+<h2>Default Behavior<a class="headerlink" href="#default-behavior" title="Permalink to this headline">¶</a></h2>
+<p>The default behavior is different depending on what files are input.
+If only a model file is used, the GUI initialized using the given model, and no station locations are plotted. In this case, the ‘Regenerate Mesh’ button will not be functional.</p>
+<p>If only a data file is used, an initial model will be created based on the bounds of the given stations. There is a known bug here where the inital view of the model cuts of the outer edges. Hitting the ‘Add Pads’ a few times will extend the model out a bit to cover the whole area covered by the stations.</p>
+<p>If both model and data files are given, the mesh will be shown as it is in the given model, with the station locations overlaid.</p>
+<p>As this GUI is not meant for viewing the model, the slice shown is always the first depth slice.</p>
+<p>The GUI works equally well for creating new meshes as it does for modifying existing ones.</p>
+<ul class="simple">
+<li><p>Note: As the definition of the mesh within the ModEM and WSINV3DMT file formats has no explicit origin, all models generated here will have their origins placed in the center of the mesh.</p></li>
+<li><dl class="simple">
+<dt>For this reason, it is important to ensure that the model is even on the left / right and top / bottom.</dt><dd><ul>
+<li><p>If it is not, the definition of the mesh relative to the station locations may not be the same as appears while using this GUI.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Always double check the output mesh and data files with another tool afterwards (e.g., with <a class="reference internal" href="../model_viewer/main_window.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting Started</a><ul>
+<li><a class="reference internal" href="#launching-the-gui">Launching the GUI</a></li>
+<li><a class="reference internal" href="#required-files">Required Files</a></li>
+<li><a class="reference internal" href="#default-behavior">Default Behavior</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../model_viewer/main_window.html"
+                        title="previous chapter">Model Viewer - Main Window</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="main_window.html"
+                        title="next chapter">Mesh Designer - Main Window</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/mesh_designer/getting_started.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="main_window.html" title="Mesh Designer - Main Window"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../model_viewer/main_window.html" title="Model Viewer - Main Window"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

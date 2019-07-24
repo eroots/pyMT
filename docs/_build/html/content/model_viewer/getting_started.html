@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Getting Started &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Model Viewer - Main Window" href="main_window.html" />
+    <link rel="prev" title="Data Plot - Map Viewer" href="../data_plot/map_viewer.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="main_window.html" title="Model Viewer - Main Window"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../data_plot/map_viewer.html" title="Data Plot - Map Viewer"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="launching-the-gui">
+<h2>Launching the GUI<a class="headerlink" href="#launching-the-gui" title="Permalink to this headline">¶</a></h2>
+<p>The model viewer GUI is launched from the command line via the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model_viewer</span> <span class="o">&lt;</span><span class="n">model_file</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">data_file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The order of the files does not matter.</p>
+<p>It can take a while to load the GUI, particularly the first time you do so, due to the somewhat heavy dependencies required for 3-D viewing.</p>
+</div>
+<div class="section" id="required-files">
+<h2>Required Files<a class="headerlink" href="#required-files" title="Permalink to this headline">¶</a></h2>
+<p>The model plotting GUI requires at minimum a <a class="reference internal" href="../api_core/input_files.html#model-file"><span class="std std-ref">Model File</span></a>, and an optional <a class="reference internal" href="../api_core/input_files.html#data-file"><span class="std std-ref">Data File</span></a>, which is currently only used to plot station locations.</p>
+</div>
+<div class="section" id="default-behavior">
+<h2>Default Behavior<a class="headerlink" href="#default-behavior" title="Permalink to this headline">¶</a></h2>
+<p>Assuming valid files are used, the GUI should launch into the 2-D view, with the slice locations set to X=1, Y=1, Z=1 (bottom, left, and surface slices, respectively)</p>
+<p>The 3-D view is initialized to a top-down (XY) view.</p>
+<p>Default colour map is ‘jet_plus’, a modified version of the Matlab default ‘jet’ with lower and upper colour map limits of 1 and 5 (log10 scale).</p>
+<p>Note that currently there is no colour bar shown for the 2-D views.</p>
+<p>Currently the data file is used only to plot the station locations over the model. Plotting of induction arrows and phase tensors will likely be added in the future.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting Started</a><ul>
+<li><a class="reference internal" href="#launching-the-gui">Launching the GUI</a></li>
+<li><a class="reference internal" href="#required-files">Required Files</a></li>
+<li><a class="reference internal" href="#default-behavior">Default Behavior</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../data_plot/map_viewer.html"
+                        title="previous chapter">Data Plot - Map Viewer</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="main_window.html"
+                        title="next chapter">Model Viewer - Main Window</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/model_viewer/getting_started.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="main_window.html" title="Model Viewer - Main Window"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../data_plot/map_viewer.html" title="Data Plot - Map Viewer"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>
