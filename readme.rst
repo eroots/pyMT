@@ -14,8 +14,7 @@ Base Modules include:
 	gplot: A data manager for plotting data. Used for more advanced / customizable plotting, but largely used by the included GUIs
 	
 Submodules:
-	DataGUI - Contains modules used to interactively plot and manipulate
-		 data and models.
+	DataGUI - Contains modules used to interactively plot and manipulate data and models.
 
 	ModelGUI - Contains the modules and UI's for creating and viewing model. Currently supports 3-D models for ModEM and WSINV3DMT
 
