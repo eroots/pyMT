@@ -23,12 +23,14 @@ Submodules:
 Installation:
 	All dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with complicated dependencies.
 	These include:
+
 	* pip
 	* numpy
 	* scipy
 	* matplotlib
 	* pyqt
 	* colorcet
+	
 	Each of these can be installed manually using, e.g., conda install pip (assuming an Anaconda installation)
 	
 	After installing these, pyMT may be installed using the command 'python setup.py install' or 'python setup.py develop'
