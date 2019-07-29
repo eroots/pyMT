@@ -14,50 +14,11 @@ else:
     PATH_CONNECTOR = '/'
 
 
-def verify_input(message, expected, default=None):
-        while True:
-            ret = input(' '.join([message, '[Default: {}] > '.format(default)]))
-            if ret == '' and default is not None:
-                ret = default
-            if expected == 'read':
-                if utils.check_file(ret):
-                    return ret
-                else:
-                    print('File not found. Try again.')
-            elif expected == 'write':
-                if ret:
-                    if not utils.check_file(ret):
-                        return ret
-                    else:
-                        resp = verify_input('File exists, overwrite?', default='y', expected='yn')
-                        if resp == 'y':
-                            return ret
-                        else:
-                            return False
-                else:
-                    print('Output file name required!')
-            elif expected == 'numtuple':
-                try:
-                    ret = [float(x) for x in re.split(', | ', ret)]
-                    return ret
-                except ValueError:
-                    print('Could not convert {} to tuple'.format(ret))
-            elif isinstance(expected, str):
-                try:
-                    if ret.lower() not in expected:
-                        print('That is not an option. Try again.')
-                    else:
-                        return ret.lower()
-                except AttributeError:  # Catch case where string is a digit
-                    if str(ret) not in expected:
-                        print('That is not an option. Try again.')
-                    else:
-                        return ret
-            else:
-                try:
-                    return expected(ret)
-                except ValueError:
-                    print('Format error. Try again')
+def debug_print(items, file):
+    with open(file, 'a+') as f:
+        datetime_obj = datetime.datetime.now()
+        f.write(str(datetime_obj) + '\n')
+        f.write('{}\n'.format(items))
 
 
 def get_components(invType=None, NR=None):
@@ -95,6 +56,163 @@ def get_components(invType=None, NR=None):
     elif invType == 5:
         comps = possible
     return comps
+
+
+def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0):
+    """
+    Write model to VTK ascii format
+    VTK format has X running west-east, Y running south-north, so model dimensions
+    need to be swapped.
+    Model origin should be archived throughout the process, i.e. stuffed into model
+    or data files so it can be recovered at any time. Positive Z goes UP, so model needs to
+    be flipped in Z.
+    This also can accept a data file so that a seperate VTK file is written with site
+    locations. Because of the fact that 2 files can be read, you should also look for
+    UTM coordinates in both, if necessary / possible.
+    Want this process to be as easy as possible, so there should probably be
+    several possible ways of reading. You could specify directly the model and data files,
+    specify a file containing the names of the files, you can specify nothing and it could
+    look for the model with the best RMS and use that, or there could just be a browser.
+    For now I'll just have to do things manually until I get it all built and moved to the
+    cluster.
+    Usage on the cluster will probably have to be a call to a script which creates instances
+    of the data and model from the passed files, then passes these to this function.
+    That might be overkill though, so another option might just to be to have a lightweight
+    version of this that just does what is necessary to spit out the VTK file.
+    All of Model, Data, and Dataset should probably have wrapper methods for this though that
+    just redirect the data to here.
+    """
+    def prep_model(model):
+        values = copy.deepcopy(model)
+        tmp = values.vals
+        values.vals = np.swapaxes(tmp, 0, 1)
+        NX, NY, NZ = values.vals.shape
+        values._dx, values._dy = values._dy, values._dx
+        values._dx = [x + ox for x in values._dx]
+        values._dy = [y + oy for y in values._dy]
+        values._dz = [-z + sea_level for z in values._dz]
+        return values
+    # print(model.resolution)
+    errmsg = ''
+    ox, oy = (0, 0)
+    if origin:
+        try:
+            ox, oy = origin
+        except TypeError:
+            errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
+    else:
+        ox, oy = model.origin
+    if not UTM:
+        try:
+            UTM = model.UTM_zone
+        except AttributeError:
+            errmsg.append(['ERROR: UTM must be specified either in function call or in model'])
+    if errmsg:
+        print('\n'.join(errmsg))
+        resp = input('Do you want to continue? (y/n)')
+        if resp.lower() == 'n':
+            return
+    version = '# vtk DataFile Version 3.0\n'
+    modname = os.path.basename(model.file)
+    if not outfile:
+        outfile = ''.join([modname, '_model.vtk'])
+    else:
+        outfile = '_'.join([outfile, 'model.vtk'])
+    values = prep_model(model)
+    if model.resolution:
+        # This creates separate copies of the model object and sticks the resolution values into the vals
+        # attributes
+        # Is a very roundabout method. All resolution information
+        # should be availabe in the original model object
+        print('Model.resolution exists')
+        raw_resolution = copy.deepcopy(model)
+        raw_resolution.vals = model.resolution
+        if np.max(raw_resolution.vals) > 1:  # Invert values if not already done
+            raw_resolution.vals = 1 / raw_resolution.vals
+        raw_resolution.vals[raw_resolution.vals > 1e10] = 1e10
+        modified_resolution = copy.deepcopy(raw_resolution)
+        modified_resolution = utils.normalize(modified_resolution)
+        modified_resolution.vals[modified_resolution.vals > 1] = 1
+        raw_resolution = prep_model(raw_resolution)
+        modified_resolution = prep_model(modified_resolution)
+        scalars = ('Resistivity', 'Raw_Resolution', 'Modified_Resolution')
+        to_write = (values, raw_resolution, modified_resolution)
+    else:
+        scalars = ['Resistivity']
+        to_write = [values]
+    # if azi:
+    #     use_rot = True
+    #     X, Y = np.meshgrid(values.dx, values.dy)
+    #     locs = np.transpose(np.array((np.ndarray.flatten(X), np.ndarray.flatten(Y))))
+    #     locs = utils.rotate_locs(locs, azi=-azi)
+    # else:
+    # use_rot = False
+    # values.vals = np.reshape(values.vals, [NX * NY * NZ], order='F')
+    NX, NY, NZ = values.vals.shape
+    with open(outfile, 'w') as f:
+        f.write(version)
+        f.write('{}   UTM: {} \n'.format(modname, UTM))
+        f.write('ASCII\n')
+        f.write('DATASET RECTILINEAR_GRID\n')
+        f.write('DIMENSIONS {} {} {}\n'.format(NX + 1, NY + 1, NZ + 1))
+        for dim in ('x', 'y', 'z'):
+            f.write('{}_COORDINATES {} float\n'.format(dim.upper(),
+                                                       len(getattr(values, ''.join(['_d', dim])))))
+            gridlines = getattr(values, ''.join(['_d', dim]))
+            for edge in gridlines:
+                f.write('{} '.format(str(edge)))
+            f.write('\n')
+            # for ii in range(getattr(values, ''.join(['n', dim]))):
+            #     midpoint = (gridlines[ii] + gridlines[ii + 1]) / 2
+            #     f.write('{} '.format(str(midpoint)))
+            # f.write('\n')
+        f.write('POINT_DATA {}\n'.format((NX + 1) * (NY + 1) * (NZ + 1)))
+
+        for ii, value in enumerate(scalars):
+
+            f.write('SCALARS {} float\n'.format(value))
+            f.write('LOOKUP_TABLE default\n')
+            # print(len())
+            for iz in range(NZ + 1):
+                for iy in range(NY + 1):
+                    for ix in range(NX + 1):
+                            xx = min([ix, NX - 1])
+                            yy = min([iy, NY - 1])
+                            zz = min([iz, NZ - 1])
+                            f.write('{}\n'.format(to_write[ii].vals[xx, yy, zz]))
+
+
+def read_covariance(cov_file):
+    with open(cov_file, 'r') as f:
+        for ii in range(16):
+            f.next()
+        lines = f.readlines()
+        lines = [line.strip() for line in lines if line]
+        NX, NY, NZ = [int(x) for x in lines[0]]
+        sigma_x = [float(x) for x in lines[1]]
+        sigma_y = [float(x) for x in lines[2]]
+        sigma_z = [float(x) for x in lines[3]]
+        num_smooth = int(lines[4])
+        cov_exceptions = lines[5]
+        return NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions
+
+
+def read_freqset(path='./'):
+    freqset = PATH_CONNECTOR.join([path, 'freqset'])
+    with open(freqset, 'r') as f:
+        lines = f.readlines()
+        # nf = int(lines[0])
+        periods = [float(x) for x in lines[1:]]
+        # if len(periods) != nf:
+        #     print('Quoted number of periods, {}, is not equal to the actual number, {}'.format(
+        #           nf, len(periods)))
+        #     while True:
+        #         resp = input('Continue anyways? (y/n)')
+        #         if resp not in ('yn'):
+        #             print('Try again.')
+        #         else:
+        #             break
+    return periods
 
 
 def read_model(modelfile='', file_format='modem3d'):
@@ -237,7 +355,7 @@ def read_raw_data(site_names, datpath=''):
                     siteError_dict.update({''.join([comp, 'R']): dataErr})
                     siteError_dict.update({''.join([comp, 'I']): dataErr})
                 periods[periods < 0] = -1 / periods[periods < 0]
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise(WSFileError(ID='fnf', offender=file))
         try:
             assert len(set(ns_cache)) == 1
@@ -414,7 +532,7 @@ def read_raw_data(site_names, datpath=''):
 
                 # return blocks, lines, freqs
                 return site_dict, long_origin
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise(WSFileError(ID='fnf', offender=file))
 
     siteData = {}
@@ -477,7 +595,7 @@ def read_sites(listfile):
                 raise(WSFileError(ID='int', offender=listfile,
                                   extra='# Sites does not match length of list.'))
         return site_names
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         raise(WSFileError('fnf', offender=listfile))
 
 
@@ -497,6 +615,102 @@ def read_startup(file=None):
             elif 'DATA_FILE' in line.upper():
                 s_dict.update({'datafile': line.split()[1]})
     return s_dict
+
+
+def read_occam_data(datafile):
+    with open(datafile, 'r') as f:
+        lines = f.readlines()
+        for ii, line in enumerate(lines):
+            if 'sites' in line.lower():
+                NS = int(line.split(':')[1].strip())
+                site_line = ii + 1
+            if 'offsets' in line.lower():
+                off_line = ii + 1
+            if 'frequencies' in line.lower():
+                NF = int(line.split(':')[1].strip())
+                freq_line = ii + 1
+                break
+        frequencies = []
+        offsets = []
+        for line in lines[off_line: off_line + NS]:
+            if 'frequencies' in line.lower():
+                break
+            else:
+                offsets.append(line)
+        for ii, line in enumerate(lines[freq_line: freq_line + NF]):
+            if 'DATA' in line.upper():
+                ND = int(line.split(':')[1].strip())
+                data_line = ii + 2
+                break
+            else:
+                frequencies.append(line)
+        frequencies = utils.flatten_list([x.split() for x in frequencies])
+        # frequencies = [item for sublist in frequencies for item in sublist]
+        # frequencies = [float(x) for x in frequencies]
+        frequencies = np.array([float(f) for f in frequencies])
+        sites = lines[site_line: site_line + NS]
+        sites = [site.strip() for site in sites]
+        offsets = utils.flatten_list([x.split() for x in offsets])
+        offsets = [float(x) for x in offsets]
+        all_data = np.zeros((ND, 5))
+        for ii, line in enumerate(lines[data_line:]):
+            all_data[ii, :] = [float(x) for x in line.split()]
+        sites_dict = {}
+        for ii, site in enumerate(sites):
+            site_data = {'ZXYR': [], 'ZXYI': [], 'ZYXR': [], 'ZYXI': []}
+            rhoxy = all_data[np.bitwise_and(all_data[:, 2] == 1, all_data[:, 0] == ii + 1), 3]
+            rhoyx = all_data[np.bitwise_and(all_data[:, 2] == 5, all_data[:, 0] == ii + 1), 3]
+            phaxy = all_data[np.bitwise_and(all_data[:, 2] == 2, all_data[:, 0] == ii + 1), 3]
+            phayx = all_data[np.bitwise_and(all_data[:, 2] == 6, all_data[:, 0] == ii + 1), 3]
+            site_data['ZXYR'], site_data['ZXYI'] = utils.convert2impedance(rhoxy,
+                                                                           phaxy,
+                                                                           1 / frequencies,
+                                                                           'xy')
+            site_data['ZYXR'], site_data['ZYXI'] = utils.convert2impedance(rhoyx,
+                                                                           phayx,
+                                                                           1 / frequencies,
+                                                                           'yx')
+            site_errs = {'ZXYR': np.zeros((NF, 1)),
+                         'ZXYI': np.zeros((NF, 1)),
+                         'ZYXR': np.zeros((NF, 1)),
+                         'ZYXI': np.zeros((NF, 1))}
+            site_errmap = {'ZXYR': np.ones((NF, 1)),
+                           'ZXYI': np.ones((NF, 1)),
+                           'ZYXR': np.ones((NF, 1)),
+                           'ZYXI': np.ones((NF, 1))}
+            locations = {'X': 0, 'Y': offsets[ii]}
+            sites_dict.update({site: {
+                               'data': site_data,
+                               'errors': site_errs,
+                               'errmap': site_errmap,
+                               'periods': 1 / frequencies,
+                               'locations': locations,
+                               'azimuth': 0,
+                               'errFloorZ': None,
+                               'errFloorT': None}
+                               })
+    return sites_dict, sites
+
+
+def read_occam_response(respfile, data, sites):
+    all_data = np.loadtxt(respfile)
+    response = copy.deepcopy(data)
+    for ii, site in enumerate(sites):
+        rhoxy = all_data[np.bitwise_and(all_data[:, 2] == 1, all_data[:, 0] == ii + 1), 5]
+        rhoyx = all_data[np.bitwise_and(all_data[:, 2] == 5, all_data[:, 0] == ii + 1), 5]
+        phaxy = all_data[np.bitwise_and(all_data[:, 2] == 2, all_data[:, 0] == ii + 1), 5]
+        phayx = all_data[np.bitwise_and(all_data[:, 2] == 6, all_data[:, 0] == ii + 1), 5]
+        response[site]['data']['ZXYR'],
+        response[site]['data']['ZXYI'] = utils.convert2impedance(rhoxy,
+                                                                 phaxy,
+                                                                 data[site]['periods'],
+                                                                 'xy')
+        response[site]['data']['ZYXR'],
+        response[site]['data']['ZYXI'] = utils.convert2impedance(rhoyx,
+                                                                 phayx,
+                                                                 data[site]['periods'],
+                                                                 'yx')
+        return response
 
 
 def read_data(datafile='', site_names='', file_format='modem', invType=None):
@@ -602,7 +816,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                                   'errFloorZ': startup.get('errFloorZ', None),
                                   'errFloorT': startup.get('errFloorT', None)}
                                   })
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise(WSFileError(ID='fnf', offender=datafile)) from None
         other_info = {'inversion_type': invType,
                       'site_names': site_names,
@@ -617,7 +831,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         try:
             with open(datafile, 'r') as f:
                 lines = f.readlines()
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise(WSFileError(ID='fnf', offender=datafile)) from None
         marker = -10
         block_start = []
@@ -788,7 +1002,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         site_error[site_name]['ZYXI'].append(error)
         periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
-                # site_errmap[site][component] = np.array(site_errmap[site][component])
+        # site_errmap[site][component] = np.array(site_errmap[site][component])
         # print(site_data[site][component])
         if not site_names:
             site_names = new_site_names
@@ -848,7 +1062,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         try:
             with open(datafile, 'r') as f:
                 lines = f.readlines()
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise(WSFileError(ID='fnf', offender=datafile)) from None
         #  Remove comment lines
         lines = [line for line in lines if not line.startswith('%') and not line.startswith('!')]
@@ -930,6 +1144,122 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                                                                     'ModEM'))
 
 
+def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
+    errmsg = ''
+    ox, oy = (0, 0)
+    if isinstance(origin, str):
+        pass
+    else:
+        try:
+            ox, oy = origin
+        except TypeError:
+            errmsg = '\n'.join([errmsg, 'Model origin must be properly specified.'])
+    if not UTM:
+        errmsg = '\n'.join(['ERROR: UTM must be specified either in function call or in model'])
+    if errmsg:
+        print('\n'.join(errmsg))
+        return
+    version = '# vtk DataFile Version 3.0\n'
+    if not outfile:
+        print('You must specify the output file name')
+        return
+    if '.vtk' not in outfile:
+        outfile = ''.join([outfile, '_sites.vtk'])
+    xlocs = data.locations[:, 1] + origin[0]
+    ylocs = data.locations[:, 0] + origin[1]
+    ns = len(xlocs)
+    with open(outfile, 'w') as f:
+        f.write(version)
+        f.write('UTM: {} \n'.format(UTM))
+        f.write('ASCII\n')
+        f.write('DATASET POLYDATA\n')
+        # f.write('DIMENSIONS {} {} {} \n'.format(ns, ns, 1))
+        f.write('POINTS {} float\n'.format(ns))
+        for ix, iy in zip(xlocs, ylocs):
+            f.write('{} {} {}\n'.format(ix, iy, sea_level))
+        f.write('POINT_DATA {}\n'.format(ns))
+        f.write('SCALARS dummy float\n')
+        f.write('LOOKUP_TABLE default\n')
+        for ii in range(ns):
+            f.write('{}\n'.format(999999))
+
+
+def verify_input(message, expected, default=None):
+        while True:
+            ret = input(' '.join([message, '[Default: {}] > '.format(default)]))
+            if ret == '' and default is not None:
+                ret = default
+            if expected == 'read':
+                if utils.check_file(ret):
+                    return ret
+                else:
+                    print('File not found. Try again.')
+            elif expected == 'write':
+                if ret:
+                    if not utils.check_file(ret):
+                        return ret
+                    else:
+                        resp = verify_input('File exists, overwrite?', default='y', expected='yn')
+                        if resp == 'y':
+                            return ret
+                        else:
+                            return False
+                else:
+                    print('Output file name required!')
+            elif expected == 'numtuple':
+                try:
+                    ret = [float(x) for x in re.split(', | ', ret)]
+                    return ret
+                except ValueError:
+                    print('Could not convert {} to tuple'.format(ret))
+            elif isinstance(expected, str):
+                try:
+                    if ret.lower() not in expected:
+                        print('That is not an option. Try again.')
+                    else:
+                        return ret.lower()
+                except AttributeError:  # Catch case where string is a digit
+                    if str(ret) not in expected:
+                        print('That is not an option. Try again.')
+                    else:
+                        return ret
+            else:
+                try:
+                    return expected(ret)
+                except ValueError:
+                    print('Format error. Try again')
+
+
+def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_y=0.3, sigma_z=0.3, num_smooth=2):
+    header = ['+', '|' * 14, '+']
+
+    def write_smooth_block(file, N, sigma):
+        if not (len(sigma) != 1 or len(sigma) == N):
+            print('Length of sigma not equal to mesh size: length(sigma) = {}, N = {}'.format(len(sigma), N))
+            print('Printing default covariance instead.')
+            sigma = sigma[0]
+        if len(sigma) == 1:
+            file.write(' '.join([sigma] * N))
+        elif len(sigma) == N:
+            file.write(' '.join(sigma))
+        file.write('\n')
+
+    def write_exceptions_block(f, expections):
+        pass
+
+    with open(file_name, 'w') as f:
+        f.write('\n'.join(header))
+        f.write('\n{} {} {}\n'.format(NX, NY, NZ))
+        write_smooth_block(NX, sigma_x)
+        write_smooth_block(NX, sigma_y)
+        f.write('{}\n\n'.format(sigma_z))
+        f.write('{}\n\n'.format(num_smooth))
+        if exceptions:
+            write_exceptions_block(f, exceptions)
+        else:
+            f.write(0)
+
+
 def write_locations(data, out_file=None, file_format='csv'):
     def write_shapefile(data, outfile):
         if not outfile.endswith('.shp'):
@@ -958,443 +1288,6 @@ def write_locations(data, out_file=None, file_format='csv'):
         write_shapefile(data, out_file)
     elif file_format.lower() == 'kml':
         print('Not implemented yet')
-
-
-def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
-    #  Writes out the contents of a Data object into format specified by 'file_format'
-    #  Currently implemented options include WSINV3DMT and ModEM3D.
-    #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
-    def write_ws(data, outfile, to_write):
-        if '.data' not in outfile:
-            outfile = ''.join([outfile, '.data'])
-        if to_write == 'all' or to_write is None:
-            to_write = ['DATA', 'ERROR', 'ERMAP']
-        elif to_write == 'errors':
-            to_write = ['ERROR']
-        elif to_write == 'errmap':
-            to_write = ['ERMAP']
-        elif to_write == 'data':
-            to_write = ['DATA']
-        comps_to_write = data.used_components
-        NP = data.NP
-        NR = data.NR
-        NS = data.NS
-        azi = int(data.azimuth)
-        ordered_comps = {key: ii for ii, key in enumerate(data.ACCEPTED_COMPONENTS)}
-        comps_to_write = sorted(comps_to_write, key=lambda d: ordered_comps[d])
-        # theresgottabeabetterway = ('DATA', 'ERROR', 'ERMAP')
-        thismeansthat = {'DATA': 'data',
-                         'ERROR': 'errors',
-                         'ERMAP': 'errmap'}
-        if outfile is None:
-            print('You have to specify a file!')
-            return
-        with open(outfile, 'w') as f:
-            f.write('{}  {}  {}  {}\n'.format(NS, NP, NR, azi))
-            f.write('Station_Location: N-S\n')
-            for X in data.locations[:, 0]:
-                f.write('{}\n'.format(X))
-            f.write('Station_Locations: E-W\n')
-            for Y in data.locations[:, 1]:
-                f.write('{}\n'.format(Y))
-            for this in to_write:
-                that = thismeansthat[this]
-                for idx, period in enumerate(utils.to_list(data.periods)):
-                    f.write(''.join([this, '_Period: ', '%0.5E\n' % float(period)]))
-                    for site_name in data.site_names:
-                        site = data.sites[site_name]
-                        for comp in comps_to_write:
-                            try:
-                                to_print = getattr(site, that)[comp][idx]
-                            except KeyError as er:
-                                print('Inside error')
-                                print(site.components)
-                                print(site.data)
-                                raise er
-                            if that != 'data':
-                                to_print = abs(to_print)
-                            # print(to_print[comp][idx])
-                            if that == 'errmap':
-                                to_print = int(to_print)
-                                if to_print == site.OUTLIER_FLAG:
-                                    to_print = data.OUTLIER_MAP
-                                elif to_print == site.NO_PERIOD_FLAG:
-                                    to_print = data.NO_PERIOD_MAP
-                                elif to_print == site.NO_COMP_FLAG:
-                                    to_print = data.NO_COMP_MAP
-                                f.write('{:<5}'.format(min(9999, int(to_print))))
-                            else:
-                                f.write('{:>14.7E}  '.format(to_print))
-                            # for point in getattr(site, that)[comp]:
-                        f.write('\n')
-
-    def write_ModEM3D(data, out_file):
-        if '.dat' not in out_file:
-            out_file = ''.join([out_file, '.dat'])
-        units = []
-        data_type = []
-        temp_inv_type = []
-        actual_inv_type = copy.deepcopy(data.inv_type)
-        with open(out_file, 'w') as f:
-            z_title = '# Written using pyMT. UTM Zone: {}\n' + \
-                      '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
-                      'Component Real Imag Error\n'.format(data.UTM_zone)
-            pt_title = '# Written using pyMT. UTM Zone: {}\n' + \
-                       '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
-                       'Component Value Error\n'.format(data.UTM_zone)
-            if data.inv_type == 1:
-                data_type.append('> Full_Impedance\n')
-                units.append('> Ohm\n')
-                temp_inv_type.append(1)
-            elif data.inv_type == 2:
-                data_type.append('> Off_Diagonal_Impedance\n')
-                units.append('> Ohm\n')
-                temp_inv_type.append(2)
-            elif data.inv_type == 3:
-                data_type.append('> Full_Vertical_Components\n')
-                units.append('> []\n')
-                temp_inv_type.append(3)
-            elif data.inv_type == 4:
-                data_type.append('> Off_Diagonal_Impedance\n')
-                units.append('> Ohm\n')
-                data_type.append('> Full_Vertical_Components\n')
-                units.append('> []\n')
-                temp_inv_type.append(2)
-                temp_inv_type.append(3)
-            elif data.inv_type == 5:
-                data_type.append('> Full_Impedance\n')
-                units.append('> Ohm\n')
-                data_type.append('> Full_Vertical_Components\n')
-                units.append('> []\n')
-                temp_inv_type.append(1)
-                temp_inv_type.append(3)
-            elif data.inv_type == 6:
-                data_type.append('> Phase_Tensor\n')
-                units.append('> []\n')
-                temp_inv_type.append(6)
-            print(data.inv_type)
-            print(temp_inv_type)
-            # If inverting impedanaces or tipper
-            if data.inv_type <= 5:
-                for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
-                    f.write(z_title)
-                    f.write(data_type_string)
-                    f.write('> exp(-i\\omega t)\n')
-                    f.write(unit)
-                    f.write('> {}\n'.format(data.azimuth))
-                    f.write('> 0.0 0.0 0.0\n')
-                    f.write('> {} {}\n'.format(data.NP, data.NS))
-                    data.inv_type = inv_type
-                    components_to_write = [component for component in data.used_components
-                                           if 'i' not in component.lower()]
-                    for ii, site_name in enumerate(data.site_names):
-                        site = data.sites[site_name]
-                        for jj, period in enumerate(data.periods):
-                            for component in components_to_write:
-                                component_code = component[:3]
-                                if 'T' in component.upper():
-                                    component_code = component_code[0] + component_code[2]
-                                Z_real = site.data[component][jj]
-                                Z_imag = site.data[component[:3] + 'I'][jj]
-                                X, Y, Z = (site.locations['X'],
-                                           site.locations['Y'],
-                                           site.locations.get('elev', 0))
-                                # X, Y, Z = (data.locations[ii, 0],
-                                #            data.locations[ii, 1],
-                                #            site.locations.get('elev', 0))
-                                X, Y, Z = (data.locations[ii, 0],
-                                           data.locations[ii, 1],
-                                           site.locations.get('elev', 0))
-                                Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                                f.write(' '.join(['{:>14.7E} {:>14}',
-                                                  '{:>8.3f} {:>8.3f}',
-                                                  '{:>15.3f} {:>15.3f} {:>15.3f}',
-                                                  '{:>6} {:>14.7E} {:>14.7E}',
-                                                  '{:>14.7E}\n']).format(
-                                        period, site_name,
-                                        Lat, Long,
-                                        X, Y, Z,
-                                        component_code.upper(), Z_real, Z_imag,
-                                        max(site.used_error[component[:-1] + 'R'][jj],
-                                            site.used_error[component[:-1] + 'I'][jj])))
-            # If inv_type is greater than 5, do phase tensors?
-            else:
-                for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
-                    f.write(pt_title)
-                    f.write(data_type_string)
-                    f.write('> exp(-i\\omega t)\n')
-                    f.write(unit)
-                    f.write('> {}\n'.format(data.azimuth))
-                    f.write('> 0.0 0.0 0.0\n')
-                    f.write('> {} {}\n'.format(data.NP, data.NS))
-                    # data.inv_type = inv_type
-                    components_to_write = ['PTXX', 'PTXY', 'PTYX', 'PTYY']
-                    for ii, site_name in enumerate(data.site_names):
-                        site = data.sites[site_name]
-                        for jj, period in enumerate(data.periods):
-                            for component in components_to_write:
-                                component_code = component[:]
-                                # Remember X and Y are switched for Caldwell's def
-                                if component in site.components:
-                                    swapped_component = component.replace('X', '1')
-                                    swapped_component = swapped_component.replace('Y', 'X')
-                                    swapped_component = swapped_component.replace('1', 'Y')
-                                    value = site.data[swapped_component][jj]
-                                    error = site.used_error[swapped_component][jj]
-                                else:
-                                    # Remember X and Y are switched for Caldwell's def
-                                    if component == 'PTXX':  # PTXX
-                                        value = site.phase_tensors[jj].phi[1, 1]
-                                        error = site.phase_tensors[jj].phi_error[1, 1]
-                                    elif component == 'PTXY':  # PTXY
-                                        value = site.phase_tensors[jj].phi[1, 0]
-                                        error = site.phase_tensors[jj].phi_error[1, 0]
-                                    elif component == 'PTYX':  # PTYX
-                                        value = site.phase_tensors[jj].phi[0, 1]
-                                        error = site.phase_tensors[jj].phi_error[0, 1]
-                                    elif component == 'PTYY':  # PTYY
-                                        value = site.phase_tensors[jj].phi[0, 0]
-                                        error = site.phase_tensors[jj].phi_error[0, 0]
-                                X, Y, Z = (site.locations['X'],
-                                           site.locations['Y'],
-                                           site.locations.get('elev', 0))
-                                X, Y, Z = (data.locations[ii, 0],
-                                           data.locations[ii, 1],
-                                           site.locations.get('elev', 0))
-                                Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                                f.write(' '.join(['{:>14.7E} {:>14}',
-                                                  '{:>8.3f} {:>8.3f}',
-                                                  '{:>15.3f} {:>15.3f} {:>15.3f}',
-                                                  '{:>6} {:>14.7E} {:>14.7E}\n']).format(
-                                        period, site_name,
-                                        Lat, Long,
-                                        X, Y, Z,
-                                        component_code.upper(), value,
-                                        error))
-        data.inv_type = actual_inv_type
-
-    def write_MARE2DEM(data, out_file):
-        data_type_lookup = {'RhoZXX': 101,
-                            'PhsZXX': 102,
-                            'RhoZXY': 103,
-                            'PhsZXY': 104,
-                            'RhoZYX': 105,
-                            'PhsZYX': 106,
-                            'RhoZYY': 107,
-                            'PhsZYY': 108,
-                            'ZXXR': 111,
-                            'ZXXI': 112,
-                            'ZXYR': 113,
-                            'ZXYI': 114,
-                            'ZYXR': 115,
-                            'ZYXI': 116,
-                            'ZYYR': 117,
-                            'ZYYI': 118,
-                            'log10RhoZXX': 121,
-                            'log10RhoZXY': 123,
-                            'log10RhoZYX': 125,
-                            'log10RhoZYY': 127,
-                            'TZYR': 133,
-                            'TZYI': 134}
-        strike = (data.azimuth - 90) % 180
-        frequencies = [(1 / p) for p in data.periods]
-        with open(outfile, 'w') as f:
-            f.write('Format:\tEMData_2.2\n')
-            f.write('UTM of x, y origin (UTM zone, N, E, 2D strike): {:>10}{:>10}{:>10}{:>10}\n'.format(
-                    data.UTM_zone, data.origin[0], data.origin[1], strike))
-            f.write('# MT Frequencies: {}\n'.format(data.NP))
-            for freq in frequencies:
-                f.write('  {}\n'.format(freq))
-            f.write('# MT Receivers: {}\n'.format(data.NS))
-            f.write('!{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
-                    'X', 'Y', 'Z', 'Theta', 'Alpha', 'Beta', 'Length', 'SolveStatic', 'Name'))
-            for site in data.site_names:
-                f.write(' {:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
-                    utils.truncate(data.sites[site].locations['X']),
-                    utils.truncate(data.sites[site].locations['Y']),
-                    getattr(data.sites[site].locations, 'elev', 0),
-                    data.sites[site].azimuth,
-                    getattr(data.sites[site], 'alpha', 0),
-                    getattr(data.sites[site], 'beta', 0),
-                    getattr(data.sites[site], 'dipole_length', 0),
-                    getattr(data.sites[site], 'solve_static', 0),
-                    site))
-            f.write('# Data: {}\n'.format(data.NS * data.NP * len(data.used_components)))
-            f.write('!{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
-                    'Type', 'Freq#', 'Tx#', 'Rx#', 'Data', 'StdError'))
-            for ii, site in enumerate(data.site_names):
-                for jj, frequency in enumerate(frequencies):
-                    for component in data.used_components:
-                        if not component.lower()[:3] == 'tzx':
-                            f.write('{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
-                                    data_type_lookup[component],
-                                    jj + 1,
-                                    1,
-                                    ii + 1,
-                                    data.sites[site].data[component][jj],
-                                    data.sites[site].used_error[component][jj]))
-
-    def write_occam(data, outfile):
-        # Currently only writes Rho and Pha (can't choose) and sets static errors
-        with open(outfile, 'w') as f:
-            f.write('  FORMAT:         OCCAM2MTDATA_1.0\n')
-            f.write('  MODEL:          {}\n'.format(outfile))
-            f.write('  SITES:{:>17g}\n'.format(len(data.site_names)))
-            data_types = {'ZXYR': 13, 'ZXYI': 14,
-                          'ZYXR': 15, 'ZYXI': 16,
-                          'TZYR': 3, 'TZYI': 4,
-                          'RhoXY': 1, 'RhoYX': 5,
-                          'PhaXY': 2, 'PhaYX': 6}
-            exclude_components = set(('ZXXR', 'ZXXI',
-                                      'ZYYR', 'ZYYI',
-                                      'TZXR', 'TZXI'))
-            NS, NP, NR = (len(data.site_names),
-                          len(data.periods),
-                          len(set(data.used_components) - exclude_components))
-            num_data = NS * NP * 4
-            X = data.locations[:, 0] - np.min(data.locations[:, 0])
-            frequencies = utils.truncate(1 / data.periods)
-            for ii, site in enumerate(data.site_names):
-                f.write('{}\n'.format(site))
-            f.write('  OFFSETS (M):\n')
-            for x in X:
-                f.write('{:>15.8E}'.format(x))
-            f.write('\n')
-            f.write('  FREQUENCIES:{:>13g}\n'.format(len(frequencies)))
-            for freq in frequencies:
-                f.write('{:>15.8E}'.format(freq))
-            f.write('\n')
-            f.write('  DATA BLOCKS:{:>13g}\n'.format(num_data))
-            f.write('SITE   FREQ   DATA TYPE     DATUM       ERR\n')
-            for ii, site in enumerate(data.site_names):
-                for comp in ('RhoXY', 'PhaXY', 'RhoYX', 'PhaYX'):
-                    if comp not in exclude_components:
-                        comp_code = data_types[comp]
-                        if comp[:3].lower() == 'rho':
-                            calc_data, calc_err, calclog10_err = utils.compute_rho(data.sites[site],
-                                                                                   calc_comp=comp,
-                                                                                   errtype='used_error')
-                            calc_data = np.log10(calc_data)
-                            calc_error = 0.08
-                        elif comp[:3].lower() == 'pha':
-                            calc_data, calclog10_err = utils.compute_phase(data.sites[site],
-                                                                           calc_comp=comp,
-                                                                           errtype='used_error',
-                                                                           wrap=1)
-                            calc_error = 5
-                        for jj, freq in enumerate(frequencies):
-                            data_point = calc_data[jj]
-                            error_point = calc_error
-                            f.write('{:>4g}{:>6g}{:>12g}{:>15.5f}{:>15.5f}\n'.format(ii + 1,
-                                                                                     jj + 1,
-                                                                                     comp_code,
-                                                                                     data_point,
-                                                                                     error_point))
-
-    def write_ModEM2D(data, out_file):
-        if '.dat' not in out_file:
-            out_file = ''.join([out_file, '.dat'])
-        units = []
-        data_type = []
-        temp_inv_type = []
-        actual_inv_type = copy.deepcopy(data.inv_type)
-        with open(out_file, 'w') as f:
-            z_title = '# Written using pyMT. UTM Zone: {}\n' + \
-                      '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
-                      'Component Real Imag Error\n'.format(data.UTM_zone)
-            if data.inv_type == 10:
-                data_type.append('> TE_Impedance\n')
-                units.append('> Ohm\n')
-                data_type.append('> TM_Impedance\n')
-                units.append('> Ohm\n')
-                temp_inv_type.append(8)
-                temp_inv_type.append(9)
-            elif data.inv_type == 8:
-                data_type.append('> TE_Impedance\n')
-                units.append('> Ohm\n')
-                temp_inv_type.append(8)
-            elif data.inv_type == 9:
-                data_type.append('> TM_Impedance\n')
-                units.append('> Ohm\n')
-                temp_inv_type.append(9)
-            # If inverting impedances
-            # If locations haven't been projected
-            azi = copy.deepcopy(data.azimuth)
-            if np.any(data.locations[:, 0]):
-                # Reset the data locations
-                data.rotate_sites(azi=0)
-                # Rotate the data to coincide with the chosen direction
-                for site_name in data.site_names:
-                    data.sites[site_name].rotate_data(azi)  # There is a negative in the data_structures code that has to be countered here
-                # Project the station locations onto the line
-                xy = np.fliplr(data.locations)
-                xy = utils.project_to_line(xy, azi=(azi + 90) % 180)
-                xy, center = utils.center_locs(xy)
-                center = xy[0, :]
-                for ii, (x, y) in enumerate(xy):
-                    if x < center[0]:
-                        if y < center[1]:
-                            center = xy[ii, :]
-                y_locs = []
-                for x, y in xy:
-                    y_locs.append(np.sqrt((x - center[0]) ** 2 + (y - center[0]) ** 2))
-            else:
-                y_locs = data.locations[:, 1]
-            for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
-                f.write(z_title)
-                f.write(data_type_string)
-                f.write('> exp(-i\\omega t)\n')
-                f.write(unit)
-                f.write('> {}\n'.format(azi))
-                f.write('> 0.0 0.0 0.0\n')
-                f.write('> {} {}\n'.format(data.NP, data.NS))
-                data.inv_type = inv_type
-                components_to_write = [component for component in data.used_components
-                                       if 'i' not in component.lower()]
-                for ii, site_name in enumerate(data.site_names):
-                    site = data.sites[site_name]
-                    for jj, period in enumerate(data.periods):
-                        for component in components_to_write:
-                            if component[:3] == 'ZXY':
-                                component_code = 'TE'
-                            elif component[:3] == 'ZYX':
-                                component_code = 'TM'
-                            Z_real = site.data[component][jj]
-                            Z_imag = site.data[component[:3] + 'I'][jj]
-                            # X, Y, Z = (site.locations['X'],
-                            #            site.locations['Y'],
-                            #            site.locations.get('elev', 0))
-                            # X, Y, Z = (data.locations[ii, 0],
-                            #            data.locations[ii, 1],
-                            #            site.locations.get('elev', 0))
-                            Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                            f.write(' '.join(['{:>14.7E} {:>14}',
-                                              '{:>8.3f} {:>8.3f}',
-                                              '{:>15.3f} {:>15.3f} {:>15.3f}',
-                                              '{:>6} {:>14.7E} {:>14.7E}',
-                                              '{:>14.7E}\n']).format(
-                                    period, site_name,
-                                    Lat, Long,
-                                    0, y_locs[ii], 0,
-                                    component_code.upper(), Z_real, Z_imag,
-                                    max(site.used_error[component[:-1] + 'R'][jj],
-                                        site.used_error[component[:-1] + 'I'][jj])))
-
-    if file_format.lower() == 'wsinv3dmt':
-        write_ws(data, outfile, to_write)
-    elif file_format.lower() == 'modem':
-        if data.dimensionality.lower() == '3d':
-            write_ModEM3D(data, outfile)
-        elif data.dimensionality.lower() == '2d' or data.inv_type in (8, 9, 10):
-            write_ModEM2D(data, outfile)
-        else:
-            print('Unable to write data; dimensionality not defined')
-    elif file_format.lower() == 'mare2dem':
-        write_MARE2DEM(data, outfile)
-    elif file_format.lower() == 'occam':
-        write_occam(data, outfile)
-    else:
-        print('Output file format {} not recognized'.format(file_format))
 
 
 def write_response(data, outfile=None):
@@ -1455,188 +1348,6 @@ def write_errors(data, outfile=None):
                     f.write('{:>14.7E}  '.format(to_print))
                     # for point in getattr(site, that)[comp]:
                 f.write('\n')
-
-
-def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0):
-    """
-    Write model to VTK ascii format
-    VTK format has X running west-east, Y running south-north, so model dimensions
-    need to be swapped.
-    Model origin should be archived throughout the process, i.e. stuffed into model
-    or data files so it can be recovered at any time. Positive Z goes UP, so model needs to
-    be flipped in Z.
-    This also can accept a data file so that a seperate VTK file is written with site
-    locations. Because of the fact that 2 files can be read, you should also look for
-    UTM coordinates in both, if necessary / possible.
-    Want this process to be as easy as possible, so there should probably be
-    several possible ways of reading. You could specify directly the model and data files,
-    specify a file containing the names of the files, you can specify nothing and it could
-    look for the model with the best RMS and use that, or there could just be a browser.
-    For now I'll just have to do things manually until I get it all built and moved to the
-    cluster.
-    Usage on the cluster will probably have to be a call to a script which creates instances
-    of the data and model from the passed files, then passes these to this function.
-    That might be overkill though, so another option might just to be to have a lightweight
-    version of this that just does what is necessary to spit out the VTK file.
-    All of Model, Data, and Dataset should probably have wrapper methods for this though that
-    just redirect the data to here.
-    """
-    def prep_model(model):
-        values = copy.deepcopy(model)
-        tmp = values.vals
-        values.vals = np.swapaxes(tmp, 0, 1)
-        NX, NY, NZ = values.vals.shape
-        values._dx, values._dy = values._dy, values._dx
-        values._dx = [x + ox for x in values._dx]
-        values._dy = [y + oy for y in values._dy]
-        values._dz = [-z + sea_level for z in values._dz]
-        return values
-    # print(model.resolution)
-    errmsg = ''
-    ox, oy = (0, 0)
-    if origin:
-        try:
-            ox, oy = origin
-        except TypeError:
-            errmsg = '\n'.join(errmsg, 'Model origin must be properly specified.')
-    else:
-        ox, oy = model.origin
-    if not UTM:
-        try:
-            UTM = model.UTM_zone
-        except AttributeError:
-            errmsg.append(['ERROR: UTM must be specified either in function call or in model'])
-    if errmsg:
-        print('\n'.join(errmsg))
-        resp = input('Do you want to continue? (y/n)')
-        if resp.lower() == 'n':
-            return
-    version = '# vtk DataFile Version 3.0\n'
-    modname = os.path.basename(model.file)
-    if not outfile:
-        outfile = ''.join([modname, '_model.vtk'])
-    else:
-        outfile = '_'.join([outfile, 'model.vtk'])
-    values = prep_model(model)
-    if model.resolution:
-        # This creates separate copies of the model object and sticks the resolution values into the vals
-        # attributes
-        # Is a very roundabout method. All resolution information
-        # should be availabe in the original model object
-        print('Model.resolution exists')
-        raw_resolution = copy.deepcopy(model)
-        raw_resolution.vals = model.resolution
-        if np.max(raw_resolution.vals) > 1:  # Invert values if not already done
-            raw_resolution.vals = 1 / raw_resolution.vals
-        raw_resolution.vals[raw_resolution.vals > 1e10] = 1e10
-        modified_resolution = copy.deepcopy(raw_resolution)
-        modified_resolution = utils.normalize(modified_resolution)
-        modified_resolution.vals[modified_resolution.vals > 1] = 1
-        raw_resolution = prep_model(raw_resolution)
-        modified_resolution = prep_model(modified_resolution)
-        scalars = ('Resistivity', 'Raw_Resolution', 'Modified_Resolution')
-        to_write = (values, raw_resolution, modified_resolution)
-    else:
-        scalars = ['Resistivity']
-        to_write = [values]
-    # if azi:
-    #     use_rot = True
-    #     X, Y = np.meshgrid(values.dx, values.dy)
-    #     locs = np.transpose(np.array((np.ndarray.flatten(X), np.ndarray.flatten(Y))))
-    #     locs = utils.rotate_locs(locs, azi=-azi)
-    # else:
-    # use_rot = False
-    # values.vals = np.reshape(values.vals, [NX * NY * NZ], order='F')
-    NX, NY, NZ = values.vals.shape
-    with open(outfile, 'w') as f:
-        f.write(version)
-        f.write('{}   UTM: {} \n'.format(modname, UTM))
-        f.write('ASCII\n')
-        f.write('DATASET RECTILINEAR_GRID\n')
-        f.write('DIMENSIONS {} {} {}\n'.format(NX + 1, NY + 1, NZ + 1))
-        for dim in ('x', 'y', 'z'):
-            f.write('{}_COORDINATES {} float\n'.format(dim.upper(),
-                                                       len(getattr(values, ''.join(['_d', dim])))))
-            gridlines = getattr(values, ''.join(['_d', dim]))
-            for edge in gridlines:
-                f.write('{} '.format(str(edge)))
-            f.write('\n')
-            # for ii in range(getattr(values, ''.join(['n', dim]))):
-            #     midpoint = (gridlines[ii] + gridlines[ii + 1]) / 2
-            #     f.write('{} '.format(str(midpoint)))
-            # f.write('\n')
-        f.write('POINT_DATA {}\n'.format((NX + 1) * (NY + 1) * (NZ + 1)))
-
-        for ii, value in enumerate(scalars):
-
-            f.write('SCALARS {} float\n'.format(value))
-            f.write('LOOKUP_TABLE default\n')
-            # print(len())
-            for iz in range(NZ + 1):
-                for iy in range(NY + 1):
-                    for ix in range(NX + 1):
-                            xx = min([ix, NX - 1])
-                            yy = min([iy, NY - 1])
-                            zz = min([iz, NZ - 1])
-                            f.write('{}\n'.format(to_write[ii].vals[xx, yy, zz]))
-
-
-def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
-    errmsg = ''
-    ox, oy = (0, 0)
-    if isinstance(origin, str):
-        pass
-    else:
-        try:
-            ox, oy = origin
-        except TypeError:
-            errmsg = '\n'.join([errmsg, 'Model origin must be properly specified.'])
-    if not UTM:
-        errmsg = '\n'.join(['ERROR: UTM must be specified either in function call or in model'])
-    if errmsg:
-        print('\n'.join(errmsg))
-        return
-    version = '# vtk DataFile Version 3.0\n'
-    if not outfile:
-        print('You must specify the output file name')
-        return
-    if '.vtk' not in outfile:
-        outfile = ''.join([outfile, '_sites.vtk'])
-    xlocs = data.locations[:, 1] + origin[0]
-    ylocs = data.locations[:, 0] + origin[1]
-    ns = len(xlocs)
-    with open(outfile, 'w') as f:
-        f.write(version)
-        f.write('UTM: {} \n'.format(UTM))
-        f.write('ASCII\n')
-        f.write('DATASET POLYDATA\n')
-        # f.write('DIMENSIONS {} {} {} \n'.format(ns, ns, 1))
-        f.write('POINTS {} float\n'.format(ns))
-        for ix, iy in zip(xlocs, ylocs):
-            f.write('{} {} {}\n'.format(ix, iy, sea_level))
-        f.write('POINT_DATA {}\n'.format(ns))
-        f.write('SCALARS dummy float\n')
-        f.write('LOOKUP_TABLE default\n')
-        for ii in range(ns):
-            f.write('{}\n'.format(999999))
-
-
-def read_freqset(path='./'):
-    freqset = PATH_CONNECTOR.join([path, 'freqset'])
-    with open(freqset, 'r') as f:
-        lines = f.readlines()
-        # nf = int(lines[0])
-        periods = [float(x) for x in lines[1:]]
-        # if len(periods) != nf:
-        #     print('Quoted number of periods, {}, is not equal to the actual number, {}'.format(
-        #           nf, len(periods)))
-        #     while True:
-        #         resp = input('Continue anyways? (y/n)')
-        #         if resp not in ('yn'):
-        #             print('Try again.')
-        #         else:
-        #             break
-    return periods
 
 
 def write_list(data, outfile):
@@ -1763,108 +1474,4 @@ def write_model(model, outfile, file_format='modem'):
         print('ModEM, WSINV3DMT, UBC-GIF')
         return
 
-
-def read_occam_data(datafile):
-    with open(datafile, 'r') as f:
-        lines = f.readlines()
-        for ii, line in enumerate(lines):
-            if 'sites' in line.lower():
-                NS = int(line.split(':')[1].strip())
-                site_line = ii + 1
-            if 'offsets' in line.lower():
-                off_line = ii + 1
-            if 'frequencies' in line.lower():
-                NF = int(line.split(':')[1].strip())
-                freq_line = ii + 1
-                break
-        frequencies = []
-        offsets = []
-        for line in lines[off_line: off_line + NS]:
-            if 'frequencies' in line.lower():
-                break
-            else:
-                offsets.append(line)
-        for ii, line in enumerate(lines[freq_line: freq_line + NF]):
-            if 'DATA' in line.upper():
-                ND = int(line.split(':')[1].strip())
-                data_line = ii + 2
-                break
-            else:
-                frequencies.append(line)
-        frequencies = utils.flatten_list([x.split() for x in frequencies])
-        # frequencies = [item for sublist in frequencies for item in sublist]
-        # frequencies = [float(x) for x in frequencies]
-        frequencies = np.array([float(f) for f in frequencies])
-        sites = lines[site_line: site_line + NS]
-        sites = [site.strip() for site in sites]
-        offsets = utils.flatten_list([x.split() for x in offsets])
-        offsets = [float(x) for x in offsets]
-        all_data = np.zeros((ND, 5))
-        for ii, line in enumerate(lines[data_line:]):
-            all_data[ii, :] = [float(x) for x in line.split()]
-        sites_dict = {}
-        for ii, site in enumerate(sites):
-            site_data = {'ZXYR': [], 'ZXYI': [], 'ZYXR': [], 'ZYXI': []}
-            rhoxy = all_data[np.bitwise_and(all_data[:, 2] == 1, all_data[:, 0] == ii + 1), 3]
-            rhoyx = all_data[np.bitwise_and(all_data[:, 2] == 5, all_data[:, 0] == ii + 1), 3]
-            phaxy = all_data[np.bitwise_and(all_data[:, 2] == 2, all_data[:, 0] == ii + 1), 3]
-            phayx = all_data[np.bitwise_and(all_data[:, 2] == 6, all_data[:, 0] == ii + 1), 3]
-            site_data['ZXYR'], site_data['ZXYI'] = utils.convert2impedance(rhoxy,
-                                                                           phaxy,
-                                                                           1 / frequencies,
-                                                                           'xy')
-            site_data['ZYXR'], site_data['ZYXI'] = utils.convert2impedance(rhoyx,
-                                                                           phayx,
-                                                                           1 / frequencies,
-                                                                           'yx')
-            site_errs = {'ZXYR': np.zeros((NF, 1)),
-                         'ZXYI': np.zeros((NF, 1)),
-                         'ZYXR': np.zeros((NF, 1)),
-                         'ZYXI': np.zeros((NF, 1))}
-            site_errmap = {'ZXYR': np.ones((NF, 1)),
-                           'ZXYI': np.ones((NF, 1)),
-                           'ZYXR': np.ones((NF, 1)),
-                           'ZYXI': np.ones((NF, 1))}
-            locations = {'X': 0, 'Y': offsets[ii]}
-            sites_dict.update({site: {
-                               'data': site_data,
-                               'errors': site_errs,
-                               'errmap': site_errmap,
-                               'periods': 1 / frequencies,
-                               'locations': locations,
-                               'azimuth': 0,
-                               'errFloorZ': None,
-                               'errFloorT': None}
-                               })
-    return sites_dict, sites
-
-
-def read_occam_response(respfile, data, sites):
-    all_data = np.loadtxt(respfile)
-    response = copy.deepcopy(data)
-    for ii, site in enumerate(sites):
-        rhoxy = all_data[np.bitwise_and(all_data[:, 2] == 1, all_data[:, 0] == ii + 1), 5]
-        rhoyx = all_data[np.bitwise_and(all_data[:, 2] == 5, all_data[:, 0] == ii + 1), 5]
-        phaxy = all_data[np.bitwise_and(all_data[:, 2] == 2, all_data[:, 0] == ii + 1), 5]
-        phayx = all_data[np.bitwise_and(all_data[:, 2] == 6, all_data[:, 0] == ii + 1), 5]
-        response[site]['data']['ZXYR'],
-        response[site]['data']['ZXYI'] = utils.convert2impedance(rhoxy,
-                                                                 phaxy,
-                                                                 data[site]['periods'],
-                                                                 'xy')
-        response[site]['data']['ZYXR'],
-        response[site]['data']['ZYXI'] = utils.convert2impedance(rhoyx,
-                                                                 phayx,
-                                                                 data[site]['periods'],
-                                                                 'yx')
-        return response
-
-
-def debug_print(items, file):
-    with open(file, 'a+') as f:
-        datetime_obj = datetime.datetime.now()
-        f.write(str(datetime_obj) + '\n')
-        f.write('{}\n'.format(items))
-
-# def occam2ws(respfile, datafile, listfile=None, datpath=None):
 
