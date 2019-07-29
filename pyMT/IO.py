@@ -1231,33 +1231,39 @@ def verify_input(message, expected, default=None):
 
 
 def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_y=0.3, sigma_z=0.3, num_smooth=2):
-    header = ['+', '|' * 14, '+']
+    header = ['+', '|', '|', '|', '|', '|', '|', '|', '|',
+              '|', '|', '|', '|', '|', '|', '+']
 
     def write_smooth_block(file, N, sigma):
-        if not (len(sigma) != 1 or len(sigma) == N):
+        if not isinstance(sigma, list):
+            file.write(' '.join([str(sigma)] * N))
+        elif len(sigma) == N:
+            file.write(' '.join(sigma))
+        else:
             print('Length of sigma not equal to mesh size: length(sigma) = {}, N = {}'.format(len(sigma), N))
             print('Printing default covariance instead.')
             sigma = sigma[0]
-        if len(sigma) == 1:
             file.write(' '.join([sigma] * N))
-        elif len(sigma) == N:
-            file.write(' '.join(sigma))
+        file.write('\n')
         file.write('\n')
 
     def write_exceptions_block(f, expections):
         pass
 
+    if not (file_name.endswith('.cov')):
+        file_name += '.cov'
     with open(file_name, 'w') as f:
         f.write('\n'.join(header))
-        f.write('\n{} {} {}\n'.format(NX, NY, NZ))
-        write_smooth_block(NX, sigma_x)
-        write_smooth_block(NX, sigma_y)
+        f.write('\n')
+        f.write('\n{} {} {}\n\n'.format(NX, NY, NZ))
+        write_smooth_block(f, NX, sigma_x)
+        write_smooth_block(f, NY, sigma_y)
         f.write('{}\n\n'.format(sigma_z))
         f.write('{}\n\n'.format(num_smooth))
         if exceptions:
             write_exceptions_block(f, exceptions)
         else:
-            f.write(0)
+            f.write('0')
 
 
 def write_locations(data, out_file=None, file_format='csv'):

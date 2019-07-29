@@ -1227,6 +1227,16 @@ class Model(object):
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
 
+    def read_covariance(self, covariance_file=''):
+        if covariance_file:
+            NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions = WS_io.read_covariance(covariance_file)
+            if (NX == self.NX) and (NY == self.NY) and (NZ == self.NZ):
+                sigma_x
+                sigma_y
+                sigma_z
+                num_smooth
+                cov_exceptions
+
     def to_vtk(self, outfile=None, sea_level=0, origin=None, UTM=None):
         if origin:
             self.origin = origin
@@ -1482,9 +1492,9 @@ class Model(object):
 
     def write_covariance(self, outfile):
         WS_io.write_covariance(outfile,
-                               self.NX,
-                               self.NY,
-                               self.NZ,
+                               self.nx,
+                               self.ny,
+                               self.nz,
                                self.cov_exceptions,
                                self.sigma_x,
                                self.sigma_y,

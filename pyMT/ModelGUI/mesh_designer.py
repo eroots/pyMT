@@ -356,9 +356,12 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.revert_model = copy.deepcopy(self.model)
 
     def write_model(self):
-        file, ret = self.file_dialog.write_file(ext='.model')
+        file, ret = self.file_dialog.write_file(ext='.model', label='Output Model')
         if ret:
+            file, ret = self.file_dialog.write_file(ext='.cov', label='Output Covariance')
             self.model.write(file)
+            if ret:
+                self.model.write_covariance(file)
 
     def connect_mpl_events(self):
         if self.mesh_changable:
