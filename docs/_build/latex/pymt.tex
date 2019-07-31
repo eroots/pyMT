@@ -72,7 +72,7 @@
 
 
 \title{pyMT}
-\date{Jul 23, 2019}
+\date{Jul 30, 2019}
 \release{0.0.1}
 \author{Eric Roots}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -1157,7 +1157,7 @@ Always double check the output mesh and data files with another tool afterwards 
 
 
 \subsection{Mesh Designer - Main Window}
-\label{\detokenize{content/mesh_designer/main_window:mesh-designer-main-window}}\label{\detokenize{content/mesh_designer/main_window::doc}}
+\label{\detokenize{content/mesh_designer/main_window:mesh-designer-main-window}}\label{\detokenize{content/mesh_designer/main_window:mesh-designer}}\label{\detokenize{content/mesh_designer/main_window::doc}}
 \begin{figure}[htbp]
 \centering
 
@@ -1177,7 +1177,7 @@ The Mesh Designer has 3 areas: The {\hyperref[\detokenize{content/mesh_designer/
 
 The Save / Revert menu has options for writing the model to a file, as well as saving and reverting progess within the Mesh Designer.
 
-The Write Model sub-menu will open a dialog box that asks for the name of the file to be written to. You will be prompted again if this operation is going to overwrite an existing file.
+The Write Model sub-menu will open a dialog box that asks for the name of the file to be written to. You will be prompted again if this operation is going to overwrite an existing file. A second prompt will ask for a name to output an associated covariance file (hit cancel to skip).
 \begin{itemize}
 \item {} 
 The only file format available from here is that of a ModEM 3-D file. This is the same as the WSINV3DMT file format, except that the resistivity values will be given as the natural logarithm.
@@ -1375,8 +1375,210 @@ Assuming the data file we want to modify is ‘demo.dat’, and the list file we
 \end{sphinxVerbatim}
 
 
+\section{Scripts}
+\label{\detokenize{content/examples/scripts:scripts}}\label{\detokenize{content/examples/scripts::doc}}
+A number of scripts come with pyMT, although only a few of these are ready for {\hyperref[\detokenize{content/examples/scripts:general-use}]{\sphinxcrossref{General Use}}} . Others will need to be manually edited for your particular needs. Only a few will be described here.
+
+
+\subsection{General Use}
+\label{\detokenize{content/examples/scripts:general-use}}
+The scripts listed here are ready to run out of the box, and either have command line inputs to control them, or are so simple as to not require any inputs.
+
+
+\subsubsection{j2ws3d}
+\label{\detokenize{content/examples/scripts:j2ws3d}}
+j2ws3d is a command line tool for preparing data for inversion. It is included in your search path upon installtion of pyMT, so it can be run from anywhere (preferably wherever your raw data is).
+
+Note, that by default j2ws3d.py tries to create both models and data through command line inputs, but the model creation aspect is bugged and will crash. Either run:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{j2ws3d}\PYG{o}{.}\PYG{n}{py} \PYG{o}{\PYGZhy{}}\PYG{n}{data}
+\end{sphinxVerbatim}
+
+to initial a data only mode, or just ignore the program crash (as it occurs after the data file is written out).
+
+Other than that, just follow the on-screen prompts.
+
+This program has is still usuable, but has been superceded by the {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}} GUI.
+
+
+\subsubsection{to\_vtk}
+\label{\detokenize{content/examples/scripts:to-vtk}}
+Script for converting site locations and models to VTK files (compatible with, e.g., Paraview).
+
+Usage:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{to\PYGZus{}vtk}\PYG{o}{.}\PYG{n}{py}
+\end{sphinxVerbatim}
+
+Follow the command line prompts to select your model and/or data files. You will also have the option to project your model and data into a particular UTM zone.
+
+Note that any station / model rotations will have to be handled manually.
+
+
+\subsubsection{ws2modem}
+\label{\detokenize{content/examples/scripts:ws2modem}}
+Simple script to convert WSINV3DMT data files into ModEM 3-D data files.
+Usage:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{ws2modem}\PYG{o}{.}\PYG{n}{py} \PYG{o}{\PYGZlt{}}\PYG{n}{ws\PYGZus{}input\PYGZus{}data}\PYG{o}{\PYGZgt{}} \PYG{o}{\PYGZlt{}}\PYG{n}{modem\PYGZus{}output\PYGZus{}data}\PYG{o}{\PYGZgt{}}
+\end{sphinxVerbatim}
+
+
 \chapter{Other Info}
 \label{\detokenize{index:other-info}}
+
+\section{Help}
+\label{\detokenize{index:help}}
+
+\subsection{HELP}
+\label{\detokenize{content/misc/help:help}}\label{\detokenize{content/misc/help::doc}}
+For feature requests, bug fixes, design suggestions, or anything else contact me at \sphinxhref{mailto:eroots087@gmail.com}{eroots087@gmail.com}
+
+
+\section{Disclaimer}
+\label{\detokenize{index:disclaimer}}
+
+\subsection{DISCLAIMER}
+\label{\detokenize{content/misc/DISCLAIMER:disclaimer}}\label{\detokenize{content/misc/DISCLAIMER::doc}}
+This code base has been cobbled together over a few years. Parts of it were written to fulfill a specific need at a specific time and then promptly forgotten, while others were written when I was still figuring out the difference between a class and a method. While I have tried to address bugs as I come across them, this code is not unit tested (yet), and so is best used with an understanding of the the expected outcome is. There are some {\hyperref[\detokenize{content/misc/DISCLAIMER:known-bugs}]{\sphinxcrossref{known bugs}}}, but any further unexpected behavior can be reported.
+
+
+\subsection{KNOWN BUGS}
+\label{\detokenize{content/misc/DISCLAIMER:known-bugs}}\label{\detokenize{content/misc/DISCLAIMER:id1}}
+
+\subsubsection{General}
+\label{\detokenize{content/misc/DISCLAIMER:general}}\begin{itemize}
+\item {} 
+Text is occasionally printed to the terminal. This text is usually meant to convey some information about something unexpected, and the codes attempts to work around it. Occasionally text will be printed that was meant for debugging purposes, and has just not been removed. Generally, any text that is printed that isn’t followed by a crash is fine.
+
+\end{itemize}
+
+
+\subsubsection{Data Plot GUI}
+\label{\detokenize{content/misc/DISCLAIMER:data-plot-gui}}\begin{itemize}
+\item {} \begin{description}
+\item[{When only a {\hyperref[\detokenize{content/api_core/input_files:list-file}]{\sphinxcrossref{\DUrole{std,std-ref}{List File}}}} is specified for the loaded dataset, a {\hyperref[\detokenize{content/api_core/data_structures:data}]{\sphinxcrossref{\DUrole{std,std-ref}{Data}}}} object will be initialized by taking logarithmically spaced periods.}] \leavevmode\begin{itemize}
+\item {} 
+In this instance, the {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} is not initialized properly, and no site locations are shown.
+
+\item {} 
+The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.
+
+\end{itemize}
+
+\end{description}
+
+\item {} 
+When multiple datasets are loaded, the misfit table may not be properly updated to reflect the currently selected dataset.
+
+\item {} \begin{description}
+\item[{Rotating the data / stations using the ‘Azimuth’ box has a few associated bugs}] \leavevmode\begin{itemize}
+\item {} 
+The station locations and annotations in the {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} may not be accurate
+
+\item {} \begin{description}
+\item[{The Azimuth editor is meant to be used for 3-D data, and rotates the data accordingly: Station locations are rotated clockwise from north, and the data is rotated counter-clockwise to maintain a measurement coordinate system that is consistent with the model space (see \sphinxurl{https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/})}] \leavevmode\begin{itemize}
+\item {} 
+A consequence of this setup is that the GUI is not suitable to rotation and projection into 2-D.
+
+\end{itemize}
+
+\end{description}
+
+\end{itemize}
+
+\end{description}
+
+\item {} \begin{description}
+\item[{The ‘Write All Plots’ action sometimes crashes the GUI.}] \leavevmode\begin{itemize}
+\item {} 
+Known instances of this are when you attempt to overwrite an open PDF file. A permission error is thrown and not caught, resulting in a crash
+
+\item {} 
+Occasionally, if the number of subplots in the final saved plot is different from that specified within the ‘Plot Options’ tab, the next action taken can result in a crash.
+
+\end{itemize}
+
+\end{description}
+
+\item {} 
+If more subplots are used than there are stations available, one station will be re-plotted in order to fill the unused subplots.
+
+\item {} 
+If more than one dataset is loaded into the GUI, switching between datasets may not update the misfit table.
+
+\item {} 
+Blank items in the {\hyperref[\detokenize{content/data_plot/main_window:data-component-table}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Component Table}}}} are selectable. However, this results in the first available component being plotted instead, and so should not break the GUI.
+
+\item {} 
+The RMS misfits as shown in the {\hyperref[\detokenize{content/data_plot/main_window:misfit-table}]{\sphinxcrossref{\DUrole{std,std-ref}{Misfit Table}}}} may differ slightly from what logged by ModEM as pyMT always applies an error floor to any data read in. ModEM does not explicitly use (or store) an applied error floor, and so the hard-coded error floors of pyMT (see {\hyperref[\detokenize{content/api_core/data_structures:error-floors}]{\sphinxcrossref{\DUrole{std,std-ref}{Error Floors}}}}) may differ from those used in the inversion. As a result, if you used a lower error floor than those coded into pyMT, the misfits shown in this table will be lower.
+
+\end{itemize}
+
+
+\subsubsection{Model Viewer GUI}
+\label{\detokenize{content/misc/DISCLAIMER:model-viewer-gui}}\begin{itemize}
+\item {} 
+Hovering over the plots within the 2-D will show location and resistivity information about the cursors position. This seem to generally be correct, however sometimes the resistivity shown does not match the plot itself. Likely an issue with matching the cursors location to model cells near the edges of the model.
+
+\item {} \begin{description}
+\item[{The 2-D transect plot shows left-right in the order that was clicked.}] \leavevmode\begin{itemize}
+\item {} 
+This means that if you select points from north to south, the figure will plot from north on the left to south on the right.
+
+\end{itemize}
+
+\end{description}
+
+\item {} 
+The 2-D transect plot does not respond to changes in the model trim. The workaround currently is to trim the volume, and then re-select the desired points for the transect plot.
+
+\end{itemize}
+
+
+\section{Change Log}
+\label{\detokenize{index:change-log}}
+
+\subsection{Change Log}
+\label{\detokenize{content/misc/changelog:change-log}}\label{\detokenize{content/misc/changelog::doc}}\begin{itemize}
+\item {} \begin{description}
+\item[{07/30/19}] \leavevmode\begin{itemize}
+\item {} 
+{\hyperref[\detokenize{content/api_core/data_structures:model}]{\sphinxcrossref{\DUrole{std,std-ref}{Model}}}} class can now read and write model covariance files
+
+\item {} 
+{\hyperref[\detokenize{content/mesh_designer/main_window:mesh-designer}]{\sphinxcrossref{\DUrole{std,std-ref}{Mesh Designer - Main Window}}}} will automatically prompt for covariance file output when writing a model.
+
+\item {} 
+Added documentation for some of the more usuable scripts.
+
+\end{itemize}
+
+\end{description}
+
+\item {} \begin{description}
+\item[{07/23/19}] \leavevmode\begin{itemize}
+\item {} 
+Re-release of pyMT onto GitHub
+
+\item {} \begin{description}
+\item[{Now with (some) documentation!}] \leavevmode\begin{itemize}
+\item {} 
+See the pyMT/docs folder for a PDF version, or pyMT/docs/build/html/index.html to load up a browser version (complete with navigation bar and search tool)
+
+\end{itemize}
+
+\end{description}
+
+\end{itemize}
+
+\end{description}
+
+\end{itemize}
+
 
 \section{License}
 \label{\detokenize{index:license}}
@@ -2129,115 +2331,6 @@ Program, unless a warranty or assumption of liability accompanies a
 copy of the Program in return for a fee.
 
 END OF TERMS AND CONDITIONS
-
-
-\section{Help}
-\label{\detokenize{index:help}}
-
-\subsection{HELP}
-\label{\detokenize{content/misc/help:help}}\label{\detokenize{content/misc/help::doc}}
-For feature requests, bug fixes, design suggestions, or anything else contact me at \sphinxhref{mailto:eroots087@gmail.com}{eroots087@gmail.com}
-
-
-\section{Disclaimer}
-\label{\detokenize{index:disclaimer}}
-
-\subsection{DISCLAIMER}
-\label{\detokenize{content/misc/DISCLAIMER:disclaimer}}\label{\detokenize{content/misc/DISCLAIMER::doc}}
-This code base has been cobbled together over a few years. Parts of it were written to fulfill a specific need at a specific time and then promptly forgotten, while others were written when I was still figuring out the difference between a class and a method. While I have tried to address bugs as I come across them, this code is not unit tested (yet), and so is best used with an understanding of the the expected outcome is. There are some {\hyperref[\detokenize{content/misc/DISCLAIMER:known-bugs}]{\sphinxcrossref{known bugs}}}, but any further unexpected behavior can be reported.
-
-
-\subsection{KNOWN BUGS}
-\label{\detokenize{content/misc/DISCLAIMER:known-bugs}}\label{\detokenize{content/misc/DISCLAIMER:id1}}
-
-\subsubsection{General}
-\label{\detokenize{content/misc/DISCLAIMER:general}}\begin{itemize}
-\item {} 
-Text is occasionally printed to the terminal. This text is usually meant to convey some information about something unexpected, and the codes attempts to work around it. Occasionally text will be printed that was meant for debugging purposes, and has just not been removed. Generally, any text that is printed that isn’t followed by a crash is fine.
-
-\end{itemize}
-
-
-\subsubsection{Data Plot GUI}
-\label{\detokenize{content/misc/DISCLAIMER:data-plot-gui}}\begin{itemize}
-\item {} \begin{description}
-\item[{When only a {\hyperref[\detokenize{content/api_core/input_files:list-file}]{\sphinxcrossref{\DUrole{std,std-ref}{List File}}}} is specified for the loaded dataset, a {\hyperref[\detokenize{content/api_core/data_structures:data}]{\sphinxcrossref{\DUrole{std,std-ref}{Data}}}} object will be initialized by taking logarithmically spaced periods.}] \leavevmode\begin{itemize}
-\item {} 
-In this instance, the {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} is not initialized properly, and no site locations are shown.
-
-\item {} 
-The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.
-
-\end{itemize}
-
-\end{description}
-
-\item {} 
-When multiple datasets are loaded, the misfit table may not be properly updated to reflect the currently selected dataset.
-
-\item {} \begin{description}
-\item[{Rotating the data / stations using the ‘Azimuth’ box has a few associated bugs}] \leavevmode\begin{itemize}
-\item {} 
-The station locations and annotations in the {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} may not be accurate
-
-\item {} \begin{description}
-\item[{The Azimuth editor is meant to be used for 3-D data, and rotates the data accordingly: Station locations are rotated clockwise from north, and the data is rotated counter-clockwise to maintain a measurement coordinate system that is consistent with the model space (see \sphinxurl{https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/})}] \leavevmode\begin{itemize}
-\item {} 
-A consequence of this setup is that the GUI is not suitable to rotation and projection into 2-D.
-
-\end{itemize}
-
-\end{description}
-
-\end{itemize}
-
-\end{description}
-
-\item {} \begin{description}
-\item[{The ‘Write All Plots’ action sometimes crashes the GUI.}] \leavevmode\begin{itemize}
-\item {} 
-Known instances of this are when you attempt to overwrite an open PDF file. A permission error is thrown and not caught, resulting in a crash
-
-\item {} 
-Occasionally, if the number of subplots in the final saved plot is different from that specified within the ‘Plot Options’ tab, the next action taken can result in a crash.
-
-\end{itemize}
-
-\end{description}
-
-\item {} 
-If more subplots are used than there are stations available, one station will be re-plotted in order to fill the unused subplots.
-
-\item {} 
-If more than one dataset is loaded into the GUI, switching between datasets may not update the misfit table.
-
-\item {} 
-Blank items in the {\hyperref[\detokenize{content/data_plot/main_window:data-component-table}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Component Table}}}} are selectable. However, this results in the first available component being plotted instead, and so should not break the GUI.
-
-\item {} 
-The RMS misfits as shown in the {\hyperref[\detokenize{content/data_plot/main_window:misfit-table}]{\sphinxcrossref{\DUrole{std,std-ref}{Misfit Table}}}} may differ slightly from what logged by ModEM as pyMT always applies an error floor to any data read in. ModEM does not explicitly use (or store) an applied error floor, and so the hard-coded error floors of pyMT (see {\hyperref[\detokenize{content/api_core/data_structures:error-floors}]{\sphinxcrossref{\DUrole{std,std-ref}{Error Floors}}}}) may differ from those used in the inversion. As a result, if you used a lower error floor than those coded into pyMT, the misfits shown in this table will be lower.
-
-\end{itemize}
-
-
-\subsubsection{Model Viewer GUI}
-\label{\detokenize{content/misc/DISCLAIMER:model-viewer-gui}}\begin{itemize}
-\item {} 
-Hovering over the plots within the 2-D will show location and resistivity information about the cursors position. This seem to generally be correct, however sometimes the resistivity shown does not match the plot itself. Likely an issue with matching the cursors location to model cells near the edges of the model.
-
-\item {} \begin{description}
-\item[{The 2-D transect plot shows left-right in the order that was clicked.}] \leavevmode\begin{itemize}
-\item {} 
-This means that if you select points from north to south, the figure will plot from north on the left to south on the right.
-
-\end{itemize}
-
-\end{description}
-
-\item {} 
-The 2-D transect plot does not respond to changes in the model trim. The workaround currently is to trim the volume, and then re-select the desired points for the transect plot.
-
-\end{itemize}
 
 
 \chapter{Indices and tables}

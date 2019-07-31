@@ -1266,6 +1266,443 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
             f.write('0')
 
 
+def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
+    #  Writes out the contents of a Data object into format specified by 'file_format'
+    #  Currently implemented options include WSINV3DMT and ModEM3D.
+    #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
+    def write_ws(data, outfile, to_write):
+        if '.data' not in outfile:
+            outfile = ''.join([outfile, '.data'])
+        if to_write == 'all' or to_write is None:
+            to_write = ['DATA', 'ERROR', 'ERMAP']
+        elif to_write == 'errors':
+            to_write = ['ERROR']
+        elif to_write == 'errmap':
+            to_write = ['ERMAP']
+        elif to_write == 'data':
+            to_write = ['DATA']
+        comps_to_write = data.used_components
+        NP = data.NP
+        NR = data.NR
+        NS = data.NS
+        azi = int(data.azimuth)
+        ordered_comps = {key: ii for ii, key in enumerate(data.ACCEPTED_COMPONENTS)}
+        comps_to_write = sorted(comps_to_write, key=lambda d: ordered_comps[d])
+        # theresgottabeabetterway = ('DATA', 'ERROR', 'ERMAP')
+        thismeansthat = {'DATA': 'data',
+                         'ERROR': 'errors',
+                         'ERMAP': 'errmap'}
+        if outfile is None:
+            print('You have to specify a file!')
+            return
+        with open(outfile, 'w') as f:
+            f.write('{}  {}  {}  {}\n'.format(NS, NP, NR, azi))
+            f.write('Station_Location: N-S\n')
+            for X in data.locations[:, 0]:
+                f.write('{}\n'.format(X))
+            f.write('Station_Locations: E-W\n')
+            for Y in data.locations[:, 1]:
+                f.write('{}\n'.format(Y))
+            for this in to_write:
+                that = thismeansthat[this]
+                for idx, period in enumerate(utils.to_list(data.periods)):
+                    f.write(''.join([this, '_Period: ', '%0.5E\n' % float(period)]))
+                    for site_name in data.site_names:
+                        site = data.sites[site_name]
+                        for comp in comps_to_write:
+                            try:
+                                to_print = getattr(site, that)[comp][idx]
+                            except KeyError as er:
+                                print('Inside error')
+                                print(site.components)
+                                print(site.data)
+                                raise er
+                            if that != 'data':
+                                to_print = abs(to_print)
+                            # print(to_print[comp][idx])
+                            if that == 'errmap':
+                                to_print = int(to_print)
+                                if to_print == site.OUTLIER_FLAG:
+                                    to_print = data.OUTLIER_MAP
+                                elif to_print == site.NO_PERIOD_FLAG:
+                                    to_print = data.NO_PERIOD_MAP
+                                elif to_print == site.NO_COMP_FLAG:
+                                    to_print = data.NO_COMP_MAP
+                                f.write('{:<5}'.format(min(9999, int(to_print))))
+                            else:
+                                f.write('{:>14.7E}  '.format(to_print))
+                            # for point in getattr(site, that)[comp]:
+                        f.write('\n')
+
+    def write_ModEM3D(data, out_file):
+        if '.dat' not in out_file:
+            out_file = ''.join([out_file, '.dat'])
+        units = []
+        data_type = []
+        temp_inv_type = []
+        actual_inv_type = copy.deepcopy(data.inv_type)
+        with open(out_file, 'w') as f:
+            z_title = '# Written using pyMT. UTM Zone: {}\n' + \
+                      '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
+                      'Component Real Imag Error\n'.format(data.UTM_zone)
+            pt_title = '# Written using pyMT. UTM Zone: {}\n' + \
+                       '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
+                       'Component Value Error\n'.format(data.UTM_zone)
+            if data.inv_type == 1:
+                data_type.append('> Full_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(1)
+            elif data.inv_type == 2:
+                data_type.append('> Off_Diagonal_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(2)
+            elif data.inv_type == 3:
+                data_type.append('> Full_Vertical_Components\n')
+                units.append('> []\n')
+                temp_inv_type.append(3)
+            elif data.inv_type == 4:
+                data_type.append('> Off_Diagonal_Impedance\n')
+                units.append('> Ohm\n')
+                data_type.append('> Full_Vertical_Components\n')
+                units.append('> []\n')
+                temp_inv_type.append(2)
+                temp_inv_type.append(3)
+            elif data.inv_type == 5:
+                data_type.append('> Full_Impedance\n')
+                units.append('> Ohm\n')
+                data_type.append('> Full_Vertical_Components\n')
+                units.append('> []\n')
+                temp_inv_type.append(1)
+                temp_inv_type.append(3)
+            elif data.inv_type == 6:
+                data_type.append('> Phase_Tensor\n')
+                units.append('> []\n')
+                temp_inv_type.append(6)
+            print(data.inv_type)
+            print(temp_inv_type)
+            # If inverting impedanaces or tipper
+            if data.inv_type <= 5:
+                for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                    f.write(z_title)
+                    f.write(data_type_string)
+                    f.write('> exp(-i\\omega t)\n')
+                    f.write(unit)
+                    f.write('> {}\n'.format(data.azimuth))
+                    f.write('> 0.0 0.0 0.0\n')
+                    f.write('> {} {}\n'.format(data.NP, data.NS))
+                    data.inv_type = inv_type
+                    components_to_write = [component for component in data.used_components
+                                           if 'i' not in component.lower()]
+                    for ii, site_name in enumerate(data.site_names):
+                        site = data.sites[site_name]
+                        for jj, period in enumerate(data.periods):
+                            for component in components_to_write:
+                                component_code = component[:3]
+                                if 'T' in component.upper():
+                                    component_code = component_code[0] + component_code[2]
+                                Z_real = site.data[component][jj]
+                                Z_imag = site.data[component[:3] + 'I'][jj]
+                                X, Y, Z = (site.locations['X'],
+                                           site.locations['Y'],
+                                           site.locations.get('elev', 0))
+                                # X, Y, Z = (data.locations[ii, 0],
+                                #            data.locations[ii, 1],
+                                #            site.locations.get('elev', 0))
+                                X, Y, Z = (data.locations[ii, 0],
+                                           data.locations[ii, 1],
+                                           site.locations.get('elev', 0))
+                                Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                                f.write(' '.join(['{:>14.7E} {:>14}',
+                                                  '{:>8.3f} {:>8.3f}',
+                                                  '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                                  '{:>6} {:>14.7E} {:>14.7E}',
+                                                  '{:>14.7E}\n']).format(
+                                        period, site_name,
+                                        Lat, Long,
+                                        X, Y, Z,
+                                        component_code.upper(), Z_real, Z_imag,
+                                        max(site.used_error[component[:-1] + 'R'][jj],
+                                            site.used_error[component[:-1] + 'I'][jj])))
+            # If inv_type is greater than 5, do phase tensors?
+            else:
+                for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                    f.write(pt_title)
+                    f.write(data_type_string)
+                    f.write('> exp(-i\\omega t)\n')
+                    f.write(unit)
+                    f.write('> {}\n'.format(data.azimuth))
+                    f.write('> 0.0 0.0 0.0\n')
+                    f.write('> {} {}\n'.format(data.NP, data.NS))
+                    # data.inv_type = inv_type
+                    components_to_write = ['PTXX', 'PTXY', 'PTYX', 'PTYY']
+                    for ii, site_name in enumerate(data.site_names):
+                        site = data.sites[site_name]
+                        for jj, period in enumerate(data.periods):
+                            for component in components_to_write:
+                                component_code = component[:]
+                                # Remember X and Y are switched for Caldwell's def
+                                if component in site.components:
+                                    swapped_component = component.replace('X', '1')
+                                    swapped_component = swapped_component.replace('Y', 'X')
+                                    swapped_component = swapped_component.replace('1', 'Y')
+                                    value = site.data[swapped_component][jj]
+                                    error = site.used_error[swapped_component][jj]
+                                else:
+                                    # Remember X and Y are switched for Caldwell's def
+                                    if component == 'PTXX':  # PTXX
+                                        value = site.phase_tensors[jj].phi[1, 1]
+                                        error = site.phase_tensors[jj].phi_error[1, 1]
+                                    elif component == 'PTXY':  # PTXY
+                                        value = site.phase_tensors[jj].phi[1, 0]
+                                        error = site.phase_tensors[jj].phi_error[1, 0]
+                                    elif component == 'PTYX':  # PTYX
+                                        value = site.phase_tensors[jj].phi[0, 1]
+                                        error = site.phase_tensors[jj].phi_error[0, 1]
+                                    elif component == 'PTYY':  # PTYY
+                                        value = site.phase_tensors[jj].phi[0, 0]
+                                        error = site.phase_tensors[jj].phi_error[0, 0]
+                                X, Y, Z = (site.locations['X'],
+                                           site.locations['Y'],
+                                           site.locations.get('elev', 0))
+                                X, Y, Z = (data.locations[ii, 0],
+                                           data.locations[ii, 1],
+                                           site.locations.get('elev', 0))
+                                Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                                f.write(' '.join(['{:>14.7E} {:>14}',
+                                                  '{:>8.3f} {:>8.3f}',
+                                                  '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                                  '{:>6} {:>14.7E} {:>14.7E}\n']).format(
+                                        period, site_name,
+                                        Lat, Long,
+                                        X, Y, Z,
+                                        component_code.upper(), value,
+                                        error))
+        data.inv_type = actual_inv_type
+
+    def write_MARE2DEM(data, out_file):
+        data_type_lookup = {'RhoZXX': 101,
+                            'PhsZXX': 102,
+                            'RhoZXY': 103,
+                            'PhsZXY': 104,
+                            'RhoZYX': 105,
+                            'PhsZYX': 106,
+                            'RhoZYY': 107,
+                            'PhsZYY': 108,
+                            'ZXXR': 111,
+                            'ZXXI': 112,
+                            'ZXYR': 113,
+                            'ZXYI': 114,
+                            'ZYXR': 115,
+                            'ZYXI': 116,
+                            'ZYYR': 117,
+                            'ZYYI': 118,
+                            'log10RhoZXX': 121,
+                            'log10RhoZXY': 123,
+                            'log10RhoZYX': 125,
+                            'log10RhoZYY': 127,
+                            'TZYR': 133,
+                            'TZYI': 134}
+        strike = (data.azimuth - 90) % 180
+        frequencies = [(1 / p) for p in data.periods]
+        with open(outfile, 'w') as f:
+            f.write('Format:\tEMData_2.2\n')
+            f.write('UTM of x, y origin (UTM zone, N, E, 2D strike): {:>10}{:>10}{:>10}{:>10}\n'.format(
+                    data.UTM_zone, data.origin[0], data.origin[1], strike))
+            f.write('# MT Frequencies: {}\n'.format(data.NP))
+            for freq in frequencies:
+                f.write('  {}\n'.format(freq))
+            f.write('# MT Receivers: {}\n'.format(data.NS))
+            f.write('!{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                    'X', 'Y', 'Z', 'Theta', 'Alpha', 'Beta', 'Length', 'SolveStatic', 'Name'))
+            for site in data.site_names:
+                f.write(' {:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                    utils.truncate(data.sites[site].locations['X']),
+                    utils.truncate(data.sites[site].locations['Y']),
+                    getattr(data.sites[site].locations, 'elev', 0),
+                    data.sites[site].azimuth,
+                    getattr(data.sites[site], 'alpha', 0),
+                    getattr(data.sites[site], 'beta', 0),
+                    getattr(data.sites[site], 'dipole_length', 0),
+                    getattr(data.sites[site], 'solve_static', 0),
+                    site))
+            f.write('# Data: {}\n'.format(data.NS * data.NP * len(data.used_components)))
+            f.write('!{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                    'Type', 'Freq#', 'Tx#', 'Rx#', 'Data', 'StdError'))
+            for ii, site in enumerate(data.site_names):
+                for jj, frequency in enumerate(frequencies):
+                    for component in data.used_components:
+                        if not component.lower()[:3] == 'tzx':
+                            f.write('{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                                    data_type_lookup[component],
+                                    jj + 1,
+                                    1,
+                                    ii + 1,
+                                    data.sites[site].data[component][jj],
+                                    data.sites[site].used_error[component][jj]))
+
+    def write_occam(data, outfile):
+        # Currently only writes Rho and Pha (can't choose) and sets static errors
+        with open(outfile, 'w') as f:
+            f.write('  FORMAT:         OCCAM2MTDATA_1.0\n')
+            f.write('  MODEL:          {}\n'.format(outfile))
+            f.write('  SITES:{:>17g}\n'.format(len(data.site_names)))
+            data_types = {'ZXYR': 13, 'ZXYI': 14,
+                          'ZYXR': 15, 'ZYXI': 16,
+                          'TZYR': 3, 'TZYI': 4,
+                          'RhoXY': 1, 'RhoYX': 5,
+                          'PhaXY': 2, 'PhaYX': 6}
+            exclude_components = set(('ZXXR', 'ZXXI',
+                                      'ZYYR', 'ZYYI',
+                                      'TZXR', 'TZXI'))
+            NS, NP, NR = (len(data.site_names),
+                          len(data.periods),
+                          len(set(data.used_components) - exclude_components))
+            num_data = NS * NP * 4
+            X = data.locations[:, 0] - np.min(data.locations[:, 0])
+            frequencies = utils.truncate(1 / data.periods)
+            for ii, site in enumerate(data.site_names):
+                f.write('{}\n'.format(site))
+            f.write('  OFFSETS (M):\n')
+            for x in X:
+                f.write('{:>15.8E}'.format(x))
+            f.write('\n')
+            f.write('  FREQUENCIES:{:>13g}\n'.format(len(frequencies)))
+            for freq in frequencies:
+                f.write('{:>15.8E}'.format(freq))
+            f.write('\n')
+            f.write('  DATA BLOCKS:{:>13g}\n'.format(num_data))
+            f.write('SITE   FREQ   DATA TYPE     DATUM       ERR\n')
+            for ii, site in enumerate(data.site_names):
+                for comp in ('RhoXY', 'PhaXY', 'RhoYX', 'PhaYX'):
+                    if comp not in exclude_components:
+                        comp_code = data_types[comp]
+                        if comp[:3].lower() == 'rho':
+                            calc_data, calc_err, calclog10_err = utils.compute_rho(data.sites[site],
+                                                                                   calc_comp=comp,
+                                                                                   errtype='used_error')
+                            calc_data = np.log10(calc_data)
+                            calc_error = 0.08
+                        elif comp[:3].lower() == 'pha':
+                            calc_data, calclog10_err = utils.compute_phase(data.sites[site],
+                                                                           calc_comp=comp,
+                                                                           errtype='used_error',
+                                                                           wrap=1)
+                            calc_error = 5
+                        for jj, freq in enumerate(frequencies):
+                            data_point = calc_data[jj]
+                            error_point = calc_error
+                            f.write('{:>4g}{:>6g}{:>12g}{:>15.5f}{:>15.5f}\n'.format(ii + 1,
+                                                                                     jj + 1,
+                                                                                     comp_code,
+                                                                                     data_point,
+                                                                                     error_point))
+
+    def write_ModEM2D(data, out_file):
+        if '.dat' not in out_file:
+            out_file = ''.join([out_file, '.dat'])
+        units = []
+        data_type = []
+        temp_inv_type = []
+        actual_inv_type = copy.deepcopy(data.inv_type)
+        with open(out_file, 'w') as f:
+            z_title = '# Written using pyMT. UTM Zone: {}\n' + \
+                      '# Period(s) Code GG_Lat GG_Lon X(m) Y(m) Z(m) ' + \
+                      'Component Real Imag Error\n'.format(data.UTM_zone)
+            if data.inv_type == 10:
+                data_type.append('> TE_Impedance\n')
+                units.append('> Ohm\n')
+                data_type.append('> TM_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(8)
+                temp_inv_type.append(9)
+            elif data.inv_type == 8:
+                data_type.append('> TE_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(8)
+            elif data.inv_type == 9:
+                data_type.append('> TM_Impedance\n')
+                units.append('> Ohm\n')
+                temp_inv_type.append(9)
+            # If inverting impedances
+            # If locations haven't been projected
+            azi = copy.deepcopy(data.azimuth)
+            if np.any(data.locations[:, 0]):
+                # Reset the data locations
+                data.rotate_sites(azi=0)
+                # Rotate the data to coincide with the chosen direction
+                for site_name in data.site_names:
+                    data.sites[site_name].rotate_data(azi)  # There is a negative in the data_structures code that has to be countered here
+                # Project the station locations onto the line
+                xy = np.fliplr(data.locations)
+                xy = utils.project_to_line(xy, azi=(azi + 90) % 180)
+                xy, center = utils.center_locs(xy)
+                center = xy[0, :]
+                for ii, (x, y) in enumerate(xy):
+                    if x < center[0]:
+                        if y < center[1]:
+                            center = xy[ii, :]
+                y_locs = []
+                for x, y in xy:
+                    y_locs.append(np.sqrt((x - center[0]) ** 2 + (y - center[0]) ** 2))
+            else:
+                y_locs = data.locations[:, 1]
+            for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                f.write(z_title)
+                f.write(data_type_string)
+                f.write('> exp(-i\\omega t)\n')
+                f.write(unit)
+                f.write('> {}\n'.format(azi))
+                f.write('> 0.0 0.0 0.0\n')
+                f.write('> {} {}\n'.format(data.NP, data.NS))
+                data.inv_type = inv_type
+                components_to_write = [component for component in data.used_components
+                                       if 'i' not in component.lower()]
+                for ii, site_name in enumerate(data.site_names):
+                    site = data.sites[site_name]
+                    for jj, period in enumerate(data.periods):
+                        for component in components_to_write:
+                            if component[:3] == 'ZXY':
+                                component_code = 'TE'
+                            elif component[:3] == 'ZYX':
+                                component_code = 'TM'
+                            Z_real = site.data[component][jj]
+                            Z_imag = site.data[component[:3] + 'I'][jj]
+                            # X, Y, Z = (site.locations['X'],
+                            #            site.locations['Y'],
+                            #            site.locations.get('elev', 0))
+                            # X, Y, Z = (data.locations[ii, 0],
+                            #            data.locations[ii, 1],
+                            #            site.locations.get('elev', 0))
+                            Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
+                            f.write(' '.join(['{:>14.7E} {:>14}',
+                                              '{:>8.3f} {:>8.3f}',
+                                              '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                              '{:>6} {:>14.7E} {:>14.7E}',
+                                              '{:>14.7E}\n']).format(
+                                    period, site_name,
+                                    Lat, Long,
+                                    0, y_locs[ii], 0,
+                                    component_code.upper(), Z_real, Z_imag,
+                                    max(site.used_error[component[:-1] + 'R'][jj],
+                                        site.used_error[component[:-1] + 'I'][jj])))
+
+    if file_format.lower() == 'wsinv3dmt':
+        write_ws(data, outfile, to_write)
+    elif file_format.lower() == 'modem':
+        if data.dimensionality.lower() == '3d':
+            write_ModEM3D(data, outfile)
+        elif data.dimensionality.lower() == '2d' or data.inv_type in (8, 9, 10):
+            write_ModEM2D(data, outfile)
+        else:
+            print('Unable to write data; dimensionality not defined')
+    elif file_format.lower() == 'mare2dem':
+        write_MARE2DEM(data, outfile)
+    elif file_format.lower() == 'occam':
+        write_occam(data, outfile)
+    else:
+        print('Output file format {} not recognized'.format(file_format))
+
+
 def write_locations(data, out_file=None, file_format='csv'):
     def write_shapefile(data, outfile):
         if not outfile.endswith('.shp'):

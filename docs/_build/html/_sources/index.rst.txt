@@ -58,18 +58,11 @@ Examples
     :maxdepth: 2
 
     content/examples/recipes
+    content/examples/scripts
 
 
 Other Info
 ==========
-
-License
--------
-
-.. toctree::
-    :maxdepth: 2
-
-    content/misc/LICENSE
 
 Help
 ----
@@ -86,6 +79,21 @@ Disclaimer
 
     content/misc/DISCLAIMER
 
+Change Log
+----------
+
+.. toctree::
+    :maxdepth: 2
+
+    content/misc/changelog
+
+License
+-------
+
+.. toctree::
+    :maxdepth: 2
+
+    content/misc/LICENSE
 
 Indices and tables
 ==================

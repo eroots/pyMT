@@ -222,6 +222,10 @@ backup_data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dr
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
 # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/mat3/mat3_lastIter.rho')
+main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst')
+data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_all.model')
 #########################################################
 # AFTON
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/l0.lst')
@@ -239,8 +243,8 @@ backup_data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dr
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # LARDER
-main_transect = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect.lst')
-data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
+# main_transect = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
 # backup_data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
 # mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
 # seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
@@ -281,10 +285,10 @@ title_ = 'Standard Inversion'
 rotate_back = 0
 linear_xaxis = True
 
-save_fig = 1
+save_fig = 0
 save_dat = 0
 annotate_sites = 0
-site_markers = 0
+site_markers = 1
 plot_map = 1
 dpi = 600
 csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
@@ -293,7 +297,7 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 50]
+zlim = [0, 100]
 lut = 64
 isolum = False
 cax = [0, 5]
@@ -705,7 +709,7 @@ if plot_map:
 divider = make_axes_locatable(ax)
 cb_ax = divider.append_axes('right', size='2.5%', pad=0.1)
 cb = plt.colorbar(im, cmap=cmap, cax=cb_ax, orientation='vertical', extend='both')  # , extend='both'   Gives pointy ends
-cb.set_clim(cax[0], cax[1])
+cb.mappable.set_clim(cax[0], cax[1])
 cb.ax.tick_params(labelsize=12)
 cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
              rotation=270,
