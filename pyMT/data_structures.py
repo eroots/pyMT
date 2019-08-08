@@ -1611,6 +1611,7 @@ class Site(object):
 
         # Rotate all sites to 0 degrees to start
         # self.rotate_data(azi=0)
+        self.active_periods = [1 for p in self.periods]
 
     @property
     def spatial_units(self):

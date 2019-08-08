@@ -1067,7 +1067,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.set_data_toggles()
         # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
         # self.error_tree.itemChanged.disconnect()
-        debug_print('self.sites: {}\n dataset sites: {}'.format(self.site_names, self.dataset.site_names), 'debug.log')
+        # debug_print('self.sites: {}\n dataset sites: {}'.format(self.site_names, self.dataset.site_names), 'debug.log')
         self.sort_sites()
         self.update_error_tree()
         self.back_or_forward_button(shift=0)
@@ -1414,7 +1414,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if set(self.site_names) == set(self.dpm.site_names) and shift != 0:
             return
         sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
-        debug_print('returned sites: {}'.format(sites), 'debug.log')
+        # debug_print('returned sites: {}'.format(sites), 'debug.log')
         self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
         self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
         # self.dpm.fig.canvas.draw()
@@ -1441,7 +1441,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if any(x > num_sites - 1 for x in idx_toplot):
             overflow = idx_toplot[-1] - num_sites
             idx_toplot = [x - overflow - 1 for x in idx_toplot]
-        debug_print((self.dataset.data.site_names, idx_toplot), 'debug.log')
+        # debug_print((self.dataset.data.site_names, idx_toplot), 'debug.log')
         # return(self.dataset.data.site_names[:6])
         return [self.dataset.data.site_names[idx] for idx in idx_toplot]
 
