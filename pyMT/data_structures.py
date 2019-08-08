@@ -1125,7 +1125,7 @@ class Model(object):
     """Summary
     """
 
-    def __init__(self, modelfile='', file_format='modem3d', data=None):
+    def __init__(self, modelfile='', covariance_file='', file_format='modem3d', data=None):
         self._xCS = []
         self._yCS = []
         self._zCS = []
@@ -1133,6 +1133,7 @@ class Model(object):
         self._dy = []
         self._dz = []
         self.vals = []
+
         self.background_resistivity = 2500
         self.resolution = []
         self.file = modelfile
@@ -1152,6 +1153,12 @@ class Model(object):
                                num_pads=5, pad_mult=1.2)
             self.generate_zmesh(min_z=1, max_z=500000, NZ=60)
             self.update_vals()
+        if covariance_file:
+            self.read_covariance(covariance_file)
+        else:
+            self.sigma_x, self.sigma_y, self.sigma_z = 0.3, 0.3, 0.3
+            self.num_smooth = 2
+            self.cov_exceptions = None
 
     @property
     def spatial_units(self):
@@ -1219,6 +1226,16 @@ class Model(object):
             self.xCS = mod['xCS']
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
+
+    def read_covariance(self, covariance_file=''):
+        if covariance_file:
+            NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions = WS_io.read_covariance(covariance_file)
+            if (NX == self.NX) and (NY == self.NY) and (NZ == self.NZ):
+                sigma_x
+                sigma_y
+                sigma_z
+                num_smooth
+                cov_exceptions
 
     def to_vtk(self, outfile=None, sea_level=0, origin=None, UTM=None):
         if origin:
@@ -1473,6 +1490,17 @@ class Model(object):
         WS_io.write_model(self, outfile, file_format)
         self.spatial_units = units
 
+    def write_covariance(self, outfile):
+        WS_io.write_covariance(outfile,
+                               self.nx,
+                               self.ny,
+                               self.nz,
+                               self.cov_exceptions,
+                               self.sigma_x,
+                               self.sigma_y,
+                               self.sigma_z,
+                               self.num_smooth)
+
 
 class Response(Data):
     """Summary
@@ -1483,6 +1511,7 @@ class Response(Data):
         self.spatial_units = 'm'
         WS_io.write_response(self, outfile)
         self.spatial_units = units
+
 
 class Site(object):
     """Contains data for a given site.

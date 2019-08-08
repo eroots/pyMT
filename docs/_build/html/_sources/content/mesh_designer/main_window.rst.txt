@@ -1,3 +1,5 @@
+.. _Mesh Designer:
+
 Mesh Designer - Main Window
 ===========================
 
@@ -16,7 +18,7 @@ Menu Bar
 
 The Save / Revert menu has options for writing the model to a file, as well as saving and reverting progess within the Mesh Designer.
 
-The Write Model sub-menu will open a dialog box that asks for the name of the file to be written to. You will be prompted again if this operation is going to overwrite an existing file.
+The Write Model sub-menu will open a dialog box that asks for the name of the file to be written to. You will be prompted again if this operation is going to overwrite an existing file. A second prompt will ask for a name to output an associated covariance file (hit cancel to skip).
 
 * The only file format available from here is that of a ModEM 3-D file. This is the same as the WSINV3DMT file format, except that the resistivity values will be given as the natural logarithm.
  

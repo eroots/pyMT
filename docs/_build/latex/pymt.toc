@@ -85,15 +85,22 @@
 \contentsline {chapter}{\numberline {5}Examples}{35}{chapter.5}
 \contentsline {section}{\numberline {5.1}Recipes}{35}{section.5.1}
 \contentsline {subsection}{\numberline {5.1.1}Adding Data to an Existing Data File}{35}{subsection.5.1.1}
+\contentsline {section}{\numberline {5.2}Scripts}{35}{section.5.2}
+\contentsline {subsection}{\numberline {5.2.1}General Use}{35}{subsection.5.2.1}
+\contentsline {subsubsection}{j2ws3d}{36}{subsubsection*.56}
+\contentsline {subsubsection}{to\_vtk}{36}{subsubsection*.57}
+\contentsline {subsubsection}{ws2modem}{36}{subsubsection*.58}
 \contentsline {chapter}{\numberline {6}Other Info}{37}{chapter.6}
-\contentsline {section}{\numberline {6.1}License}{37}{section.6.1}
-\contentsline {subsection}{\numberline {6.1.1}LICENSE}{37}{subsection.6.1.1}
-\contentsline {section}{\numberline {6.2}Help}{44}{section.6.2}
-\contentsline {subsection}{\numberline {6.2.1}HELP}{44}{subsection.6.2.1}
-\contentsline {section}{\numberline {6.3}Disclaimer}{44}{section.6.3}
-\contentsline {subsection}{\numberline {6.3.1}DISCLAIMER}{44}{subsection.6.3.1}
-\contentsline {subsection}{\numberline {6.3.2}KNOWN BUGS}{44}{subsection.6.3.2}
-\contentsline {subsubsection}{General}{44}{subsubsection*.56}
-\contentsline {subsubsection}{Data Plot GUI}{45}{subsubsection*.57}
-\contentsline {subsubsection}{Model Viewer GUI}{45}{subsubsection*.58}
+\contentsline {section}{\numberline {6.1}Help}{37}{section.6.1}
+\contentsline {subsection}{\numberline {6.1.1}HELP}{37}{subsection.6.1.1}
+\contentsline {section}{\numberline {6.2}Disclaimer}{37}{section.6.2}
+\contentsline {subsection}{\numberline {6.2.1}DISCLAIMER}{37}{subsection.6.2.1}
+\contentsline {subsection}{\numberline {6.2.2}KNOWN BUGS}{37}{subsection.6.2.2}
+\contentsline {subsubsection}{General}{37}{subsubsection*.59}
+\contentsline {subsubsection}{Data Plot GUI}{37}{subsubsection*.60}
+\contentsline {subsubsection}{Model Viewer GUI}{38}{subsubsection*.61}
+\contentsline {section}{\numberline {6.3}Change Log}{38}{section.6.3}
+\contentsline {subsection}{\numberline {6.3.1}Change Log}{38}{subsection.6.3.1}
+\contentsline {section}{\numberline {6.4}License}{39}{section.6.4}
+\contentsline {subsection}{\numberline {6.4.1}LICENSE}{39}{subsection.6.4.1}
 \contentsline {chapter}{\numberline {7}Indices and tables}{47}{chapter.7}

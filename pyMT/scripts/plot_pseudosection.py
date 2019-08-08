@@ -13,8 +13,12 @@ local_path = 'C:/Users/eric'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst')
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Test_Models\dimensionality\synthLayer.data'
-listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
-data = WSDS.RawData(listfile=listfile)
+# listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
+dataset = WSDS.Dataset(listfile=listfile)
+dataset.remove_sites(sites='MAL062A')
+dataset.sort_sites('south-north')
+data = dataset.data
 # data = WSDS.Data(datafile='C:/Users/eric/phd/Kilauea/stitched/1_day/Z/Kilauea_may_daily.data')
 days = (501, 530)
 hour_or_day = 1  # sets the interval in labels, so choose appropriately
@@ -25,7 +29,7 @@ cax_rho = [0, 4]
 # data.remove_sites(rmsites)
 # data.sort_sites(order='west-east')
 rho = {site.name: utils.compute_rho(site)[0] for site in data.sites.values()}
-pha = {site.name: utils.geotools_filter(np.log10(site.periods), utils.compute_phase(site)[0], 0.8, 1) for site in data.sites.values()}
+pha = {site.name: utils.geotools_filter(np.log10(site.periods), utils.compute_phase(site, 'xy')[0], 0.8, 1) for site in data.sites.values()}
 # pha = {site.name: utils.compute_phase(site)[0] for site in data.sites.values()}
 bost = {site.name: utils.compute_bost1D(site)[0] for site in data.sites.values()}
 depths = {site.name: utils.compute_bost1D(site)[1] for site in data.sites.values()}
@@ -61,17 +65,20 @@ min_p, max_p = (min(periods), max(periods))
 min_d, max_d = (min(depth_vals), max(depth_vals))
 grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp),
                              np.log10(np.logspace(min_p, max_p, n_interp)))
-grid_pha = griddata(points, phavals, (grid_x, grid_y), method='cubic')
+# grid_pha = griddata(points, phavals, (grid_x, grid_y), method='cubic')
+
 grid_rho = griddata(points, rhovals, (grid_x, grid_y), method='linear')
 
 grid_xd, grid_d = np.meshgrid(np.linspace(min_x, max_x, n_interp),
                               np.log10(np.logspace(min_d, max_d, n_interp)))
 grid_bost = griddata(points_d, bostvals, (grid_xd, grid_d), method='cubic')
+grid_pha = griddata(points_d, phavals, (grid_xd, grid_d), method='cubic')
 
 
 def plot_pha():
     plt.figure()
-    plt.pcolor(grid_x, grid_y, grid_pha, cmap=cmap)
+    # plt.pcolor(grid_x, grid_y, grid_pha, cmap=cmap)
+    plt.pcolor(grid_xd, grid_d, grid_pha, cmap=cmap)
     # plt.xticks(xticks, xtick_labels)
     plt.clim([0, 90])
     plt.gca().invert_yaxis()
@@ -82,8 +89,16 @@ def plot_pha():
                      rotation=270,
                      labelpad=20,
                      fontsize=18)
-    plt.xlabel('Hour')
+    plt.xlabel('Northing (m)')
     plt.ylabel(r'$\log_{10}$ Period (s)')
+    for jj, site in enumerate(data.site_names):
+        # if site.startswith('18-'):
+            # site = site[3:]
+        plt.text(s=site,
+                 x=data.locations[jj, 0],
+                 y=0,
+                 color='k',
+                 rotation=45)
 
 
 def plot_rho():
@@ -122,5 +137,5 @@ def plot_bost():
 
 # plot_rho()
 plot_pha()
-# plot_bost()
+plot_bost()
 plt.show()
