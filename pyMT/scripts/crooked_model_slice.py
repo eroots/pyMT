@@ -218,14 +218,17 @@ backup_data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dr
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # MATHESON
-# main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_westLine.lst')
-# data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
-# backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/mat3/mat3_lastIter.rho')
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_all.model')
+main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_westLine.lst')
+data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
+backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
+mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/mat3/bg100/mat3_lastIter.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_eastLine.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_Z.model')
+seismic = pd.read_table(local_path + r'/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
+                        r'MATHESON_LN261_R2_KMIG/MATHESON_LN261_R2_KMIG_SUGETHW_UTM.txt',
+                        header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # AFTON
 # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/l0.lst')
@@ -250,7 +253,7 @@ mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/He
 # seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
 #                         r'LARD_LN321_R1_KMIG/LARD_LN321_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 0
+use_seismic = 1
 # azi = 35  # Dryden-regional
 # azi = -15  # Swayze regional
 azi = 0  # Malartic regional
@@ -266,10 +269,11 @@ padding = 10000
 ninterp_padding = 50
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/Dry_R1_slices/'
+# file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/Dry_R1_slices/'
 # file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Geraldton/RoughFigures/Ger_R1_slices/'
+file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Matheson/RoughSlices/'
 # file_name = 'gerCull4_Finish_jet0-5_nudge5kmEast'
-file_name = 'dry_norotMeshFinish_linear_jet0-5'
+file_name = 'mat_bg100_Z_alongSeisR2_jet0-5'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_transects/Malartic/RoughFigures/Mal_R1_slices/'
 # file_name = 'swz_norot_linear_jet0-5'
@@ -285,11 +289,11 @@ title_ = 'Standard Inversion'
 rotate_back = 0
 linear_xaxis = True
 
-save_fig = 0
+save_fig = 1
 save_dat = 0
 annotate_sites = 0
 site_markers = 1
-plot_map = 1
+plot_map = 0
 dpi = 600
 csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
 use_alpha = 0
@@ -297,7 +301,7 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 100]
+zlim = [0, 5]
 lut = 64
 isolum = False
 cax = [0, 5]
