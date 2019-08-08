@@ -841,12 +841,14 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         site_error = {}
         # site_errmap = {}
         site_locations = {}
+        site_periods = {}
         inv_type = 0
         new_site_names = []
         if site_names:
             site_data = {site: {} for site in site_names}
             site_error = {site: {} for site in site_names}
             site_locations = {site: {'X': [], 'Y': [], 'elev': []} for site in site_names}
+            site_periods = {site: [] for site in site_names}
         for ii, line in enumerate(lines):
             if '#' in line and marker + 1 != ii:
                 marker = ii
@@ -909,7 +911,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             if dimensionality == '3D':
                 for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
                     line = line_string.split()
-                    periods.append(float(line[0]))
+                    period = float(line[0])
+                    # periods.append(float(line[0]))
                     site_name = line[1]
                     X, Y, Z = [float(x) for x in line[4:7]]
                     if site_name not in site_data.keys():
@@ -918,14 +921,19 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         site_locations.update({site_name: {'X': [],
                                                            'Y': [],
                                                            'elev': []}})
+                        site_periods.update({site_name: []})
+
                     if site_name not in new_site_names:
                         new_site_names.append(site_name)
                     site_locations[site_name]['X'] = X
                     site_locations[site_name]['Y'] = Y
                     site_locations[site_name]['elev'] = Z
+                    if period not in site_periods[site_name]:
+                        site_periods[site_name].append(period)
 
                     component = line[7]
-                    if inv_type <= 5:
+                    # if inv_type <= 5:
+                    if component.upper().startswith('Z') or component.upper().startswith('T'):
                         real, imag = [float(x) for x in line[8:10]]
                         error = float(line[10])
                         if component == 'TX' or component == 'TY':
@@ -945,7 +953,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         site_data[site_name][component + 'I'].append(imag)
                         site_error[site_name][component + 'R'].append(error)
                         site_error[site_name][component + 'I'].append(error)
-                    else:
+                    elif component.upper().startswith('PT'):
                         real = float(line[8])
                         error = float(line[9])
                         # For now we are swapping the X and Y's to conform with the Caldwell et al. definition
@@ -959,6 +967,9 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         site_data[site_name][swapped_component].append(real)
                         site_error[site_name][swapped_component].append(error)
                     # print(site_data[site_lookup[code]][component + 'R'])
+                    else:
+                        print('Component {} not understood. Skipping'.format(component))
+
             elif dimensionality == '2D':
                 for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
                     line = line_string.split()
@@ -1000,7 +1011,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         site_data[site_name]['ZYXI'].append(imag)
                         site_error[site_name]['ZYXR'].append(error)
                         site_error[site_name]['ZYXI'].append(error)
-        periods = np.unique(np.array(periods))
+        # periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
         # site_errmap[site][component] = np.array(site_errmap[site][component])
         # print(site_data[site][component])
@@ -1010,19 +1021,25 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
             print('Proceeding with names set in list file.\n')
             # site_names = new_site_names
+        all_periods = []
         for site in new_site_names:
+            idx = np.argsort(site_periods[site])
+            periods = sorted(site_periods[site])
+            all_periods.append(periods)
             for component in site_data[site].keys():
                 vals = site_data[site][component]
-                site_data[site][component] = np.array(vals)
+                site_data[site][component] = np.array(vals)[idx]
                 vals = site_error[site][component]
-                site_error[site][component] = np.array(vals)
+                site_error[site][component] = np.array(vals)[idx]
         # Sites get named according to list file, but are here internally called
+        all_periods = np.unique(np.array(periods))
         # according to the data file
         for ii, site in enumerate(site_names):
+
             sites.update({site: {
                           'data': site_data[new_site_names[ii]],
                           'errors': site_error[new_site_names[ii]],
-                          'periods': periods,
+                          'periods': all_periods,
                           'locations': site_locations[new_site_names[ii]],
                           'azimuth': azimuth,
                           'errFloorZ': 0,
@@ -1142,6 +1159,45 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
                                                                     'wsinv3dmt',
                                                                     'ModEM'))
+
+
+def write_locations(data, out_file=None, file_format='csv'):
+    def write_shapefile(data, outfile):
+        if not outfile.endswith('.shp'):
+            outfile += '.shp'
+        if data.site_names:
+            print('Writing shapefile with locations stored in data.locations')
+            w = shapefile.Writer(shapefile.POINT)
+            w.field('X', 'F', 10, 5)
+            w.field('Y', 'F', 10, 5)
+            w.field('Z', 'F', 10, 5)
+            w.field('Label')
+            for ii, site in enumerate(data.site_names):
+                X, Y, Z = (data.locations[ii, 1],
+                           data.locations[ii, 0],
+                           data.sites[site].locations['elev'])
+                w.point(X, Y, Z)
+                w.record(X, Y, Z, site)
+            w.save(outfile)
+
+    def write_csv(data, outfile):
+        with open(outfile, 'w') as f:
+            f.write('Station, X, Y, Elevation\n')
+            for ii, site in enumerate(data.site_names):
+                f.write('{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}\n'.format(site,
+                                                                           data.locations[ii, 1],
+                                                                           data.locations[ii, 0],
+                                                                           data.sites[site].locations['elev']))
+
+    if file_format.lower() not in ('csv', 'shp', 'kml'):
+        print('File format {} not supported'.format(file_format))
+        return
+    if file_format.lower() == 'csv':
+        write_csv(data, out_file)
+    elif file_format.lower() == 'shp':
+        write_shapefile(data, out_file)
+    elif file_format.lower() == 'kml':
+        print('Not implemented yet')
 
 
 def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
@@ -1412,17 +1468,19 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
                                            data.locations[ii, 1],
                                            site.locations.get('elev', 0))
                                 Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                                f.write(' '.join(['{:>14.7E} {:>14}',
-                                                  '{:>8.3f} {:>8.3f}',
-                                                  '{:>15.3f} {:>15.3f} {:>15.3f}',
-                                                  '{:>6} {:>14.7E} {:>14.7E}',
-                                                  '{:>14.7E}\n']).format(
-                                        period, site_name,
-                                        Lat, Long,
-                                        X, Y, Z,
-                                        component_code.upper(), Z_real, Z_imag,
-                                        max(site.used_error[component[:-1] + 'R'][jj],
-                                            site.used_error[component[:-1] + 'I'][jj])))
+                                if True:
+                                # if site.active_periods[jj]:
+                                    f.write(' '.join(['{:>14.7E} {:>14}',
+                                                      '{:>8.3f} {:>8.3f}',
+                                                      '{:>15.3f} {:>15.3f} {:>15.3f}',
+                                                      '{:>6} {:>14.7E} {:>14.7E}',
+                                                      '{:>14.7E}\n']).format(
+                                            period, site_name,
+                                            Lat, Long,
+                                            X, Y, Z,
+                                            component_code.upper(), Z_real, Z_imag,
+                                            max(site.used_error[component[:-1] + 'R'][jj],
+                                                site.used_error[component[:-1] + 'I'][jj])))
             # If inv_type is greater than 5, do phase tensors?
             else:
                 for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
@@ -1701,36 +1759,6 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
         write_occam(data, outfile)
     else:
         print('Output file format {} not recognized'.format(file_format))
-
-
-def write_locations(data, out_file=None, file_format='csv'):
-    def write_shapefile(data, outfile):
-        if not outfile.endswith('.shp'):
-            outfile += '.shp'
-        if data.site_names:
-            print('Writing shapefile with locations stored in data.locations')
-            w = shapefile.Writer(shapefile.POINT)
-            w.field('X', 'F', 10, 5)
-            w.field('Y', 'F', 10, 5)
-            w.field('Z', 'F', 10, 5)
-            w.field('Label')
-            for ii, site in enumerate(data.site_names):
-                X, Y, Z = (data.locations[ii, 1],
-                           data.locations[ii, 0],
-                           data.sites[site].locations['elev'])
-                w.point(X, Y, Z)
-                w.record(X, Y, Z, site)
-            w.save(outfile)
-
-    if file_format.lower() not in ('csv', 'shp', 'kml'):
-        print('File format {} not supported'.format(file_format))
-        return
-    if file_format.lower() == 'csv':
-        print('Not implemented yet')
-    elif file_format.lower() == 'shp':
-        write_shapefile(data, out_file)
-    elif file_format.lower() == 'kml':
-        print('Not implemented yet')
 
 
 def write_response(data, outfile=None):

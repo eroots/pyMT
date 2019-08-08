@@ -293,7 +293,7 @@ save_fig = 1
 save_dat = 0
 annotate_sites = 0
 site_markers = 1
-plot_map = 0
+plot_map = 1
 dpi = 600
 csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
 use_alpha = 0
@@ -301,7 +301,7 @@ saturation = 0.8
 lightness = 0.4
 
 xlim = []
-zlim = [0, 5]
+zlim = [0, 100]
 lut = 64
 isolum = False
 cax = [0, 5]
@@ -322,6 +322,11 @@ nudge_sites = ['18-dry043m.dat', '18-dry041m', '18-dry040m',
                '18-dry038m.dat', '18-dry037m', '18-dry001m']
 # nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
 #                '18-swz006m', '18-swz001m', '18-swz125m']
+# nudge_sites = ['MAL007M', 'MAL005M', 'MAL004M']
+# nudge_sites = ['GER007M', 'GER006M', 'GER005M', 'GER004M']
+reverse_nudge = ['MAL008M', 'MAL009M', 'MAL010L']
+nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
+               '18-swz006m', '18-swz001m', '18-swz125m']
 # nudge_sites = ['MAL007M', 'MAL005M', 'MAL004M']
 # nudge_sites = ['GER009M', 'GER008L', 'GER007M', 'GER006M', 'GER005M', 'GER004M']
 # nudge_sites = main_transect.site_names

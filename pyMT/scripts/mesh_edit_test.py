@@ -5,7 +5,7 @@ import pyMT.utils as utils
 import matplotlib.pyplot as plt
 import e_colours.colourmaps as cm
 
-
+local_path = 'C:/Users/eroots/phd/'
 ########################################
 # SWAYZE
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
@@ -16,13 +16,13 @@ import e_colours.colourmaps as cm
 # model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4.model'
 # data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4_placed.data'
 
-model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT3_lastIter.rho'
-base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
-data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
-list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
-base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5_placed.model'
-data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_5\R2South_5_placed.data'
+model_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
+base_data = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
+data_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all.data'
+list_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\R2North_all.lst'
+base_list = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
+model_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_placed.model'
+data_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all_placed.data'
 
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
 # base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
@@ -103,14 +103,16 @@ for ii in range(len(mod.dz) - 1):
 # y_pad_extention = 250000
 # min_depth = 10
 # max_depth = 500000
-bot_edge = -34000
-top_edge = 10000
-left_edge = -25000
-right_edge = 25000
+#####################################
+# SWAYZE NORTH
+bot_edge = 13000
+top_edge = 26000
+left_edge = 7000
+right_edge = 13000
 x_interp = 75
-y_interp = 75
-n_xpad = 20
-n_ypad = 20
+y_interp = 40
+n_xpad = 15
+n_ypad = 15
 x_pad_extention = 75000  # These control the total width of the combined padding
 y_pad_extention = 75000
 min_depth = 1
@@ -122,10 +124,14 @@ y_interior = np.linspace(left_edge, right_edge, y_interp)
 y_pad_size = (y_interior[-1] - y_interior[-2]) * 1.5
 top_pad = np.logspace(np.log10(x_pad_size),
                       np.log10(x_pad_extention), n_xpad) + top_edge
-bot_pad = np.flip(-1 * (np.logspace(np.log10(x_pad_size),
-                                    np.log10(x_pad_extention), n_xpad) + abs(bot_edge)), 0)
-left_pad = np.flip(-1 * (np.logspace(np.log10(y_pad_size),
-                                     np.log10(y_pad_extention), n_ypad) + abs(left_edge)), 0)
+# bot_pad = np.flip(-1 * (np.logspace(np.log10(x_pad_size),
+#                                     np.log10(x_pad_extention), n_xpad) + (bot_edge)), 0)
+bot_pad = -1 * np.flip((np.logspace(np.log10(x_pad_size),
+                                    np.log10(x_pad_extention), n_xpad) - abs(bot_edge)), 0)
+# left_pad = np.flip(-1 * (np.logspace(np.log10(y_pad_size),
+#                                      np.log10(y_pad_extention), n_ypad) + (left_edge)), 0)
+left_pad = -1 * np.flip((np.logspace(np.log10(y_pad_size),
+                                     np.log10(y_pad_extention), n_ypad) - abs(left_edge)), 0)
 right_pad = np.logspace(np.log10(y_pad_size),
                         np.log10(y_pad_extention), n_ypad) + right_edge
 x_mesh = (np.concatenate((bot_pad, x_interior, top_pad)))
@@ -171,14 +177,14 @@ if plot_it:
     axes[1].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
     # axes[0].invert_yaxis()
     # axes[1].invert_yaxis()
-    fig2, axes2 = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
-    axes2[0].pcolormesh(y, x, np.log10(mod.vals[:, :, 36]),
-                        cmap=cm.jet_plus(64), vmin=1, vmax=5)
-    axes[0].plot(base_data.locations[:, 1], base_data.locations[:, 0], 'kv')
-    axes2[0].plot(data.locations[:, 1], data.locations[:, 0], 'w^')
-    axes2[1].pcolormesh(Y, X, np.log10(new_vals[:, :, 44]),
-                        cmap=cm.jet_plus(64), vmin=1, vmax=5)
-    axes2[1].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
+    # fig2, axes2 = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
+    # axes2[0].pcolormesh(y, x, np.log10(mod.vals[:, :, 36]),
+    #                     cmap=cm.jet_plus(64), vmin=1, vmax=5)
+    # axes[0].plot(base_data.locations[:, 1], base_data.locations[:, 0], 'kv')
+    # axes2[0].plot(data.locations[:, 1], data.locations[:, 0], 'w^')
+    # axes2[1].pcolormesh(Y, X, np.log10(new_vals[:, :, 44]),
+    #                     cmap=cm.jet_plus(64), vmin=1, vmax=5)
+    # axes2[1].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
     # axes2[0].invert_yaxis()
     # axes2[1].invert_yaxis()
     plt.show()
