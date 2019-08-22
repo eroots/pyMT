@@ -220,11 +220,12 @@ def read_model(modelfile='', file_format='modem3d'):
     def read_3d(modelfile):
         with open(modelfile, 'r') as f:
             mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': []}
-            # while True:
-            header = next(f)
-            header = next(f)
-            # if header[0] != '#':
-            # break
+            # Skip any comment lines at the top
+            while True:
+            # header = next(f)
+                header = next(f)
+                if not header.strip().startswith('#'):
+                    break
             NX, NY, NZ, *MODTYPE = [h for h in header.split()]
             NX, NY, NZ = int(NX), int(NY), int(NZ)
             loge_flag = False
@@ -728,7 +729,12 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
     def read_ws_data(datafile='', site_names='', invType=None):
         try:
             with open(datafile, 'r') as f:
-                NS, NP, *NR = [round(float(h), 1) for h in next(f).split()]
+                # Skip comment lines
+                while True:
+                    header = next(f)
+                    if not header.strip().startswith('#'):
+                        break
+                NS, NP, *NR = [round(float(h), 1) for h in header.split()]
                 if len(NR) == 1:
                     azi = 0  # If azi isn't specified, it's assumed to be 0
                 else:

@@ -177,30 +177,30 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
 # seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Dryden\Plots\Shapefiles\DRYDEN_LN341_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
-seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Atikoken\Plots\Shapefiles\ATIKOKAN_LN351_R1_KMIG_SUGETHW_UTM.txt',
-                        header=0, names=('trace', 'x', 'y'), sep='\s+')
+# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Atikoken\Plots\Shapefiles\ATIKOKAN_LN351_R1_KMIG_SUGETHW_UTM.txt',)
+                        # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # # main_transect = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
 # # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
 # # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/bg800/dry5norot_lastIter.rho')
 # # reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst') 
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/dry2_lastIter.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst') 
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/dry2_lastIter.rho')
 # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
 # # # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
-mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/dry5norot_mesh_lastIter.rho')
 # seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/Dryden/Plots/Shapefiles/DRYDEN_LN341_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 # # # seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Atikoken\Plots\Shapefiles\ATIKOKAN_LN351_R1_KMIG_SUGETHW_UTM.txt',))
 # #                         # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # # main_transect = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # # data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
-backup_data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
+# backup_data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
 # # mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/bg800/dry5norot_lastIter.rho')
 # reso = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/finish/dry5Finish_resolution.model')
 #########################################################
@@ -294,8 +294,8 @@ padding = 10000
 ninterp_padding = 50
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/'
-file_name = 'dry2_noOOQ_linear_jet0-5_siteMarkers_alongATTSeis'
+# file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/'
+# file_name = 'dry2_noOOQ_linear_jet0-5_siteMarkers_alongATTSeis'
 # file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Swayze_paper/RoughFigures/'
 # file_path = r'C:/Users/eroots/phd/ownCloud/Documents/Geraldton/RoughFigures/'
 # file_name = 'swz_norotMeshFinish_linear_bgy_siteMarkers'
@@ -342,7 +342,7 @@ xlim = []
 zlim = [0, 50]
 # zlim = [0, 400]
 lut = 32
-zlim = [0, 100]
+# zlim = [0, 100]
 lut = 64
 isolum = False
 cax = [0, 5]
