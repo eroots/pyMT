@@ -14,8 +14,7 @@ Base Modules include:
 	gplot: A data manager for plotting data. Used for more advanced / customizable plotting, but largely used by the included GUIs
 	
 Submodules:
-	DataGUI - Contains modules used to interactively plot and manipulate
-		 data and models.
+	DataGUI - Contains modules used to interactively plot and manipulate data and models.
 
 	ModelGUI - Contains the modules and UI's for creating and viewing model. Currently supports 3-D models for ModEM and WSINV3DMT
 
@@ -24,12 +23,14 @@ Submodules:
 Installation:
 	All dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with complicated dependencies.
 	These include:
+
 	* pip
 	* numpy
 	* scipy
 	* matplotlib
 	* pyqt
 	* colorcet
+	
 	Each of these can be installed manually using, e.g., conda install pip (assuming an Anaconda installation)
 	
 	After installing these, pyMT may be installed using the command 'python setup.py install' or 'python setup.py develop'
