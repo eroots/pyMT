@@ -1870,7 +1870,7 @@ def write_model(model, outfile, file_format='modem'):
         else:
             header_four = ''
         with open(outfile, 'w') as f:
-            f.write('{}\n'.format(outfile))
+            f.write('{}\n'.format('# ' + outfile))
             f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
             for x in model.xCS:
                 f.write('{:<10.7f}  '.format(x))
