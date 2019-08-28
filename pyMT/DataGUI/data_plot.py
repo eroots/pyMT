@@ -723,6 +723,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
+        # debug_print(ordered_comps, 'debug.log')
         c = 0
         if 'ZXXR' in ordered_comps:
             ordered_comps.append('RhoXX')
