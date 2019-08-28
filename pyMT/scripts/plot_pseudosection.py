@@ -20,7 +20,7 @@ dataset.remove_sites(sites='MAL062A')
 dataset.sort_sites('south-north')
 data = dataset.data
 # data = WSDS.Data(datafile='C:/Users/eric/phd/Kilauea/stitched/1_day/Z/Kilauea_may_daily.data')
-days = (501, 530)
+# days = (501, 530)
 hour_or_day = 1  # sets the interval in labels, so choose appropriately
 n_interp = 300
 cax_rho = [0, 4]

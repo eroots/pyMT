@@ -5,7 +5,7 @@ import pyMT.utils as utils
 import matplotlib.pyplot as plt
 import e_colours.colourmaps as cm
 
-local_path = 'C:/Users/eroots/phd/'
+local_path = 'C:/Users/eric/phd/'
 ########################################
 # SWAYZE
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
@@ -18,11 +18,11 @@ local_path = 'C:/Users/eroots/phd/'
 
 model_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
 base_data = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
-data_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all.data'
-list_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\R2North_all.lst'
+data_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2South_new1\R2South_new1.data'
+list_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_new1.lst'
 base_list = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-model_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_placed.model'
-data_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all_placed.data'
+model_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2South_new1\R2South_placed.model'
+data_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2South_new1\R2South_all_placed.data'
 
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
 # base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
@@ -105,16 +105,27 @@ for ii in range(len(mod.dz) - 1):
 # max_depth = 500000
 #####################################
 # SWAYZE NORTH
-bot_edge = 13000
-top_edge = 26000
-left_edge = 7000
-right_edge = 13000
-x_interp = 75
+# bot_edge = 13000
+# top_edge = 26000
+# left_edge = 7000
+# right_edge = 13000
+# x_interp = 75
+# y_interp = 40
+# n_xpad = 15
+# n_ypad = 15
+#####################################
+# SWAYZE SOUTH
+bot_edge = -24000
+top_edge = -13000
+left_edge = -11000
+right_edge = -5000
+x_interp = 80
 y_interp = 40
 n_xpad = 15
 n_ypad = 15
-x_pad_extention = 75000  # These control the total width of the combined padding
-y_pad_extention = 75000
+
+x_pad_extention = 50000  # These control the total width of the combined padding
+y_pad_extention = 50000
 min_depth = 1
 max_depth = 100000
 # max_depth = mod.dz[-1]
@@ -127,11 +138,11 @@ top_pad = np.logspace(np.log10(x_pad_size),
 # bot_pad = np.flip(-1 * (np.logspace(np.log10(x_pad_size),
 #                                     np.log10(x_pad_extention), n_xpad) + (bot_edge)), 0)
 bot_pad = -1 * np.flip((np.logspace(np.log10(x_pad_size),
-                                    np.log10(x_pad_extention), n_xpad) - abs(bot_edge)), 0)
+                                    np.log10(x_pad_extention), n_xpad) - (bot_edge)), 0)
 # left_pad = np.flip(-1 * (np.logspace(np.log10(y_pad_size),
 #                                      np.log10(y_pad_extention), n_ypad) + (left_edge)), 0)
 left_pad = -1 * np.flip((np.logspace(np.log10(y_pad_size),
-                                     np.log10(y_pad_extention), n_ypad) - abs(left_edge)), 0)
+                                     np.log10(y_pad_extention), n_ypad) - (left_edge)), 0)
 right_pad = np.logspace(np.log10(y_pad_size),
                         np.log10(y_pad_extention), n_ypad) + right_edge
 x_mesh = (np.concatenate((bot_pad, x_interior, top_pad)))
