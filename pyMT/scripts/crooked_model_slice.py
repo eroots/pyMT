@@ -242,10 +242,12 @@ def project_locations(data, zone, letter):
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
 # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_bb_cull1.lst')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/mat3/mat3_lastIter.rho')
-# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_all.model')
+main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst')
+data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_all.model')
+seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/Matheson/CDP_coordinate.txt',
+                        header=0, names=('trace', 'x', 'y', 'z', 'Datum', 'Rpeg', 'Fold'), sep='\s+')
 # # seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/Matheson/MATHESON_LN261_R1_KMIG_SUGETHW_UTM.txt',
 #                         # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/MATHESON_LN261_R1_KMIG/MATHESON_LN261_R1_KMIG_SUGETHW_UTM.txt',
@@ -266,10 +268,10 @@ def project_locations(data, zone, letter):
 # seismic = pd.read_table(r'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' + 
 #                         r'GERALDTON_LN301_R1_KMIG/GERALDTON_LN301_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/ger_cull4/finish/gerFinish_lastIter.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/j2/ger_cull4.lst')
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/ger_cull4/finish/gerFinish_lastIter.rho')
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/geraldton/ger_cull4/rot25/bg2500/ger_almostLastIter.rho')
 # seismic = pd.read_table(r'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
 #                         r'GERALDTON_LN301_R1_KMIG/GERALDTON_LN301_R1_KMIG_SUGETHW_UTM.txt',
