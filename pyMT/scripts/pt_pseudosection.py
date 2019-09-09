@@ -7,7 +7,7 @@ from mpl_toolkits.axes_grid1 import Divider, Size
 from mpl_toolkits.axes_grid1.mpl_axes import Axes
 
 
-local_path = 'C:/Users/eric/'
+local_path = 'C:/Users/eroots/'
 
 
 def generate_ellipse(phi):
@@ -23,8 +23,10 @@ def generate_ellipse(phi):
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
-listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/main_transect.lst'
-main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+# listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/main_transect.lst'
+# main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
+main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst'
 # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
 # main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
@@ -40,8 +42,8 @@ main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_t
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst'
 ###########################################
 # DRYDEN
-listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
-main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect_pt.lst'
+# listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
+# main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect_pt.lst'
 ###########################################
 # MALARTIC
 # listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
@@ -50,6 +52,10 @@ main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_tr
 # LARDER
 # listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
 # main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
+###########################################
+# NEW AFTON
+listfile = local_path + 'phd/ownCloud/data/Regions/afton/j2/sorted_lines.lst'
+main_list = local_path + 'phd/ownCloud/data/Regions/afton/j2/l3.lst'
 
 data = WSDS.RawData(listfile)
 main_transect = WSDS.RawData(main_list)
@@ -61,19 +67,19 @@ fill_param = 'phi_2'
 # fill_param = 'Lambda'
 use_periods = sorted(list(data.narrow_periods.keys()))
 # use_periods = data.sites[data.site_names[0]].periods
-x_scale, y_scale = 1, 120
-save_fig = 1
-freq_skip = 2
-radius = 20
+x_scale, y_scale = 1, 1
+save_fig = 0
+freq_skip = 0
+radius = 0.05
 label_offset = -4.5
 file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/'
 file_name = 'pt_pseudosection_phi2'
 file_types = ['.pdf', '.png']  #, '.ps', '.png')
 dpi = 600
-linear_xaxis = True
+linear_xaxis = False
 # cmap = cm.jet_plus_r(64)
-cmap = cm.jet(64)
-# cmap = cm.bwr(64)
+# cmap = cm.jet(64)
+cmap = cm.bwr(32)
 
 
 data.locations = data.get_locs(mode='latlong')

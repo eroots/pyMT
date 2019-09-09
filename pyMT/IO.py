@@ -221,11 +221,13 @@ def read_model(modelfile='', file_format='modem3d'):
         with open(modelfile, 'r') as f:
             mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': []}
             # Skip any comment lines at the top
+            counter = 0
             while True:
             # header = next(f)
                 header = next(f)
-                if not header.strip().startswith('#'):
+                if not header.strip().startswith('#') and counter:
                     break
+                counter += 1
             NX, NY, NZ, *MODTYPE = [h for h in header.split()]
             NX, NY, NZ = int(NX), int(NY), int(NZ)
             loge_flag = False
@@ -1440,6 +1442,13 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
                 data_type.append('> Phase_Tensor\n')
                 units.append('> []\n')
                 temp_inv_type.append(6)
+            elif data.inv_type == 7:
+                data_type.append('> Phase_Tensor\n')
+                units.append('> []\n')
+                temp_inv_type.append(6)
+                data_type.append('> Full_Vertical_Components\n')
+                units.append('> []\n')
+                temp_inv_type.append(3)
             print(data.inv_type)
             print(temp_inv_type)
             # If inverting impedanaces or tipper

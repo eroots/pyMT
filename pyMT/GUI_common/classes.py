@@ -236,7 +236,8 @@ class ColourMenu(QtWidgets.QMenu):
                                            'jet', 'jet_r',
                                            'jet_plus', 'jet_plus_r',
                                            'bwr', 'bwr_r',
-                                           'greys', 'greys_r')}
+                                           'greys', 'greys_r',
+                                           'turbo', 'turbo_r')}
         self.action_group = QtWidgets.QActionGroup(self)
         self.setTitle('Colour Options')
         self.map = self.addMenu('Colour Map')
@@ -252,5 +253,5 @@ class ColourMenu(QtWidgets.QMenu):
 
     def set_clim(self, initial_1='1', initial_2='5'):
         inputs, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
-                                           initial_1=initial_1, initial_2=initial_2, parent=self)
+                                                initial_1=initial_1, initial_2=initial_2, parent=self)
         return inputs, ret
