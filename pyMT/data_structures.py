@@ -518,63 +518,64 @@ class Data(object):
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
                            'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat'}
-    INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
-                           'ZXYR', 'ZXYI',
-                           'ZYXR', 'ZYXI',
-                           'ZYYR', 'ZYYI'),
-                       2: ('ZXYR', 'ZXYI',
-                           'ZYXR', 'ZYXI'),
-                       3: ('TZXR', 'TZXI',
-                           'TZYR', 'TZYI'),
-                       4: ('ZXYR', 'ZXYI',
-                           'ZYXR', 'ZYXI',
-                           'TZXR', 'TZXI',
-                           'TZYR', 'TZYI'),
-                       5: ('ZXYR', 'ZXYI',
-                           'ZYXR', 'ZYXI',
-                           'TZXR', 'TZXI',
-                           'TZYR', 'TZYI',
-                           'ZXXR', 'ZXXI',
-                           'ZYYR', 'ZYYI'),
-                       6: ('PTXX', 'PTXY',  # 6 is ModEM Phase Tensor inversion
-                           'PTYX', 'PTYY'),
-                       7: ('PTXX', 'PTXY',
-                           'PTYX', 'PTYY',
-                           'TZXR', 'TZXI',
-                           'TZYR', 'TZYI'),
-                       8: ('ZXYR', 'ZXYI'),  # 2-D ModEM inversion of TE mode
-                       9: ('ZYXR', 'ZYXI'),  # 2-D ModEM inversion of TM mode
-                       10: ('ZXYR', 'ZXYI',  # 2-D ModEM inversion of TE+TM modes
-                            'ZYXR', 'ZYXI'),
-                       11: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
-                            'RhoZXY', 'PhszXY',
-                            'RhoZYX', 'PhszYX',
-                            'RhoZYY', 'PhszYY'),
-                       12: ('RhoZXY', 'PhsZXY',
-                            'RhoZYX', 'PhsZYX'),
-                       13: ('TZYR', 'TZYI'),
-                       14: ('RhoZXY', 'PhsZXY',
-                            'RhoZYX', 'PhsZYX',
-                            'TZYR', 'TZYI'),
-                       15: ('RhoZXX', 'PhsZXX',
-                            'RhoZXY', 'PhsZXY',
-                            'RhoZYX', 'PhsZYX',
-                            'RhoZYY', 'PhsZYY',
-                            'TZYR', 'TZYI'),
-                       16: ('log10RhoZXX', 'PhsZXX',
-                            'log10RhoXY', 'PhsXY',
-                            'log10RhoYX', 'PhsYX',
-                            'log10RhoYY', 'PhsYY'),
-                       17: ('log10RhoZXY', 'PhsZXY',
-                            'log10RhoZYX', 'PhsZYX'),
-                       18: ('log10RhoZXY', 'PhsZXY',
-                            'log10RhoZYX', 'PhsZYX',
-                            'TZYR', 'TZYI'),
-                       19: ('log10RhoZXX', 'PhsZXX',
-                            'log10RhoZXY', 'PhsZXY',
-                            'log10RhoZYX', 'PhsZYX',
-                            'log10RhoZYY', 'PhsZYY',
-                            'TZYR', 'TZYI')}
+    INVERSION_TYPES = WS_io.INVERSION_TYPES
+    # INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
+    #                        'ZXYR', 'ZXYI',
+    #                        'ZYXR', 'ZYXI',
+    #                        'ZYYR', 'ZYYI'),
+    #                    2: ('ZXYR', 'ZXYI',
+    #                        'ZYXR', 'ZYXI'),
+    #                    3: ('TZXR', 'TZXI',
+    #                        'TZYR', 'TZYI'),
+    #                    4: ('ZXYR', 'ZXYI',
+    #                        'ZYXR', 'ZYXI',
+    #                        'TZXR', 'TZXI',
+    #                        'TZYR', 'TZYI'),
+    #                    5: ('ZXYR', 'ZXYI',
+    #                        'ZYXR', 'ZYXI',
+    #                        'TZXR', 'TZXI',
+    #                        'TZYR', 'TZYI',
+    #                        'ZXXR', 'ZXXI',
+    #                        'ZYYR', 'ZYYI'),
+    #                    6: ('PTXX', 'PTXY',  # 6 is ModEM Phase Tensor inversion
+    #                        'PTYX', 'PTYY'),
+    #                    7: ('PTXX', 'PTXY',
+    #                        'PTYX', 'PTYY',
+    #                        'TZXR', 'TZXI',
+    #                        'TZYR', 'TZYI'),
+    #                    8: ('ZXYR', 'ZXYI'),  # 2-D ModEM inversion of TE mode
+    #                    9: ('ZYXR', 'ZYXI'),  # 2-D ModEM inversion of TM mode
+    #                    10: ('ZXYR', 'ZXYI',  # 2-D ModEM inversion of TE+TM modes
+    #                         'ZYXR', 'ZYXI'),
+    #                    11: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
+    #                         'RhoZXY', 'PhszXY',
+    #                         'RhoZYX', 'PhszYX',
+    #                         'RhoZYY', 'PhszYY'),
+    #                    12: ('RhoZXY', 'PhsZXY',
+    #                         'RhoZYX', 'PhsZYX'),
+    #                    13: ('TZYR', 'TZYI'),
+    #                    14: ('RhoZXY', 'PhsZXY',
+    #                         'RhoZYX', 'PhsZYX',
+    #                         'TZYR', 'TZYI'),
+    #                    15: ('RhoZXX', 'PhsZXX',
+    #                         'RhoZXY', 'PhsZXY',
+    #                         'RhoZYX', 'PhsZYX',
+    #                         'RhoZYY', 'PhsZYY',
+    #                         'TZYR', 'TZYI'),
+    #                    16: ('log10RhoZXX', 'PhsZXX',
+    #                         'log10RhoXY', 'PhsXY',
+    #                         'log10RhoYX', 'PhsYX',
+    #                         'log10RhoYY', 'PhsYY'),
+    #                    17: ('log10RhoZXY', 'PhsZXY',
+    #                         'log10RhoZYX', 'PhsZYX'),
+    #                    18: ('log10RhoZXY', 'PhsZXY',
+    #                         'log10RhoZYX', 'PhsZYX',
+    #                         'TZYR', 'TZYI'),
+    #                    19: ('log10RhoZXX', 'PhsZXX',
+    #                         'log10RhoZXY', 'PhsZXY',
+    #                         'log10RhoZYX', 'PhsZYX',
+    #                         'log10RhoZYY', 'PhsZYY',
+    #                         'TZYR', 'TZYI')}
 
     # Scale error map by how much the period differs, or do a straight error mapping
     # First value is 'scaled' or 'straight', second value is mult. For scaled, this is multiplied by
@@ -1611,6 +1612,7 @@ class Site(object):
             self.flags = flags
         else:
             self.flags = self.generate_errmap(mult=1)
+            # WS_io.debug_print(self.data.items(), 'debug.log')
         if not self.errors or utils.is_all_empties(self.errors):
             self.errors = self.generate_errmap(mult=1)
         if not self.errmap or utils.is_all_empties(self.errmap):

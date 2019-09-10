@@ -1,4 +1,10 @@
 == CHANGELOG ==
+09/09/19:
+  - Need to add these to the docs changelog when I get that fixed
+  - Added turbo and turbo_r to colour maps
+  - Should work in Model Viewer, not yet in Data Plot
+  - Changed the way ModEM data files are read in to allow for arbitrary ordering of the data lines
+    - This seems to be working without complaint, but may have some unintended side effects!
 08/25/18:
  - Implemented phase tensor differencing, using the definition of Heise et al. to calculate the PT paramenters, and then using the definition of Booker to calculate the PT itself.
  - Put in a blue-white-red diverging colour map for difference plotting

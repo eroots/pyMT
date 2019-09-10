@@ -8,6 +8,65 @@ import shapefile
 import datetime
 
 
+INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
+                       'ZXYR', 'ZXYI',
+                       'ZYXR', 'ZYXI',
+                       'ZYYR', 'ZYYI'),
+                   2: ('ZXYR', 'ZXYI',
+                       'ZYXR', 'ZYXI'),
+                   3: ('TZXR', 'TZXI',
+                       'TZYR', 'TZYI'),
+                   4: ('ZXYR', 'ZXYI',
+                       'ZYXR', 'ZYXI',
+                       'TZXR', 'TZXI',
+                       'TZYR', 'TZYI'),
+                   5: ('ZXYR', 'ZXYI',
+                       'ZYXR', 'ZYXI',
+                       'TZXR', 'TZXI',
+                       'TZYR', 'TZYI',
+                       'ZXXR', 'ZXXI',
+                       'ZYYR', 'ZYYI'),
+                   6: ('PTXX', 'PTXY',  # 6 is ModEM Phase Tensor inversion
+                       'PTYX', 'PTYY'),
+                   7: ('PTXX', 'PTXY',
+                       'PTYX', 'PTYY',
+                       'TZXR', 'TZXI',
+                       'TZYR', 'TZYI'),
+                   8: ('ZXYR', 'ZXYI'),  # 2-D ModEM inversion of TE mode
+                   9: ('ZYXR', 'ZYXI'),  # 2-D ModEM inversion of TM mode
+                   10: ('ZXYR', 'ZXYI',  # 2-D ModEM inversion of TE+TM modes
+                        'ZYXR', 'ZYXI'),
+                   11: ('RhoZXX', 'PhszXX',  # 7-15 are reserved for MARE2DEM inversions
+                        'RhoZXY', 'PhszXY',
+                        'RhoZYX', 'PhszYX',
+                        'RhoZYY', 'PhszYY'),
+                   12: ('RhoZXY', 'PhsZXY',
+                        'RhoZYX', 'PhsZYX'),
+                   13: ('TZYR', 'TZYI'),
+                   14: ('RhoZXY', 'PhsZXY',
+                        'RhoZYX', 'PhsZYX',
+                        'TZYR', 'TZYI'),
+                   15: ('RhoZXX', 'PhsZXX',
+                        'RhoZXY', 'PhsZXY',
+                        'RhoZYX', 'PhsZYX',
+                        'RhoZYY', 'PhsZYY',
+                        'TZYR', 'TZYI'),
+                   16: ('log10RhoZXX', 'PhsZXX',
+                        'log10RhoXY', 'PhsXY',
+                        'log10RhoYX', 'PhsYX',
+                        'log10RhoYY', 'PhsYY'),
+                   17: ('log10RhoZXY', 'PhsZXY',
+                        'log10RhoZYX', 'PhsZYX'),
+                   18: ('log10RhoZXY', 'PhsZXY',
+                        'log10RhoZYX', 'PhsZYX',
+                        'TZYR', 'TZYI'),
+                   19: ('log10RhoZXX', 'PhsZXX',
+                        'log10RhoZXY', 'PhsZXY',
+                        'log10RhoZYX', 'PhsZYX',
+                        'log10RhoZYY', 'PhsZYY',
+                        'TZYR', 'TZYI')}
+
+
 if os.name is 'nt':
     PATH_CONNECTOR = '\\'
 else:
@@ -834,6 +893,217 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         return sites, other_info
 
     def read_modem_data(datafile='', site_names='', invType=None):
+        COMPONENTS_3D = ('Full_Impedance', 'Full_Vertical_Components',
+                         'Off_Diagonal_Impedance', 'Phase_Tensor')
+        COMPONENTS_2D = ('TE_Impedance', 'TM_Impedance')
+        try:
+            with open(datafile, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            raise(WSFileError(ID='fnf', offender=datafile)) from None
+        marker = -10
+        block_start = []
+        periods = []
+        sites = {}
+        site_data = {}
+        site_error = {}
+        # site_errmap = {}
+        site_locations = {}
+        site_periods = {}
+        inv_type = 0
+        new_site_names = []
+        all_data_types = []
+        if site_names:
+            site_data = {site: {} for site in site_names}
+            site_error = {site: {} for site in site_names}
+            site_locations = {site: {'X': [], 'Y': [], 'elev': []} for site in site_names}
+            site_periods = {site: [] for site in site_names}
+        for ii, line in enumerate(lines):
+            if '#' in line and marker + 1 != ii:
+                marker = ii
+                block_start.append(ii)
+        block_start.append(len(lines))
+        for ii, line_number in enumerate(block_start[:-1]):
+            header = lines[line_number + 1]
+            if 'UTM Zone:' in header:
+                UTM_zone = header.split(':')[1]
+            else:
+                UTM_zone = 'Undefined'
+            current_data_type = lines[line_number + 2].split('>')[1].strip()
+            azimuth = float(lines[line_number + 5].split('>')[1].strip())
+            o_x, *o_y = [float(x) for x in lines[line_number + 6].split('>')[1].strip().split()]
+            o_y = o_y[0]
+            NP, NS = [int(x) for x in lines[line_number + 7].split('>')[1].strip().split()]
+            all_data_types.append(current_data_type)
+            if current_data_type in COMPONENTS_3D:
+                dimensionality = '3D'
+                for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
+                    line = line_string.split()
+                    period = float(line[0])
+                    # periods.append(float(line[0]))
+                    site_name = line[1]
+                    X, Y, Z = [float(x) for x in line[4:7]]
+                    if site_name not in site_data.keys():
+                        site_data.update({site_name: {}})
+                        site_error.update({site_name: {}})
+                        site_locations.update({site_name: {'X': [],
+                                                           'Y': [],
+                                                           'elev': []}})
+                        site_periods.update({site_name: []})
+
+                    if site_name not in new_site_names:
+                        new_site_names.append(site_name)
+                    site_locations[site_name]['X'] = X
+                    site_locations[site_name]['Y'] = Y
+                    site_locations[site_name]['elev'] = Z
+                    if period not in site_periods[site_name]:
+                        site_periods[site_name].append(period)
+
+                    component = line[7]
+                    # if inv_type <= 5:
+                    if component.upper().startswith('Z') or component.upper().startswith('T'):
+                        if component == 'TX' or component == 'TY':
+                            component = component[0] + 'Z' + component[1]
+                        real, imag = [float(x) for x in line[8:10]]
+                        error = float(line[10])
+
+
+                        # site_data[site_name].update({component + 'I': {period: imag}})
+                        # site_error[site_name].update({component + 'R': {period: error}})
+                        # site_error[site_name].update({component + 'I': {period: error}})
+                        if component + 'R' not in site_data[site_name].keys():
+                            site_data[site_name].update({component + 'R': {}})
+                        # if component + 'I' not in site_data[site_name].keys():
+                            site_data[site_name].update({component + 'I': {}})
+                        if component + 'R' not in site_error[site_name].keys():
+                            site_error[site_name].update({component + 'R': {}})
+                        # if component + 'I' not in site_error[site_name].keys():
+                            site_error[site_name].update({component + 'I': {}})
+                        site_data[site_name][component + 'R'].update({period: real})
+                        site_data[site_name][component + 'I'].update({period: imag})
+                        site_error[site_name][component + 'R'].update({period: error})
+                        site_error[site_name][component + 'I'].update({period: error})
+                        # site_data[site_name][component + 'R'].append(real)
+                        # site_data[site_name][component + 'I'].append(imag)
+                        # site_error[site_name][component + 'R'].append(error)
+                        # site_error[site_name][component + 'I'].append(error)
+                    elif component.upper().startswith('PT'):
+                        real = float(line[8])
+                        error = float(line[9])
+                        # For now we are swapping the X and Y's to conform with the Caldwell et al. definition
+                        swapped_component = component.replace('X', '1')
+                        swapped_component = swapped_component.replace('Y', 'X')
+                        swapped_component = swapped_component.replace('1', 'Y')
+                        site_data[site_name].update({swapped_component: {period: real}})
+                        site_error[site_name].update({swapped_component: {period: error}})
+                        # if swapped_component not in site_data[site_name].keys():
+                            # site_data[site_name].update({swapped_component: []})
+                        # if swapped_component not in site_error[site_name].keys():
+                            # site_error[site_name].update({swapped_component: []})
+                        # site_data[site_name][swapped_component].append(real)
+                        # site_error[site_name][swapped_component].append(error)
+                    # print(site_data[site_lookup[code]][component + 'R'])
+                    else:
+                        print('Component {} not understood. Skipping'.format(component))
+
+            else:
+                dimensionality == '2D'
+                for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
+                    line = line_string.split()
+                    periods.append(float(line[0]))
+                    site_name = line[1]
+                    X, Y, Z = [float(x) for x in line[4:7]]
+                    if site_name not in site_data.keys():
+                        site_data.update({site_name: {}})
+                        site_error.update({site_name: {}})
+                        site_locations.update({site_name: {'X': [],
+                                                           'Y': [],
+                                                           'elev': []}})
+                    if site_name not in new_site_names:
+                        new_site_names.append(site_name)
+                    site_locations[site_name]['X'] = X
+                    site_locations[site_name]['Y'] = Y
+                    site_locations[site_name]['elev'] = Z
+
+                    component = line[7]
+                    real, imag = [float(x) for x in line[8:10]]
+                    error = float(line[10])
+                    if component == 'TE':
+                        if 'ZXYR' not in site_data[site_name].keys():
+                            site_data[site_name].update({'ZXYR': []})
+                            site_data[site_name].update({'ZXYI': []})
+                            site_error[site_name].update({'ZXYR': []})
+                            site_error[site_name].update({'ZXYI': []})
+                        site_data[site_name]['ZXYR'].append(real)
+                        site_data[site_name]['ZXYI'].append(imag)
+                        site_error[site_name]['ZXYR'].append(error)
+                        site_error[site_name]['ZXYI'].append(error)
+                    if component == 'TM':
+                        if 'ZYXR' not in site_data[site_name].keys():
+                            site_data[site_name].update({'ZYXR': []})
+                            site_data[site_name].update({'ZYXI': []})
+                            site_error[site_name].update({'ZYXR': []})
+                            site_error[site_name].update({'ZYXI': []})
+                        site_data[site_name]['ZYXR'].append(real)
+                        site_data[site_name]['ZYXI'].append(imag)
+                        site_error[site_name]['ZYXR'].append(error)
+                        site_error[site_name]['ZYXI'].append(error)
+        # periods = np.unique(np.array(periods))
+        # print(site_data[site_names[0]])
+        # site_errmap[site][component] = np.array(site_errmap[site][component])
+        # print(site_data[site][component])
+        if not site_names:
+            site_names = new_site_names
+        elif site_names != new_site_names:
+            print('Site names specified in list file do not match those in {}\n'.format(datafile))
+            print('Proceeding with names set in list file.\n')
+            # site_names = new_site_names
+        all_periods = []
+        sorted_site_data = copy.deepcopy(site_data)
+        sorted_site_error = copy.deepcopy(site_error)
+        for site in new_site_names:
+            # idx = np.argsort(site_periods[site])
+            periods = sorted(site_periods[site])
+            all_periods.append(periods)
+            for component in site_data[site].keys():
+                sorted_periods = sorted(site_data[site][component].keys())
+                # debug_print(site_data, 'debug.log')
+                # debug_print(sorted_periods, 'debug.log')
+                sorted_site_data[site].update({component: np.array([site_data[site][component][period] for period in sorted_periods])})
+                sorted_site_error[site].update({component: np.array([site_error[site][component][period] for period in sorted_periods])})
+                # vals = site_data[site][component]
+                # site_data[site][component] = np.array(vals)[idx]
+                # vals = site_error[site][component]
+                # site_error[site][component] = np.array(vals)[idx]
+        # Sites get named according to list file, but are here internally called
+        all_periods = np.unique(np.array(periods))
+        all_components = set([component for component in site_data[site] for site in site_data.keys()])
+        try:
+            inv_type = [key for key in INVERSION_TYPES.keys() if all_components == set(INVERSION_TYPES[key])][0]
+        except IndexError:
+            msg = 'Components listed in {}} are not yet a supported inversion type'.format(datafile)
+            raise(WSFileError(id='int', offender=datafile, extra=msg))
+        debug_print(inv_type, 'debug.log')
+        # according to the data file
+        for ii, site in enumerate(site_names):
+
+            sites.update({site: {
+                          'data': sorted_site_data[new_site_names[ii]],
+                          'errors': sorted_site_error[new_site_names[ii]],
+                          'periods': all_periods,
+                          'locations': site_locations[new_site_names[ii]],
+                          'azimuth': azimuth,
+                          'errFloorZ': 0,
+                          'errFloorT': 0}
+                          })
+        other_info = {'inversion_type': inv_type,
+                      'site_names': site_names,
+                      'origin': (o_x, o_y),
+                      'UTM_zone': UTM_zone,
+                      'dimensionality': dimensionality}
+        return sites, other_info
+
+    def read_modem_data_old(datafile='', site_names='', invType=None):
         #  Will only ready Impedance and TF data so far, not rho/phase
         # print('Inside read_modem_data')
         try:
