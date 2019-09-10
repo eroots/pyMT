@@ -176,10 +176,14 @@ def project_locations(data, zone, letter):
 # # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/bg800/dry5norot_lastIter.rho')
 # # reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst') 
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry2_lastIter.rho')
 data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
 backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst') 
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry2_lastIter.rho')
+mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/dry2_lastIter.rho')
+main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/finish/dry_hs2500_Finish_lastIter.rho')
 # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
@@ -287,7 +291,7 @@ force_NS = 1
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
-UTM_number = 15
+UTM_number = 16
 UTM_letter = 'U'
 # UTM_letter = 'U'
 # padding = 25000
@@ -339,9 +343,9 @@ xlim = []
 zlim = [0, 50]
 # zlim = [0, 50]
 # zlim = [0, 400]
-lut = 32
+# lut = 32
 # zlim = [0, 100]
-# lut = 256
+lut = 64
 isolum = False
 cax = [0, 5]
 isolum = 0
@@ -374,18 +378,18 @@ nudge_sites = ['18-dry043m.dat', '18-dry041m', '18-dry040m',
 reverse_nudge = []
 
 nudge_dist = 5000
-use_nudge = 0
+use_nudge = 1
 
 # data.to_utm(UTM_number, UTM_letter)
 # main_transect.to_utm(UTM_number, UTM_letter)
 # backup_data.to_utm(UTM_number, UTM_letter)
 
 # # Make sure the sites go north-south
-if force_NS:
-    main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]
-    # Sort the site names so the same is true
-    main_transect.site_names = sorted(main_transect.site_names,
-                                      key=lambda x: main_transect.sites[x].locations['X'])
+# if force_NS:
+main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]
+# Sort the site names so the same is true
+main_transect.site_names = sorted(main_transect.site_names,
+                                  key=lambda x: main_transect.sites[x].locations['X'])
 nudge_locations = copy.deepcopy(main_transect.locations)
 if use_nudge:
     for ii, site in enumerate(main_transect.site_names):
