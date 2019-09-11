@@ -11,7 +11,7 @@ import colorsys
 from pyMT.e_colours import colourmaps
 
 
-local_path = 'C:/Users/eric/'
+local_path = 'C:/Users/eroots/'
 
 
 def extents(f):
@@ -137,8 +137,8 @@ def interpolate_slice(x, y, Z, NP):
 #####################################################################
 # LARDER
 data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
-# mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
-mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
+mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
+# mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
 # reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
@@ -168,9 +168,9 @@ mode = 3
 # file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Malartic/RoughFigures/MAL_R1_slices/NS_slices/'
 file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Larder/RoughFigures/LAR_R1_slices/'
 # file_name = ''.join(['LL_ZStatic_NS_', str(int(mod.dy[slice_num])), 'm.png'])
-file_name = ''.join(['LL_ZStatic_NS_', str(slice_num), 'm.png'])
+file_name = ''.join(['LL_All_jet1-5_NS_', str(slice_num), 'm.png'])
 title_ = 'Standard Inversion'
-save_fig = 1
+save_fig = 0
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -186,14 +186,15 @@ xlim = [5300, 5370]  # Larder Hex
 # zlim = [5610, 5620]
 zlim = [0, 50]
 lut = 32
-cax = [0, 5]
+cax = [1, 5]
 isolum = False
 # xlim = [-123.5, -121.5]
 # xlim = [-7, 74]
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
-cmap_name = 'jet_r'
+# cmap_name = 'jet_r'
+cmap_name = 'turbo_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
@@ -212,8 +213,8 @@ for ii in range(len(mod.dy) - 1):
     y[ii] = (mod.dy[ii] + mod.dy[ii + 1]) / 2
 for ii in range(len(mod.dz) - 1):
     z[ii] = (mod.dz[ii] + mod.dz[ii + 1]) / 2
-if cmap_name == 'jetplus':
-    cmap = colourmaps.jet_plus(lut)
+if cmap_name in ('jetplus', 'turbo', 'turbo_r'):
+    cmap = colourmaps.get_cmap(cmap_name)
 else:
     cmap = cm.get_cmap(cmap_name, lut)
 
