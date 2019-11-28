@@ -17,7 +17,8 @@ def transform_locations(dataset, UTM):
 
 
 def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
-           datpath=None, origin=None, UTM=None, sea_level=0, resolutionfile=None, transform_coords=None):
+           datpath=None, origin=None, UTM=None, sea_level=0, use_elevation=False,
+           resolutionfile=None, transform_coords=None):
     if not outfile:
         print('Output file required!')
         return
@@ -53,10 +54,12 @@ def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
         print('Writing model to {}'.format('_'.join([outfile, 'sites.vtk'])))
         # dataset.raw_data.locations = dataset.raw_data.get_locs(mode='centered')
         dataset.raw_data.locations -= (origin[1], origin[0])
-        dataset.raw_data.to_vtk(origin=origin, UTM=UTM, outfile=outfile, sea_level=sea_level)
+        dataset.raw_data.to_vtk(origin=origin, UTM=UTM, outfile=outfile,
+                                sea_level=sea_level, use_elevation=use_elevation)
     elif datafile:
-        print('Writing model to {}'.format('_'.join([outfile, 'sites.vtk'])))
-        dataset.data.to_vtk(origin=origin, UTM=UTM, outfile=outfile, sea_level=sea_level)
+        print('Writing data to {}'.format('_'.join([outfile, 'sites.vtk'])))
+        dataset.data.to_vtk(origin=origin, UTM=UTM, outfile=outfile,
+                            sea_level=sea_level, use_elevation=use_elevation)
 
 
 def get_inputs():
@@ -113,7 +116,9 @@ def get_inputs():
         args.update({'transform_coords': 'n'})
     sea_level = verify_input('Sea level adjustment (Positive for above sea level)',
                              expected=float, default=0)
-    args.update({'sea_level': sea_level})
+    use_elevation = verify_input('Use site elevation?',
+                                 expected='yn', default='n')
+    args.update({'use_elevation': use_elevation})
     outfile = verify_input('Base output file name', expected='write')
     args.update({'outfile': outfile})
 

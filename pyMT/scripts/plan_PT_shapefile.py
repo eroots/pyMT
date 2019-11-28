@@ -107,25 +107,28 @@ if __name__ == '__main__':
     # filename = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/GJH/ForEric/TNG&MTR-EDI/all.lst'
     # filename = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/cull_allSuperior.data'
     # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/culled_allSuperior.lst'
-    filename = 'C:/Users/eric/phd/ownCloud/secondary/simpeg_tests/eastSuperior_1D_Z.dat'
-    listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/1D_sites.lst'
-    shp_file_base = 'C:/Users/eric/phd/ownCloud/data/ArcMap/test2.shp'
+    # filename = 'C:/Users/eric/phd/ownCloud/secondary/simpeg_tests/eastSuperior_1D_Z.dat'
+    # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/1D_sites.lst'
+    # shp_file_base = 'C:/Users/eric/phd/ownCloud/data/ArcMap/test2.shp'
+    filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/sorted_lines.dat'
+    listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/sorted_lines.lst'
+    shp_file_base = 'C:/Users/eroots/phd/ownCloud/data/ArcMap/Afton/geologyWGS2_output.shp'
     # out_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/all/'
     # out_file = 'allSuperior_PT_'
-    out_path = 'C:/Users/eric/phd/ownCloud/secondary/simpeg_tests/Figures/PTs/'
+    out_path = 'C:/Users/eroots/phd/ownCloud/Documents/TGI/Figures/'
     out_file = '1D_PT_'
     ext = '.png'
     dpi = 600
-    save_fig = 1
-    cutoff_distance = 500
+    save_fig = 0
+    cutoff_distance = 100
 
 #################################################################################
     all_data = WSDS.Data(filename, listfile=listfile)
     all_raw = WSDS.RawData(listfile)
     ME_data = deepcopy(all_data)
     ME_raw = deepcopy(all_raw)
-    ME_data.remove_sites(sites=[site for site in ME_data.site_names if site.startswith('9')])
-    ME_raw.remove_sites(sites=[site for site in ME_raw.site_names if site.startswith('9')])
+    # ME_data.remove_sites(sites=[site for site in ME_data.site_names if site.startswith('9')])
+    # ME_raw.remove_sites(sites=[site for site in ME_raw.site_names if site.startswith('9')])
     all_sites_ME = deepcopy(ME_data.site_names)
     # Remove redunantly close points
     for ii, site1 in enumerate(ME_data.site_names):
@@ -166,7 +169,7 @@ if __name__ == '__main__':
         all_raw.locations[ii, 1], all_raw.locations[ii, 0] = lon, lat
     all_data.locations = all_raw.locations
 ###############################################################################
-    for ii, period in enumerate(all_data.periods):
+    for ii, period in enumerate(all_data.periods[0:1]):
         if period < 4:
             use_data = deepcopy(ME_data)
         else:

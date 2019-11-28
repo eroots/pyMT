@@ -356,9 +356,9 @@ def get_cmap(cmap, N=64):
         return jet(N)
     elif cmap in ('jet_r'):
         return jet_r(N)
-    elif cmap in ('jet_plus'):
+    elif cmap in ('jet_plus', 'jetplus'):
         return jet_plus(N)
-    elif cmap in ('jet_plus_r'):
+    elif cmap in ('jet_plus_r', 'jetplus_r'):
         return jet_plus_r(N)
     elif cmap in ('bwr'):
         return bwr(N)
@@ -372,3 +372,6 @@ def get_cmap(cmap, N=64):
         return colors.ListedColormap(turbo(N))
     elif cmap in ('turbo_r'):
         return colors.ListedColormap(turbo_r(N))
+    elif cmap in ('turbo_r_mod'):
+        idx = int(N / 32) * 3
+        return(colors.ListedColormap(turbo_r(N)[idx:-idx]))

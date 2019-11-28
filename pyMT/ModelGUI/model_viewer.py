@@ -64,6 +64,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                         datafile=files['dat'])
         except KeyError:
             self.dataset = WSDS.Dataset(modelfile=files['model'])
+        if self.dataset.model.dimensionality == '2d':
+            # idx = np.argmin(abs(np.array(self.dataset.model.dy)))
+            self.dataset.data.locations[:, 1] += self.dataset.model.dy[0] #sum(self.dataset.model.dy[:idx])
         self.model = self.dataset.model
         self.clip_model = deepcopy(self.model)
 
@@ -859,7 +862,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             # self.slices['transect'] = self.generate_slice('z')
             self.actors['transect'] = self.vtk_widget.add_mesh(self.slices['transect'],
                                                                style='surface',
-                                                               scalars=np.flip(self.interp_vals, axis=0),
+                                                               scalars=self.interp_vals, axis=0,
                                                                cmap=self.cmap,
                                                                clim=self.cax)
         else:

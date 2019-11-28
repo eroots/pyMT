@@ -345,14 +345,16 @@ def read_model(modelfile='', file_format='modem3d'):
     if file_format.lower() == 'modem3d':
         try:
             mod, loge_flag = read_3d(modelfile)
+            dimensionality = '3d'
         except ValueError:
             print('Model not in ModEM3D format. Trying 2D')
             mod, loge_flag = read_2d(modelfile)
+            dimensionality = '2d'
     elif file_format.lower() == 'modem2d':
         mod, loge_flag = read_2d(modelfile)
     if loge_flag:
         mod['vals'] = np.exp(mod['vals'])
-    return mod
+    return mod, dimensionality
 
 
 def read_raw_data(site_names, datpath=''):
@@ -521,7 +523,8 @@ def read_raw_data(site_names, datpath=''):
             # if (elev_head != elev_info) or (elev_head != elev_define) or (elev_define != elev_info):
             #     print('Elevations listed in HEAD, INFO and DEFINEMEAS do not match.')
             # print('Location information extracted from DEFINEMEAS block')
-            lat, lon, elev = lat_define, lon_define, elev_define
+            # lat, lon, elev = lat_define, lon_define, elev_define
+            lat, lon, elev = lat_head, lon_head, elev_head
             return lat, lon, elev
 
         def read_data_block(block):
@@ -930,6 +933,13 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             else:
                 UTM_zone = 'Undefined'
             current_data_type = lines[line_number + 2].split('>')[1].strip()
+            sign_convention = lines[line_number + 3].split('>')[1].strip()
+            units = lines[line_number + 4].split('>')[1].strip()
+            sign_multiplier, scale_factor = 1, 1
+            if '+' in sign_convention:
+                sign_multiplier = -1
+            if units == '[mV/km]/[nT]':
+                scale_factor = 4 * np.pi / 10000
             azimuth = float(lines[line_number + 5].split('>')[1].strip())
             o_x, *o_y = [float(x) for x in lines[line_number + 6].split('>')[1].strip().split()]
             o_y = o_y[0]
@@ -979,10 +989,10 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                             site_error[site_name].update({component + 'R': {}})
                         # if component + 'I' not in site_error[site_name].keys():
                             site_error[site_name].update({component + 'I': {}})
-                        site_data[site_name][component + 'R'].update({period: real})
-                        site_data[site_name][component + 'I'].update({period: imag})
-                        site_error[site_name][component + 'R'].update({period: error})
-                        site_error[site_name][component + 'I'].update({period: error})
+                        site_data[site_name][component + 'R'].update({period: scale_factor * real})
+                        site_data[site_name][component + 'I'].update({period: sign_multiplier * scale_factor * imag})
+                        site_error[site_name][component + 'R'].update({period: scale_factor * error})
+                        site_error[site_name][component + 'I'].update({period: scale_factor * error})
                         # site_data[site_name][component + 'R'].append(real)
                         # site_data[site_name][component + 'I'].append(imag)
                         # site_error[site_name][component + 'R'].append(error)
@@ -994,12 +1004,16 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         swapped_component = component.replace('X', '1')
                         swapped_component = swapped_component.replace('Y', 'X')
                         swapped_component = swapped_component.replace('1', 'Y')
-                        site_data[site_name].update({swapped_component: {period: real}})
-                        site_error[site_name].update({swapped_component: {period: error}})
+                        if swapped_component not in site_data[site_name].keys():
+                            site_data[site_name].update({swapped_component: {}})
+                        if swapped_component not in site_error[site_name].keys():
+                            site_error[site_name].update({swapped_component: {}})
+                        site_data[site_name][swapped_component].update({period: real})
+                        site_error[site_name][swapped_component].update({period: error})
                         # if swapped_component not in site_data[site_name].keys():
-                            # site_data[site_name].update({swapped_component: []})
+                        #     site_data[site_name].update({swapped_component: []})
                         # if swapped_component not in site_error[site_name].keys():
-                            # site_error[site_name].update({swapped_component: []})
+                        #     site_error[site_name].update({swapped_component: []})
                         # site_data[site_name][swapped_component].append(real)
                         # site_error[site_name][swapped_component].append(error)
                     # print(site_data[site_lookup[code]][component + 'R'])
@@ -1007,10 +1021,11 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         print('Component {} not understood. Skipping'.format(component))
 
             else:
-                dimensionality == '2D'
+                dimensionality = '2D'
                 for line_string in lines[block_start[ii] + 8: block_start[ii + 1]]:
                     line = line_string.split()
-                    periods.append(float(line[0]))
+                    # periods.append(float(line[0]))
+                    period = float(line[0])
                     site_name = line[1]
                     X, Y, Z = [float(x) for x in line[4:7]]
                     if site_name not in site_data.keys():
@@ -1019,35 +1034,37 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                         site_locations.update({site_name: {'X': [],
                                                            'Y': [],
                                                            'elev': []}})
+                        site_periods.update({site_name: []})
                     if site_name not in new_site_names:
                         new_site_names.append(site_name)
                     site_locations[site_name]['X'] = X
                     site_locations[site_name]['Y'] = Y
                     site_locations[site_name]['elev'] = Z
-
+                    if period not in site_periods[site_name]:
+                        site_periods[site_name].append(period)
                     component = line[7]
                     real, imag = [float(x) for x in line[8:10]]
                     error = float(line[10])
                     if component == 'TE':
                         if 'ZXYR' not in site_data[site_name].keys():
-                            site_data[site_name].update({'ZXYR': []})
-                            site_data[site_name].update({'ZXYI': []})
-                            site_error[site_name].update({'ZXYR': []})
-                            site_error[site_name].update({'ZXYI': []})
-                        site_data[site_name]['ZXYR'].append(real)
-                        site_data[site_name]['ZXYI'].append(imag)
-                        site_error[site_name]['ZXYR'].append(error)
-                        site_error[site_name]['ZXYI'].append(error)
+                            site_data[site_name].update({'ZXYR': {}})
+                            site_data[site_name].update({'ZXYI': {}})
+                            site_error[site_name].update({'ZXYR': {}})
+                            site_error[site_name].update({'ZXYI': {}})
+                        site_data[site_name]['ZXYR'].update({period: scale_factor * real})
+                        site_data[site_name]['ZXYI'].update({period: scale_factor * sign_multiplier * imag})
+                        site_error[site_name]['ZXYR'].update({period: scale_factor * error})
+                        site_error[site_name]['ZXYI'].update({period: scale_factor * error})
                     if component == 'TM':
                         if 'ZYXR' not in site_data[site_name].keys():
-                            site_data[site_name].update({'ZYXR': []})
-                            site_data[site_name].update({'ZYXI': []})
-                            site_error[site_name].update({'ZYXR': []})
-                            site_error[site_name].update({'ZYXI': []})
-                        site_data[site_name]['ZYXR'].append(real)
-                        site_data[site_name]['ZYXI'].append(imag)
-                        site_error[site_name]['ZYXR'].append(error)
-                        site_error[site_name]['ZYXI'].append(error)
+                            site_data[site_name].update({'ZYXR': {}})
+                            site_data[site_name].update({'ZYXI': {}})
+                            site_error[site_name].update({'ZYXR': {}})
+                            site_error[site_name].update({'ZYXI': {}})
+                        site_data[site_name]['ZYXR'].update({period: scale_factor * real})
+                        site_data[site_name]['ZYXI'].update({period: scale_factor * sign_multiplier * imag})
+                        site_error[site_name]['ZYXR'].update({period: scale_factor * error})
+                        site_error[site_name]['ZYXI'].update({period: scale_factor * error})
         # periods = np.unique(np.array(periods))
         # print(site_data[site_names[0]])
         # site_errmap[site][component] = np.array(site_errmap[site][component])
@@ -1065,6 +1082,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             # idx = np.argsort(site_periods[site])
             periods = sorted(site_periods[site])
             all_periods.append(periods)
+
             for component in site_data[site].keys():
                 sorted_periods = sorted(site_data[site][component].keys())
                 # debug_print(site_data, 'debug.log')
@@ -1076,14 +1094,17 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                 # vals = site_error[site][component]
                 # site_error[site][component] = np.array(vals)[idx]
         # Sites get named according to list file, but are here internally called
-        all_periods = np.unique(np.array(periods))
+        # debug_print('{}: {}'.format('1:', all_periods), 'debug.log')
+        # all_periods = np.unique(np.array(periods))
+        all_periods = np.unique(np.array(utils.flatten_list(all_periods)))
+        # debug_print('{}: {}'.format('1:', all_periods), 'debug.log')
         all_components = set([component for component in site_data[site] for site in site_data.keys()])
         try:
             inv_type = [key for key in INVERSION_TYPES.keys() if all_components == set(INVERSION_TYPES[key])][0]
         except IndexError:
             msg = 'Components listed in {}} are not yet a supported inversion type'.format(datafile)
             raise(WSFileError(id='int', offender=datafile, extra=msg))
-        debug_print(inv_type, 'debug.log')
+        # debug_print(inv_type, 'debug.log')
         # according to the data file
         for ii, site in enumerate(site_names):
 
@@ -1478,7 +1499,7 @@ def write_locations(data, out_file=None, file_format='csv'):
         print('Not implemented yet')
 
 
-def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
+def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0, use_elevation=False):
     errmsg = ''
     ox, oy = (0, 0)
     if isinstance(origin, str):
@@ -1501,6 +1522,10 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
         outfile = ''.join([outfile, '_sites.vtk'])
     xlocs = data.locations[:, 1] + origin[0]
     ylocs = data.locations[:, 0] + origin[1]
+    if use_elevation:
+        zlocs = sea_level - np.array([data.sites[site].locations['elev'] for site in data.site_names])
+    else:
+        zlocs = sea_level * np.ones(xlocs.shape)
     ns = len(xlocs)
     with open(outfile, 'w') as f:
         f.write(version)
@@ -1509,8 +1534,8 @@ def sites_to_vtk(data, origin=None, outfile=None, UTM=None, sea_level=0):
         f.write('DATASET POLYDATA\n')
         # f.write('DIMENSIONS {} {} {} \n'.format(ns, ns, 1))
         f.write('POINTS {} float\n'.format(ns))
-        for ix, iy in zip(xlocs, ylocs):
-            f.write('{} {} {}\n'.format(ix, iy, sea_level))
+        for ix, iy, iz in zip(xlocs, ylocs, zlocs):
+            f.write('{} {} {}\n'.format(ix, iy, iz))
         f.write('POINT_DATA {}\n'.format(ns))
         f.write('SCALARS dummy float\n')
         f.write('LOOKUP_TABLE default\n')
@@ -1564,7 +1589,7 @@ def verify_input(message, expected, default=None):
                     print('Format error. Try again')
 
 
-def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_y=0.3, sigma_z=0.3, num_smooth=2):
+def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_y=0.3, sigma_z=0.3, num_smooth=1):
     header = ['+', '|', '|', '|', '|', '|', '|', '|', '|',
               '|', '|', '|', '|', '|', '|', '+']
 
@@ -1582,7 +1607,15 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         file.write('\n')
 
     def write_exceptions_block(f, expections):
-        pass
+        f.write('0\n')
+        # f.write('\n')
+        nx, ny, nz = exceptions.shape
+        for iz in range(nz):
+            f.write('\n{} {}'.format(iz + 1, iz + 1))
+            for iy in range(ny):
+                #f.write('\n')
+                for ix in range(nx):
+                    f.write('{} '.format(int(exceptions[ix, iy, iz])))
 
     if not (file_name.endswith('.cov')):
         file_name += '.cov'
@@ -1594,13 +1627,13 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         write_smooth_block(f, NY, sigma_y)
         f.write('{}\n\n'.format(sigma_z))
         f.write('{}\n\n'.format(num_smooth))
-        if exceptions:
+        if exceptions is not None:
             write_exceptions_block(f, exceptions)
         else:
             f.write('0')
 
 
-def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
+def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_elevation=False):
     #  Writes out the contents of a Data object into format specified by 'file_format'
     #  Currently implemented options include WSINV3DMT and ModEM3D.
     #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
@@ -1668,7 +1701,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
                             # for point in getattr(site, that)[comp]:
                         f.write('\n')
 
-    def write_ModEM3D(data, out_file):
+    def write_ModEM3D(data, out_file, use_elevation=False):
         if '.dat' not in out_file:
             out_file = ''.join([out_file, '.dat'])
         units = []
@@ -1743,15 +1776,20 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
                                     component_code = component_code[0] + component_code[2]
                                 Z_real = site.data[component][jj]
                                 Z_imag = site.data[component[:3] + 'I'][jj]
-                                X, Y, Z = (site.locations['X'],
-                                           site.locations['Y'],
-                                           site.locations.get('elev', 0))
+                                if use_elevation:
+                                    X, Y, Z = (data.locations[ii, 0],
+                                               data.locations[ii, 1],
+                                               site.locations.get('elev', 0))
+                                else:
+                                    X, Y, Z = (data.locations[ii, 0],
+                                               data.locations[ii, 1],
+                                               0)
                                 # X, Y, Z = (data.locations[ii, 0],
                                 #            data.locations[ii, 1],
                                 #            site.locations.get('elev', 0))
-                                X, Y, Z = (data.locations[ii, 0],
-                                           data.locations[ii, 1],
-                                           site.locations.get('elev', 0))
+                                # X, Y, Z = (data.locations[ii, 0],
+                                #            data.locations[ii, 1],
+                                #            site.locations.get('elev', 0))
                                 Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
                                 if True:
                                 # if site.active_periods[jj]:
@@ -2033,7 +2071,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM'):
         write_ws(data, outfile, to_write)
     elif file_format.lower() == 'modem':
         if data.dimensionality.lower() == '3d':
-            write_ModEM3D(data, outfile)
+            write_ModEM3D(data, outfile, use_elevation)
         elif data.dimensionality.lower() == '2d' or data.inv_type in (8, 9, 10):
             write_ModEM2D(data, outfile)
         else:
@@ -2189,13 +2227,13 @@ def write_model(model, outfile, file_format='modem'):
         # else:
             # header_four = ''
         with open(outfile, 'w') as f:
-            f.write('{} {} {}\n'.format(model.nx, model.nz, header_four))
-            for x in model.xCS:
-                f.write('{:<10.7f}  '.format(x))
+            f.write('{} {} {}\n'.format(model.ny, model.nz, header_four))
+            # for x in model.xCS:
+                # f.write('{:<10.7f}  '.format(x))
             f.write('\n')
-            # for y in model.yCS:
-            #     f.write('{:<10.7f}  '.format(y))
-            # f.write('\n')
+            for y in model.yCS:
+                f.write('{:<10.7f}  '.format(y))
+            f.write('\n')
             for z in model.zCS:
                 f.write('{:<10.7f}  '.format(z))
             f.write('\n')
@@ -2215,8 +2253,22 @@ def write_model(model, outfile, file_format='modem'):
                 for zz in range(model.nz):
                     for yy in range(model.ny):
                     # for xx in range(model.nx):
-                            # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                        # f.write('{:<10.7E}\n'.format(np.log(model.vals[model.nx - xx - 1, 0, zz])))
                         f.write('{:<10.7f}\n'.format(vals[0, yy, zz]))
+
+    def to_csv(model, outfile):
+        if not (outfile.endswith('csv')):
+            outfile += '.csv'
+        x, y, z = (utils.edge2center(arr) for arr in (model.dx, model.dy, model.dz))
+        with open(outfile, 'w') as f:
+            f.write('Easting, Northing, Depth, Resistivity\n')
+            for ix in range(model.nx):
+                for iy in range(model.ny):
+                    for iz in range(model.nz):
+                        f.write('{:>13.4f},{:>13.4f},{:>13.4f},{:>13.4f}\n'.format(y[iy],
+                                                                                   x[ix],
+                                                                                   -z[iz],
+                                                                                   model.vals[ix, iy, iz]))
 
     if file_format.lower() in ('modem', 'wsinv', 'wsinv3dmt'):
         write_inv_model(model=model, outfile=outfile, file_format=file_format)
@@ -2224,6 +2276,8 @@ def write_model(model, outfile, file_format='modem'):
         write_model_2d(model=model, outfile=outfile)
     elif file_format.lower() in ('ubc', 'ubc-gif'):
         to_ubc(model=model, outfile=outfile)
+    elif file_format.lower() in ('csv'):
+        to_csv(model=model, outfile=outfile)
     else:
         print('File format {} not supported'.format(file_format))
         print('Supported formats are: ')

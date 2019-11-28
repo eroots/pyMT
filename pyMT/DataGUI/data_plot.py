@@ -88,7 +88,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.toggle_dataPseudo.clicked.connect(self.update_map)
         self.toggle_responsePseudo.clicked.connect(self.update_map)
         self.Pseudosection_fill.currentIndexChanged.connect(self.update_map)
-        self.nInterp.valueChanged.connect(self.update_map)
+        self.nInterp.editingFinished.connect(self.update_map)
         #  Set up period scroll bar
         self.PeriodScrollBar.valueChanged.connect(self.change_period)
         self.PeriodScrollBar.setMinimum(1)
@@ -425,6 +425,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # DEBUG
         # print('Updating Map')
         self.canvas.draw()
+
     def get_pseudosection_toggles(self):
         toggles = {'data': [], 'fill': None, 'component': None}
         if self.toggle_dataPseudo.checkState() and self.map.dataset.data.sites:
@@ -856,6 +857,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                  'South-North', 'Clustering'])
         self.sortSites.currentIndexChanged.connect(self.sort_sites)
         self.showOutliers.clicked.connect(self.toggle_outliers)
+        self.outlierThreshold.editingFinished.connect(self.set_outlier_threshold)
         #  Set up the menu items
         self.actionList_File.triggered.connect(self.WriteList)
         # self.actionData_File.triggered.connect(self.WriteData)
@@ -1267,6 +1269,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
             cols = self.dpm.tiling[1]
             if axnum % cols == 0:
                 self.dpm.set_labels(axnum, site_name)
+
+    def set_outlier_threshold(self):
+        self.dpm.outlier_thresh = self.outlierThreshold.value()
+        if not self.dpm.show_outliers:
+            self.debugInfo.setText('New thresh: {}'.format(self.dpm.outlier_thresh))
+            self.update_dpm()
 
     def toggle_outliers(self, event):
         self.dpm.show_outliers = event

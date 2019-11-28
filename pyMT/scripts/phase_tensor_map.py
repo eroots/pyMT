@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # out_path = 'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/PTs/'
     filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/sorted_lines.dat'
     listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/sorted_lines.lst'
-    out_path = 'C:/Users/eroots/phd/ownCloud/Documents/TGI/Figures/PT_sections/'
+    out_path = 'C:/Users/eroots/phd/ownCloud/Documents/TGI/Figures/'
     out_file = 'afton_PT_'
     ext = '.png'
     dpi = 600
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         raw.locations[ii, 1], raw.locations[ii, 0] = lon, lat
     data.locations = raw.locations
     
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111)
     MV = gplot.MapView(fig=fig)
     MV.window['figure'] = fig
@@ -122,13 +122,19 @@ if __name__ == '__main__':
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
-    for ii in range(len(data.periods)):
+    # for ii in range(len(data.periods)):
+    for ii in [30]:
         period = data.periods[ii]
         if period < 1:
             period = -1 / period
         period = str(int(period))
         MV.plot_phase_tensor(data_type='data', normalize=True,
-                             fill_param='det_phi', period_idx=ii)
+                             fill_param='beta', period_idx=ii)
+        MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - 250,
+                                   max(data.locations[:, 1]) + 250,
+                                   min(data.locations[:, 0]) - 250,
+                                   max(data.locations[:, 0]) + 250])
+        MV.window['axes'][0].set_aspect(1)
         # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
         if save_fig:
             plt.savefig(out_path + out_file + 'idx' + str(ii) + '_p' + period + ext, dpi=dpi,

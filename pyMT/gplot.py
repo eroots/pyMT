@@ -494,9 +494,14 @@ class DataPlotManager(object):
                     ma.append(max(toplot))
                     mi.append(min(toplot))
                 else:
-                    showdata = self.remove_outliers(toplot)
-                    ma.append(max(showdata))
-                    mi.append(min(showdata))
+                    if (self.toggles['raw_data'] and Type.lower() == 'raw_data') or \
+                       (not self.toggles['raw_data']):
+                        showdata = self.remove_outliers(site.periods, toplot)
+                        ma.append(max(showdata))
+                        mi.append(min(showdata))
+                    else:
+                        ma.append(0)
+                        mi.append(0)
             except KeyError:
                 # raise(e)
                 artist = ax.text(0, 0, 'No Data')
@@ -510,17 +515,23 @@ class DataPlotManager(object):
         # ax.set_title(site.name)
         return ax, max(ma), min(mi), artist
 
-    def remove_outliers(self, data):
+    def remove_outliers(self, periods, data):
+        expected = utils.geotools_filter(periods, data, fwidth=self.outlier_thresh)
+        return expected
         nper = len(data)
         inds = []
+        # for idx, datum in enumerate(data):
+        #     ratio = abs((expected[idx] - datum) / expected[idx])
+        #     if ratio >= self.outlier_thresh:
+        #         inds.append(idx)
         for idx, datum in enumerate(data):
             expected = 0
             for jj in range(max(1, idx - 2), min(nper, idx + 2)):
                 expected += data[jj]
             expected /= jj
-            tol = abs(self.outlier_thresh * expected)
-            diff = datum - expected
-            if abs(diff) > tol:
+            # tol = abs(self.outlier_thresh * expected)
+            diff = (datum - expected) / expected
+            if abs(diff) > self.outlier_thresh:
                 inds.append(idx)
         return np.array([x for (idx, x) in enumerate(data) if idx not in inds])
 

@@ -237,8 +237,13 @@ def generate_lateral_mesh(site_locs, regular=True, min_x=None, model=None, max_x
     #         self.model.dx_insert(0, self.model.dx[0] - pad)
 
     if regular:
+        min_x = max(min_x, 10)
         bounds = [np.min(site_locs) - 500, np.max(site_locs) + 500]
+        # print(min_x, bounds)
         xmesh, nmesh = regular_mesh(min_x, bounds)
+        if nmesh < 2:
+            xmesh.append(xmesh[0] + 1)
+        print(xmesh, nmesh)
     else:
         xmesh, nmesh = j2_mesh(site_locs=site_locs, min_x=min_x, max_x=max_x)
     # if num_pads:

@@ -519,6 +519,7 @@ class Data(object):
                            'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat'}
     INVERSION_TYPES = WS_io.INVERSION_TYPES
+    REMOVE_FLAG = 1234567
     # INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
     #                        'ZXYR', 'ZXYI',
     #                        'ZYXR', 'ZYXI',
@@ -903,7 +904,7 @@ class Data(object):
             raise Exception('{} is not a valid inversion type'.format(val))
         self._inv_type = val
 
-    def write(self, outfile, to_write=None, file_format='ModEM'):
+    def write(self, outfile, to_write=None, file_format='ModEM', use_elevation=False):
         '''
             Write data to file.
                 INPUTS:
@@ -915,17 +916,18 @@ class Data(object):
             file_format = self.file_format
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_data(data=self, outfile=outfile, to_write=to_write, file_format=file_format)
+        WS_io.write_data(data=self, outfile=outfile, to_write=to_write, file_format=file_format, use_elevation=use_elevation)
         self.spatial_units = units
 
     def write_list(self, outfile):
         WS_io.write_list(data=self, outfile=outfile)
 
-    def to_vtk(self, outfile, UTM, origin=None, sea_level=0):
+    def to_vtk(self, outfile, UTM, origin=None, sea_level=0, use_elevation=False):
         if not origin:
             print('Using origin = (0, 0)')
             origin = (0, 0)
-        WS_io.sites_to_vtk(self, outfile=outfile, origin=origin, UTM=UTM, sea_level=sea_level)
+        WS_io.sites_to_vtk(self, outfile=outfile, origin=origin,
+                           UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
 
     def rotate_sites(self, azi):
         if DEBUG:
@@ -1125,6 +1127,10 @@ class Data(object):
 class Model(object):
     """Summary
     """
+    RHO_AIR = 1e10
+    RHO_OCEAN = 0.3
+    AIR_EXCEPTION = 0
+    OCEAN_EXCEPTION = 9
 
     def __init__(self, modelfile='', covariance_file='', file_format='modem3d', data=None):
         self._xCS = []
@@ -1134,6 +1140,7 @@ class Model(object):
         self._dy = []
         self._dz = []
         self.vals = []
+        self.cov_exceptions = []
 
         self.background_resistivity = 2500
         self.resolution = []
@@ -1204,6 +1211,12 @@ class Model(object):
             z[ii] = (self.dz[ii] + self.dz[ii + 1]) / 2
         return x, y, z
 
+    def set_exceptions(self):
+        self.cov_exceptions = np.ones(self.vals.shape)
+        self.cov_exceptions[self.vals == self.RHO_AIR] = self.AIR_EXCEPTION
+        self.cov_exceptions[self.vals == self.RHO_OCEAN] = self.OCEAN_EXCEPTION
+
+
     def generate_half_space(self):
         self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
 
@@ -1218,7 +1231,7 @@ class Model(object):
 
     def __read__(self, modelfile='', file_format='modem3d'):
         if modelfile:
-            mod = WS_io.read_model(modelfile=modelfile, file_format=file_format)
+            mod, dim = WS_io.read_model(modelfile=modelfile, file_format=file_format)
             # Set up these first so update_vals isn't called
             self._xCS = mod['xCS']
             self._yCS = mod['yCS']
@@ -1227,6 +1240,7 @@ class Model(object):
             self.xCS = mod['xCS']
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
+            self.dimensionality = dim
 
     def read_covariance(self, covariance_file=''):
         if covariance_file:
@@ -1248,6 +1262,13 @@ class Model(object):
             return
         WS_io.model_to_vtk(self, outfile=outfile, sea_level=sea_level)
 
+    def to_local(self):
+        self._dx = np.cumsum([0] + self.xCS)
+        self._dx = list(self._dx - self._dx[-1] / 2)
+        self._dy = np.cumsum([0] + self.yCS)
+        self._dy = list(self._dy - self._dy[-1] / 2)
+        self.coord_system = 'local'
+
     def to_UTM(self, origin=None):
         '''
             Convert model coordinates to UTM
@@ -1268,6 +1289,7 @@ class Model(object):
             print('Already in UTM')
             return
         self.coord_system = 'UTM'
+        return True
 
     def to_latlong(self, zone=None):
         if self.coord_system == 'latlong':
@@ -1284,11 +1306,11 @@ class Model(object):
         if not self.UTM_zone:
             print('UTM zone must be set or given')
             return
-        if len(zone) == 2:
-            number = int(zone[0])
+        if len(self.UTM_zone) == 2:
+            number = int(self.UTM_zone[0])
         else:
-            number = int(zone[:2])
-        letter = zone[-1]
+            number = int(self.UTM_zone[:2])
+        letter = self.UTM_zone[-1]
         lon = utils.unproject(number, letter,
                               self._dy,
                               [self.dx[round(len(self.dx) / 2)] for iy in self.dy])[0]
@@ -1300,6 +1322,7 @@ class Model(object):
         return (lat, lon)
 
     def is_half_space(self):
+        # print(self.vals.shape)
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
 
     def update_vals(self, new_vals=None, axis=None, index=None, mode=None):
@@ -1340,6 +1363,8 @@ class Model(object):
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
         else:
             self.vals = utils.regrid_model(self, x_mesh, y_mesh, self.dz)
+        # print(x_mesh)
+        # print(y_mesh)
         self.dx = x_mesh
         self.dy = y_mesh
         # self.dy = ymesh
@@ -1633,6 +1658,7 @@ class Site(object):
         self.validate_errors()
         if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)) \
                 and self.periods is not None:
+            # WS_io.debug_print('{}: {}'.format(self.name, self.periods), 'debug.log')
             self.calculate_phase_tensors()
         elif set(self.PHASE_TENSOR_COMPONENTS).issubset(set(self.components)) \
                 and self.periods is not None:
@@ -2601,10 +2627,11 @@ class RawData(object):
     def check_compromised_data(self, threshold=0.75):
         return Data.check_compromised_data(self, threshold=threshold)
 
-    def to_vtk(self, outfile, UTM, origin=None, sea_level=0):
+    def to_vtk(self, outfile, UTM, origin=None, sea_level=0, use_elevation=False):
         if not origin:
             origin = self.origin
-        Data.to_vtk(self, outfile=outfile, origin=origin, UTM=UTM, sea_level=sea_level)
+        Data.to_vtk(self, outfile=outfile, origin=origin,
+                    UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
 
 
 class PhaseTensor(object):
@@ -2722,11 +2749,12 @@ class PhaseTensor(object):
         self.phi_error[1, 1] = value
 
     def form_tensors(self, Z):
-        # self.X = np.array(((Z['ZXXR'], Z['ZXYR']),
-        #                    (Z['ZYXR'], Z['ZYYR'])))
-        # self.Y = np.array(((Z['ZXXI'], Z['ZXYI']),
-        #                    (Z['ZYXI'], Z['ZYYI'])))
         try:
+            # self.X = np.array(((Z['ZXXR'], Z['ZXYR']),
+            #                    (Z['ZYXR'], Z['ZYYR'])))
+            # self.Y = np.array(((Z['ZXXI'], Z['ZXYI']),
+            #                    (Z['ZYXI'], Z['ZYYI'])))
+        # try:
             self.X = np.array(((Z['ZYYR'], Z['ZYXR']),
                                (Z['ZXYR'], Z['ZXXR'])))
             self.Y = -1 * np.array(((Z['ZYYI'], Z['ZYXI']),

@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>1358</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWrite_Model">
@@ -136,15 +136,15 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page_3">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>278</width>
-          <height>652</height>
+          <width>282</width>
+          <height>694</height>
          </rect>
         </property>
         <attribute name="label">
@@ -318,7 +318,7 @@
              <property name="geometry">
               <rect>
                <x>120</x>
-               <y>130</y>
+               <y>220</y>
                <width>111</width>
                <height>31</height>
               </rect>
@@ -423,9 +423,9 @@
              <property name="geometry">
               <rect>
                <x>10</x>
-               <y>210</y>
-               <width>261</width>
-               <height>101</height>
+               <y>260</y>
+               <width>231</width>
+               <height>51</height>
               </rect>
              </property>
              <property name="sizePolicy">
@@ -449,6 +449,73 @@
                </widget>
               </item>
              </layout>
+            </widget>
+            <widget class="QRadioButton" name="radioButton">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>210</y>
+               <width>82</width>
+               <height>17</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Use Decades</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+            <widget class="QRadioButton" name="radioButton_2">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>230</y>
+               <width>82</width>
+               <height>17</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Use Factor</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_19">
+             <property name="geometry">
+              <rect>
+               <x>130</x>
+               <y>140</y>
+               <width>81</width>
+               <height>16</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Increase Factor</string>
+             </property>
+            </widget>
+            <widget class="QDoubleSpinBox" name="doubleSpinBox">
+             <property name="geometry">
+              <rect>
+               <x>130</x>
+               <y>160</y>
+               <width>62</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="minimum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>10.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.050000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.200000000000000</double>
+             </property>
             </widget>
            </widget>
            <widget class="QLabel" name="label_9">
@@ -496,8 +563,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>278</width>
-          <height>652</height>
+          <width>282</width>
+          <height>694</height>
          </rect>
         </property>
         <attribute name="label">
@@ -579,8 +646,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>278</width>
-          <height>652</height>
+          <width>282</width>
+          <height>694</height>
          </rect>
         </property>
         <attribute name="label">
