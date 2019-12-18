@@ -576,6 +576,8 @@ class MapView(object):
         self.rho_error_tol = 1
         self.phase_error_tol = 30
         self.units = 'm'
+        self.mesh = False
+        self.linewidth = 0.005
         if figure is None:
             self.new_figure()
         else:
@@ -780,7 +782,7 @@ class MapView(object):
         #                       np.min(self.site_locations['all'][:, 1])) ** 2) / 10
         x_max, x_min = (np.max(self.site_locations['all'][:, 0]), np.min(self.site_locations['all'][:, 0]))
         y_max, y_min = (np.max(self.site_locations['all'][:, 1]), np.min(self.site_locations['all'][:, 1]))
-        max_length = np.max((x_max - x_min, y_max - y_min)) / 1000
+        max_length = np.max((x_max - x_min, y_max - y_min))
 
         for dType in data_type:
             X, Y = [], []
@@ -797,16 +799,16 @@ class MapView(object):
                 #          self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
                 #     (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
                 #          self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
-                if True:
-                    idx.append(ii)
-                    if 'TZXR' in self.site_data[dType].sites[site].components:
-                        X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
-                    else:
-                        X.append(0)
-                    if 'TZYR' in self.site_data[dType].sites[site].components:
-                        Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
-                    else:
-                        Y.append(0)
+                # if True:
+                #     idx.append(ii)
+                #     if 'TZXR' in self.site_data[dType].sites[site].components:
+                #         X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
+                #     else:
+                #         X.append(0)
+                #     if 'TZYR' in self.site_data[dType].sites[site].components:
+                #         Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
+                #     else:
+                #         Y.append(0)
                 idx.append(ii)
                 if 'TZXR' in self.site_data[dType].sites[site].components:
                     X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
@@ -830,7 +832,7 @@ class MapView(object):
                     arrows = arrows / np.transpose(np.tile(lengths, [2, 1]))
                     # print('Normalizing...')
                 else:
-                    arrows = max_length * arrows / largest_arrow
+                    arrows = max_length * arrows / largest_arrow / 5000
                     # arrows = arrows / np.max(lengths)
                     # arrows *= max_length / 50000
                     # print('Shrinking arrows')
@@ -1065,6 +1067,10 @@ class MapView(object):
     def plot_plan_view(self, ax=None, z_slice=0):
         if not ax:
             ax = self.window['axes'][0]
+        if self.mesh:
+            edgecolor = 'k'
+        else:
+            edgecolor = None
         X = np.array(self.model.dy)
         Y = np.array(self.model.dx)
         im = ax.pcolormesh(X,
@@ -1072,7 +1078,9 @@ class MapView(object):
                            np.log10(self.model.vals[:, :, z_slice]),
                            cmap=self.cmap,
                            vmin=self.model_cax[0], vmax=self.model_cax[1],
-                           zorder=0)
+                           zorder=0,
+                           edgecolor=edgecolor,
+                           linewidth=self.linewidth)
         ax.set_ylabel('Northing (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
@@ -1081,6 +1089,10 @@ class MapView(object):
     def plot_x_slice(self, ax=None, x_slice=0):
         if not ax:
             ax = ax
+        if self.mesh:
+            edgecolor = 'k'
+        else:
+            edgecolor = None
         X = np.array(self.model.dy)
         Y = np.array(self.model.dz)
         im = ax.pcolormesh(X,
@@ -1088,7 +1100,9 @@ class MapView(object):
                            np.squeeze(np.log10(self.model.vals[x_slice, :, :])).T,
                            cmap=self.cmap,
                            vmin=self.model_cax[0], vmax=self.model_cax[1],
-                           zorder=0)
+                           zorder=0,
+                           edgecolor=edgecolor,
+                           linewidth=self.linewidth)
         ax.set_xlabel('Easting (km)')
         ax.set_ylabel('Depth (km)')
         ax.format_coord = format_model_coords(im,
@@ -1110,10 +1124,16 @@ class MapView(object):
             x_label = 'Depth (km)'
         if not ax:
             ax = ax
+        if self.mesh:
+            edgecolor = 'k'
+        else:
+            edgecolor = None
         im = ax.pcolormesh(X, Y, to_plot,
                            cmap=self.cmap,
                            vmin=self.model_cax[0], vmax=self.model_cax[1],
-                           zorder=0)
+                           zorder=0,
+                           edgecolor=edgecolor,
+                           linewidth=self.linewidth)
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         ax.format_coord = format_model_coords(im, X=X, Y=Y,

@@ -22,8 +22,8 @@ def generate_ellipse(phi):
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
-listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
-main_list = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
+listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
+main_list = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
 # listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
 # main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst'
@@ -71,8 +71,8 @@ for use_list_dummy in [0]:
     # fill_param = 'beta'
     # fill_param = 'Lambda'
     # use_periods = sorted(list(data.narrow_periods.keys()))
-    # all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
-    all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
+    all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
+    # all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
     use_periods = sorted([p for p in all_periods if p < 15])
     high_cut = 15
     # use_periods = sorted([p for p in data.narrow_period_list(count_tol=0.1, high_tol=0.1).keys() if p < 150])
@@ -80,7 +80,7 @@ for use_list_dummy in [0]:
     x_scale, y_scale = 1, 1.25
     save_fig = 0
     freq_skip = 1
-    radius = 0.09
+    radius = 0.1
     # radius = 0.1
     # radius = 1
     label_offset = -4.5
@@ -89,7 +89,7 @@ for use_list_dummy in [0]:
     use_colourbar = 0
     # file_path = local_path + '/phd/ownCloud/Documents/TGI/Figures/PT_pseudosections/'
     file_path = local_path + '/phd/ownCloud/Documents/ME_transects/Swayze_paper/RoughFigures/PT_round2/'
-    file_name = 'pt_pseudosection_phi2_north_all_linear'
+    file_name = 'pt_pseudosection_phi2_south_all_linear'
     # file_name = '{}_{}'.format(use_list, fill_param)
     file_types = ['.png', '.svg']
     dpi = 600
@@ -194,10 +194,10 @@ for use_list_dummy in [0]:
                     phi_y *= (radius / (y_scale))
                     y_max = np.max(phi_y) - np.min(phi_y)
                     x_max = np.max(phi_x) - np.min(phi_x)
-                    if x_max * 5 < y_max:
-                        phi_x *= 10
-                    elif y_max * 5 < x_max:
-                        phi_y *= 10
+                    # if x_max * 5 < y_max:
+                        # phi_x *= 10
+                    # elif y_max * 5 < x_max:
+                        # phi_y *= 10
                     # ellipses.append([np.log10(period) - phi_x, ii - phi_y])
                     ellipses.append([loc_x - phi_x, np.log10(period) - phi_y])
                     fill_vals.append(getattr(site.phase_tensors[kk], fill_param))

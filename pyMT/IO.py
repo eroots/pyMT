@@ -1597,7 +1597,8 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         if not isinstance(sigma, list):
             file.write(' '.join([str(sigma)] * N))
         elif len(sigma) == N:
-            file.write(' '.join(sigma))
+            for sig in sigma:
+                f.write('{} '.format(sig))
         else:
             print('Length of sigma not equal to mesh size: length(sigma) = {}, N = {}'.format(len(sigma), N))
             print('Printing default covariance instead.')
@@ -1607,14 +1608,17 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         file.write('\n')
 
     def write_exceptions_block(f, expections):
-        f.write('0\n')
-        # f.write('\n')
+        f.write('0')
+        f.write('\n')
         nx, ny, nz = exceptions.shape
         for iz in range(nz):
-            f.write('\n{} {}'.format(iz + 1, iz + 1))
-            for iy in range(ny):
-                #f.write('\n')
-                for ix in range(nx):
+            f.write('\n{} {}\n'.format(iz + 1, iz + 1))
+            first_z = 1
+            for ix in range(nx):
+                if not first_z:
+                    f.write('\n')
+                first_z = 0
+                for iy in range(ny):
                     f.write('{} '.format(int(exceptions[ix, iy, iz])))
 
     if not (file_name.endswith('.cov')):

@@ -1165,7 +1165,7 @@ class Model(object):
             self.read_covariance(covariance_file)
         else:
             self.sigma_x, self.sigma_y, self.sigma_z = 0.3, 0.3, 0.3
-            self.num_smooth = 2
+            self.num_smooth = 1
             self.cov_exceptions = None
 
     @property
@@ -1518,14 +1518,14 @@ class Model(object):
 
     def write_covariance(self, outfile):
         WS_io.write_covariance(outfile,
-                               self.nx,
-                               self.ny,
-                               self.nz,
-                               self.cov_exceptions,
-                               self.sigma_x,
-                               self.sigma_y,
-                               self.sigma_z,
-                               self.num_smooth)
+                               NX=self.nx,
+                               NY=self.ny,
+                               NZ=self.nz,
+                               exceptions=self.cov_exceptions,
+                               sigma_x=self.sigma_x,
+                               sigma_y=self.sigma_y,
+                               sigma_z=self.sigma_z,
+                               num_smooth=self.num_smooth)
 
 
 class Response(Data):
