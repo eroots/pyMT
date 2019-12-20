@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.colorbar import ColorbarBase
+import matplotlib.patches as patches
 import matplotlib.colorbar as colorbar
 import pyMT.utils as utils
 from pyMT.IO import debug_print
@@ -572,6 +573,7 @@ class MapView(object):
         self.use_colourbar = True
         self.pt_scale = 2
         self.induction_scale = 5
+        self.induction_cutoff = 2
         self.induction_error_tol = 0.5
         self.rho_error_tol = 1
         self.phase_error_tol = 30
@@ -824,20 +826,26 @@ class MapView(object):
                 lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
                 largest_arrow = np.max(lengths)
                 lengths[lengths == 0] = 1
-                # arrows[lengths > 1, 0] = arrows[lengths > 1, 0] / lengths[lengths > 1]
-                # arrows[lengths > 1, 1] = arrows[lengths > 1, 1] / lengths[lengths > 1]
+                arrows[lengths > 1, 0] = 2 * arrows[lengths > 1, 0] / lengths[lengths > 1]
+                arrows[lengths > 1, 1] = 2 * arrows[lengths > 1, 1] / lengths[lengths > 1]
+                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                cutoff_idx = lengths > self.induction_cutoff
+                # print(idx)
+                arrows[cutoff_idx, :] = 0
+                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                largest_arrow = np.max(lengths)
                 # print('Hello I am inside')
                 # print(normalize)
                 if normalize:
-                    arrows = arrows / np.transpose(np.tile(lengths, [2, 1]))
+                    arrows = 0.5 * arrows / np.transpose(np.tile(lengths, [2, 1]))
                     # print('Normalizing...')
-                else:
-                    arrows = max_length * arrows / largest_arrow / 5000
+                # else:
+                    # arrows = max_length * arrows / (largest_arrow * 1000)
                     # arrows = arrows / np.max(lengths)
                     # arrows *= max_length / 50000
                     # print('Shrinking arrows')
                 #     print('Not normalizing')
-                arrows = arrows * self.induction_scale / 50
+                arrows = arrows * self.induction_scale / (50) # * np.sqrt(lengths))
                 # print(self.induction_scale)
                 # print(arrows)
                 # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
@@ -845,6 +853,10 @@ class MapView(object):
                 # headwidth = max(3 * self.induction_scale / 5, 1)
                 # width = 0.0025 * self.induction_scale / 5
                 headwidth = max(3, 1)
+                # scale = self.induction_scale * max_length / 100
+                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                largest_arrow = np.max(lengths)
+                # print(largest_arrow)
                 width = 0.0025
                 self.window['axes'][0].quiver(self.site_locations['all'][idx, 1],
                                               self.site_locations['all'][idx, 0],
@@ -854,7 +866,8 @@ class MapView(object):
                                               headwidth=headwidth,
                                               width=width,
                                               zorder=10,
-                                              scale=1)
+                                              scale=1,
+                                              scale_units=None)
                 self.set_axis_limits()
 
     @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
@@ -917,7 +930,7 @@ class MapView(object):
         elif fill_param in ['Lambda']:
             lower, upper = (0, 1)
         elif fill_param == 'beta':
-            lower, upper = (-6, 6)
+            lower, upper = (-10, 10)
         elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
         elif fill_param in ('delta'):
@@ -957,6 +970,123 @@ class MapView(object):
                                               labelpad=20,
                                               fontsize=18)
         self.set_axis_limits()
+
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
+    def plot_phase_bar(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
+        rectangles = []
+        fill_vals = []
+        if fill_param != 'Lambda':
+            fill_param = fill_param.lower()
+        if len(data_type) == 2:
+            data_type = ['data', 'response']
+        X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
+        scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
+                        (np.max(Y_all) - np.min(Y_all)) ** 2)
+        good_idx = []
+        for ii, site_name in enumerate(self.site_names):
+            site = self.site_data[data_type[0]].sites[site_name]
+            phase_tensor = site.phase_tensors[period_idx]
+            xy = [Y_all[ii], X_all[ii]]
+            width = phase_tensor.phi_max / 5
+            height = 2 * phase_tensor.phi_min / phase_tensor.phi_max
+            width = 0.2
+            # height = 1
+            width, height = [(self.pt_scale * scale) * x / 100 for x in (width, height)]
+            xy[0] = xy[0] + height * (np.sin(phase_tensor.azimuth)) / 2 - width * (np.cos(phase_tensor.azimuth)) / 2
+            xy[1] = xy[1] - height * (np.cos(phase_tensor.azimuth)) / 2 - width * (np.sin(phase_tensor.azimuth)) / 2
+            rectangles.append((xy, width, height, np.rad2deg(phase_tensor.azimuth)))
+            #     ellipses.append([Y - phi_x, X - phi_y])
+            fill_vals.append(getattr(phase_tensor, fill_param))
+        fill_vals = np.array(fill_vals)
+        if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+            lower, upper = (0, 90)
+        elif fill_param in ['Lambda']:
+            lower, upper = (0, 1)
+        elif fill_param == 'beta':
+            lower, upper = (-6, 6)
+        elif fill_param in ['alpha', 'azimuth']:
+            lower, upper = (-90, 90)
+        elif fill_param in ('delta'):
+            lower, upper = (0, 100)
+        if fill_param not in ('delta', 'Lambda'):
+            fill_vals = np.rad2deg(np.arctan(fill_vals))
+        fill_vals[fill_vals > upper] = upper
+        fill_vals[fill_vals < lower] = lower
+        norm_vals = utils.normalize_range(fill_vals,
+                                          lower_range=lower,
+                                          upper_range=upper,
+                                          lower_norm=0,
+                                          upper_norm=1)
+        # print(['XY: ', [x[0] for x in rectangles]])
+        # print(['width: ', [x[1] for x in rectangles]])
+        # print(['height: ', [x[2] for x in rectangles]])
+        # print(['angle: ', [x[3] for x in rectangles]])
+        # print(['Fill:', [x for x in norm_vals]])
+        for ii, rectangle in enumerate(rectangles):
+            rect = patches.Rectangle(xy=rectangle[0],
+                                     width=rectangle[1],
+                                     height=rectangle[2],
+                                     angle=rectangle[3],
+                                     color=self.cmap(norm_vals[ii]))
+            self.window['axes'][0].add_patch(rect)
+        self.set_axis_limits()
+
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
+    def plot_phase_bar2(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
+        rectangles = []
+        fill_vals = []
+        if fill_param != 'Lambda':
+            fill_param = fill_param.lower()
+        if len(data_type) == 2:
+            data_type = ['data', 'response']
+        X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
+        scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
+                        (np.max(Y_all) - np.min(Y_all)) ** 2)
+        good_idx = []
+        for ii, site_name in enumerate(self.site_names):
+            site = self.site_data[data_type[0]].sites[site_name]
+            phase_tensor = site.phase_tensors[period_idx]
+            xy = [Y_all[ii], X_all[ii]]
+            width = phase_tensor.phi_max / 5
+            height = 2 * phase_tensor.phi_min / phase_tensor.phi_max
+            width = 0.2
+            # height = 1
+            width, height = [(self.pt_scale * scale) * x / 100 for x in (width, height)]
+            # xy[0] -= height * (np.sin(phase_tensor.azimuth)) / 2 + width * (np.cos(phase_tensor.azimuth)) / 2
+            # xy[1] -= height * (np.cos(phase_tensor.azimuth)) / 2 + width * (np.sin(phase_tensor.azimuth)) / 2
+            rectangles.append((xy, width, height, np.rad2deg(phase_tensor.azimuth)))
+            #     ellipses.append([Y - phi_x, X - phi_y])
+            fill_vals.append(getattr(phase_tensor, fill_param))
+        fill_vals = np.array(fill_vals)
+        if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+            lower, upper = (0, 90)
+        elif fill_param in ['Lambda']:
+            lower, upper = (0, 1)
+        elif fill_param == 'beta':
+            lower, upper = (-6, 6)
+        elif fill_param in ['alpha', 'azimuth']:
+            lower, upper = (-90, 90)
+        elif fill_param in ('delta'):
+            lower, upper = (0, 100)
+        if fill_param not in ('delta', 'Lambda'):
+            fill_vals = np.rad2deg(np.arctan(fill_vals))
+        fill_vals[fill_vals > upper] = upper
+        fill_vals[fill_vals < lower] = lower
+        norm_vals = utils.normalize_range(fill_vals,
+                                          lower_range=lower,
+                                          upper_range=upper,
+                                          lower_norm=0,
+                                          upper_norm=1)
+        for ii, rectangle in enumerate(rectangles):
+            rect = patches.Rectangle(xy=rectangle[0],
+                                     width=rectangle[1],
+                                     height=rectangle[2],
+                                     angle=rectangle[3],
+                                     color='k',
+                                     edgecolor='k')
+            self.window['axes'][0].add_patch(rect)
+        self.set_axis_limits()
+
 
     @utils.enforce_input(data_type=list, fill_param=str, n_interp=int, period_idx=int)
     def plan_pseudosection(self, data_type='data', fill_param='rhoxy', n_interp=200, period_idx=0):
@@ -1060,6 +1190,10 @@ class MapView(object):
             label = r'$det \phi$'
         elif param.lower() == 'azimuth':
             label = r'Azimuth'
+        elif param.lower() == 'phi_max':
+            label = r'$\phi_max$'
+        elif param.lower() == 'phi_min':
+            label = r'$\phi_min$'
         else:
             label = ''
         return label

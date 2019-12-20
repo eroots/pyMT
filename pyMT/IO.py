@@ -1627,8 +1627,8 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         f.write('\n'.join(header))
         f.write('\n')
         f.write('\n{} {} {}\n\n'.format(NX, NY, NZ))
-        write_smooth_block(f, NX, sigma_x)
-        write_smooth_block(f, NY, sigma_y)
+        write_smooth_block(f, NZ, sigma_x)
+        write_smooth_block(f, NZ, sigma_y)
         f.write('{}\n\n'.format(sigma_z))
         f.write('{}\n\n'.format(num_smooth))
         if exceptions is not None:

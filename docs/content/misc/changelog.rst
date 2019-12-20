@@ -1,6 +1,12 @@
 Change Log
 ==========
-* 11/28/19
+* 14/12/19
+  * Fixed induction arrow plotting in data_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.
+  * Added option to specify a 'cutoff' length for induction arrows. Arrows with magnitudes greater than this will not be plotted.
+  * Added secondary phase tensor plotting as inner bars within the phase tensor ellipses (as in Hering et al., 2019)
+  * Fixed bath2model script to properly specify ocean and air cells within the covariance file.
+  * In the process of fixing and testing how covariance files need to be written.
+* 28/11/19
   * Fixed a bug where ModEM data files would include elevations if data was read directly from EDI files (which would put the receivers underground)
   * Added a static value to the Data class 'Data.REMOVE_FLAG', which is meant to be assigned to data points you want removed from the inversion data file
     * Currently not functional with the GUIs, but can be used to assign recognizable error values to data points to be removed, which can then be removed manually

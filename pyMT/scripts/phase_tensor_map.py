@@ -2,7 +2,7 @@ import numpy as np
 import pyMT.data_structures as WSDS
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from e_colours import colourmaps as cm
+from pyMT.e_colours import colourmaps as cm
 import pyMT.utils as utils
 import pyMT.gplot as gplot
 from copy import deepcopy
@@ -75,21 +75,18 @@ if __name__ == '__main__':
     # filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry5_3.dat'
     # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
     # out_path = 'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/PTs/'
-<<<<<<< HEAD
     filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/sorted_lines.dat'
     listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/sorted_lines.lst'
     out_path = 'C:/Users/eroots/phd/ownCloud/Documents/TGI/Figures/'
-=======
-    local_path = 'C:/Users/eric'
+    local_path = 'C:/Users/eroots'
     filename = local_path + '/phd/ownCloud/data/Regions/afton/sorted_lines.dat'
     listfile = local_path + '/phd/ownCloud/data/Regions/afton/j2/sorted_lines.lst'
     out_path = local_path + '/phd/ownCloud/Documents/TGI/Figures//PT_sections/'
->>>>>>> 4912b2db8c8e375c24fde1b54cd3e97e1149b70f
     out_file = 'afton_PT_'
     ext = '.png'
     dpi = 600
     save_fig = 0
-    cutoff_distance = 1000
+    cutoff_distance = 500
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
     # data.locations = rawdata.get_locs(mode='latlong')
@@ -104,6 +101,7 @@ if __name__ == '__main__':
     #             if site2 in all_sites:
     #                 all_sites.remove(site2)
     # rm_sites = [site for site in data.site_names if site not in all_sites]
+    # # rm_sites = [site for site in data.site_names[2:]]
     # data.remove_sites(sites=rm_sites)
     # raw.remove_sites(sites=rm_sites)
     raw.locations = raw.get_locs(mode='latlong')
@@ -129,19 +127,20 @@ if __name__ == '__main__':
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
-<<<<<<< HEAD
     # for ii in range(len(data.periods)):
-    for ii in [30]:
-=======
+    # for ii in [30]:
     # for ii in range(0, len(data.periods), 4):
     for ii in [0]:
->>>>>>> 4912b2db8c8e375c24fde1b54cd3e97e1149b70f
         period = data.periods[ii]
         if period < 1:
             period = -1 / period
         period = str(int(period))
         MV.plot_phase_tensor(data_type='data', normalize=True,
-                             fill_param='beta', period_idx=ii)
+                             fill_param='phi_max', period_idx=ii)
+        MV.plot_phase_bar(data_type='data', normalize=True,
+                          fill_param='phi_min', period_idx=ii)
+        # MV.plot_phase_bar2(data_type='data', normalize=True,
+        #                    fill_param='phi_min', period_idx=ii)
         MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - 250,
                                    max(data.locations[:, 1]) + 250,
                                    min(data.locations[:, 0]) - 250,

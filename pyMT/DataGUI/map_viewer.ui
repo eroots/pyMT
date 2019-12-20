@@ -114,14 +114,22 @@
      </property>
      <addaction name="actionInductionErrorTolerance"/>
      <addaction name="actionInductionScale"/>
+     <addaction name="actionInductionCutoff"/>
     </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
     <addaction name="menuPhase_Tensors"/>
     <addaction name="menuInduction_Arrows"/>
    </widget>
+   <widget class="QMenu" name="menuAxis_Options">
+    <property name="title">
+     <string>Axis Options</string>
+    </property>
+    <addaction name="actionEqualAspect"/>
+   </widget>
    <addaction name="menuOptions"/>
    <addaction name="menuPoint_options"/>
+   <addaction name="menuAxis_Options"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -134,7 +142,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>586</height>
+     <height>612</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -239,6 +247,65 @@
         </item>
         <item>
          <widget class="QComboBox" name="PhaseTensor_fill">
+          <item>
+           <property name="text">
+            <string>Alpha</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Beta</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_max</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_min</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>det_Phi</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Azimuth</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Lambda</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Delta</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="Bar_fill">
           <item>
            <property name="text">
             <string>Alpha</string>
@@ -570,6 +637,19 @@ Resistivity</string>
   <action name="actionInductionScale">
    <property name="text">
     <string>Scale</string>
+   </property>
+  </action>
+  <action name="actionEqualAspect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Equal Aspect Ratio</string>
+   </property>
+  </action>
+  <action name="actionInductionCutoff">
+   <property name="text">
+    <string>Cutoff Length</string>
    </property>
   </action>
  </widget>

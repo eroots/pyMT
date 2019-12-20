@@ -77,11 +77,13 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_responsePhaseTensor.clicked.connect(self.resp_phase_tensor)
             self.toggle_nonePhaseTensor.clicked.connect(self.none_phase_tensor)
             self.PhaseTensor_fill.currentIndexChanged.connect(self.update_map)
+            self.Bar_fill.currentIndexChanged.connect(self.update_map)
         else:
             self.toggle_dataPhaseTensor.setEnabled(False)
             self.toggle_responsePhaseTensor.setEnabled(False)
             self.toggle_nonePhaseTensor.setEnabled(False)
             self.PhaseTensor_fill.setEnabled(False)
+            self.Bar_fill.setEnabled(False)
         #  Connect pseudo-section plotting toggles
         self.toggle_rhoPseudo.clicked.connect(self.update_map)
         self.toggle_phasePseudo.clicked.connect(self.update_map)
@@ -121,8 +123,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.actionPhaseTensorScale.triggered.connect(self.set_pt_scale)
         self.actionInductionScale.triggered.connect(self.set_induction_scale)
         self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
+        self.actionInductionCutoff.triggered.connect(self.set_induction_cutoff)
         self.actionPTPhaseErrorTolerance.triggered.connect(self.set_pt_phase_error_tol)
         self.actionPTRhoErrorTolerance.triggered.connect(self.set_pt_rho_error_tol)
+        self.actionEqualAspect.triggered.connect(self.update_map)
         # RMS plotting
         if self.map.dataset.response.sites:
             self.plotRMS.clicked.connect(self.update_map)
@@ -159,6 +163,17 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if ok_pressed:
             self.map.pt_scale = d
             if not self.toggle_nonePhaseTensor.isChecked():
+                self.update_map()
+
+    def set_induction_cutoff(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Scale',
+                                                         'Value:',
+                                                         self.map.induction_cutoff,
+                                                         0.01, 100, 1)
+        if ok_pressed:
+            self.map.induction_cutoff = d
+            if self.toggle_dataInduction.isChecked() or self.toggle_responseInduction.isChecked():
                 self.update_map()
 
     def set_induction_scale(self):
@@ -411,15 +426,24 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.plot_rms = self.plotRMS.checkState()
         self.map.plot_locations()
         PT_toggles = self.get_PT_toggles()
+        bar_fill = self.Bar_fill.itemText(self.Bar_fill.currentIndex())
         if 'None' not in PT_toggles['data']:
             self.map.plot_phase_tensor(data_type=PT_toggles['data'],
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period)
+            if bar_fill != PT_toggles['fill'] and len(PT_toggles['data']) == 1:
+                self.map.plot_phase_bar(data_type=PT_toggles['data'],
+                                        fill_param=bar_fill,
+                                        period_idx=self.active_period)
         induction_toggles = self.get_induction_toggles()
         if induction_toggles['data']:
             self.map.plot_induction_arrows(data_type=induction_toggles['data'],
                                            normalize=induction_toggles['normalize'],
                                            period_idx=self.active_period)
+        if self.actionEqualAspect.isChecked():
+            self.map.window['axes'][0].set_aspect('equal')
+        else:
+            self.map.window['axes'][0].set_aspect('auto')
         self.toolbar.update()
         self.toolbar.push_current()
         # DEBUG
