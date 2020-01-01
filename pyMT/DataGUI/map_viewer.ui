@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1030</width>
-    <height>762</height>
+    <height>769</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,7 +42,7 @@
      <x>0</x>
      <y>0</y>
      <width>1030</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
@@ -126,6 +126,7 @@
      <string>Axis Options</string>
     </property>
     <addaction name="actionEqualAspect"/>
+    <addaction name="actionLockAxis"/>
    </widget>
    <addaction name="menuOptions"/>
    <addaction name="menuPoint_options"/>
@@ -142,7 +143,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>612</height>
+     <height>722</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -650,6 +651,14 @@ Resistivity</string>
   <action name="actionInductionCutoff">
    <property name="text">
     <string>Cutoff Length</string>
+   </property>
+  </action>
+  <action name="actionLockAxis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lock Axis Limits</string>
    </property>
   </action>
  </widget>

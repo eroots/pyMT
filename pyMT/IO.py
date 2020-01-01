@@ -492,6 +492,8 @@ def read_raw_data(site_names, datpath=''):
                     lat = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'LONG' in line:
                     lon = (utils.dms2dd(line.split('=')[1].strip()))
+                elif 'LON' in line:  # Make exception if its spelt this way...
+                    lon = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'ELEV' in line:
                     elev = float(line.split('=')[1].strip())
             return lat, lon, elev
@@ -569,7 +571,18 @@ def read_raw_data(site_names, datpath=''):
             data['ZYXI'] *= -1
             data['ZXXI'] *= -1
             data['ZYYI'] *= -1
-            return data, errors, azi
+            # Double check all data components have corresponding errors.
+            error_flag = 0
+            for component in data.keys():
+                try:
+                    assert(errors[component].shape == data[component].shape)
+                except KeyError:
+                    if component.lower().startswith('z'):
+                        errors.update({component: data[component] * 0.05})
+                    else:
+                        errors.update({component: np.ones(data[component].shape) * 0.03})
+                    error_flag = 1
+            return data, errors, azi, error_flag
 
         data = {}
         errors = {}
@@ -585,7 +598,10 @@ def read_raw_data(site_names, datpath=''):
                 else:
                     raise WSFileError(ID='int', offender=file, extra='Frequency block non-existent.')
                 periods = utils.truncate(1 / frequencies)
-                data, errors, azi = extract_tensor_info(blocks)
+                data, errors, azi, error_flag = extract_tensor_info(blocks)
+                if error_flag:
+                    print('Errors not properly specified in {}.'.format(file))
+                    print('Setting offending component errors to floor values.')
                 Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
                 location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
                 site_dict = {'data': data,

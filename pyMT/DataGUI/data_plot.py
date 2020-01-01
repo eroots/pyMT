@@ -409,6 +409,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # This should be changed to just destroy and redraw whatever features are needed
         # print(self.map.site_locations['generic'])
         # Also there should be a mechanism that makes sure this is only redrawn if something changes
+        x_lim = self.map.window['axes'][0].get_xlim()
+        y_lim = self.map.window['axes'][0].get_ylim()
         self.map.window['axes'][0].clear()
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
@@ -448,7 +450,11 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.toolbar.push_current()
         # DEBUG
         # print('Updating Map')
+        if self.actionLockAxis.isChecked():
+            self.map.window['axes'][0].set_xlim(x_lim)
+            self.map.window['axes'][0].set_ylim(y_lim)
         self.canvas.draw()
+
 
     def get_pseudosection_toggles(self):
         toggles = {'data': [], 'fill': None, 'component': None}

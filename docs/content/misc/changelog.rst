@@ -1,5 +1,8 @@
 Change Log
 ==========
+* 23/12/19
+  * Added option to set equal or auto aspect ratio in the :ref:`Map Window` of :ref:`Data Plot`
+  * Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.
 * 14/12/19
   * Fixed induction arrow plotting in data_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.
   * Added option to specify a 'cutoff' length for induction arrows. Arrows with magnitudes greater than this will not be plotted.

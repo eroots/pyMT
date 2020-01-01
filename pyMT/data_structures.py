@@ -2602,7 +2602,7 @@ class RawData(object):
             self.high_tol = hTol
         if lTol is not None:
             self.low_tol = lTol
-        if hTol is not None:
+        if cTol is not None:
             self.count_tol = cTol
 
     def remove_sites(self, sites):
