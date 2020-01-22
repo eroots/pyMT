@@ -76,8 +76,8 @@ class Dataset(object):
 
     def __init__(self, modelfile='', listfile='', datafile='',
                  responsefile='', datpath=''):
-        """Summary
-
+        """
+        Summary
         Args:
             modelfile (str, optional): Description
             listfile (str, optional): Description
