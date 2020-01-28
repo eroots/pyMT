@@ -1,5 +1,9 @@
 Change Log
 ==========
+* 26/01/20
+  * Can now update the RMS table with a button after changing the plotted dataset.
+  * Plotting of imaginary tipper arrows.
+  * Added a legend for induction arrows showing colours and reference lengths
 * 23/12/19
   * Added option to set equal or auto aspect ratio in the :ref:`Map Window` of :ref:`Data Plot`
   * Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.

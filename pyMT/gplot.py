@@ -555,7 +555,9 @@ class MapView(object):
         self.site_marker = 'o'
         self.site_fill = True
         self.site_colour = 'k'
-        self.arrow_colours = {'raw_data': 'k', 'data': 'b', 'response': 'r'}
+        self.arrow_colours = {'raw_data': {'R': 'b', 'I': 'r'},
+                              'data': {'R': 'b', 'I': 'r'},
+                              'response': {'R': 'g', 'I': 'c'}}
         self.linestyle = '-'
         self.mec = 'k'
         self.markersize = 5
@@ -776,8 +778,8 @@ class MapView(object):
                     self.window['axes'][0].annotate(self.generic_sites[ii], xy=(yy, xx))
         self.set_axis_limits()
 
-    @utils.enforce_input(data_type=list, normalize=bool, period_idx=int)
-    def plot_induction_arrows(self, data_type='data', normalize=True, period_idx=1):
+    @utils.enforce_input(data_type=list, normalize=bool, period_idx=int, arrow_type=list)
+    def plot_induction_arrows(self, data_type='data', normalize=True, period_idx=1, arrow_type=['R']):
         # max_length = np.sqrt((np.max(self.site_locations['all'][:, 0]) -
         #                       np.min(self.site_locations['all'][:, 0])) ** 2 +
         #                      (np.max(self.site_locations['all'][:, 1]) -
@@ -785,90 +787,109 @@ class MapView(object):
         x_max, x_min = (np.max(self.site_locations['all'][:, 0]), np.min(self.site_locations['all'][:, 0]))
         y_max, y_min = (np.max(self.site_locations['all'][:, 1]), np.min(self.site_locations['all'][:, 1]))
         max_length = np.max((x_max - x_min, y_max - y_min))
-
-        for dType in data_type:
-            X, Y = [], []
-            if dType.lower() == 'data':
-                colour = 'k'
-            elif dType.lower() == 'raw_data':
-                colour = 'k'
-            elif dType.lower() == 'response':
-                colour = 'r'
-            idx = []
-            for ii, site in enumerate(self.site_names):
-                # Just takes the last frequency. Will have to grab the right one from a list.
-                # if ((abs(self.site_data[dType].sites[site].used_error['TZXR'][period_idx] /
-                #          self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
-                #     (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
-                #          self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
-                # if True:
-                #     idx.append(ii)
-                #     if 'TZXR' in self.site_data[dType].sites[site].components:
-                #         X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
-                #     else:
-                #         X.append(0)
-                #     if 'TZYR' in self.site_data[dType].sites[site].components:
-                #         Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
-                #     else:
-                #         Y.append(0)
-                idx.append(ii)
-                if 'TZXR' in self.site_data[dType].sites[site].components:
-                    X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
-                else:
-                    X.append(0)
-                if 'TZYR' in self.site_data[dType].sites[site].components:
-                    Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
-                else:
-                    Y.append(0)
-            if idx:
-                arrows = np.transpose(np.array((X, Y)))
-                # arrows = utils.normalize_arrows(arrows)
-                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-                largest_arrow = np.max(lengths)
-                lengths[lengths == 0] = 1
-                arrows[lengths > 1, 0] = 2 * arrows[lengths > 1, 0] / lengths[lengths > 1]
-                arrows[lengths > 1, 1] = 2 * arrows[lengths > 1, 1] / lengths[lengths > 1]
-                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-                cutoff_idx = lengths > self.induction_cutoff
-                # print(idx)
-                arrows[cutoff_idx, :] = 0
-                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-                largest_arrow = np.max(lengths)
-                # print('Hello I am inside')
-                # print(normalize)
-                if normalize:
-                    arrows = 0.5 * arrows / np.transpose(np.tile(lengths, [2, 1]))
-                    # print('Normalizing...')
-                # else:
-                    # arrows = max_length * arrows / (largest_arrow * 1000)
-                    # arrows = arrows / np.max(lengths)
-                    # arrows *= max_length / 50000
-                    # print('Shrinking arrows')
-                #     print('Not normalizing')
-                arrows = arrows * self.induction_scale / (50) # * np.sqrt(lengths))
-                # print(self.induction_scale)
-                # print(arrows)
-                # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-                # print(self.site_locations['all'])
-                # headwidth = max(3 * self.induction_scale / 5, 1)
-                # width = 0.0025 * self.induction_scale / 5
-                headwidth = max(3, 1)
-                # scale = self.induction_scale * max_length / 100
-                lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-                largest_arrow = np.max(lengths)
-                # print(largest_arrow)
-                width = 0.0025
-                self.window['axes'][0].quiver(self.site_locations['all'][idx, 1],
-                                              self.site_locations['all'][idx, 0],
-                                              arrows[:, 1],
-                                              arrows[:, 0],
-                                              color=colour,
-                                              headwidth=headwidth,
-                                              width=width,
-                                              zorder=10,
-                                              scale=1,
-                                              scale_units=None)
-                self.set_axis_limits()
+        num_keys = 0
+        for R_or_L in arrow_type:
+            for dType in data_type:
+                X, Y = [], []
+                colour = self.arrow_colours[dType][R_or_L]
+                # if dType.lower() == 'data':
+                #     colour = 'k'
+                # elif dType.lower() == 'raw_data':
+                #     colour = 'k'
+                # elif dType.lower() == 'response':
+                #     colour = 'r'
+                idx = []
+                for ii, site in enumerate(self.site_names):
+                    # Just takes the last frequency. Will have to grab the right one from a list.
+                    # if ((abs(self.site_data[dType].sites[site].used_error['TZXR'][period_idx] /
+                    #          self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
+                    #     (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
+                    #          self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
+                    # if True:
+                    #     idx.append(ii)
+                    #     if 'TZXR' in self.site_data[dType].sites[site].components:
+                    #         X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
+                    #     else:
+                    #         X.append(0)
+                    #     if 'TZYR' in self.site_data[dType].sites[site].components:
+                    #         Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
+                    #     else:
+                    #         Y.append(0)
+                    idx.append(ii)
+                    if 'TZX' + R_or_L in self.site_data[dType].sites[site].components:
+                        X.append(-self.site_data[dType].sites[site].data['TZX' + R_or_L][period_idx])
+                    else:
+                        X.append(0)
+                    if 'TZY' + R_or_L in self.site_data[dType].sites[site].components:
+                        Y.append(-self.site_data[dType].sites[site].data['TZY' + R_or_L][period_idx])
+                    else:
+                        Y.append(0)
+                if idx:
+                    arrows = np.transpose(np.array((X, Y)))
+                    # arrows = utils.normalize_arrows(arrows)
+                    lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                    preserved_lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                    largest_arrow = np.max(lengths)
+                    lengths[lengths == 0] = 1
+                    arrows[lengths > 1, 0] = 2 * arrows[lengths > 1, 0] / lengths[lengths > 1]
+                    arrows[lengths > 1, 1] = 2 * arrows[lengths > 1, 1] / lengths[lengths > 1]
+                    lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                    cutoff_idx = lengths > self.induction_cutoff
+                    # print(idx)
+                    arrows[cutoff_idx, :] = 0
+                    lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                    largest_arrow = np.max(lengths)
+                    # print('Hello I am inside')
+                    # print(normalize)
+                    if normalize:
+                        arrows = 0.5 * arrows / np.transpose(np.tile(lengths, [2, 1]))
+                        # print('Normalizing...')
+                    # else:
+                        # arrows = max_length * arrows / (largest_arrow * 1000)
+                        # arrows = arrows / np.max(lengths)
+                        # arrows *= max_length / 50000
+                        # print('Shrinking arrows')
+                    #     print('Not normalizing')
+                    arrows = arrows * self.induction_scale / (50) # * np.sqrt(lengths))
+                    # print(self.induction_scale)
+                    # print(arrows)
+                    # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                    # print(self.site_locations['all'])
+                    # headwidth = max(3 * self.induction_scale / 5, 1)
+                    # width = 0.0025 * self.induction_scale / 5
+                    headwidth = max(3, 1)
+                    # scale = self.induction_scale * max_length / 100
+                    lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
+                    largest_arrow = np.max(lengths)
+                    # print(largest_arrow)
+                    width = 0.0025
+                    quiv_handle = self.window['axes'][0].quiver(self.site_locations['all'][idx, 1],
+                                                                self.site_locations['all'][idx, 0],
+                                                                arrows[:, 1],
+                                                                arrows[:, 0],
+                                                                color=colour,
+                                                                headwidth=headwidth,
+                                                                width=width,
+                                                                zorder=10,
+                                                                scale=1,
+                                                                scale_units=None)
+                    self.set_axis_limits()
+            key_length_idx = np.argmin(np.abs(preserved_lengths - 0.5))
+            key_length = 0.5 * self.induction_scale / 50
+            horz_scale = (y_max - y_min) / 10
+            vert_scale = (x_max - x_min) / 10
+            label_pos_vert = x_min + vert_scale
+            if R_or_L == 'R':
+                key_label = 'Real'
+            else:
+                key_label = 'Imag'
+            qk = self.window['axes'][0].quiverkey(quiv_handle,
+                                                  self.window['axes'][0].get_xlim()[0] + horz_scale * 3.5,
+                                                  self.window['axes'][0].get_ylim()[0] + vert_scale - num_keys * vert_scale / 2,
+                                                  key_length, key_label + ', Length = 0.5',
+                                                  labelpos='W',
+                                                  coordinates='data')
+            num_keys += 1
 
     @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
     def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):

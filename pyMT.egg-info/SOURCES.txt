@@ -4,10 +4,6 @@ pyMT/IO.py
 pyMT/WSExceptions.py
 pyMT/__init__.py
 pyMT/data_structures.py
-pyMT/data_structures_BACKUP_9368.py
-pyMT/data_structures_BASE_9368.py
-pyMT/data_structures_LOCAL_9368.py
-pyMT/data_structures_REMOTE_9368.py
 pyMT/decoreTest.py
 pyMT/gplot.py
 pyMT/test.py
@@ -47,12 +43,10 @@ pyMT/scripts/__init__.py
 pyMT/scripts/add_occam_noise.py
 pyMT/scripts/arrow_pseudosection.py
 pyMT/scripts/autogen_report.py
-pyMT/scripts/bath2model.py
 pyMT/scripts/bost1D.py
 pyMT/scripts/bostick_compare.py
 pyMT/scripts/crooked_model_slice.py
 pyMT/scripts/f2l.py
-pyMT/scripts/fence_plot.py
 pyMT/scripts/interp_rhopha.py
 pyMT/scripts/j2ws3d.py
 pyMT/scripts/lst2kml.py
@@ -64,7 +58,6 @@ pyMT/scripts/phase_tensor_test.py
 pyMT/scripts/plan_PT_shapefile.py
 pyMT/scripts/plan_pseudosection.py
 pyMT/scripts/plan_pseudosection_shapefile.py
-pyMT/scripts/plot_bathymetry.py
 pyMT/scripts/plot_dataset.py
 pyMT/scripts/plot_model_slice.py
 pyMT/scripts/plot_occam.py
@@ -73,7 +66,6 @@ pyMT/scripts/plot_rhopha_nice.py
 pyMT/scripts/plot_transect.py
 pyMT/scripts/pt2csv.py
 pyMT/scripts/pt_pseudosection.py
-pyMT/scripts/pv_transect_test.py
 pyMT/scripts/read_csr.py
 pyMT/scripts/read_shape_plot.py
 pyMT/scripts/resolution_sandbox.py
