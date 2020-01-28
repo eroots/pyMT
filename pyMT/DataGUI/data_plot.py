@@ -67,10 +67,12 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_dataInduction.clicked.connect(self.update_map)
             self.toggle_responseInduction.clicked.connect(self.update_map)
             self.toggle_normalizeInduction.clicked.connect(self.update_map)
+            self.arrowType.currentIndexChanged.connect(self.update_map)
         else:
             self.toggle_dataInduction.setEnabled(False)
             self.toggle_responseInduction.setEnabled(False)
             self.toggle_normalizeInduction.setEnabled(False)
+            self.arrowType.setEnabled(False)
         #  Connect phase tensor toggles
         if self.map.dataset.data.inv_type in (1, 5, 6):
             self.toggle_dataPhaseTensor.clicked.connect(self.data_phase_tensor)
@@ -439,9 +441,16 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                         period_idx=self.active_period)
         induction_toggles = self.get_induction_toggles()
         if induction_toggles['data']:
+            if self.arrowType.itemText(self.arrowType.currentIndex()).lower() == 'real':
+                arrowType = ['R']
+            elif self.arrowType.itemText(self.arrowType.currentIndex()).lower() == 'imaginary':
+                arrowType = ['I']
+            else:
+                arrowType = ['R', 'I']
             self.map.plot_induction_arrows(data_type=induction_toggles['data'],
                                            normalize=induction_toggles['normalize'],
-                                           period_idx=self.active_period)
+                                           period_idx=self.active_period,
+                                           arrow_type=arrowType)
         if self.actionEqualAspect.isChecked():
             self.map.window['axes'][0].set_aspect('equal')
         else:
@@ -848,6 +857,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def setup_widgets(self):
         self.select_points_button.clicked.connect(self.select_points)
         self.select_points = False
+        self.recalculateRMS.clicked.connect(self.init_rms_tables)
         # self.error_table.itemChanged.connect(self.change_errmap)
         self.error_tree.itemDoubleClicked.connect(self.edit_error_tree)
         self.BackButton.clicked.connect(self.Back)
@@ -1107,6 +1117,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         self.map_view.update_map()
         self.set_nparam_labels()
+        # if self.dataset.rms:
+            # self.init_rms_tables()
+        # else:
+            # self.init_rms_tables()
         # self.error_tree.itemChanged.connect(self.post_edit_error)
 
     def num_subplots(self):

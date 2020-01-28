@@ -42,7 +42,7 @@
      <x>0</x>
      <y>0</y>
      <width>1030</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
@@ -195,6 +195,25 @@
           <property name="text">
            <string>Normalize</string>
           </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="arrowType">
+          <item>
+           <property name="text">
+            <string>Real</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Imaginary</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Both</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>

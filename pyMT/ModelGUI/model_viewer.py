@@ -1,5 +1,4 @@
 # TODO
-# Gridlines? Less important.
 # Menu for point options (marker shape, size, annotations)
 # Inclusion of data plotting (induction arrows, phase tensors, etc.)
 # Will eventually want to be able to save images.

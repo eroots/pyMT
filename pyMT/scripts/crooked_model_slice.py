@@ -18,8 +18,9 @@ import colorsys
 from pyMT.e_colours import colourmaps
 
 
-local_path = 'C:/Users/eroots'
+# local_path = 'C:/Users/eroots'
 # local_path = 'C:/Users/eric/'
+local_path = 'E:/'
 
 
 def extents(f):
@@ -157,22 +158,22 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2North_1/placed_TFPT/northTFPT_lastIter.rho')
 ##########################################################
 # SWAYZE SOUTH
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
-# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/hs_Z/finish/southFinish_lastIter.rho')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/placed_TFPT/southTFPT_hsRef-2_lastIter.rho')
-##########################################################
-# SWAYZE
-# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# # # # # # # # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# # # # # # # # # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# # # # # # # # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller.model')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/swzmesh_lastIter.rho')
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst')
+# # data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
+# # backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
+# # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/hs_Z/finish/southFinish_lastIter.rho')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/placed_TFPT/southTFPT_hsRef-2_lastIter.rho')
+# ##########################################################
+# # SWAYZE
+# # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # # # # # # # # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# # # # # # # # # # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# # # # # # # # # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller.model')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/swzmesh_lastIter.rho')
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
 # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
 # # reso = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller_Resolution.model')
 # seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
@@ -209,13 +210,13 @@ mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wst2dry-2_NLCG_072.rho')
 #########################################################
 # WESTERN SUPERIOR
-seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_NLCG_061.rho')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_bg1000_lastIter.rho')
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
+# seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_NLCG_061.rho')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_bg1000_lastIter.rho')
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
 ##########################################################
 # MALARTIC
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
@@ -298,11 +299,15 @@ mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/b
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # UPPER-ABITIBI
-# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/ROUBB.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
-use_seismic = 1
+main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
+data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
+mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG-test300ohm_block.model')
+seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
+                        r'ROUYN_LN141_R1_KMIG/ROUYN_LN141_R1_KMIG_SUGETHW_UTM.txt',
+                        header=0, names=('trace', 'x', 'y'), sep='\s+')
+use_seismic = 0
 use_trace_ticks = 0
 force_NS = 1
 # azi = 25  # Geraldton
@@ -335,10 +340,10 @@ mode = 3
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/wst/slices/'
 # file_name = 'wst_finish_bg1000_alongLithoSeis_jet0-5_300km'
 # file_name = 'dry_norotMeshFinish_linear_jet0-5'
-file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/R2South/'
+file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_transects/Malartic/RoughFigures/Mal_R1_slices/'
 # file_name = 'swz_regional_all_linear_turbo0-5'
-file_name = 'swz_north_finish_linear_turbo0-5_2VE'
+file_name = 'rouyn_alongSeis_turbo0-5'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/'
 # file_name = 'rou_along_MT_West2km_turbo0-5'
 # file_path = r'C:/Users/eroots/phd/ownCloud/Documents/ME_transects/Malartic/RoughFigures/forSnyder/'
@@ -349,7 +354,7 @@ file_name = 'swz_north_finish_linear_turbo0-5_2VE'
 # file_name = 'swz_norotFinish_nudge5000_linear_jet1-5'
 # file_name = 'MAL_Hex_ChicobiR2_jet0-5_siteAnnotations'
 # file_name = 'MAL_Hex_ChicobiR2_jet0-5'
-file_path = r'C:/Users/eroots/phd/ownCloud/Documents/ME_Transects/Larder/RoughFigures/LAR_R2_slices/'
+# file_path = r'C:/Users/eroots/phd/ownCloud/Documents/ME_Transects/Larder/RoughFigures/LAR_R2_slices/'
 # file_name = 'Lar_HexMT_alongTransect_jet1-5'
 # file_path = local_path + '/phd/ownCloud/Documents/TGI/Figures/slices/'
 # file_name = 'afton3_l0_turbo0-3'
@@ -365,12 +370,12 @@ site_markers = 1
 # site_markers = 0
 plot_map = 1
 dpi = 600
-csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
+csv_name = local_path + 'phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_alongSeis.dat'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 xlim = []
-zlim = [0, 250]
+zlim = [0, 50]
 # zlim = [0, 60]
 aspect_ratio = 1
 # zlim = [0, 50]
@@ -436,7 +441,7 @@ for nudge_dist in [0]:
     main_transect = copy.deepcopy(all_backups['main_transect'])
     backup_data = copy.deepcopy(all_backups['backup_data'])
     fig_num += 1
-    file_name = 'lar_HexZ_alongMT_10kmDepth_turbo0-5_{}m'.format(nudge_dist)
+    # file_name = 'lar_HexZ_alongMT_10kmDepth_turbo0-5_{}m'.format(nudge_dist)
     # data.to_utm(UTM_number, UTM_letter)
     # main_transect.to_utm(UTM_number, UTM_letter)
     # backup_data.to_utm(UTM_number, UTM_letter)

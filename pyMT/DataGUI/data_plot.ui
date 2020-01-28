@@ -460,6 +460,19 @@
           <number>359</number>
          </property>
         </widget>
+        <widget class="QPushButton" name="recalculateRMS">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>100</y>
+           <width>91</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Recalculate RMS</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="PlotOptions">
         <attribute name="title">
