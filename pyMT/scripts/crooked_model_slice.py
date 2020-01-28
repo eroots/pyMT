@@ -157,25 +157,25 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2North_1/placed_TFPT/northTFPT_lastIter.rho')
 ##########################################################
 # SWAYZE SOUTH
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
-# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/hs_Z/finish/southFinish_lastIter.rho')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/placed_TFPT/southTFPT_hsRef-2_lastIter.rho')
-##########################################################
-# SWAYZE
-# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# # # # # # # # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# # # # # # # # # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# # # # # # # # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller.model')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/swzmesh_lastIter.rho')
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
-# # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
-# # reso = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller_Resolution.model')
-# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst')
+# # data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
+# # backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_all_j2.lst')
+# # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/hs_Z/finish/southFinish_lastIter.rho')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/placed_TFPT/southTFPT_hsRef-2_lastIter.rho')
+# ##########################################################
+# # SWAYZE
+# # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # # # # # # # # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# # # # # # # # # # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# # # # # # # # # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller.model')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/swzmesh_lastIter.rho')
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
+# # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
+# # # reso = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller_Resolution.model')
+# # seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
                         # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
@@ -298,11 +298,11 @@ mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/b
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # UPPER-ABITIBI
-# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/ROUBB.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
-use_seismic = 1
+main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/ROUBB.lst')
+data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
+use_seismic = 0
 use_trace_ticks = 0
 force_NS = 1
 # azi = 25  # Geraldton
@@ -359,18 +359,18 @@ title_ = 'Standard Inversion'
 rotate_back = 0
 linear_xaxis = 1
 save_fig = 0
-save_dat = 0
+save_dat = 1
 annotate_sites = 0
 site_markers = 1
 # site_markers = 0
 plot_map = 1
 dpi = 600
-csv_name = 'C:/Users/eroots/phd/ownCloud/Metal Earth/Data/model_csvs/swayze_regional.dat'
+csv_name = 'C:/Users/eroots/phd/Nextcloud/Metal Earth/Data/model_csvs/Hex_Rouyn-slice.dat'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 xlim = []
-zlim = [0, 250]
+zlim = [0, 60]
 # zlim = [0, 60]
 aspect_ratio = 1
 # zlim = [0, 50]

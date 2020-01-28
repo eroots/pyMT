@@ -567,6 +567,7 @@ def read_raw_data(site_names, datpath=''):
                     else:
                         azi = data_block[0]
             # EDI format has ZxyR, ZxyI positive; ZyxR, ZyxI negative. This needs to be changed
+            # EDI is generally +iwt sign convention. Note this can be specified in EDI files, but is not read anywhere here.
             data['ZXYI'] *= -1
             data['ZYXI'] *= -1
             data['ZXXI'] *= -1
