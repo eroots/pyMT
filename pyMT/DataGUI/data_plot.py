@@ -136,11 +136,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
     def data_phase_tensor(self):
         if self.toggle_dataPhaseTensor.isChecked():
             self.toggle_nonePhaseTensor.setCheckState(0)
+        if self.toggle_PTExclusive.isChecked():
+            self.toggle_responsePhaseTensor.setCheckState(0)
         self.update_map()
 
     def resp_phase_tensor(self):
         if self.toggle_responsePhaseTensor.isChecked():
             self.toggle_nonePhaseTensor.setCheckState(0)
+        if self.toggle_PTExclusive.isChecked():
+            self.toggle_dataPhaseTensor.setCheckState(0)
         self.update_map()
 
     def none_phase_tensor(self):

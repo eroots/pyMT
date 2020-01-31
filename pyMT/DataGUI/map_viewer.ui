@@ -259,6 +259,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="toggle_PTExclusive">
+          <property name="text">
+           <string>Exclusive</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="label">
           <property name="text">
            <string>Fill Value</string>
