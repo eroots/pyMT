@@ -18,9 +18,9 @@ import colorsys
 from pyMT.e_colours import colourmaps
 
 
-# local_path = 'C:/Users/eroots'
+local_path = 'C:/Users/eroots'
 # local_path = 'C:/Users/eric/'
-local_path = 'E:/'
+# local_path = 'E:/'
 
 
 def extents(f):
@@ -213,13 +213,13 @@ def project_locations(data, zone, letter):
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wst2dry-2_NLCG_072.rho')
 #########################################################
 # WESTERN SUPERIOR
-# seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
 # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_NLCG_061.rho')
 # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_bg1000_lastIter.rho')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
+mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
 ##########################################################
 # MALARTIC
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
@@ -302,19 +302,19 @@ def project_locations(data, zone, letter):
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # UPPER-ABITIBI
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/ROUBB.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
-main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
-data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
-mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG-test300ohm_block.model')
-seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
-                        r'ROUYN_LN141_R1_KMIG/ROUYN_LN141_R1_KMIG_SUGETHW_UTM.txt',
-                        header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 0
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
+# # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG-test300ohm_block.model')
+# seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
+#                         r'ROUYN_LN141_R1_KMIG/ROUYN_LN141_R1_KMIG_SUGETHW_UTM.txt',
+#                         header=0, names=('trace', 'x', 'y'), sep='\s+')
+use_seismic = 1
 use_trace_ticks = 0
 force_NS = 1
 # azi = 25  # Geraldton
@@ -377,13 +377,13 @@ site_markers = 1
 # site_markers = 0
 plot_map = 1
 dpi = 600
-csv_name = 'C:/Users/eroots/phd/Nextcloud/Metal Earth/Data/model_csvs/Hex_Rouyn-slice.dat'
-csv_name = local_path + 'phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_alongSeis.dat'
+csv_name = 'C:/Users/eroots/phd/Nextcloud/Metal Earth/Data/model_csvs/wst_wUSARRAY_alongLitho.dat'
+# csv_name = local_path + '/phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_alongMT.dat'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 xlim = []
-zlim = [0, 50]
+zlim = [0, 100]
 # zlim = [0, 60]
 aspect_ratio = 1
 # zlim = [0, 50]

@@ -1029,7 +1029,7 @@ def rms(data):
     return np.sqrt(np.mean(data ** 2))
 
 
-def zone(coordinates):
+def zone_convert(coordinates):
     if 56 <= coordinates[1] < 64 and 3 <= coordinates[0] < 12:
         return 32
     if 72 <= coordinates[1] < 84 and 0 <= coordinates[0] < 42:
@@ -1044,11 +1044,11 @@ def zone(coordinates):
 
 
 def project(coordinates, zone=None, letter=None):
-    def letter(coordinates):
+    def letter_convert(coordinates):
         return 'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
     if not(zone and letter):
-        z = zone(coordinates)
-        L = letter(coordinates)
+        z = zone_convert(coordinates)
+        L = letter_convert(coordinates)
     else:
         z = zone
         L = letter
