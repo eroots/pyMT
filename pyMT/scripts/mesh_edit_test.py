@@ -3,9 +3,11 @@ from scipy.interpolate import RegularGridInterpolator as RGI
 import numpy as np
 import pyMT.utils as utils
 import matplotlib.pyplot as plt
-import e_colours.colourmaps as cm
+from pyMT.e_colours import colourmaps as cm
+from copy import deepcopy
 
-local_path = 'C:/Users/eroots/phd/'
+# local_path = 'C:/Users/eroots/phd/'
+local_path = 'E:/phd/Nextcloud'
 ########################################
 # SWAYZE
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
@@ -25,8 +27,7 @@ local_path = 'C:/Users/eroots/phd/'
 # model_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_placed.model'
 # data_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all_placed.data'
 
-#########
-# SOUTH-EAST
+# # SOUTH-EAST
 # model_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
 # base_data = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
 # data_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2southeast_1\placed_ZTF\R2Southeast_fix_all.dat'
@@ -96,6 +97,16 @@ data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R
 list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\j2\GER_R2.lst'
 model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed_nest.model'
 data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed.data'
+# WESTERN SUPERIOR - GERALDTON - R2
+model_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.rho'
+model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# model_file_large = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/ger_Z_placed_large.model'
+base_data = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.dat'
+base_list = local_path + '/data/Regions/MetalEarth/geraldton/j2/ger_consCull_R1.lst'
+data_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/ger_R2_placed_Z_flagged.dat'
+list_file = local_path + '/data/Regions/MetalEarth/geraldton/j2/GER_R2.lst'
+model_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_PT_placed_nest.model'
+data_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_Z_placed.data'
 ########################################
 # LIBEREC
 # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/4site/4site_reg.dat'
@@ -104,8 +115,9 @@ data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2
 # base_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/j2/2site.lst'
 # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/2site/smoother/lib_NLCG_008.rho'
 
-# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\Liberec/4site/4site_placed.model'
+# model_out = r'C:/Users\eroots\phd\ownCloud\data\Regions\Liberec/4site/4site_placed.model'
 # data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\Liberec/4site/4site_placed.data'
+produce_large_model = 0
 plot_it = 0
 write_it = 1
 plot_depth = 20000  # in meters
@@ -125,6 +137,31 @@ data.locations[:, 0] -= x_diff
 data.locations[:, 1] -= y_diff
 file_format = 'wsinv3dmt'
 
+if produce_large_model:
+    mod_large = WSDS.Model(model_file_large)
+    x_large, y_large = [], []
+    dx_orig = deepcopy(mod.dx)
+    dy_orig = deepcopy(mod.dy)
+    for ii, xL in enumerate(mod_large.dx):
+        # xL = (mod_large.dx[ii] + mod_large.dx[ii + 1]) / 2
+        if xL < np.min(dx_orig):
+            mod.dx_insert(ii, mod_large.dx[ii])
+        elif xL > np.max(dx_orig):
+            mod.dx_insert(mod.nx + 1, mod_large.dx[ii])
+            # x_include.append(ii)
+    for ii, yL in enumerate(mod_large.dy):
+        # yL = (mod_large.dy[ii] + mod_large.dy[ii + 1]) / 2
+        if yL < np.min(dy_orig):
+            mod.dy_insert(ii, mod_large.dy[ii])
+        elif yL > np.max(dy_orig):
+            mod.dy_insert(mod.ny + 1, mod_large.dy[ii])
+    for ix, xx in enumerate(utils.edge2center(mod.dx)):
+        for iy, yy in enumerate(utils.edge2center(mod.dy)):
+            if xx < np.min(dx_orig) or xx > np.max(dx_orig) or yy < np.min(dy_orig) or yy > np.max(dy_orig):
+                idx = np.argmin(abs(xx - np.array(mod_large.dx)))
+                idy = np.argmin(abs(yy - np.array(mod_large.dy)))
+                mod.vals[ix, iy, :] = mod_large.vals[idx, idy, :]
+
 x, y, z = (utils.edge2center(arr) for arr in (mod.dx, mod.dy, mod.dz))
 for ii in range(len(mod.dx) - 1):
     x[ii] = (mod.dx[ii] + mod.dx[ii + 1]) / 2
@@ -132,6 +169,14 @@ for ii in range(len(mod.dy) - 1):
     y[ii] = (mod.dy[ii] + mod.dy[ii + 1]) / 2
 for ii in range(len(mod.dz) - 1):
     z[ii] = (mod.dz[ii] + mod.dz[ii + 1]) / 2
+
+            # y_include.append(ii)
+    # for ii in range(len(mod_large.dz) - 1):
+    #     zL = (mod_large.dz[ii] + mod_large.dz[ii + 1]) / 2
+    #     if zL < np.min(mod.dz) and xL > np.max(mod.dz):
+    #         z.append(zL)
+    #         z_include.append(ii)
+
 # x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 # x_grid, y_grid, z_grid = (np.ravel(arr) for arr in (x_grid, y_grid, z_grid))
 # X, Y = (x, y)
@@ -254,6 +299,14 @@ pad_multiplier = 1.2
 min_depth = 1
 max_depth = 500000
 depths_per_decade = (8, 10, 12, 12, 10, 8)
+n_xpad = 15
+n_ypad = 15
+# n_xpad = 10
+# n_ypad = 10
+pad_multiplier = 1.1
+min_depth = 10
+max_depth = 650000
+depths_per_decade = (10, 12, 14, 10, 8)
 dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
 # dz[-3] = 410000
 # dz = mod.dz

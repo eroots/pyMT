@@ -87,13 +87,13 @@ def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
         decade = np.log10(min_depth)
         depths = []
         for n in NZ:
-            dDecade = np.logspace(decade, min(np.floor(decade + 1), np.log10(max_depth)), n + 1)
+            dDecade = np.logspace(decade, min(np.floor(decade + 1), np.log10(max_depth)), int(n + 1))
             decade = floor(decade + 1)
             depths.append(dDecade)
         depths = flatten_list(depths)
         depths = np.array(np.unique(depths))
     except TypeError:
-        depths = np.logspace(np.log10(min_depth), np.log10(max_depth), NZ)
+        depths = np.logspace(np.log10(min_depth), np.log10(max_depth), int(NZ))
     ddz = np.diff(np.diff(depths))
     if any(ddz < 0):
         print('Warning! Second derivative of depths is not always positive.')
