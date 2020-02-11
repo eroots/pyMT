@@ -34,8 +34,9 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
-from pyMT.GUI_common.classes import FileDialog
+from pyMT.GUI_common.classes import FileDialog, ColourMenu
 from pyMT.IO import debug_print
+
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -56,6 +57,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.fig = self.map.window['figure']
         self.init_map(dataset, sites, active_sites)
         self.periods = self.map.site_data['data'].periods
+        self.colourMenu = ColourMenu(self)
+        self.menuBar().addMenu(self.colourMenu)
         self.set_period_label()
         self.add_mpl(self.map.window['figure'])
         self.connect_widgets()
@@ -98,16 +101,18 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.PeriodScrollBar.setMinimum(1)
         self.PeriodScrollBar.setMaximum(len(self.map.site_data['data'].periods))
         #  Set up colour map selections
+        self.colourMenu.action_group.triggered.connect(self.set_colourmap)
+        self.colourMenu.limits.triggered.connect(self.set_rho_cax)
         self.groupColourmaps = QtWidgets.QActionGroup(self)
-        self.groupColourmaps.triggered.connect(self.set_colourmap)
-        self.actionJet.setActionGroup(self.groupColourmaps)
-        self.actionJet_r.setActionGroup(self.groupColourmaps)
-        self.actionJet_plus.setActionGroup(self.groupColourmaps)
-        self.actionJet_plus_r.setActionGroup(self.groupColourmaps)
-        self.actionBgy.setActionGroup(self.groupColourmaps)
-        self.actionBgy_r.setActionGroup(self.groupColourmaps)
-        self.actionBwr.setActionGroup(self.groupColourmaps)
-        self.actionBwr_r.setActionGroup(self.groupColourmaps)
+        # self.groupColourmaps.triggered.connect(self.set_colourmap)
+        # self.actionJet.setActionGroup(self.groupColourmaps)
+        # self.actionJet_r.setActionGroup(self.groupColourmaps)
+        # self.actionJet_plus.setActionGroup(self.groupColourmaps)
+        # self.actionJet_plus_r.setActionGroup(self.groupColourmaps)
+        # self.actionBgy.setActionGroup(self.groupColourmaps)
+        # self.actionBgy_r.setActionGroup(self.groupColourmaps)
+        # self.actionBwr.setActionGroup(self.groupColourmaps)
+        # self.actionBwr_r.setActionGroup(self.groupColourmaps)
         # Set up colour limits
         self.actionRho_cax.triggered.connect(self.set_rho_cax)
         self.actionPhase_cax.triggered.connect(self.set_phase_cax)
@@ -132,6 +137,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # RMS plotting
         if self.map.dataset.response.sites:
             self.plotRMS.clicked.connect(self.update_map)
+        # Model plan view plotting
+        if self.map.dataset.model.file:
+            self.toggle_planView.clicked.connect(self.update_map)
+            self.planSlice.valueChanged.connect(self.update_map)
+            self.planSlice.setMinimum(0)
+            self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
+        else:
+            self.toggle_planView.setEnabled(False)
+            self.planSlice.setEnabled(False)
 
     def data_phase_tensor(self):
         if self.toggle_dataPhaseTensor.isChecked():
@@ -339,22 +353,23 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             print('Invalid colour limits')
 
     def set_colourmap(self):
-        if self.actionJet.isChecked():
-            self.map.colourmap = 'jet'
-        if self.actionJet_r.isChecked():
-            self.map.colourmap = 'jet_r'
-        if self.actionJet_plus.isChecked():
-            self.map.colourmap = 'jet_plus'
-        if self.actionJet_plus_r.isChecked():
-            self.map.colourmap = 'jet_plus_r'
-        if self.actionBgy.isChecked():
-            self.map.colourmap = 'bgy'
-        if self.actionBgy_r.isChecked():
-            self.map.colourmap = 'bgy_r'
-        if self.actionBwr.isChecked():
-            self.map.colourmap = 'bwr'
-        if self.actionBwr_r.isChecked():
-            self.map.colourmap = 'bwr_r'
+        self.map.colourmap = self.colourMenu.action_group.checkedAction().text()
+        # if self.actionJet.isChecked():
+        #     self.map.colourmap = 'jet'
+        # if self.actionJet_r.isChecked():
+        #     self.map.colourmap = 'jet_r'
+        # if self.actionJet_plus.isChecked():
+        #     self.map.colourmap = 'jet_plus'
+        # if self.actionJet_plus_r.isChecked():
+        #     self.map.colourmap = 'jet_plus_r'
+        # if self.actionBgy.isChecked():
+        #     self.map.colourmap = 'bgy'
+        # if self.actionBgy_r.isChecked():
+        #     self.map.colourmap = 'bgy_r'
+        # if self.actionBwr.isChecked():
+        #     self.map.colourmap = 'bwr'
+        # if self.actionBwr_r.isChecked():
+        #     self.map.colourmap = 'bwr_r'
         self.update_map()
 
     def set_period_label(self):
@@ -402,6 +417,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.data = dataset.data
         self.map.raw_data = dataset.raw_data
         self.map.response = dataset.response
+        self.map.model = dataset.model
         self.map.site_names = sites
         self.map._active_sites = active_sites
         self.map.site_locations['generic'] = self.map.get_locations(
@@ -415,14 +431,22 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # This should be changed to just destroy and redraw whatever features are needed
         # print(self.map.site_locations['generic'])
         # Also there should be a mechanism that makes sure this is only redrawn if something changes
-        x_lim = self.map.window['axes'][0].get_xlim()
-        y_lim = self.map.window['axes'][0].get_ylim()
         self.map.window['axes'][0].clear()
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
             self.map.window['colorbar'] = None
         # DEBUG
         # print('I am updating the map')
+        if self.toggle_planView.checkState():
+            self.map.plot_plan_view(z_slice=self.planSlice.value())
+            depth = self.map.model.dz[self.planSlice.value()]
+            if depth < 1000:
+                depth = '{:0.6g} m'.format(depth)
+            else:
+                depth = '{:0.6g} km'.format(depth / 1000)
+            self.planDepth.setText(depth)
+            self.toggle_responsePseudo.setCheckState(0)
+            self.toggle_dataPseudo.setCheckState(0)
         pseudosection_toggles = self.get_pseudosection_toggles()
         if pseudosection_toggles['data'] and pseudosection_toggles['fill']:
             fill_param = ''.join([pseudosection_toggles['fill'],
@@ -433,6 +457,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                         n_interp=self.nInterp.value())
         self.map.plot_rms = self.plotRMS.checkState()
         self.map.plot_locations()
+        self.map.plot_annotate()
         PT_toggles = self.get_PT_toggles()
         bar_fill = self.Bar_fill.itemText(self.Bar_fill.currentIndex())
         if 'None' not in PT_toggles['data']:
@@ -455,6 +480,12 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                            normalize=induction_toggles['normalize'],
                                            period_idx=self.active_period,
                                            arrow_type=arrowType)
+        self.set_axis_settings()
+        self.canvas.draw()
+
+    def set_axis_settings(self):
+        x_lim = self.map.window['axes'][0].get_xlim()
+        y_lim = self.map.window['axes'][0].get_ylim()
         if self.actionEqualAspect.isChecked():
             self.map.window['axes'][0].set_aspect('equal')
         else:
@@ -466,7 +497,6 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.actionLockAxis.isChecked():
             self.map.window['axes'][0].set_xlim(x_lim)
             self.map.window['axes'][0].set_ylim(y_lim)
-        self.canvas.draw()
 
 
     def get_pseudosection_toggles(self):
@@ -537,11 +567,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     'plots': {'all': None, 'highlight': None, 'mesh': None}}
         for ii, (dname, files) in enumerate(dataset_dict.items()):
             files = {file_type: files.get(file_type, '')
-                     for file_type in ('data', 'raw_path', 'response', 'list')}
+                     for file_type in ('data', 'raw_path', 'response', 'list', 'model')}
             dataset = data_structures.Dataset(listfile=files['list'],
                                               datafile=files['data'],
                                               responsefile=files['response'],
-                                              datpath=files['raw_path'])
+                                              datpath=files['raw_path'],
+                                              modelfile=files['model'])
             if ii == 0:
                 self.stored_datasets = {dname: dataset}
                 self.dataset = dataset
@@ -1480,7 +1511,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # DEBUG
         # print(self.site_names)
         self.map_view.map.active_sites = self.site_names
-        self.map_view.update_map()
+        for annotation in self.map_view.map.actors['annotation']:
+            annotation.remove()
+            del annotation
+        self.map_view.map.actors['annotation'] = []
+        # del self.map_view.map.actors['annotation']
+        self.map_view.map.plot_annotate()
+        self.map_view.set_axis_settings()
+        self.map_view.canvas.draw()
+        # self.map_view.update_map()
 
     def shift_site_names(self, shift=1):
         try:
@@ -1984,7 +2023,7 @@ class FileInputParser(object):
             return False
         if 'raw' in retval.keys():
             if 'list' not in retval.keys():
-                print('Cannt read raw data with a list file!')
+                print('Cannot read raw data with a list file!')
                 return False
         return retval
 
@@ -2097,6 +2136,7 @@ def main():
     if verify:
         # Because files is a dictionary, the plotter may not load the same dataset first every time.
         # The dataset that gets loaded first should be the same given the same start file.
+        # debug_print(files, 'debug.log')
         mainGUI = DataMain(files)  # Instantiate a GUI window
         mainGUI.show()  # Show it.
         ret = app.exec_()

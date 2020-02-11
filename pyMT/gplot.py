@@ -552,6 +552,8 @@ class MapView(object):
         self._active_sites = []
         self.site_locations = {'generic': [], 'active': [], 'all': []}
         self.toggles = {'raw_data': False, 'data': False, 'response': False}
+        self.actors = {'annotation': [], 'locations': [], 'pseudosection': [],
+                       'model': [], 'arrows': [], 'ellipses': []}
         self.site_marker = 'o'
         self.site_fill = True
         self.site_colour = 'k'
@@ -768,14 +770,16 @@ class MapView(object):
                                            edgecolors=self.site_colour,
                                            linewidths=self.edgewidth,
                                            facecolors=facecolour)
-            if self.annotate_sites == 'active':
-                for ii, (xx, yy) in enumerate(self.site_locations['active']):
-                    self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx))
-            elif self.annotate_sites == 'all':
-                for ii, (xx, yy) in enumerate(self.site_locations['active']):
-                        self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx))
-                for ii, (xx, yy) in enumerate(self.site_locations['generic']):
-                    self.window['axes'][0].annotate(self.generic_sites[ii], xy=(yy, xx))
+
+    def plot_annotate(self):    
+        if self.annotate_sites == 'active':
+            for ii, (xx, yy) in enumerate(self.site_locations['active']):
+                self.actors['annotation'].append(self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx)))
+        elif self.annotate_sites == 'all':
+            for ii, (xx, yy) in enumerate(self.site_locations['active']):
+                    self.actors['annotation'].append(self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx)))
+            for ii, (xx, yy) in enumerate(self.site_locations['generic']):
+                self.actors['annotation'].append(self.window['axes'][0].annotate(self.generic_sites[ii], xy=(yy, xx)))
         self.set_axis_limits()
 
     @utils.enforce_input(data_type=list, normalize=bool, period_idx=int, arrow_type=list)

@@ -143,7 +143,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>722</height>
+     <height>762</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -464,6 +464,46 @@ Resistivity</string>
           </property>
           <property name="value">
            <number>200</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string>Plan View</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0" colspan="2">
+         <widget class="QCheckBox" name="toggle_planView">
+          <property name="text">
+           <string>Plot Plan View</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Slice #</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="planSlice"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Depth:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="planDepth">
+          <property name="text">
+           <string>0 km</string>
           </property>
          </widget>
         </item>

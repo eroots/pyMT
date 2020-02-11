@@ -1,5 +1,8 @@
 Change Log
 ==========
+* 01/02/20
+  * Models can now be read into 'pystart' files in :ref:`Data Plot`.
+    * If loaded, plan view slices can be plotted in :ref:`Map View`.
 * 26/01/20
   * Can now update the RMS table with a button after changing the plotted dataset.
   * Plotting of imaginary tipper arrows.
