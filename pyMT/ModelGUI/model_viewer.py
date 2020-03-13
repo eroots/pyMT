@@ -397,9 +397,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.update_isosurface()
 
     def update_isosurface(self):
-        print(self.isoPlot.checkState())
-        print(self.actors['isosurface'])
-        print(self.contours)
+        # print(self.isoPlot.checkState())
+        # print(self.actors['isosurface'])
+        # print(self.contours)
         self.vtk_widget.remove_actor(self.actors['isosurface'])
         if self.isoPlot.checkState():
             if self.contours:
@@ -982,6 +982,8 @@ def main():
         return
     app = Qt.QApplication(sys.argv)
     viewer = ModelWindow(files)
+    viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
+
     viewer.show()
     ret = app.exec_()
     sys.exit(ret)

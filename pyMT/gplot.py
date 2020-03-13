@@ -55,12 +55,14 @@ def format_data_coords(x, y):
 
 
 class format_model_coords(object):
-    def __init__(self, im, X, Y, x_label='y', y_label='y'):
+    def __init__(self, im, X, Y, x_label='y', y_label='y', use_log=True, data_label='Resistivity'):
         self.im = im
         self.x_label = x_label
         self.y_label = y_label
         self.X = X
         self.Y = Y
+        self.use_log = use_log
+        self.data_label = data_label
 
     def __call__(self, x, y):
         # col = int(x + 0.5)
@@ -72,7 +74,13 @@ class format_model_coords(object):
         # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
         vals = np.array(self.im.get_array())
         # print((vals.shape, len(self.X), len(self.Y), len(self.X) * len(self.Y)))
-        vals = 10 ** np.reshape(vals, (len(self.Y) - 1, len(self.X) - 1))[y_idx, x_idx]
+        vals = np.reshape(vals, (len(self.Y) - 1, len(self.X) - 1))[y_idx, x_idx]
+        if self.use_log:
+            vals = 10 ** vals
+        if self.data_label.lower() == 'resistivity':
+            self.data_units = 'ohm-m'
+        elif self.data_label.lower() == 'phase':
+            self.data_units = 'Degrees'
         # z = vals[x_idx, y_idx]
         # print((x_idx, y_idx))
         # z = self.im.get_array()[x_idx * len(self.X) + y_idx]
@@ -83,9 +91,10 @@ class format_model_coords(object):
         # print(z)
         return '\t'.join(['{}: {:>4.4g} {}',
                           '{}: {:>4.4g} {}\n',
-                          'Resistivity: {} {}']).format(self.x_label, utils.truncate(self.X[x_idx]), 'km',
+                          '{}: {} {}']).format(self.x_label, utils.truncate(self.X[x_idx]), 'km',
                                                         self.y_label, utils.truncate(self.Y[y_idx]), 'km',
-                                                        utils.truncate(vals), 'ohm-m')
+                                                        self.data_label,
+                                                        utils.truncate(vals), self.data_units)
 
 
 class DataPlotManager(object):
@@ -564,6 +573,7 @@ class MapView(object):
         self.mec = 'k'
         self.markersize = 5
         self.edgewidth = 2
+        self.image_opacity = 1
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = 'active'
@@ -572,6 +582,7 @@ class MapView(object):
         self.phase_cax = [0, 90]
         self.diff_cax = [-10, 10]
         self.model_cax = [1, 5]
+        self.model = []
         self.padding_scale = 5
         self.plot_rms = False
         self.use_colourbar = True
@@ -583,6 +594,7 @@ class MapView(object):
         self.phase_error_tol = 30
         self.units = 'm'
         self.mesh = False
+        self.lut = 16
         self.linewidth = 0.005
         if figure is None:
             self.new_figure()
@@ -599,7 +611,7 @@ class MapView(object):
 
     @property
     def cmap(self):
-        return cm.get_cmap(self.colourmap)
+        return cm.get_cmap(self.colourmap, N=self.lut)
 
     @property
     def generic_sites(self):
@@ -649,6 +661,7 @@ class MapView(object):
 
     @coordinate_system.setter
     def coordinate_system(self, coordinate_system):
+        coordinate_system = coordinate_system.lower()
         if coordinate_system in MapView.COORD_SYSTEMS and coordinate_system != self._coordinate_system:
             if self.verify_coordinate_system(coordinate_system):
                 self._coordinate_system = coordinate_system
@@ -656,7 +669,15 @@ class MapView(object):
                 self.site_locations['generic'] = self.get_locations(sites=generic_sites)
                 self.site_locations['active'] = self.get_locations(sites=self.active_sites)
                 self.site_locations['all'] = self.get_locations(sites=self.site_names)
-                self.plot_locations()
+                if self.model != []:
+                    center = utils.center_locs(self.site_locations['all'])[1]
+                    print(center)
+                    if coordinate_system.lower() == 'utm':
+                        self.model.to_UTM(origin=utils.center_locs(np.fliplr(self.site_locations['all']))[1])
+                    else:
+                        self.model.to_local()
+                    print(self.model.center)
+                # self.plot_locations()
 
     def verify_coordinate_system(self, coordinate_system):
         if coordinate_system.lower() == 'local':
@@ -713,10 +734,10 @@ class MapView(object):
         if ax is None:
             ax = self.window['axes'][0]
         if bounds is None:
-            min_x, max_x = (min(self.site_data['data'].locations[:, 1]),
-                            max(self.site_data['data'].locations[:, 1]))
-            min_y, max_y = (min(self.site_data['data'].locations[:, 0]),
-                            max(self.site_data['data'].locations[:, 0]))
+            min_x, max_x = (min(self.site_locations['all'][:, 1]),
+                            max(self.site_locations['all'][:, 1]))
+            min_y, max_y = (min(self.site_locations['all'][:, 0]),
+                            max(self.site_locations['all'][:, 0]))
             x_pad = (max_x - min_x) / self.padding_scale
             y_pad = (max_y - min_y) / self.padding_scale
             ax.set_xlim([min_x - x_pad, max_x + x_pad])
@@ -754,7 +775,8 @@ class MapView(object):
                                                s=marker_size['generic'],
                                                edgecolors=self.site_colour,
                                                linewidths=self.edgewidth,
-                                               facecolors=facecolour)
+                                               facecolors=facecolour,
+                                               zorder=9)
             except IndexError:
                 debug_print(len(self.site_locations['generic']), 'debug.log')
 
@@ -769,7 +791,8 @@ class MapView(object):
                                            s=marker_size['active'],
                                            edgecolors=self.site_colour,
                                            linewidths=self.edgewidth,
-                                           facecolors=facecolour)
+                                           facecolors=facecolour,
+                                           zorder=9)
 
     def plot_annotate(self):    
         if self.annotate_sites == 'active':
@@ -976,11 +999,11 @@ class MapView(object):
         for ii, ellipse in enumerate(ellipses):
             self.window['axes'][0].fill(ellipse[0], ellipse[1],
                                         color=self.cmap(norm_vals[ii]),
-                                        zorder=0,
+                                        zorder=3,
                                         edgecolor='k',
                                         linewidth=2)
             self.window['axes'][0].plot(ellipse[0], ellipse[1],
-                                        'k-', linewidth=1)
+                                        'k-', linewidth=1, zorder=3)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
         self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
                                                       self.site_locations['all'][good_idx, 0],
@@ -1052,9 +1075,11 @@ class MapView(object):
                                      width=rectangle[1],
                                      height=rectangle[2],
                                      angle=rectangle[3],
-                                     color=self.cmap(norm_vals[ii]))
+                                     color=self.cmap(norm_vals[ii]),
+                                     zorder=4)
             self.window['axes'][0].add_patch(rect)
         self.set_axis_limits()
+        print('Done plotting elbars')
 
     @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
     def plot_phase_bar2(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
@@ -1124,6 +1149,8 @@ class MapView(object):
             # temp_vals = []
             # good_idx = []
             if 'rho' in fill_param.lower():
+                data_label = 'Resistivity'
+                use_log = True
                 # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
                 #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
                 #     (phase_tensor.phasexy_error < self.phase_error_tol) and
@@ -1141,6 +1168,8 @@ class MapView(object):
                                                         errtype='none')[0][period_idx]) for site in data.site_names])
                 # vals.append(temp_vals)
             elif 'pha' in fill_param.lower():
+                data_label = 'Phase'
+                use_log = False
                 # vals.append(utils.compute_phase(site=data.sites[site],
                 #                                 calc_comp=fill_param,
                 #                                 errtype='none',
@@ -1159,7 +1188,7 @@ class MapView(object):
                 vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
             elif 'pha' in fill_param.lower():
                 vals = (np.array(vals[1]) - np.array(vals[0]))  # / np.array(vals[0])
-        loc_x, loc_y = (data.locations[:, 1], data.locations[:, 0])
+        loc_x, loc_y = self.site_locations['all'][:, 1], self.site_locations['all'][:, 0]
         loc_z = np.zeros(loc_x.shape)
         points = np.transpose(np.array((loc_x, loc_y, loc_z)))
         min_x, max_x = (min(loc_x), max(loc_x))
@@ -1170,8 +1199,9 @@ class MapView(object):
         min_y, max_y = (min_y - y_pad, max_y + y_pad)
         # step_size_x = (max_x - min_x) / n_interp
         # step_size_y = (max_y - min_y) / n_interp
-        grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp),
-                                     np.linspace(min_y, max_y, n_interp))
+        X = np.linspace(min_x, max_x, n_interp)
+        Y = np.linspace(min_y, max_y, n_interp)
+        grid_x, grid_y = np.meshgrid(X, Y)
         grid_ranges = [[min_x, max_x, n_interp * 1j],
                        [min_y, max_y, n_interp * 1j],
                        [0, 1, 1]]
@@ -1199,6 +1229,11 @@ class MapView(object):
                                           labelpad=20,
                                           fontsize=18)
         self.set_axis_limits()
+        self.window['axes'][0].format_coord = format_model_coords(im,
+                                              X=X, Y=Y,
+                                              x_label='Easting', y_label='Northing',
+                                              data_label=data_label,
+                                              use_log=use_log)
 
     def get_label(self, param):
         if param.lower() == 'alpha':
@@ -1241,6 +1276,7 @@ class MapView(object):
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
         ax.set_ylabel('Northing (km)')
+        ax.set_xlabel('Easting (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
                                               x_label='Easting', y_label='Northing')
@@ -1299,3 +1335,7 @@ class MapView(object):
                                               x_label=x_label.split()[0],
                                               y_label=y_label.split()[0])
 
+    def plot_image(self, image, extents, ax=None):
+        if not ax:
+            ax = self.window['axes'][0]
+        ax.imshow(image, extent=extents, alpha=self.image_opacity, zorder=2)

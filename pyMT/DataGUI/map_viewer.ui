@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1030</width>
-    <height>769</height>
+    <height>801</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -116,10 +116,19 @@
      <addaction name="actionInductionScale"/>
      <addaction name="actionInductionCutoff"/>
     </widget>
+    <widget class="QMenu" name="menuCoordinate_System">
+     <property name="title">
+      <string>Coordinate System</string>
+     </property>
+     <addaction name="action_coordLocal"/>
+     <addaction name="action_coordUTM"/>
+     <addaction name="action_coordLatlong"/>
+    </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
     <addaction name="menuPhase_Tensors"/>
     <addaction name="menuInduction_Arrows"/>
+    <addaction name="menuCoordinate_System"/>
    </widget>
    <widget class="QMenu" name="menuAxis_Options">
     <property name="title">
@@ -128,6 +137,15 @@
     <addaction name="actionEqualAspect"/>
     <addaction name="actionLockAxis"/>
    </widget>
+   <widget class="QMenu" name="menuJPEG">
+    <property name="title">
+     <string>JPEG</string>
+    </property>
+    <addaction name="actionLoad_JPEG"/>
+    <addaction name="actionShow_JPEG"/>
+    <addaction name="actionOpacity"/>
+   </widget>
+   <addaction name="menuJPEG"/>
    <addaction name="menuOptions"/>
    <addaction name="menuPoint_options"/>
    <addaction name="menuAxis_Options"/>
@@ -725,6 +743,51 @@ Resistivity</string>
    </property>
    <property name="text">
     <string>Lock Axis Limits</string>
+   </property>
+  </action>
+  <action name="actionLoad_JPEG">
+   <property name="text">
+    <string>Load JPEG</string>
+   </property>
+  </action>
+  <action name="actionShow_JPEG">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show JPEG</string>
+   </property>
+  </action>
+  <action name="actionOpacity">
+   <property name="text">
+    <string>Opacity</string>
+   </property>
+  </action>
+  <action name="action_coordLocal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Local</string>
+   </property>
+  </action>
+  <action name="action_coordUTM">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>UTM</string>
+   </property>
+  </action>
+  <action name="action_coordLatlong">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lat/Long</string>
    </property>
   </action>
  </widget>

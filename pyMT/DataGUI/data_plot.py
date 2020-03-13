@@ -27,6 +27,7 @@ import re
 from PyQt5.uic import loadUiType
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.figure import Figure
+from matplotlib.pyplot import imread
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -55,6 +56,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.active_period = 0
         self.map = gplot.MapView()
         self.fig = self.map.window['figure']
+        self.background_image = {'extent': [], 'image': []}
         self.init_map(dataset, sites, active_sites)
         self.periods = self.map.site_data['data'].periods
         self.colourMenu = ColourMenu(self)
@@ -146,6 +148,80 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         else:
             self.toggle_planView.setEnabled(False)
             self.planSlice.setEnabled(False)
+        # JPEG Loading
+        self.actionLoad_JPEG.triggered.connect(self.load_jpeg)
+        self.actionShow_JPEG.triggered.connect(self.show_jpeg)
+        self.actionOpacity.triggered.connect(self.set_image_opacity)
+        # Coordinate System
+        self.groupCoords = QtWidgets.QActionGroup(self)
+        self.action_coordUTM.setActionGroup(self.groupCoords)
+        self.action_coordLocal.setActionGroup(self.groupCoords)
+        self.action_coordLatlong.setActionGroup(self.groupCoords)
+        self.groupCoords.triggered.connect(self.coord_system)
+
+    def coord_system(self):
+        can_do = 1
+        if self.action_coordLocal.isChecked():
+            if self.map.verify_coordinate_system('local'):
+                self.map.coordinate_system = 'local'
+        elif self.action_coordUTM.isChecked():
+            if self.map.verify_coordinate_system('utm'):
+                self.map.coordinate_system = 'utm'
+            else:
+                can_do = 0
+
+        elif self.action_coordLatlong.isChecked():
+            if self.map.verify_coordinate_system('latlong'):
+                self.map.coordinate_system = 'latlong'
+            else:
+                can_do = 0
+        if can_do:
+            self.update_map()
+        else:
+            QtWidgets.QMessageBox.warning(self, 'Unable to change coordinate system.')
+            self.action_coordLocal.setChecked(True)
+
+    def set_image_opacity(self):
+        val, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                           'Opacity',
+                                                           'Value: ',
+                                                           self.map.image_opacity, 0, 1, 2)
+        if ok_pressed:
+            self.map.image_opacity = val
+            if self.actionShow_JPEG.isChecked():
+                self.update_map()
+
+    def show_jpeg(self):
+        if self.actionShow_JPEG.isChecked():
+            if self.background_image['extent']:
+                self.update_map()
+                print('Updating')
+            else:
+                self.actionShow_JPEG.setCheckState(0)
+                print('Not Updating')
+        else:
+            self.update_map()
+
+    def load_jpeg(self):
+        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Get JPEG', '', 'Image Files (*.jpg *.jpeg)')[0]
+        if file_name:
+            try:
+                im = imread(file_name)
+                with open(file_name[:-3] + 'jgw', 'r') as f:
+                    xsize = float(f.readline())
+                    dummy = f.readline()
+                    dummy = f.readline()
+                    ysize = 1 * float(f.readline())
+                    x1 = float(f.readline())
+                    y2 = float(f.readline())
+                x2 = x1 + xsize * im.shape[1]
+                y1 = y2 + ysize * im.shape[0]
+                self.background_image['image'] = im
+                self.background_image['extent'] = [x1, x2, y1, y2]
+                self.actionShow_JPEG.setChecked(True)
+                self.update_map()
+            except FileNotFoundError:
+                QtWidgets.QMessageBox.warning(self, 'File not readable, or world file not found.')
 
     def data_phase_tensor(self):
         if self.toggle_dataPhaseTensor.isChecked():
@@ -431,12 +507,17 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # This should be changed to just destroy and redraw whatever features are needed
         # print(self.map.site_locations['generic'])
         # Also there should be a mechanism that makes sure this is only redrawn if something changes
+        self.x_lim = self.map.window['axes'][0].get_xlim()
+        self.y_lim = self.map.window['axes'][0].get_ylim()
         self.map.window['axes'][0].clear()
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
             self.map.window['colorbar'] = None
         # DEBUG
         # print('I am updating the map')
+        if self.actionShow_JPEG.isChecked():
+            self.map.plot_image(image=self.background_image['image'],
+                               extents=self.background_image['extent'])
         if self.toggle_planView.checkState():
             self.map.plot_plan_view(z_slice=self.planSlice.value())
             depth = self.map.model.dz[self.planSlice.value()]
@@ -465,6 +546,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period)
             if bar_fill != PT_toggles['fill'] and len(PT_toggles['data']) == 1:
+                print('plotting elbars')
                 self.map.plot_phase_bar(data_type=PT_toggles['data'],
                                         fill_param=bar_fill,
                                         period_idx=self.active_period)
@@ -484,8 +566,6 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.canvas.draw()
 
     def set_axis_settings(self):
-        x_lim = self.map.window['axes'][0].get_xlim()
-        y_lim = self.map.window['axes'][0].get_ylim()
         if self.actionEqualAspect.isChecked():
             self.map.window['axes'][0].set_aspect('equal')
         else:
@@ -495,8 +575,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # DEBUG
         # print('Updating Map')
         if self.actionLockAxis.isChecked():
-            self.map.window['axes'][0].set_xlim(x_lim)
-            self.map.window['axes'][0].set_ylim(y_lim)
+            self.map.window['axes'][0].set_xlim(self.x_lim)
+            self.map.window['axes'][0].set_ylim(self.y_lim)
 
 
     def get_pseudosection_toggles(self):

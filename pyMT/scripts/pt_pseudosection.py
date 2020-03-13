@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1.mpl_axes import Axes
 
 
 local_path = 'C:/Users/eroots/'
-
+local_path = 'E:'
 
 def generate_ellipse(phi):
     step_size = np.pi / 30
@@ -22,11 +22,13 @@ def generate_ellipse(phi):
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
-listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
-main_list = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
+# listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
+# main_list = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
 # listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
-# main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
-# listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst'
+# main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
+listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
+# listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
 # main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
 # listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_eastLine.lst'
@@ -67,26 +69,28 @@ for use_list_dummy in [0]:
 
     # data = WSDS.RawData(listfile=listfile)
     normalize = 1
-    fill_param = 'phi_2'
-    # fill_param = 'beta'
+    # fill_param = 'phi_2'
+    fill_param = 'beta'
     # fill_param = 'Lambda'
     # use_periods = sorted(list(data.narrow_periods.keys()))
-    all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
+    # all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
+    all_periods = set(list(data.sites['18-swz022m'].periods) + list(data.sites['18-swz007a'].periods))
+    # all_periods = list(data.sites['SWZ079M'].periods)
     # all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
-    use_periods = sorted([p for p in all_periods if p < 15])
+    use_periods = sorted([p for p in all_periods if 0.005 <p < 15])
     high_cut = 15
     # use_periods = sorted([p for p in data.narrow_period_list(count_tol=0.1, high_tol=0.1).keys() if p < 150])
     # use_periods = data.sites[data.site_names[0]].periods
-    x_scale, y_scale = 1, 1.25
+    x_scale, y_scale = 0.1, 0.1
     save_fig = 0
     freq_skip = 1
-    radius = 0.1
     # radius = 0.1
+    radius = 0.01
     # radius = 1
     label_offset = -4.5
     # label_offset = -3.7
     annotate_sites = 0
-    use_colourbar = 0
+    use_colourbar = 1
     # file_path = local_path + '/phd/ownCloud/Documents/TGI/Figures/PT_pseudosections/'
     file_path = local_path + '/phd/ownCloud/Documents/ME_transects/Swayze_paper/RoughFigures/PT_round2/'
     file_name = 'pt_pseudosection_phi2_south_all_linear'
@@ -96,8 +100,8 @@ for use_list_dummy in [0]:
     linear_xaxis = 1
     # cmap = cm.jet_plus_r(64)
     # cmap = cm.get_cmap('turbo', 64)
-    # cmap = cm.bwr(32)
-    cmap = cm.get_cmap('turbo', 32)
+    cmap = cm.bwr(32)
+    # cmap = cm.get_cmap('turbo', 32)
 
     data.locations = data.get_locs(mode='latlong')
     main_transect.locations = main_transect.get_locs(mode='latlong')

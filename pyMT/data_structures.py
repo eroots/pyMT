@@ -1274,20 +1274,23 @@ class Model(object):
             Convert model coordinates to UTM
             Usage: model.to_UTM(origin=None) where origin is (Easting, Northing)
         '''
+        print('in to_UTM')
         if self.coord_system == 'local':
             if origin:
+                print('in if origin')
                 self.origin = origin
             elif self.origin is None:
                 print('Must specify origin if model.origin is not set')
                 return False
-            else:
-                self._dx = [x + self.origin[1] for x in self._dx]
-                self._dy = [y + self.origin[0] for y in self._dy]
+            print('should be doing stuff')
+            self._dx = [x + self.origin[1] for x in self._dx]
+            self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':
+            print('in if latlong')
             self._dy, self._dx = utils.project((self._dx, self._dy))
         elif self.coord_system == 'UTM':
             print('Already in UTM')
-            return
+            return False
         self.coord_system = 'UTM'
         return True
 

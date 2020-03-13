@@ -100,6 +100,17 @@ list_file = local_path + '/data/Regions/MetalEarth/geraldton/j2/GER_R2.lst'
 model_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_PT_placed_nest.model'
 data_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_Z_placed.data'
 ########################################
+# WESTERN SUPERIOR - DRYDEN - R2
+model_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.rho'
+model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# model_file_large = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/PT/ger_Z_placed_large.model'
+base_data = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.dat'
+base_list = local_path + '/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst'
+data_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/dry_central_base.dat'
+list_file = local_path + '/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst'
+model_out = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/dry_all_placed_large.model'
+data_out = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/ger_all_placed.data'
+########################################
 # LIBEREC
 # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/4site/4site_reg.dat'
 # base_data = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/2site/901-902_reg.dat'
@@ -109,7 +120,7 @@ data_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_Z_
 
 # model_out = r'C:/Users\eroots\phd\ownCloud\data\Regions\Liberec/4site/4site_placed.model'
 # data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\Liberec/4site/4site_placed.data'
-produce_large_model = 0
+produce_large_model = 1
 plot_it = 0
 write_it = 1
 plot_depth = 20000  # in meters
@@ -275,16 +286,16 @@ for ii in range(len(mod.dz) - 1):
 # max_depth = 1000000
 ######################################
 # STURGEON WST2STU
-bot_edge = min(data.locations[:, 0]) - 1000
-top_edge = max(data.locations[:, 0]) + 1000
-left_edge = min(data.locations[:, 1]) - 1000
-right_edge = max(data.locations[:, 1]) + 1000
-x_interp = int(abs(bot_edge - top_edge) / 100)
-y_interp = int(abs(left_edge - right_edge) / 100)
+bot_edge = min(data.locations[:, 0]) - 1500
+top_edge = max(data.locations[:, 0]) + 1500
+left_edge = min(data.locations[:, 1]) - 1500
+right_edge = max(data.locations[:, 1]) + 500
+x_interp = int(abs(bot_edge - top_edge) / 750)
+y_interp = int(abs(left_edge - right_edge) / 750)
 # x_interp = 100
 # y_interp = 70
-n_xpad = 15
-n_ypad = 15
+n_xpad = 30
+n_ypad = 30
 # n_xpad = 10
 # n_ypad = 10
 pad_multiplier = 1.1
