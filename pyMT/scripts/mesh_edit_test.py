@@ -27,7 +27,6 @@ local_path = 'E:/phd/Nextcloud'
 # model_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_placed.model'
 # data_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all_placed.data'
 
-#########
 # # SOUTH-EAST
 # model_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
 # base_data = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
@@ -60,16 +59,16 @@ local_path = 'E:/phd/Nextcloud'
 # data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.data'
 ########################################
 # WESTERN SUPERIOR - DRYDEN
-# model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-# base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
-# base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
-# # data_file = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.data'
-# data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry_noOOQ_wMoreLegacy.dat'
-# list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst'
-# # list_file = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
-# # base_list = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\j2\southcentral.lst'
-# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry2\wst2dry'
-# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry2\wst2dry'
+# model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
+# base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
+# data_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/finish/dry5_norot.dat'
+# # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry_noOOQ_wMoreLegacy.dat'
+# # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst'
+# list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
+# # # base_list = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\j2\southcentral.lst'
+# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
+# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
 ########################################
 # WESTERN SUPERIOR - STURGEON
 # model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
@@ -89,6 +88,15 @@ local_path = 'E:/phd/Nextcloud'
 # model_out = local_path + r'ownCloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed_nest.model'
 # data_out = local_path + r'ownCloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed.data'
 ########################################
+# GERALDTON R2
+model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\wst2ger_lastIter.rho'
+# model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\ger_Z_placed_flagged.dat'
+base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\geraldton\j2\ger_consCull_R1.lst'
+data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\GER_R2_base.data'
+list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\j2\GER_R2.lst'
+model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed_nest.model'
+data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed.data'
 # WESTERN SUPERIOR - GERALDTON - R2
 model_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.rho'
 model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
@@ -296,6 +304,16 @@ y_interp = int(abs(left_edge - right_edge) / 750)
 # y_interp = 70
 n_xpad = 30
 n_ypad = 30
+# n_xpad = 25
+# n_ypad = 25
+n_xpad = 20
+n_ypad = 20
+pad_multiplier = 1.2
+min_depth = 1
+max_depth = 500000
+depths_per_decade = (8, 10, 12, 12, 10, 8)
+n_xpad = 15
+n_ypad = 15
 # n_xpad = 10
 # n_ypad = 10
 pad_multiplier = 1.1

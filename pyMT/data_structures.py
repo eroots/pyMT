@@ -1287,7 +1287,8 @@ class Model(object):
             self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':
             print('in if latlong')
-            self._dy, self._dx = utils.project((self._dx, self._dy))
+            # self._dy, self._dx = utils.project((self._dx, self._dy))
+            self._dy, self._dx = utils.project((self._dx, self._dy), zone=self.UTM_zone[:-1], letter=self.UTM_zone[-1])
         elif self.coord_system == 'UTM':
             print('Already in UTM')
             return False

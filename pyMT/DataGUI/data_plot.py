@@ -139,6 +139,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # RMS plotting
         if self.map.dataset.response.sites:
             self.plotRMS.clicked.connect(self.update_map)
+        else:
+            self.plotRMS.setEnabled(False)
         # Model plan view plotting
         if self.map.dataset.model.file:
             self.toggle_planView.clicked.connect(self.update_map)

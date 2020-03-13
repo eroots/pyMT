@@ -24,6 +24,8 @@ def generate_ellipse(phi):
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
 # listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
 # main_list = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
+listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
 # main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
@@ -84,6 +86,17 @@ for use_list_dummy in [0]:
     x_scale, y_scale = 0.1, 0.1
     save_fig = 0
     freq_skip = 1
+    all_periods = sorted(list(data.narrow_periods.keys()))
+    # all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
+    # all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
+    # use_periods = sorted([p for p in all_periods if p < 15])
+    high_cut = 1000
+    # use_periods = sorted([p for p in data.narrow_period_list(count_tol=0.1, high_tol=0.1).keys() if p < 150])
+    use_periods = data.sites[data.site_names[0]].periods
+    x_scale, y_scale = 0.0075, 1
+    save_fig = 0
+    freq_skip = 2
+    radius = 0.75
     # radius = 0.1
     radius = 0.01
     # radius = 1
@@ -97,7 +110,7 @@ for use_list_dummy in [0]:
     # file_name = '{}_{}'.format(use_list, fill_param)
     file_types = ['.png', '.svg']
     dpi = 600
-    linear_xaxis = 1
+    linear_xaxis = 0
     # cmap = cm.jet_plus_r(64)
     # cmap = cm.get_cmap('turbo', 64)
     cmap = cm.bwr(32)
@@ -143,11 +156,12 @@ for use_list_dummy in [0]:
     # scale = np.sqrt((len(data.site_names) - 1) ** 2 +
     #                 (np.log10(np.max(periods)) -
     #                  np.log10(np.min(periods))) ** 2)
-    #     x_scale = np.sqrt((np.max(data.locations[:, 0] / 1000) -
-    #                        np.min(data.locations[:, 0]) / 1000) ** 2)
+    # x_scale = np.sqrt((np.max(data.locations[:, 0] / 1000) -
+                       # np.min(data.locations[:, 0]) / 1000) ** 2)
     # y_scale = np.sqrt((np.log10(np.max(use_periods)) -
                        # np.log10(np.min(use_periods))) ** 2)
-
+    x_normalize = (np.max(data.locations[:, 0]) - np.min(data.locations[:, 0]))
+    y_normalize = np.max(np.log10(use_periods)) - np.min(np.log10(use_periods))
     # scale = 2
     periods = []
     loc = []
@@ -161,8 +175,8 @@ for use_list_dummy in [0]:
         if site_name in main_transect.site_names:
             main_sites.append(site_name)
             site = data.sites[site_name]
-            for jj, period in enumerate(site.periods):
-            # for jj, period in enumerate(use_periods):
+            # for jj, period in enumerate(site.periods):
+            for jj, period in enumerate(use_periods):
                 # if jj % 2 == 0 and period < 1100 and period >= 1 / 300:
                 if (jj % (freq_skip + 1) == 0) and (period < high_cut):
                     kk = np.argmin(abs(period - site.periods))
@@ -194,8 +208,8 @@ for use_list_dummy in [0]:
                     # radius = 100
                     # if radius > 1000:
                     # phi_x, phi_y = [(scale / (radius * 1000)) * x for x in (phi_x, phi_y)]
-                    phi_x *= (radius / (x_scale))
-                    phi_y *= (radius / (y_scale))
+                    phi_x *= (radius / (x_scale * x_normalize))
+                    phi_y *= (radius / (y_scale * y_normalize))
                     y_max = np.max(phi_y) - np.min(phi_y)
                     x_max = np.max(phi_x) - np.min(phi_x)
                     # if x_max * 5 < y_max:
