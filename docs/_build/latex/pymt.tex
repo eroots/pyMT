@@ -156,11 +156,18 @@ The tested method of installation involves installing each of these with Anacond
 \chapter{Testing Installation}
 \label{\detokenize{content/api_core/testing_installation:testing-installation}}\label{\detokenize{content/api_core/testing_installation::doc}}
 Test data is included in the ‘test\_data’ folder.
-From that folder, try launching each of the GUIs:
+From that folder, try launching each of the GUIs from the command line:
+\begin{description}
+\item[{{\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}::}] \leavevmode
+data\_plot -n pytest
 
-{\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}: data\_plot -n pytest
-{\hyperref[\detokenize{content/mesh_designer/main_window:mesh-designer}]{\sphinxcrossref{\DUrole{std,std-ref}{Mesh Designer - Main Window}}}}: mesh\_designer testfile\_ModEM.dat
-{\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}: model\_viewer testfile\_ModEM.dat testfile\_ModEM.model
+\item[{{\hyperref[\detokenize{content/mesh_designer/main_window:mesh-designer}]{\sphinxcrossref{\DUrole{std,std-ref}{Mesh Designer - Main Window}}}}::}] \leavevmode
+mesh\_designer testfile\_ModEM.dat
+
+\item[{{\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}::}] \leavevmode
+model\_viewer testfile\_ModEM.dat testfile\_ModEM.model
+
+\end{description}
 
 If they all launch, you should be good to go.
 If not, most likely there is a dependency issue somewhere.
