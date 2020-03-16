@@ -10,6 +10,25 @@ import pyMT.utils as utils
 import pickle
 
 
+#####################################
+########## INSTRUCTIONS #############
+# Run script through command line (python bath2model.py) or in ipython (run bath2model) 
+# Also note that this script may have dependencies not required by the rest of pyMT (e.g., urllib, codecs, Basemap).
+# If you get any 'module not found' errors, use anaconda to install them then try again.
+# I've also run into issues with Basemap. If you get an error 'KeyError: 'PROJ_LIB'', try running 'conda install -c conda-forge proj4'.
+# This script should be the last thing that is run to generate your inversion inputs (I can't guarantee that mesh_designer and data_plot will play nice and preserve the changes made here)
+# Replace file names below with your own file names (Lines 128-135)
+#   - model_file: input model file (the one you want to add topography to). This should be set up as you want it, minus topography.
+#          i.e., it should have the desired resistivities and lateral meshing, as well as the sufficient vertical mesh to support topography at your required resolution.
+#   - list_file: The list file (as used by pyMT) containing the EDI or j-format files to read in.
+#   - data_file: The ModEM data file to modify. As with the model file, this should already be set up as you want it for the inversion - this script will only modify the elevations.
+#   - bath_file: The file containing the bathymetry / topography data. If this is the first time running this script, set bath_file = []. The script will generate the bathymetry and save it to bath_out
+#   - bath_out: File to save bathymetry data to. The script goes online and downloads the required data, so you can use this and bath_file to make sure you're only downloading it once.
+#   - model_out: File to save the modified model to. The only difference between this and 'model_file' is that the relevant model cells will have air resistivities.
+#   - cov_out: File to save the covariance file to. This file is required by ModEM when using topography / bathymetry.
+#   - data_out: File to save the modified data to. The only difference between this and 'data_file' is that the data here will have non-zero elevation values.
+# There are a few other things you can change if you want below these lines. Comment in / out as needed.
+
 def get_bathymetry(minlat, maxlat, minlon, maxlon):
     print('Retrieving topo data from latitude {:>6.3g} to {:>6.3g}, longitude {:>6.3g} to {:>6.3g}'.format(minlat, maxlat, minlon, maxlon))
     # Read data from: http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.html
@@ -109,13 +128,15 @@ if __name__ == '__main__':
     # Define the domain of interest
     #################################
     # LANAI
-    model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Lanai/test/test.model'
-    list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Lanai/j2/lanai_good_only.lst'
-    data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Lanai/test/lanai_test_Z.dat'
-    bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Lanai/test/bathy.p'
-    model_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/Lanai/test/test_wTopoAndOcean.model'
-    cov_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/Lanai/test/lanai_wTopoAndOcean.cov'
-    data_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/Lanai/test/lanai_wTopoAndOcean_Z.dat'
+    model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
+    list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
+    data_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_test_Z.dat'
+    bath_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/bathy.p'
+    bath_out = []
+    model_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test_wTopoAndOcean.model'
+    cov_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean.cov'
+    data_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean_Z.dat'
+
     #################################
     # COREDILLA
     # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/test_topo.model'
@@ -142,11 +163,18 @@ if __name__ == '__main__':
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
     model = DS.Model(model_file)
-    model.zCS = [200] * 20 + model.zCS
-    # model.dz = list(range(0, 10000, 100)) + list(range(10000, 100000, 1000))  # Just for testing, make an evenly spaced subsurface
-    model.background_resistivity = 100
-    model.generate_half_space()
     model.origin = raw_data.origin
+    ####################################
+    # If you want to modify the vertical meshing, do it now (see examples below)
+    # Add 20 layers that are each 200 m thick, then append the existing mesh (I used this for testing purposes)
+    # model.zCS = [200] * 20 + model.zCS
+    # Another testing mesh, this time with 100 m layers from 0-10 km, then 1 km layers from 10-100 km depth
+    # model.dz = list(range(0, 10000, 100)) + list(range(10000, 100000, 1000))
+    ####################################
+    # Change as needed
+    # model.background_resistivity = 100
+    # model.generate_half_space()
+    # This one is needed to make sure the projection to lat/long is correct.
     model.UTM_zone = '4Q'
     # model.UTM_zone = '16N'
     # model.UTM_zone = '15U'

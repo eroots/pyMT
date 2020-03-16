@@ -180,6 +180,7 @@ class Dataset(object):
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
         self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
+        self.data.auto_set_inv_type()
 
     def read_model(self, modelfile=''):
         """Summary
@@ -368,6 +369,25 @@ class Dataset(object):
             print('Order {} not recognized.'.format(order))
             return
         self.data.locations = self.data.get_locs()
+        if self.has_dType('response'):
+            if order in (None, 'Default'):
+                self.response.site_names = [site for site in site_names
+                                        if site in self.response.site_names]
+            elif order.lower() == 'west-east':
+                self.response.site_names = sorted(self.response.site_names,
+                                              key=lambda x: self.response.sites[x].locations['Y'])
+            elif order.lower() == 'south-north':
+                self.response.site_names = sorted(self.response.site_names,
+                                              key=lambda x: self.response.sites[x].locations['X'])
+            elif order.lower() == 'clustering':
+                sites = sorted(self.response.site_names,
+                               key=lambda x: (self.response.sites[x].locations['X'],
+                                              self.response.sites[x].locations['Y']))
+                self.response.site_names = sites
+            else:
+                print('Order {} not recognized.'.format(order))
+                return
+            self.response.locations = self.response.get_locs()
 
     def regulate_errors(self, multiplier=2.5, fwidth=1):
         use_log = False

@@ -17,7 +17,7 @@
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="LICENSE" href="../misc/LICENSE.html" />
+    <link rel="next" title="Scripts" href="scripts.html" />
     <link rel="prev" title="Mesh Designer - Main Window" href="../mesh_designer/main_window.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -27,7 +27,7 @@
           <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="../misc/LICENSE.html" title="LICENSE"
+          <a href="scripts.html" title="Scripts"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="../mesh_designer/main_window.html" title="Mesh Designer - Main Window"
@@ -64,6 +64,30 @@ Therefore, adding new stations to an existing data file must be done using the p
 <span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;new_data&#39;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s1">&#39;modem&#39;</span><span class="p">)</span>  <span class="c1"># Write the new data out.</span>
 </pre></div>
 </div>
+<p>Alternatively, multiple ModEM data files can be combined (e.g., append tipper data from one file into another), so long as resulting file still adheres to pyMT’s requirements (i.e., uniform periods and data components for all sites).</p>
+</div>
+<div class="section" id="working-with-inconsistent-periods-components">
+<h2>Working with Inconsistent Periods / Components<a class="headerlink" href="#working-with-inconsistent-periods-components" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes it may be desireable to invert a data set that has a non-uniform period set and / or component set, for example when mixing AMT and BB stations. If the number of wasted data points is low (maybe 3-4 frequencies total), it is usually simpler to just set high errors to the unavailable frequencies and let the inversion run as normal (the number of processors required is the same regardless, addition RAM required for wasted data points is low).
+Note, a ‘wasted data point’ is a data point which is will be inverted at a subset of stations, but is unavailable at other stations (most often when mixing stations with different bandwidths, or stations with / without tipper)
+However, if you intend to invert many frequencies and / or components that would be unavailable at a subset of stations, there is a workaround. This workaround requires some knowledge of Python, and preferably a text editor that allows you to find, select, and remove all lines containing a particular string (e.g., Sublime Text).</p>
+<p>First, you should set up the ModEM data file as usual (i.e., using Data Plot or j2ws3d).
+Make note of (or intentionally set up) any patterns you can use to distinguish your stations. In this example, broadband stations end in ‘M’, and AMT stations end in ‘A’. The final 4 periods of AMT stations, and first 3 periods of BB stations will be flagged and removed.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="s1">&#39;demo.dat&#39;</span><span class="p">)</span>  <span class="c1"># Load your data set</span>
+<span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">site_names</span><span class="p">:</span>  <span class="c1"># Loop through stations</span>
+        <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>  <span class="c1"># If its an AMT station</span>
+                <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>  <span class="c1"># Loop over available components</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="o">.</span><span class="n">used_error</span><span class="p">[</span><span class="n">comp</span><span class="p">][</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">REMOVE_FLAG</span>  <span class="c1"># Flag the errors for the last 4 periods</span>
+        <span class="k">elif</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="o">.</span><span class="n">used_error</span><span class="p">[</span><span class="n">comp</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">REMOVE_FLAG</span>  <span class="c1"># Flag the errors for the first 3 periods</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;demo_flagged&#39;</span><span class="p">)</span>  <span class="c1"># Write out a new &#39;flagged&#39; version of the data file</span>
+</pre></div>
+</div>
+<p>This will create a new data file with the periods to be removed flagged with errors corresponding to the Data.REMOVE_FLAG (at the time of writing, it is 1234567)</p>
+<p>Open this file in your text editor of choice. Find all instances of the REMOVE_FLAG, cut and paste the corresponding lines so they are all at the end of the file (this isn’t required, it just makes life easier). Save this to ‘demo_flagged.dat’. Now remove the corresponding lines. Save this to a new data file (e.g., ‘demo_removed.dat’)
+You can now invert the ‘demo_removed.dat’. When using pyMT, you will still have to use the ‘demo_flagged.dat’ version which has a uniform period band. Furthermore, when reading in the response file created by inverting ‘demo_removed.dat’, you will have to copy-paste the removed periods from ‘demo_flagged.dat’ into it (this is why I moved the flagged lines to the end of the file).</p>
+<p>I apologize for this incredibly roundabout method. Allowing for non-uniform data files in pyMT will require a large re-working of the code, and at this time it is more important to have working tools with some odd quirks than to have fully featured tools with game-breaking bugs.</p>
 </div>
 </div>
 
@@ -77,6 +101,7 @@ Therefore, adding new stations to an existing data file must be done using the p
   <ul>
 <li><a class="reference internal" href="#">Recipes</a><ul>
 <li><a class="reference internal" href="#adding-data-to-an-existing-data-file">Adding Data to an Existing Data File</a></li>
+<li><a class="reference internal" href="#working-with-inconsistent-periods-components">Working with Inconsistent Periods / Components</a></li>
 </ul>
 </li>
 </ul>
@@ -85,8 +110,8 @@ Therefore, adding new stations to an existing data file must be done using the p
   <p class="topless"><a href="../mesh_designer/main_window.html"
                         title="previous chapter">Mesh Designer - Main Window</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="../misc/LICENSE.html"
-                        title="next chapter">LICENSE</a></p>
+  <p class="topless"><a href="scripts.html"
+                        title="next chapter">Scripts</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -115,7 +140,7 @@ Therefore, adding new stations to an existing data file must be done using the p
           <a href="../../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="../misc/LICENSE.html" title="LICENSE"
+          <a href="scripts.html" title="Scripts"
              >next</a> |</li>
         <li class="right" >
           <a href="../mesh_designer/main_window.html" title="Mesh Designer - Main Window"
@@ -125,7 +150,7 @@ Therefore, adding new stations to an existing data file must be done using the p
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Eric Roots.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>

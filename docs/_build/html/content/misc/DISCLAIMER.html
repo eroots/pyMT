@@ -68,6 +68,7 @@
 <li><dl class="simple">
 <dt>Rotating the data / stations using the ‘Azimuth’ box has a few associated bugs</dt><dd><ul>
 <li><p>The station locations and annotations in the <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> may not be accurate</p></li>
+<li><p>Non-zero azimuths also do something with the ordering of the stations in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>, and cycling through stations with the <a class="reference internal" href="../data_plot/main_window.html#forward-and-back-buttons"><span class="std std-ref">Forward and Back Buttons</span></a> changes the order on the map. Will try to fix this.</p></li>
 <li><dl class="simple">
 <dt>The Azimuth editor is meant to be used for 3-D data, and rotates the data accordingly: Station locations are rotated clockwise from north, and the data is rotated counter-clockwise to maintain a measurement coordinate system that is consistent with the model space (see <a class="reference external" href="https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/">https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/</a>)</dt><dd><ul>
 <li><p>A consequence of this setup is that the GUI is not suitable to rotation and projection into 2-D.</p></li>
@@ -170,7 +171,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Eric Roots.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>

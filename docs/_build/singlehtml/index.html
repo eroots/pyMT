@@ -1,0 +1,1864 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<span id="document-content/api_core/installation"></span><div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<p>Python 3.5 (or greater)
+Numpy
+SciPy
+matplotlib
+pyqt
+colorcet
+pyshp
+pyproj
+pyvista
+pyvtk
+naturalneighbor</p>
+</div>
+<div class="section" id="installing-pymt">
+<h3>Installing pyMT<a class="headerlink" href="#installing-pymt" title="Permalink to this headline">¶</a></h3>
+<p>Clone the repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">eroots</span><span class="o">/</span><span class="n">pyMT</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Install by navigating to the cloned pyMT directory and entering:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>Or if you intend to modify the code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
+</pre></div>
+</div>
+<p>All dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with potentially complicated dependencies.
+These include:</p>
+<ul class="simple">
+<li><p>pip</p></li>
+<li><p>numpy</p></li>
+<li><p>scipy</p></li>
+<li><p>matplotlib</p></li>
+<li><p>pyqt</p></li>
+<li><p>colorcet</p></li>
+</ul>
+<p>The tested method of installation involves installing each of these with Anaconda prior to installing pyMT.</p>
+</div>
+</div>
+<span id="document-content/api_core/testing_installation"></span><div class="section" id="testing-installation">
+<h2>Testing Installation<a class="headerlink" href="#testing-installation" title="Permalink to this headline">¶</a></h2>
+<p>Test data is included in the ‘test_data’ folder.
+From that folder, try launching each of the GUIs:</p>
+<p><a class="reference internal" href="index.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>: data_plot -n pytest
+<a class="reference internal" href="index.html#mesh-designer"><span class="std std-ref">Mesh Designer - Main Window</span></a>: mesh_designer testfile_ModEM.dat
+<a class="reference internal" href="index.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a>: model_viewer testfile_ModEM.dat testfile_ModEM.model</p>
+<p>If they all launch, you should be good to go.
+If not, most likely there is a dependency issue somewhere.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<span id="document-content/api_core/data_structures"></span><div class="section" id="data-structures">
+<h2>data_structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dataset">
+<span id="id1"></span><h3>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="data">
+<span id="id2"></span><h3>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="error-floors">
+<span id="id3"></span><h3>Error Floors<a class="headerlink" href="#error-floors" title="Permalink to this headline">¶</a></h3>
+<p>Error floors may be set in a Data object by setting the corresponding value in the error_floors attribute.
+Data.error_floors initialized as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Data</span><span class="o">.</span><span class="n">error_floors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Off-Diagonal Impedance&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                 <span class="s1">&#39;Diagonal Impedance&#39;</span><span class="p">:</span> <span class="mf">0.075</span><span class="p">,</span>
+                 <span class="s1">&#39;Tipper&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                 <span class="s1">&#39;Rho&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                 <span class="s1">&#39;Phase&#39;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The corresponding entries may be modified as any dictionary and then accesing the apply_error_floor method. For instance, to change the error floor of the ZXY and ZYX components to 7.5%, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">error_floors</span><span class="p">[</span><span class="s1">&#39;Off-Diagonal Impedance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.075</span>
+<span class="n">data</span><span class="o">.</span><span class="n">apply_error_floor</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="rawdata">
+<span id="id4"></span><h3>RawData<a class="headerlink" href="#rawdata" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="response">
+<span id="id5"></span><h3>Response<a class="headerlink" href="#response" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="site">
+<span id="id6"></span><h3>Site<a class="headerlink" href="#site" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="model">
+<span id="id7"></span><h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<span id="document-content/api_core/input_files"></span><div class="section" id="input-file-types">
+<h2>Input File Types<a class="headerlink" href="#input-file-types" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="startup-file">
+<span id="id1"></span><h3>Startup File<a class="headerlink" href="#startup-file" title="Permalink to this headline">¶</a></h3>
+<p>The startup file specifies the relevant paths and files, as well as the roles of those files.
+The startup file is broken into seperate data sets, with a ‘%’ denoting the beginning of a new data set specification, and the subsequent lines giving the role and paths of the files to be used. Lines starting with a ‘#’ will be ignored, which allows the insertion of comments.
+A data set can contain one <a class="reference internal" href="#list-file">List File</a>, <a class="reference internal" href="#data-file">Data File</a>, and <a class="reference internal" href="#response-file">Response File</a>, or any permutation thereof (as long as only one of each is specified per data set). Additionally, you can specify a common path to each file, as well as a separate path which points to the location of the raw data files (EDI or j-format files), although this has not been fully tested, and so specifying relative or absolute paths is the safer option for now.
+An example startup file is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># This specification assumes allsites.lst, inv.dat, and the EDI/j-format files are all in the same folder as pystart</span>
+<span class="o">%</span> <span class="n">data_set1</span>
+<span class="nb">list</span> <span class="n">allsites</span><span class="o">.</span><span class="n">lst</span>
+<span class="n">data</span> <span class="n">inv</span><span class="o">.</span><span class="n">dat</span>
+<span class="c1"># The list and EDI files are in a folder ./EDIs</span>
+<span class="o">%</span> <span class="n">data_set2</span>
+<span class="nb">list</span> <span class="n">EDIs</span><span class="o">/</span><span class="n">broadband</span><span class="o">.</span><span class="n">lst</span>
+<span class="c1"># The list file and EDIs are in ./EDIs and the data and response files are in ./inversion2</span>
+<span class="o">%</span> <span class="n">data_set3</span>
+<span class="nb">list</span> <span class="n">EDIs</span><span class="o">/</span><span class="n">broadband</span><span class="o">.</span><span class="n">lst</span>
+<span class="n">data</span> <span class="n">inversion2</span><span class="o">/</span><span class="n">broadband</span><span class="o">.</span><span class="n">dat</span>
+<span class="n">resp</span> <span class="n">inversion2</span><span class="o">/</span><span class="n">inv_response</span><span class="o">.</span><span class="n">dat</span>
+</pre></div>
+</div>
+<p>Assuming this file is called ‘pystart’ and the terminal is in the same folder, the GUI can be launched with (for example):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data_plot</span> <span class="o">-</span><span class="n">n</span> <span class="n">pystart</span> <span class="o">-</span><span class="n">c</span> <span class="n">data_set1</span><span class="p">:</span><span class="n">data_set2</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-file">
+<span id="id2"></span><h3>Data File<a class="headerlink" href="#data-file" title="Permalink to this headline">¶</a></h3>
+<p>The data files are those that are used as input to your inversions.
+Currently implemented formats are:</p>
+<ul class="simple">
+<li><p>ModEM (2-D)</p></li>
+<li><p>ModEM (3-D)</p></li>
+<li><p>WSINV3DMT</p></li>
+<li><p>Occam2D</p></li>
+<li><p>MARE2DEM</p></li>
+</ul>
+<p>Thus far, only ModEM and WSINV3DMT file formats have been used extensively. Other formats, while implemented, have not been thoroughly tested.</p>
+<p>Data file handling is implemented through the <a class="reference internal" href="index.html#data"><span class="std std-ref">Data</span></a> class.</p>
+</div>
+<div class="section" id="response-file">
+<span id="id3"></span><h3>Response File<a class="headerlink" href="#response-file" title="Permalink to this headline">¶</a></h3>
+<p>The response file output from an inversion. If the format of data and response files is the same for your given inversion code (as is the case for ModEM), then data and response files may be used interchangeably.</p>
+<p>Currently implemented formats are the same as for the <a class="reference internal" href="#data-file">Data File</a>
+Response file handling is implemented through the <a class="reference internal" href="index.html#response"><span class="std std-ref">Response</span></a> class, which is largely just a subclass of <a class="reference internal" href="index.html#data"><span class="std std-ref">Data</span></a>.</p>
+</div>
+<div class="section" id="list-file">
+<span id="id4"></span><h3>List File<a class="headerlink" href="#list-file" title="Permalink to this headline">¶</a></h3>
+<p>A list file specifies the EDI or j-format files you would like to import.
+The first line specifies the number of stations contained in the file, and each subsequent line is the name of a station. The names can specify .EDI or .dat to specifically read in EDI or j-format files. The file-reader will look for both if no format is specified, preferentially selecting j-format files if both formats are present.</p>
+<p>List files can be used to assign station names to when read into a <a class="reference internal" href="index.html#data"><span class="std std-ref">Data</span></a> object (for instance, a normal WSINV3DMT data file does not contain station names), or to specify the files to be read into a <a class="reference internal" href="index.html#rawdata"><span class="std std-ref">RawData</span></a> object.</p>
+</div>
+<div class="section" id="model-file">
+<span id="id5"></span><h3>Model File<a class="headerlink" href="#model-file" title="Permalink to this headline">¶</a></h3>
+<p>The model files that are used as input to and output from the inversions.
+Currently implemented formats are:</p>
+<ul class="simple">
+<li><p>ModEM (2-D)</p></li>
+<li><p>ModEM (3-D)</p></li>
+<li><p>WSINV3DMT</p></li>
+</ul>
+<p>Thus far, only ModEM and WSINV3DMT file formats have been used extensively. Other formats, while implemented, have not been thoroughly tested. Furthermore, 2-D ModEM model files have not been used much, and so may result in some unpredictable behavior.</p>
+<p>Model file handling is implemented through the <a class="reference internal" href="index.html#model"><span class="std std-ref">Model</span></a> class.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="guis">
+<h1>GUIs<a class="headerlink" href="#guis" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="data-plot">
+<h2>Data Plot<a class="headerlink" href="#data-plot" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-content/data_plot/getting_started"></span><div class="section" id="getting-started">
+<h3>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="launching-the-gui">
+<h4>Launching the GUI<a class="headerlink" href="#launching-the-gui" title="Permalink to this headline">¶</a></h4>
+<p>The data plotting GUI is launched from the command line. A number of options exist on exactly how to specify which files you would like to use, which can be accessed using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data_plot</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>which will output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Options</span> <span class="n">include</span><span class="p">:</span>
+ <span class="o">-</span><span class="n">d</span> <span class="p">:</span> <span class="n">Use</span> <span class="n">default</span> <span class="n">startup</span> <span class="n">file</span> <span class="s2">&quot;pystart&quot;</span>
+ <span class="o">-</span><span class="n">b</span> <span class="p">:</span> <span class="n">Browse</span> <span class="k">for</span> <span class="n">start</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">data</span> <span class="n">files</span> <span class="p">(</span><span class="n">Not</span> <span class="n">yet</span> <span class="n">implemented</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">n</span> <span class="p">:</span> <span class="n">Specify</span> <span class="n">the</span> <span class="n">start</span> <span class="n">file</span> <span class="n">you</span> <span class="n">wish</span> <span class="n">to</span> <span class="n">use</span>
+ <span class="o">-</span><span class="n">l</span> <span class="p">:</span> <span class="n">List</span> <span class="n">the</span> <span class="n">dataset</span> <span class="n">names</span> <span class="n">present</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">start</span> <span class="n">file</span> <span class="n">you</span> <span class="n">have</span> <span class="n">chosen</span>
+ <span class="o">-</span><span class="n">c</span> <span class="p">:</span> <span class="n">Choose</span> <span class="n">a</span> <span class="n">specific</span> <span class="n">dataset</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">listed</span> <span class="n">within</span> <span class="n">the</span> <span class="n">start</span> <span class="n">file</span> <span class="n">you</span> <span class="n">have</span> <span class="n">chosen</span>
+         <span class="n">For</span> <span class="n">multiple</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">separate</span> <span class="n">names</span> <span class="k">with</span> <span class="n">a</span> <span class="n">colon</span> <span class="p">(:)</span>
+</pre></div>
+</div>
+<p>Options can (and generally should) be used in conjuction.
+For example, the most common method of launching the GUI is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data_plot</span> <span class="o">-</span><span class="n">n</span> <span class="o">&lt;</span><span class="n">startup_file</span><span class="o">&gt;</span> <span class="o">-</span><span class="n">c</span> <span class="o">&lt;</span><span class="n">dataset_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This will open the <a class="reference internal" href="index.html#startup-file"><span class="std std-ref">Startup File</span></a> and initialize the GUI with the specified dataset. If no dataset is give (i.e., the -c flag is not used), all datasets within &lt;startup_file&gt; will be loaded.</p>
+</div>
+<div class="section" id="required-files">
+<h4>Required Files<a class="headerlink" href="#required-files" title="Permalink to this headline">¶</a></h4>
+<p>The data plotting GUI requires at minimum a <a class="reference internal" href="index.html#startup-file"><span class="std std-ref">Startup File</span></a> containing at least one of the following:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="index.html#list-file"><span class="std std-ref">List File</span></a></p></li>
+<li><p><a class="reference internal" href="index.html#data-file"><span class="std std-ref">Data File</span></a></p></li>
+<li><p><a class="reference internal" href="index.html#response-file"><span class="std std-ref">Response File</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="default-behavior">
+<h4>Default Behavior<a class="headerlink" href="#default-behavior" title="Permalink to this headline">¶</a></h4>
+<p>A few things to note about the default behavior of data_plot:</p>
+<ul class="simple">
+<li><p>Raw data (data read in from EDI / j-format files indicated in a list file) are shown by filled circles</p></li>
+<li><p>Inversion data (data read in or created for use in inversion) are indicated by filled circles with a black outline</p></li>
+<li><p>Response data (data read in from an inversion response file) is indicated by a solid line</p></li>
+<li><p>By default, data is displayed as is. Particularly for impedance data, it is useful to view it multiplied the periods or square root of the periods to be able to visualize both short and long periods equally well. This can be done through the <a class="reference internal" href="index.html#scaling"><span class="std std-ref">Scaling</span></a> drop-down menu.</p></li>
+<li><p>Some of the features of the Data Plot GUI and the <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> require raw data in order to operate (e.g., addition of periods). Therefore it is generally best to include a <a class="reference internal" href="index.html#list-file"><span class="std std-ref">List File</span></a> in all datasets to be plotted.</p></li>
+<li><p>The <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> plot is updated any time a contained element is changed. In general this operation is fast. However, if a pseudosection is being plotted in the <a class="reference internal" href="index.html#map-window"><span class="std std-ref">Map Window</span></a>, any operation involving a new plot (including changing the viewed sites using the <a class="reference internal" href="index.html#forward-and-back-buttons"><span class="std std-ref">Forward and Back Buttons</span></a>) may become quite slow.</p></li>
+<li><dl class="simple">
+<dt>When only a <a class="reference internal" href="index.html#list-file"><span class="std std-ref">List File</span></a> is specified for the loaded dataset, a <a class="reference internal" href="index.html#data"><span class="std std-ref">Data</span></a> object will be initialized by taking logarithmically spaced periods.</dt><dd><ul>
+<li><p>In this instance, the <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> is not initialized properly, and no site locations are shown. The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>When multiple datasets are loaded in, the misfit table may not be properly updated to reflect the currently selected dataset.</p></li>
+</ul>
+</div>
+</div>
+<span id="document-content/data_plot/main_window"></span><div class="section" id="data-plot-main-window">
+<span id="data-plot"></span><h3>Data Plot - Main Window<a class="headerlink" href="#data-plot-main-window" title="Permalink to this headline">¶</a></h3>
+<p>When the Data Plot GUI is launched, you will see a screen that looks something like:</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_opening_screen.png"><img alt="_images/data_plot_opening_screen.png" src="_images/data_plot_opening_screen.png" style="width: 960.0px; height: 516.0px;" /></a>
+</div>
+<p>From here there are 5 main areas. From top to bottom:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#menu-bar">Menu Bar</a></p></li>
+<li><p><a class="reference internal" href="#forward-and-back-buttons">Forward and Back Buttons</a></p></li>
+<li><p><a class="reference internal" href="#tabs-window">Tabs Window</a></p></li>
+<li><p><a class="reference internal" href="#plot-window">Plot Window</a></p></li>
+<li><p><a class="reference internal" href="#toolbar">Toolbar</a></p></li>
+</ul>
+<p>The Forward and Back Buttons as well as the Tabs Window are contained within a dock that can removed from the main window and moved to a different location if desired.</p>
+<p>WARNING: Do not exit the docked window (i.e., do not click the ‘x’ contained in the gray bar of the dock), as there is no way to get it back and the Data Plot GUI will need to be closed and relaunched.</p>
+<div class="section" id="menu-bar">
+<span id="id1"></span><h4>Menu Bar<a class="headerlink" href="#menu-bar" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_menu_bar.png"><img alt="_images/data_plot_menu_bar.png" src="_images/data_plot_menu_bar.png" style="width: 960.0px; height: 516.0px;" /></a>
+</div>
+<p>The menu bar offers a number of options from various drop down menus.</p>
+<p>The ‘WS Data Plot’ menu… does nothing. It is a legacy menu that was never used for anything other than testing.</p>
+<p>The ‘Display Options’ menu, as the name implies, gives a few options for changing the display behavior of the main plots.</p>
+<ul>
+<li><p>Phase Wrap: The default behavior when plotting phase data is to have the XY mode in the 1st quadrant, and the YX mode in the 3rd quadrant. The ‘Phase Wrap’ button forces both to be plotted into the 1st quadrant.</p></li>
+<li><p>Error Bars: The errors from both the raw data and inversion data files are plotted by default (if both are available). When creating data files for inversion, you may want to turn one or the other off. Hovering this menu will drop out options to turn the Raw or Data error bars on or off</p></li>
+<li><p>Write: This menu gives various output options.</p>
+<blockquote>
+<div><ul>
+<li><p>List File: Writes out a new list file corresponding to any changes you’ve made in the GUI (e.g., order changes, addition or removal of stations)</p></li>
+<li><p>Data File: Writes out a data file in the chosen format corresponding to the selected periods and inversion type</p></li>
+<li><p>Current Plot: Writes out the current plot window to a PDF file. Note that a PNG version can also be saved using the <a class="reference internal" href="#toolbar">Toolbar</a>, although the resolution may not be as good.</p></li>
+<li><p>All Plots: Iterates through all stations and writes them all to a single PDF file (using the number of subplots indicated in the <a class="reference internal" href="#plot-options">Plot Options</a> tab).</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>This has not been fully debugged, and may crash the GUI. Known instances of this are when you attempt to overwrite an open PDF file.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><dl class="simple">
+<dt>Inversion Type: Used to control which data components are written to a data file. If nothing is selected, it defaults to all components that were originally read in.</dt><dd><ul class="simple">
+<li><p>Note that some inversion types only work with certain file formats. Inversion types 1-5 work for both WSINV3DMT and ModEM, while inversion types 6-10 only work with ModEM.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="forward-and-back-buttons">
+<span id="id2"></span><h4>Forward and Back Buttons<a class="headerlink" href="#forward-and-back-buttons" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/forward_back_buttons.png"><img alt="_images/forward_back_buttons.png" src="_images/forward_back_buttons.png" style="width: 960.0px; height: 516.0px;" /></a>
+</div>
+<p>These are used to iterate through the stations to be plotted.
+There is a known bug here where if more subplots are used than there are stations available, using these buttons will result in one station being re-plotted in the remaining subplots.</p>
+</div>
+<div class="section" id="tabs-window">
+<h4>Tabs Window<a class="headerlink" href="#tabs-window" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_tabs_window.png"><img alt="_images/data_plot_tabs_window.png" src="_images/data_plot_tabs_window.png" style="width: 960.0px; height: 516.0px;" /></a>
+</div>
+<p>The Tabs Window is the main control window for the Data Plot GUI. There are (currently) 5 tabs, with each giving different options for either the manipulation or plotting of the data.</p>
+<div class="section" id="data-selection">
+<h5>Data Selection<a class="headerlink" href="#data-selection" title="Permalink to this headline">¶</a></h5>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_selection_tab.png"><img alt="_images/data_plot_selection_tab.png" src="_images/data_plot_selection_tab.png" style="width: 667.0px; height: 131.0px;" /></a>
+</div>
+<p>The main controls within the Data Selection tab are the ‘Add Periods to Data’ checkbox, and the ‘Site List’ / ‘Removed Sites’ tables.</p>
+<div class="section" id="adding-and-removing-periods">
+<h6>Adding and Removing Periods<a class="headerlink" href="#adding-and-removing-periods" title="Permalink to this headline">¶</a></h6>
+<p>By default, clicking on the plots within the <a class="reference internal" href="#plot-window">Plot Window</a> gives behavior similar to what you would expect from a normal plot window (e.g., you can use the <a class="reference internal" href="#toolbar">Toolbar</a> options to pan, zoom, etc.)
+To add and remove periods from the inversion, you must first override these controls by checking the ‘Add Periods to Data’ checkbox.</p>
+<p>Once checked, you can add periods to the inversion by left clicking on a data point that is not already included in the inversion (i.e., a filled, non-outlined circle within a plot). Doing so will add the selected period to the stored data across all sites, and should result in the data point becoming highlighted across all plots.</p>
+<p>Periods can be removed from the inversion data by right clicking on an active data point (i.e., one that is outlined in black). This will remove the selected point from the inversion data, resulting in the points outline being removed from all plots.</p>
+<p>When you are done selecting periods, uncheck the ‘Add Periods to Data’ checkbox to resume normal plot behavior.</p>
+<p>Note that if a period is selected that is not available at all stations, the data from the closest available period will be used instead at those stations. Be careful when adding periods that are not available at all stations. In extreme cases (e.g., when mixing AMT and broadband data), the closest available period at some sites may be too far from the selected period to be reliably substituted, and essentially becomes dummy data. The error bars on any dummy data must be increased (either within the Data Plot GUI, or programatically), or the data point itself must be manually edited (either programatically or within a data file).</p>
+</div>
+<div class="section" id="sorting-sites">
+<h6>Sorting Sites<a class="headerlink" href="#sorting-sites" title="Permalink to this headline">¶</a></h6>
+<p>By default, the order of the stations is the same as the order in which they were read in (i.e., the order in which they appear within a <a class="reference internal" href="index.html#list-file"><span class="std std-ref">List File</span></a> or <a class="reference internal" href="index.html#data-file"><span class="std std-ref">Data File</span></a>).</p>
+<p>The ‘Sort Sites’ drop down menu can be used to reorder the stations by location. Available options are west-to-east, south-to-north, and ‘Clustering’. The ‘Clustering’ option attempts to sort the stations by proximity to each other, so nearby sites are listed next to each other.</p>
+<p>At any time you can restore the original ordering by selecting ‘Default’.</p>
+<p>Reording the stations results in the order being changed within the ‘Site List’ table, which gives the order in which the stations will be displayed when iterating using the <a class="reference internal" href="#forward-and-back-buttons">Forward and Back Buttons</a></p>
+</div>
+<div class="section" id="current-dataset">
+<h6>Current Dataset<a class="headerlink" href="#current-dataset" title="Permalink to this headline">¶</a></h6>
+<p>The Current Dataset drop-down menu controls which dataset is being displayed. If only one dataset was read in from the used <a class="reference internal" href="index.html#startup-file"><span class="std std-ref">Startup File</span></a>, then only one option will be available.</p>
+<p>Note: This feature has not been extensively tested, and at this point is mainly for comparing different inversion results within the same Data Plot window. A known bug exists where changing between different datasets does not update the <a class="reference internal" href="#misfit-table">Misfit Table</a>.</p>
+</div>
+<div class="section" id="print-periods">
+<h6>Print Periods<a class="headerlink" href="#print-periods" title="Permalink to this headline">¶</a></h6>
+<p>This button will print diagnostic information about the periods contained in the dataset into the Debug Window (the far right window within the Data Selection tab).</p>
+<p>The printed periods correspond to those periods that are available at least 50% of the stations.
+The first column gives the period values. Negative values indicate frequencies instead (1 / period).
+The second column gives log10(period).</p>
+<p>The last column gives the fraction of stations at which the period is available.
+Stars indicate that the periods in that row are currently included in the inversion data.</p>
+</div>
+<div class="section" id="azimuth">
+<h6>Azimuth<a class="headerlink" href="#azimuth" title="Permalink to this headline">¶</a></h6>
+<p>The azimuth spinbox controls the rotation of the stations (both locations and data coordinate system).
+The azimuth is always set to a positive number between 0-359.</p>
+<p>Data and station rotations are currently set up for 3-D inversion, in that a positive azimuth results in a clockwise rotation (from north) of the station locations, and a counter-clockwise rotation of the data. As a result, the rotating the data within the Data Plot GUI is not suitable to rotation and projection into 2-D.</p>
+<p>This feature has been tested, but not used extensively. Therefore, always double check that the location and data rotations are correct. Inverting incorrectly rotated data leads to incorrect models.</p>
+</div>
+<div class="section" id="site-list">
+<h6>Site List<a class="headerlink" href="#site-list" title="Permalink to this headline">¶</a></h6>
+<p>The ‘Site List’ and ‘Remove Sites’ indicate which sites are currently included in the inversion data, and which have been removed, respectively.</p>
+<p>Sites can be removed by selecting them within the Site List and clicking the right arrow (to the right of the list). Sites that have been removed can be added back in by selecting them within the Removed Sites table and clicking the left arrow.</p>
+<p>Currently there is no way to add new sites to an existing <a class="reference internal" href="index.html#data-file"><span class="std std-ref">Data File</span></a> from within the Data Plot GUI. Such an operation can be done programatically through the API. See the <a class="reference internal" href="index.html#recipes"><span class="std std-ref">Recipes</span></a> section for more details.</p>
+</div>
+<div class="section" id="diagnostic-windows">
+<h6>Diagnostic Windows<a class="headerlink" href="#diagnostic-windows" title="Permalink to this headline">¶</a></h6>
+<p>There are 2 additional widgets within the Data Selection tab that are non-interactive and only for display purposes.</p>
+<p>The first is the ‘# Params’ box, which simply displays the number of periods and number of sites currently included in the inversion data.</p>
+<p>The second is an empty white box that displays diagnostic information. Since the terminal used to launch the Data Plot GUI is inaccessible during operation of the GUI, information will be printed here instead (e.g., information printed out from the <a class="reference internal" href="#print-periods">Print Periods</a> button)</p>
+</div>
+</div>
+<div class="section" id="plot-options">
+<span id="id3"></span><h5>Plot Options<a class="headerlink" href="#plot-options" title="Permalink to this headline">¶</a></h5>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_options_tab.png"><img alt="_images/data_plot_options_tab.png" src="_images/data_plot_options_tab.png" style="width: 952.0px; height: 125.5px;" /></a>
+</div>
+<p>The Plot Options tab controls what is plotted within the <a class="reference internal" href="#plot-window">Plot Window</a>. Additionaly, the <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> is accessed from within this tab.</p>
+<div class="section" id="toggle-plots">
+<h6>Toggle Plots<a class="headerlink" href="#toggle-plots" title="Permalink to this headline">¶</a></h6>
+<p>The Toggle Plots groupbox contains checkboxes for toggling elements to be plotted, as well as some aspects of the plots themselves.</p>
+<p>The Raw Data, Data, and Response checkboxes toggle on and off the plotting of their respective components. If a particular data type is not available, the corresponding button <em>should</em> be inactive.</p>
+<p>The Show Outliers checkbox adds or removes outliers from the <a class="reference internal" href="#plot-window">Plot Window</a>. This does not remove them from the inversion data or the raw data, but rather trims the axis limits to not include such data within the plots.</p>
+<p>It is worth mentioning that the algorithm used to detect outliers is very basic and not particularly robust.</p>
+<p>The Lock Axes checkbox is used to force all plots to have the same axis limits. Useful when flipping through the stations to check, e.g., data quality.</p>
+</div>
+<div class="section" id="error-bars">
+<h6>Error Bars<a class="headerlink" href="#error-bars" title="Permalink to this headline">¶</a></h6>
+<p>The Error Bars groupbox controls which error bars are plotted.</p>
+<p>When ‘Data Errors’ is selected, the errors from the original data file are used.</p>
+<p>When ‘Used Errors’ is selected, the errors that will be used in the inversion are shown, i.e., the original data errors multiplied by the error map.</p>
+<p>The No Errors button removes all error bars from the plots.</p>
+</div>
+<div class="section" id="scaling">
+<span id="id4"></span><h6>Scaling<a class="headerlink" href="#scaling" title="Permalink to this headline">¶</a></h6>
+<p>The Scaling drop-down menu controls how the plotted data is scaled when viewed.
+‘None’ indicates that the unaltered data is shown.
+‘Periods’ multiplies each data point by its period. Only useful when viewing short and long period data similtaneously.</p>
+<p>‘Sqrt(Periods)’ multiples each data point by the square root of its period. This is the most common option when viewing impedance data, as it allows both short and long period data to be viewed equally well.</p>
+<p>The chosen scale factor is only applied to impedance and tipper data, and not for derived data types such as the apparent resistivity and phase.</p>
+</div>
+<div class="section" id="subplots">
+<span id="id5"></span><h6>Subplots<a class="headerlink" href="#subplots" title="Permalink to this headline">¶</a></h6>
+<p>The # Subplots edit line controls how many subplots are shown in the <a class="reference internal" href="#plot-window">Plot Window</a>. The default value is 6. Any positive value works here, however larger values will increase the time it takes to change the plots as the program will have to iterate through more stations to generate each new set of plots.</p>
+</div>
+<div class="section" id="show-map">
+<span id="id6"></span><h6>Show Map<a class="headerlink" href="#show-map" title="Permalink to this headline">¶</a></h6>
+<p>The Show Map button is used to launch the <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>.</p>
+</div>
+<div class="section" id="data-component-table">
+<span id="id7"></span><h6>Data Component Table<a class="headerlink" href="#data-component-table" title="Permalink to this headline">¶</a></h6>
+<p>The final and largest widget in the Tabs Window is the Data Component Table. This controls which components are plotted into the <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<p>Any number of components can be plotted at the same time by using CTRL+click, SHFT+click, or click+drag provided they are contained in the same column of the table. If components from different columns are selected (e.g., an ZXXR and RhoXY), a pop-up window will appear with a warning and the selected components will be reset.</p>
+<p>There is a known bug where the blank items of the table are selectable. However, this results in the first available component being plotted instead, and so should not break the GUI.</p>
+</div>
+</div>
+<div class="section" id="misfit-table">
+<span id="id8"></span><h5>Misfit Table<a class="headerlink" href="#misfit-table" title="Permalink to this headline">¶</a></h5>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_misfit_tab.png"><img alt="_images/data_plot_misfit_tab.png" src="_images/data_plot_misfit_tab.png" style="width: 952.0px; height: 131.0px;" /></a>
+</div>
+<p>The Misfit Table tab shows information regarding the misfits (calculated as the RMS differences) between the data and response. The tab is separated into two tables.</p>
+<p>The left hand table shows the misfit on a per site basis, with each row representing a single site and each column representing a given data component.</p>
+<p>The right hand table gives the misfits on a per period basis, again with each row representing a single period and each column representing a single data component.</p>
+<p>Both tables have an additional column for the ‘total misfit’ across each row. For the left table, this means the total misfit per site (averaged across all components and periods), and in the right table it gives the total misfit per period (averaged across all sites and components).</p>
+<p>The right hand table also contains an additional row at the top that gives the total misfit across all periods and sites for each column. As such, the top left entry of the right table gives the total misfit of the inversion.</p>
+<p>Note, the RMS misfits in this table may differ slightly from what logged by ModEM as pyMT always applies an error floor to any data read in. As ModEM does not explicitly use (or store) an applied error floor, the hard-coded error floors of pyMT may differ from those used in the inversion. As a result, if you used a lower error floor than those coded into pyMT, the misfits shown in this table will be lower.</p>
+</div>
+<div class="section" id="error-multipliers">
+<span id="id9"></span><h5>Error Multipliers<a class="headerlink" href="#error-multipliers" title="Permalink to this headline">¶</a></h5>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_multipliers_tab.png"><img alt="_images/data_plot_multipliers_tab.png" src="_images/data_plot_multipliers_tab.png" style="width: 957.0px; height: 134.0px;" /></a>
+</div>
+<p>The Error Multipliers tab is the main control window for setting the data errors. In order to compatible with both WSINV3DMT and ModEM, the error control takes form of integer multiples.
+The multipliers shown in a Tree Widget. Site names are given in the left-most column with a small arrow beside them. Clicking on the arrow will collapse or expand the error multiplier tree for that site.
+Changing the errors is done by double clicking on the multiplier value for the desired site, period, and component and changing it to the desired value. Assuming you edit the multiplier for a site and component that is currently being plotted, the new errors should be displayed immediately after the edit is completed.</p>
+<p>As manually editing many sites, periods, and components is <em>incredibly</em> tedious, a few keyboard shortcuts have been made available.</p>
+<ul class="simple">
+<li><p>Holding SHFT while double clicking to edit a multiplier will result in all periods for the chosen site and component being changed.</p></li>
+<li><p>Holding CTRL while double clicking will edit the multiplier for all components for the chosen site and period</p></li>
+<li><p>Holding ALT while double clicking will edit the multiplier for all sites for the chosen component and period</p></li>
+</ul>
+<p>The keyboard shortcuts may be used in conjunction with one another as well. For instance, holding SHFT+CTRL while double clicking to edit will change the multipliers for all periods and all components across a single station.</p>
+<p>Note, double clicking to edit a multiplier and then entering the same value will result in no changes being made, regardless of any keyboard shortcuts being used.</p>
+<p>Default behavior of the Error Multiplier tree widget is to have the stations automatically expand and scroll to the sites currently displayed in the <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<p>The Error Multiplier tree currently only accepts integer values. However, negative values may be used to decrease the applied errors.
+For example, setting a multiplier to 5 increases the error by, and subsequently setting the multiplier to -2 would divide the error by 2, resulting in a total error of 2.5 times the original error.</p>
+<p>Entering a negative value does however result in the multiplier value being reset to 1, in order to ensure consistent use between ModEM and WSINV3DMT data formats.</p>
+</div>
+<div class="section" id="error-manipulations">
+<span id="id10"></span><h5>Error Manipulations<a class="headerlink" href="#error-manipulations" title="Permalink to this headline">¶</a></h5>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_manipulations_tab.png"><img alt="_images/data_plot_manipulations_tab.png" src="_images/data_plot_manipulations_tab.png" style="width: 402.0px; height: 133.5px;" /></a>
+</div>
+<p>The Error Manipulations tab allows for more broad-stroke error setting compared.
+Within the Group Manipulations box are 3 buttons.
+The ‘Refresh’ button is a debug button. All it does is force the <a class="reference internal" href="#error-multipliers">Error Multipliers</a> tree to reset. This button should not be needed, but does nothing to the data itself.</p>
+<p>The ‘Regulate Errors’ button automatically sets errors for the entire dataset in the following manner.
+A smoothed version of the raw data is calculated using a smoothing filter.</p>
+<p>The filter length is given by the value in the ‘Filter Length’ spinbox. The higher the value, the more smoothing is applied (values between 0.7 and 1.2 have are generally good).</p>
+<p>The distance between the data points and the smooth curve is then calculated, and multiplied by the value in the ‘Multiplier’ spinbox. This value is then set as the error.</p>
+<p>The result of this process is that data that is already nearly smoothly varying have relatively low errors, while outliers jittery data will have higher error.</p>
+<p>The ‘Reset Errors’ button simply resets all errors to the error floor. Floor values are given for each set of components in the table to the right of the ‘Group Manipulations’ groupbox.</p>
+</div>
+</div>
+<div class="section" id="plot-window">
+<span id="id11"></span><h4>Plot Window<a class="headerlink" href="#plot-window" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/data_plot_figure_window.png"><img alt="_images/data_plot_figure_window.png" src="_images/data_plot_figure_window.png" style="width: 960.0px; height: 516.0px;" /></a>
+</div>
+<p>The Plot Window contains all the plots of the data.
+Nearly all plotting options can be found either within the <a class="reference internal" href="#plot-options">Plot Options</a> tab, or the <a class="reference internal" href="#menu-bar">Menu Bar</a>.
+The currently displayed data components will be given in a legend within the 1st (top left corner) plot.</p>
+</div>
+<div class="section" id="toolbar">
+<h4>Toolbar<a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h4>
+<p>The Toolbar is the basic Matplotlib toolbar. It contains buttons which may be activated to interact with the plots within the <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<p>It contains, from left to right:</p>
+<ul class="simple">
+<li><p>Home: Resets the views for all plots</p></li>
+<li><p>Back: Returns to the previous view</p></li>
+<li><p>Forward: Goes to the next stored view</p></li>
+<li><p>Zoom: Activates a zoom cursor. Drawing a rectangle in any subplot will zoom to that locations within that plot</p></li>
+<li><p>Subplot Options: Offers options for customizing the margins and general layout of the subplots. The most useful option here is the ‘tight layout’ button, which will force the subplots to fill the Plot Window</p></li>
+<li><p>Axis Options: Contains options for customizing individual axes</p></li>
+<li><p>Save: Save the current Plot Window to a PNG file.</p></li>
+</ul>
+<p>In addition to the Toolbar buttons, hovering over any of the plots will show the x-y coordinates of the cursor in terms of the frequency and period.</p>
+</div>
+</div>
+<span id="document-content/data_plot/map_viewer"></span><div class="section" id="data-plot-map-viewer">
+<span id="map-viewer"></span><h3>Data Plot - Map Viewer<a class="headerlink" href="#data-plot-map-viewer" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/map_viewer.png"><img alt="_images/map_viewer.png" src="_images/map_viewer.png" style="width: 524.0px; height: 403.5px;" /></a>
+</div>
+<p>The Map Viewer is launched by clicking the <a class="reference internal" href="index.html#show-map"><span class="std std-ref">Show Map</span></a> button within the <a class="reference internal" href="index.html#plot-options"><span class="std std-ref">Plot Options</span></a> tab.
+This window is used to view the locations of the stations, as well as plot various data types in map view.
+The window is broken into a <a class="reference internal" href="#menu-bar">Menu Bar</a>, <a class="reference internal" href="#control-dock">Control Dock</a>, and the <a class="reference internal" href="#map-window">Map Window</a>.</p>
+<div class="section" id="menu-bar">
+<h4>Menu Bar<a class="headerlink" href="#menu-bar" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/map_viewer_menu_bar.png"><img alt="_images/map_viewer_menu_bar.png" src="_images/map_viewer_menu_bar.png" style="width: 524.0px; height: 403.5px;" /></a>
+</div>
+<p>The Menu Bar has a number of options to customize the plotting within the <a class="reference internal" href="#map-window">Map Window</a>.</p>
+<div class="section" id="colour-options">
+<h5>Colour Options<a class="headerlink" href="#colour-options" title="Permalink to this headline">¶</a></h5>
+<p>The Colour Options menu contains options for colour map and colour limit selection.</p>
+<p>Use the Colour Map menu to select the colour map to be used within the Map Window.</p>
+<p>The Color Limits menu is used to customize the lower and upper data limits to be plotted. Separate colour limits may be used for apparent resistivity, phase, and difference pseudosections.</p>
+<p>The colour limits for fill values when plotting <a class="reference internal" href="#phase-tensor">Phase Tensor</a> data is currently hard-coded. This will likely be changed in a future release.</p>
+</div>
+<div class="section" id="point-options">
+<h5>Point Options<a class="headerlink" href="#point-options" title="Permalink to this headline">¶</a></h5>
+<p>The Point Options menu has options for customizing the appearance of the point related data.</p>
+<p>The Annotate sub-menu has options for controlling how stations are annotated.
+By default, only the sites currently active within the <a class="reference internal" href="index.html#plot-window"><span class="std std-ref">Plot Window</span></a> are annotated.
+Annotations can also be turned off completely, or set to have all sites labelled.</p>
+<p>The Marker sub-menu contains further menus for controlling the appearance of the site markers.</p>
+<p>The Phase Tensor sub-menu is used the control size of the phase tensor ellipses.</p>
+<p>The Induction Arrow sub-menu is used to change the relative length of the induction arrows.</p>
+<p>Note that the scaling of the phase tensor ellipses and induction arrows has not be tested on all survey sizes, and so will likely need to be modified. The phase tensor ellipses are pre-normalized and so should generally plot well, however the induction arrows are plotted as is by default. In most cases, it is best to normalize their length (see the following section)</p>
+</div>
+</div>
+<div class="section" id="control-dock">
+<span id="id1"></span><h4>Control Dock<a class="headerlink" href="#control-dock" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/map_viewer_control_dock.png"><img alt="_images/map_viewer_control_dock.png" src="_images/map_viewer_control_dock.png" style="width: 87.0px; height: 366.0px;" /></a>
+</div>
+<p>The Control Dock is the main control panel for the Map Viewer. The various group boxes give options for plotting induction arrows, phase tensor ellipses, and apparent resistivity and phase pseudosection.</p>
+<p>The currently plotted period / frequency is seen near the buttom of the Control dock, and can be changed using the nearby horizontal slider bar.</p>
+<div class="section" id="induction-arrows">
+<h5>Induction Arrows<a class="headerlink" href="#induction-arrows" title="Permalink to this headline">¶</a></h5>
+<p>The Induction Arrows group box allows for plotting of the induction arrows (in Parkinson convention) within the <a class="reference internal" href="#map-window">Map Window</a>.</p>
+<p>The Data and Response buttons plot the the induction arrows from the inversion data and response files in black and red, respectively.</p>
+<p>The Normalize button scales the arrows so that they all have the same length. This is nearly always required in the current release, as a single noisy high amplitude induction arrow will tend to drown out all the others if the lengths are not normalized.</p>
+</div>
+<div class="section" id="phase-tensor">
+<h5>Phase Tensor<a class="headerlink" href="#phase-tensor" title="Permalink to this headline">¶</a></h5>
+<p>The Phase Tensor groupbox is used to plot phase tensor ellipses in the <a class="reference internal" href="#map-window">Map Window</a>. The fill value of the ellipses is controlled by the contained drop-down menu.</p>
+<p>The Data and Response checkboxes plot the phase tensor ellipses from the inversion data and response files, respectively.
+If both checkboxes are selected, the phase tensor misfit tensor is plotted, as defined in Heise et al. (2007):</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{\Delta} = \mathbf{I} - \frac{1}{2}(\mathbf{\Phi}^{-1}\mathbf{\Phi} + \mathbf{\Phi}\mathbf{\Phi}^{-1})\]</div>
+<p>In this case, the colour of the ellispes may also be filled by the <span class="math notranslate nohighlight">\(\delta\)</span> value give as a percentage, defined by:</p>
+<div class="math notranslate nohighlight">
+\[\delta = 100 * \left| \mathbf{\Delta} / \mathbf{\Phi} \right|\]</div>
+<p>All other phase tensor fill values are defined as in Cadwell et al., 2004. This includes the skew value <span class="math notranslate nohighlight">\(\beta\)</span>, and so the recommended upper limit for approximate two-dimensionality is <span class="math notranslate nohighlight">\(\beta \leq \left|3^{\circ} \right|\)</span></p>
+</div>
+<div class="section" id="pseudosection">
+<h5>Pseudosection<a class="headerlink" href="#pseudosection" title="Permalink to this headline">¶</a></h5>
+<p>The Pseudosection groupbox gives options for plotting map view sections of the apparent resistivity and phase. The sections are generated using the Natural Neighbor interpolation scheme of Sibson (1981), as implemented in the naturalneighbor python package (<a class="reference external" href="https://pypi.org/project/naturalneighbor/">https://pypi.org/project/naturalneighbor/</a>)</p>
+<p>The first two radio buttons control whether the apparent resistivity or phase is plotted.</p>
+<p>The Data and Response checkboxes plot the sections from the inversion data or response files, respectively, while checking both boxes will result in difference plots. The difference in apparent resistivities is expressed as a percent difference, while for phase it is given in degrees.</p>
+<p>The XY, YX, and determinant resistivities and phases may be toggled through the drop-down menu.</p>
+<p>The Interp points spinbox controls how many grid points are used in the section interpolation. The default is 200 points. Few points may be used to increase the responsiveness of the GUI, while more points may be used for a finer grid.</p>
+</div>
+<div class="section" id="plot-rms">
+<h5>Plot RMS<a class="headerlink" href="#plot-rms" title="Permalink to this headline">¶</a></h5>
+<p>The relative RMS misfit of each station can be overlaid by checking the Plot RMS checkbox. Unlike the other data plotting options in this window, the RMS misfit overlay does not change per period, but reflects instead the total RMS misfit across all periods and components for each site.</p>
+</div>
+</div>
+<div class="section" id="map-window">
+<span id="id2"></span><h4>Map Window<a class="headerlink" href="#map-window" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/map_viewer_map_window.png"><img alt="_images/map_viewer_map_window.png" src="_images/map_viewer_map_window.png" style="width: 440.0px; height: 343.5px;" /></a>
+</div>
+<p>The Map Window is the plot area of the Map Viewer. The site locations are plotted here, along with any data components that have been activated in the <a class="reference internal" href="#control-dock">Control Dock</a>.</p>
+<p>By default, only the station locations are plotted along with the annotation style set in the <a class="reference internal" href="#point-options">Point Options</a> menu. A colour bar will be added if necessary, e.g., when plotting phase tensor ellipses.</p>
+<p>Note that the subplot used is set to fill the available space, and therefore does not have an equal aspect ratio.</p>
+<p>The toolbar at the bottom of the Map Window may be used to pan, zoom, and customize the plot itself.</p>
+<p>The Map Window is reset any time an element of the plot changes. As such, zoom and pans that are applied will not be remembered when the plot is changed. This may be changed in a future release.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="model-viewer">
+<h2>Model Viewer<a class="headerlink" href="#model-viewer" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-content/model_viewer/getting_started"></span><div class="section" id="getting-started">
+<h3>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="launching-the-gui">
+<h4>Launching the GUI<a class="headerlink" href="#launching-the-gui" title="Permalink to this headline">¶</a></h4>
+<p>The model viewer GUI is launched from the command line via the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model_viewer</span> <span class="o">&lt;</span><span class="n">model_file</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">data_file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The order of the files does not matter.</p>
+<p>It can take a while to load the GUI, particularly the first time you do so, due to the somewhat heavy dependencies required for 3-D viewing.</p>
+</div>
+<div class="section" id="required-files">
+<h4>Required Files<a class="headerlink" href="#required-files" title="Permalink to this headline">¶</a></h4>
+<p>The model plotting GUI requires at minimum a <a class="reference internal" href="index.html#model-file"><span class="std std-ref">Model File</span></a>, and an optional <a class="reference internal" href="index.html#data-file"><span class="std std-ref">Data File</span></a>, which is currently only used to plot station locations.</p>
+</div>
+<div class="section" id="default-behavior">
+<h4>Default Behavior<a class="headerlink" href="#default-behavior" title="Permalink to this headline">¶</a></h4>
+<p>Assuming valid files are used, the GUI should launch into the 2-D view, with the slice locations set to X=1, Y=1, Z=1 (bottom, left, and surface slices, respectively)</p>
+<p>The 3-D view is initialized to a top-down (XY) view.</p>
+<p>Default colour map is ‘jet_plus’, a modified version of the Matlab default ‘jet’ with lower and upper colour map limits of 1 and 5 (log10 scale).</p>
+<p>Note that currently there is no colour bar shown for the 2-D views.</p>
+<p>Currently the data file is used only to plot the station locations over the model. Plotting of induction arrows and phase tensors will likely be added in the future.</p>
+</div>
+</div>
+<span id="document-content/model_viewer/main_window"></span><div class="section" id="model-viewer-main-window">
+<span id="model-viewer"></span><h3>Model Viewer - Main Window<a class="headerlink" href="#model-viewer-main-window" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/model_viewer.png"><img alt="_images/model_viewer.png" src="_images/model_viewer.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Model Viewer window is has 3 sections: The <a class="reference internal" href="#menu-bar">Menu Bar</a>, <a class="reference internal" href="#control-dock">Control Dock</a>, and <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<p>This GUI is still under development, so there may be some widgets in the GUI that have not been fully implemented yet.</p>
+<div class="section" id="menu-bar">
+<h4>Menu Bar<a class="headerlink" href="#menu-bar" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/model_viewer_menu_bar.png"><img alt="_images/model_viewer_menu_bar.png" src="_images/model_viewer_menu_bar.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Menu bar currently has two sub-menus.</p>
+<p>The 3-D Options sub-menu has options for resetting the <a class="reference internal" href="#d-view">3D View</a> to an XY, XZ, and YZ view.</p>
+<p>The Colour Options sub-menu has options for changing the colour map, as well as the colour limits of all plots.</p>
+</div>
+<div class="section" id="control-dock">
+<h4>Control Dock<a class="headerlink" href="#control-dock" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/model_viewer_control_dock.png"><img alt="_images/model_viewer_control_dock.png" src="_images/model_viewer_control_dock.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Control Dock contains options for navigating through the model. Only the Mesh tab has been implemented in this release. The Control Dock can be detached from the main window to make more space for the <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<p>The Mesh tab has two groupboxes: Trim and Slices</p>
+<p>The Trim groupbox is used to adjust the bounds of the model that are plotted.</p>
+<p>By default, the full model is shown. Edit each line beside the South, North, etc., labels to define how many cells to trim from the corresponding directions. Hit the Trim Volume button to perform the operation. This operation will generate new model plots for all of the subplots in the <a class="reference internal" href="#id1">2D View</a>, as well as for the <a class="reference internal" href="#d-view">3D View</a>.</p>
+<p>The Slices groupbox controls which slices are plotted. The X, Y, and Z checkboxes are used to turn off/on the corresponding slices in within the <a class="reference internal" href="#d-view">3D View</a>. The nearby line edits and slider bars are used to control the location of the each plotted slice.</p>
+<p>The last line in the Slices groupbox is used to generate a transect slice along a specified set of points.</p>
+<ul class="simple">
+<li><p>Hit the Select Points button to begin picking. Picking must be performed within the Plan View plot of the <a class="reference internal" href="#id1">2D View</a> (hitting the Select Points button will automatically switch the tab focus accordingly).</p></li>
+<li><p>Click within the Plan View window to assign points through which the slice will go through.</p></li>
+<li><p>When all the desired points have been selected, hit the Select Points button again.</p></li>
+<li><dl class="simple">
+<dt>A set of points will appear on the Plan View plot indicating your clicks, and the corresponding transect will be plotted within the <a class="reference internal" href="#transect">Transect</a> tab, as well as within the <a class="reference internal" href="#d-view">3D View</a>.</dt><dd><ul>
+<li><p>The transect slice within the 3D View can be toggled with the Transect checkbox.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="plot-window">
+<h4>Plot Window<a class="headerlink" href="#plot-window" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/model_viewer_3D_view.png"><img alt="_images/model_viewer_3D_view.png" src="_images/model_viewer_3D_view.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The Plot window is where the model is plotted. It has 3 tabs: <a class="reference internal" href="#d-view">3D View</a>, <a class="reference internal" href="#id1">2D View</a> and <a class="reference internal" href="#transect">Transect</a></p>
+<div class="section" id="d-view">
+<h5>3D View<a class="headerlink" href="#d-view" title="Permalink to this headline">¶</a></h5>
+<p>The 3D View tab shows the model in a rotatable, zoomable 3D view (similar to in Paraview).</p>
+<p>Rotating of the model is done by left-clicking and dragging.</p>
+<p>To zoom, either use the scroll wheel or click and hold the right mouse button and drag in or out.</p>
+<dl class="simple">
+<dt>To pan, hold the middle mouse button and drag.</dt><dd><ul class="simple">
+<li><p>Panning also changes the center point of the plot (i.e., the point around which rotations will be focused)</p></li>
+<li><p>To reset to the original center point, hit ‘r’</p></li>
+</ul>
+</dd>
+</dl>
+<p>You can quick-zoom to certain angles using the options in the 3-D Options menu of the <a class="reference internal" href="#menu-bar">Menu Bar</a>.</p>
+<p>Change which slices are plotting using the controls within the Slices groupbox of the Mesh tab in the <a class="reference internal" href="#control-dock">Control Dock</a>.</p>
+<p>Use the ‘W’ and ‘S’ keys to toggle between surface and wireframe representations of the model. The default view is surface. The wireframe represention can be used to see the model mesh.</p>
+</div>
+<div class="section" id="id1">
+<h5>2D View<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h5>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/model_viewer_2D_view.png"><img alt="_images/model_viewer_2D_view.png" src="_images/model_viewer_2D_view.png" style="width: 676.5px; height: 449.5px;" /></a>
+</div>
+<p>The 2D View tab shows slices through the model in 2-D. It consists of:</p>
+<ul class="simple">
+<li><p>A Plan View plot, showing slices through the XY plane (top left plot)</p></li>
+<li><p>An XZ view, showing depth slices through the XZ plane (top right plot)</p></li>
+<li><p>A YZ view, showing depth slices through the YZ plane (bottom left plot)</p></li>
+</ul>
+<p>The toolbar at the bottom can be used as in normal matplotlib figures.</p>
+<p>The bottom right of the toolbar shows location and resistivity information when the mouse is hovered over any of the 2-D plots.</p>
+<ul class="simple">
+<li><p>Note: Still troubleshooting this feature a bit. It seems to work for the most part, but occasionally the displayed resistivity value seems to not match the feature seen in the plot.</p></li>
+</ul>
+</div>
+<div class="section" id="transect">
+<h5>Transect<a class="headerlink" href="#transect" title="Permalink to this headline">¶</a></h5>
+<p>Once a transect path is selected using the Select Points button, the corresponding slice through the model will be displayed here.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>This plot does not currently properly update when changing certain plot options.</dt><dd><ul>
+<li><p>Changes the colour map, colour limits, and Trim are not reflected in this plot.</p></li>
+<li><p>The workaround until this is fixed is to change the plot options first, then reselect the transect plot points with the Select Points button.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="mesh-designer">
+<h2>Mesh Designer<a class="headerlink" href="#mesh-designer" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-content/mesh_designer/getting_started"></span><div class="section" id="getting-started">
+<h3>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="launching-the-gui">
+<h4>Launching the GUI<a class="headerlink" href="#launching-the-gui" title="Permalink to this headline">¶</a></h4>
+<p>The mesh designer GUI is launched from the command line via the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mesh_designer</span> <span class="o">&lt;</span><span class="n">model_file</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">data_file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The order of the files does not matter.</p>
+</div>
+<div class="section" id="required-files">
+<h4>Required Files<a class="headerlink" href="#required-files" title="Permalink to this headline">¶</a></h4>
+<p>The model plotting GUI requires one or both of the following:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="index.html#model-file"><span class="std std-ref">Model File</span></a></p></li>
+<li><p><a class="reference internal" href="index.html#data-file"><span class="std std-ref">Data File</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="default-behavior">
+<h4>Default Behavior<a class="headerlink" href="#default-behavior" title="Permalink to this headline">¶</a></h4>
+<p>The default behavior is different depending on what files are input.
+If only a model file is used, the GUI initialized using the given model, and no station locations are plotted. In this case, the ‘Regenerate Mesh’ button will not be functional.</p>
+<p>If only a data file is used, an initial model will be created based on the bounds of the given stations. There is a known bug here where the inital view of the model cuts of the outer edges. Hitting the ‘Add Pads’ a few times will extend the model out a bit to cover the whole area covered by the stations.</p>
+<p>If both model and data files are given, the mesh will be shown as it is in the given model, with the station locations overlaid.</p>
+<p>As this GUI is not meant for viewing the model, the slice shown is always the first depth slice.</p>
+<p>The GUI works equally well for creating new meshes as it does for modifying existing ones.</p>
+<ul class="simple">
+<li><p>Note: As the definition of the mesh within the ModEM and WSINV3DMT file formats has no explicit origin, all models generated here will have their origins placed in the center of the mesh.</p></li>
+<li><dl class="simple">
+<dt>For this reason, it is important to ensure that the model is even on the left / right and top / bottom.</dt><dd><ul>
+<li><p>If it is not, the definition of the mesh relative to the station locations may not be the same as appears while using this GUI.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Always double check the output mesh and data files with another tool afterwards (e.g., with <a class="reference internal" href="index.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a></p></li>
+</ul>
+</div>
+</div>
+<span id="document-content/mesh_designer/main_window"></span><div class="section" id="mesh-designer-main-window">
+<span id="mesh-designer"></span><h3>Mesh Designer - Main Window<a class="headerlink" href="#mesh-designer-main-window" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/mesh_designer.png"><img alt="_images/mesh_designer.png" src="_images/mesh_designer.png" style="width: 688.0px; height: 479.0px;" /></a>
+</div>
+<p>The Mesh Designer has 3 areas: The <a class="reference internal" href="#menu-bar">Menu Bar</a>, <a class="reference internal" href="#control-dock">Control Dock</a>, and <a class="reference internal" href="#plot-window">Plot Window</a>.</p>
+<div class="section" id="menu-bar">
+<h4>Menu Bar<a class="headerlink" href="#menu-bar" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/mesh_designer_menu_bar.png"><img alt="_images/mesh_designer_menu_bar.png" src="_images/mesh_designer_menu_bar.png" style="width: 688.0px; height: 479.5px;" /></a>
+</div>
+<p>The Save / Revert menu has options for writing the model to a file, as well as saving and reverting progess within the Mesh Designer.</p>
+<p>The Write Model sub-menu will open a dialog box that asks for the name of the file to be written to. You will be prompted again if this operation is going to overwrite an existing file. A second prompt will ask for a name to output an associated covariance file (hit cancel to skip).</p>
+<ul class="simple">
+<li><p>The only file format available from here is that of a ModEM 3-D file. This is the same as the WSINV3DMT file format, except that the resistivity values will be given as the natural logarithm.</p></li>
+<li><p>If you need the file in WSINV3DMT format, the workaround at present is to change the file format programmatically (see <a class="reference internal" href="index.html#recipes"><span class="std std-ref">Recipes</span></a>)</p></li>
+</ul>
+<p>The Save Progress sub-menu internally saves any changes you’ve made to the mesh. This checkpoint can then be reverted to later by using the Revert Progress sub-menu.</p>
+<p>The Colours menu is controls the colour map and colour limits used, as well as the colour of the mesh lines.</p>
+<ul class="simple">
+<li><p>As this GUI is meant mainly for editing the mesh, these options are mainly to ensure good visibility of the mesh lines regardless of the resistivity used</p></li>
+</ul>
+</div>
+<div class="section" id="control-dock">
+<h4>Control Dock<a class="headerlink" href="#control-dock" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/mesh_designer_control_dock.png"><img alt="_images/mesh_designer_control_dock.png" src="_images/mesh_designer_control_dock.png" style="width: 688.0px; height: 479.0px;" /></a>
+</div>
+<p>The Control Dock is the main control panel for manipulating the mesh and model. It is broken into 3 tabs:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#manipulate-mesh">Manipulate Mesh</a></p></li>
+<li><p><a class="reference internal" href="#reset-mesh">Reset Mesh</a></p></li>
+<li><p><a class="reference internal" href="#smoothing">Smoothing</a></p></li>
+</ul>
+<div class="section" id="manipulate-mesh">
+<h5>Manipulate Mesh<a class="headerlink" href="#manipulate-mesh" title="Permalink to this headline">¶</a></h5>
+<p>The Manipulate Mesh tab is used to, as the name suggests, to modify and manipulate the mesh used.</p>
+<p>Specifically, there are 3 things that can be modified from this tab: The XY Padding, the Z mesh (or depth mesh), and the background resistivity.</p>
+<p>The XY Padding groupbox is used to add and remove padding cells in the XY plane.</p>
+<p>The Add Pad and Remove Pad buttons add and remove pads from the left / right / top bottom/ of the XY plane, depending on which of the corresponding checkboxes are selected.</p>
+<p>When adding pads, the size of the new pad is determined by taking the size of the outer most cell and multiplying it by the value in the Pad Size Multiplier spinbox.</p>
+<ul class="simple">
+<li><p>Note: As the definition of the mesh within the ModEM and WSINV3DMT file formats has no explicit origin, all models generated here will have their origins placed in the center of the mesh.</p></li>
+<li><dl class="simple">
+<dt>For this reason, it is important to ensure that the model is even on the left / right and top / bottom.</dt><dd><ul>
+<li><p>If it is not, the definition of the mesh relative to the station locations may not be the same as appears while using this GUI.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Always double check the output mesh and data files with another tool afterwards (e.g., with <a class="reference internal" href="index.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a>)</p></li>
+</ul>
+<p>The depth mesh is controlled through the Z Mesh groupbox.  The thickness of the first slice (in meters) is specified in the First Depth edit line. The final depth (i.e., the maximum depth to use in the mode) is specified in the Last Depth edit line.</p>
+<p>Specification of the mesh between the first and last depth is controlled in the Depths per decade list. This list will be automatically populated with a list of values. The length of this list is such that there is one value per decade of depth.</p>
+<p>Once each of these values has been specified, hit the Generate Depths button to generate the Z mesh.</p>
+<p>For example, for a first depth of 1 m and a last depth of 500000 m, the Depths per will be populated with 6 values. From top to bottom, they correspond to the number of layers used between depths of:</p>
+<ul class="simple">
+<li><p>1-10 m</p></li>
+<li><p>10-100 m</p></li>
+<li><p>100-1000 m</p></li>
+<li><p>1000-10000 m</p></li>
+<li><p>10000-100000 m</p></li>
+<li><p>100000-500000 m</p></li>
+</ul>
+<p>In this instance, each value corresponds to the number of logarithmically spaced layers to use within each decade.</p>
+<p>As a general rule of thumb, it is best to ensure that the sizes of the layers are always increasing. In accordance with this, the program will check the 2nd derivative of the generated mesh. If the derivative is negative anywhere, a message will appear saying so.</p>
+<p>The backround resistivity of the model may be changed by editing the corresponding line and clicking the Set Background button.</p>
+</div>
+<div class="section" id="reset-mesh">
+<h5>Reset Mesh<a class="headerlink" href="#reset-mesh" title="Permalink to this headline">¶</a></h5>
+<p>The Reset Mesh tab is used to generate a new, uniformly spaced mesh from scratch.</p>
+<p>Set the nominal cell spacing for the X and Y directions in the corresponding boxes, and hit Regenerate Mesh.</p>
+<p>A new mesh will be generated using these spacings, extending to the bounds set by the station locations.</p>
+</div>
+<div class="section" id="smoothing">
+<h5>Smoothing<a class="headerlink" href="#smoothing" title="Permalink to this headline">¶</a></h5>
+<p>The Smoothing tab is used to smooth the resistivity values of an inverted model.</p>
+<ul class="simple">
+<li><p>This tab is somewhat experimental at the moment *</p></li>
+</ul>
+<p>Set the smoothing length in the X, Y, and Z direction using the corresponding spinboxes, and hit Smooth Model to apply a Gaussian smoother with those parameters.</p>
+</div>
+</div>
+<div class="section" id="plot-window">
+<h4>Plot Window<a class="headerlink" href="#plot-window" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/mesh_designer_plot_window.png"><img alt="_images/mesh_designer_plot_window.png" src="_images/mesh_designer_plot_window.png" style="width: 688.0px; height: 479.0px;" /></a>
+</div>
+<p>The Plot Window shows the current mesh, and if a data file was included, the station locations.</p>
+<p>Fine grained modification of the mesh is done within this window.</p>
+<p>Left click anywhere within the mesh to add a new vertical mesh line. Right click to add a horizontal mesh line.</p>
+<p>Holding CTRL while left or right clicking will remove the nearest vertical / horizontal mesh line, respectively.</p>
+<p>Refrain from double clicking within this window. Although some precautions have been implemented to avoid generated invalid meshes, double clicking can sometimes result in multiple mesh lines in the same location, i.e., a cell with 0 width, which will subsequently crash ModEM.</p>
+<p>At the bottom of the Plot window is a toolbar. From here, you can pan and zoom into the plot, as well as return to the home view using the corresponding buttons.</p>
+<p>Note that panning and zooming <em>is</em> stored within this window, which allows you to zoom into an area of high site density and add additional mesh:</p>
+<ul class="simple">
+<li><p>Click the zoom button and draw a rectangle around the area of interest.</p></li>
+<li><p>Unclick the zoom button to return the click functionality back to mesh modification.</p></li>
+<li><p>Modifiy the mesh as required.</p></li>
+<li><p>Hit the Home button in the toolbar to return to your original (un-zoomed) view.</p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<span id="document-content/examples/recipes"></span><div class="section" id="recipes">
+<span id="id1"></span><h2>Recipes<a class="headerlink" href="#recipes" title="Permalink to this headline">¶</a></h2>
+<p>All the following recipes assume pyMT modules have been imported as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyMT.data_structures</span> <span class="k">as</span> <span class="nn">ds</span>
+<span class="kn">import</span> <span class="nn">pyMT.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+</pre></div>
+</div>
+<div class="section" id="adding-data-to-an-existing-data-file">
+<h3>Adding Data to an Existing Data File<a class="headerlink" href="#adding-data-to-an-existing-data-file" title="Permalink to this headline">¶</a></h3>
+<p>Adding new periods to an existing data file is supported through the <a class="reference internal" href="index.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> GUI. However, it is assumed that the list file and data file used are consistent, i.e., that they have the same stations and in the same order.
+Therefore, adding new stations to an existing data file must be done using the pyMT API.</p>
+<p>This example uses the <a class="reference internal" href="index.html#data"><span class="std std-ref">Data</span></a>, and <a class="reference internal" href="index.html#rawdata"><span class="std std-ref">RawData</span></a> classes as well as the Data.get_data and Data.add_site methods.</p>
+<p>Assuming the data file we want to modify is ‘demo.dat’, and the list file we want to pull in new sites from is ‘raw/all.lst’:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="s1">&#39;demo.dat&#39;</span><span class="p">)</span>  <span class="c1"># Load in the data file</span>
+    <span class="n">raw_data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">RawData</span><span class="p">(</span><span class="s1">&#39;raw/all.lst&#39;</span><span class="p">)</span> <span class="c1"># Load in the raw data</span>
+    <span class="c1"># Get the new site to add with the same periods and components as &#39;data&#39;</span>
+    <span class="n">to_add</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">periods</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">periods</span><span class="p">,</span>
+                                                       <span class="n">components</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">components</span><span class="p">,</span>
+                                                       <span class="n">sites</span><span class="o">=</span><span class="s1">&#39;test_1&#39;</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">add_site</span><span class="p">(</span><span class="n">to_add</span><span class="p">[</span><span class="s1">&#39;test_1&#39;</span><span class="p">])</span> <span class="c1"># Add the new site to the data object</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;new_data&#39;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s1">&#39;modem&#39;</span><span class="p">)</span>  <span class="c1"># Write the new data out.</span>
+</pre></div>
+</div>
+<p>Alternatively, multiple ModEM data files can be combined (e.g., append tipper data from one file into another), so long as resulting file still adheres to pyMT’s requirements (i.e., uniform periods and data components for all sites).</p>
+</div>
+<div class="section" id="working-with-inconsistent-periods-components">
+<h3>Working with Inconsistent Periods / Components<a class="headerlink" href="#working-with-inconsistent-periods-components" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes it may be desireable to invert a data set that has a non-uniform period set and / or component set, for example when mixing AMT and BB stations. If the number of wasted data points is low (maybe 3-4 frequencies total), it is usually simpler to just set high errors to the unavailable frequencies and let the inversion run as normal (the number of processors required is the same regardless, addition RAM required for wasted data points is low).
+Note, a ‘wasted data point’ is a data point which is will be inverted at a subset of stations, but is unavailable at other stations (most often when mixing stations with different bandwidths, or stations with / without tipper)
+However, if you intend to invert many frequencies and / or components that would be unavailable at a subset of stations, there is a workaround. This workaround requires some knowledge of Python, and preferably a text editor that allows you to find, select, and remove all lines containing a particular string (e.g., Sublime Text).</p>
+<p>First, you should set up the ModEM data file as usual (i.e., using Data Plot or j2ws3d).
+Make note of (or intentionally set up) any patterns you can use to distinguish your stations. In this example, broadband stations end in ‘M’, and AMT stations end in ‘A’. The final 4 periods of AMT stations, and first 3 periods of BB stations will be flagged and removed.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="s1">&#39;demo.dat&#39;</span><span class="p">)</span>  <span class="c1"># Load your data set</span>
+<span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">site_names</span><span class="p">:</span>  <span class="c1"># Loop through stations</span>
+        <span class="k">if</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>  <span class="c1"># If its an AMT station</span>
+                <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>  <span class="c1"># Loop over available components</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="o">.</span><span class="n">used_error</span><span class="p">[</span><span class="n">comp</span><span class="p">][</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">REMOVE_FLAG</span>  <span class="c1"># Flag the errors for the last 4 periods</span>
+        <span class="k">elif</span> <span class="n">site</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="o">.</span><span class="n">used_error</span><span class="p">[</span><span class="n">comp</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">REMOVE_FLAG</span>  <span class="c1"># Flag the errors for the first 3 periods</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;demo_flagged&#39;</span><span class="p">)</span>  <span class="c1"># Write out a new &#39;flagged&#39; version of the data file</span>
+</pre></div>
+</div>
+<p>This will create a new data file with the periods to be removed flagged with errors corresponding to the Data.REMOVE_FLAG (at the time of writing, it is 1234567)</p>
+<p>Open this file in your text editor of choice. Find all instances of the REMOVE_FLAG, cut and paste the corresponding lines so they are all at the end of the file (this isn’t required, it just makes life easier). Save this to ‘demo_flagged.dat’. Now remove the corresponding lines. Save this to a new data file (e.g., ‘demo_removed.dat’)
+You can now invert the ‘demo_removed.dat’. When using pyMT, you will still have to use the ‘demo_flagged.dat’ version which has a uniform period band. Furthermore, when reading in the response file created by inverting ‘demo_removed.dat’, you will have to copy-paste the removed periods from ‘demo_flagged.dat’ into it (this is why I moved the flagged lines to the end of the file).</p>
+<p>I apologize for this incredibly roundabout method. Allowing for non-uniform data files in pyMT will require a large re-working of the code, and at this time it is more important to have working tools with some odd quirks than to have fully featured tools with game-breaking bugs.</p>
+</div>
+</div>
+<span id="document-content/examples/scripts"></span><div class="section" id="scripts">
+<h2>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h2>
+<p>A number of scripts come with pyMT, although only a few of these are ready for <a class="reference internal" href="#general-use">General Use</a> . Others will need to be manually edited for your particular needs. Only a few will be described here.</p>
+<div class="section" id="general-use">
+<h3>General Use<a class="headerlink" href="#general-use" title="Permalink to this headline">¶</a></h3>
+<p>The scripts listed here are ready to run out of the box, and either have command line inputs to control them, or are so simple as to not require any inputs.</p>
+<div class="section" id="j2ws3d">
+<h4>j2ws3d<a class="headerlink" href="#j2ws3d" title="Permalink to this headline">¶</a></h4>
+<p>j2ws3d is a command line tool for preparing data for inversion. It is included in your search path upon installtion of pyMT, so it can be run from anywhere (preferably wherever your raw data is).</p>
+<p>Note, that by default j2ws3d.py tries to create both models and data through command line inputs, but the model creation aspect is bugged and will crash. Either run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">j2ws3d</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">data</span>
+</pre></div>
+</div>
+<p>to initial a data only mode, or just ignore the program crash (as it occurs after the data file is written out).</p>
+<p>Other than that, just follow the on-screen prompts.</p>
+<p>This program has is still usuable, but has been superceded by the <a class="reference internal" href="index.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> GUI.</p>
+</div>
+<div class="section" id="to-vtk">
+<h4>to_vtk<a class="headerlink" href="#to-vtk" title="Permalink to this headline">¶</a></h4>
+<p>Script for converting site locations and models to VTK files (compatible with, e.g., Paraview).</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">to_vtk</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Follow the command line prompts to select your model and/or data files. You will also have the option to project your model and data into a particular UTM zone.</p>
+<p>Note that any station / model rotations will have to be handled manually.</p>
+</div>
+<div class="section" id="ws2modem">
+<h4>ws2modem<a class="headerlink" href="#ws2modem" title="Permalink to this headline">¶</a></h4>
+<p>Simple script to convert WSINV3DMT data files into ModEM 3-D data files.
+Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ws2modem</span><span class="o">.</span><span class="n">py</span> <span class="o">&lt;</span><span class="n">ws_input_data</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">modem_output_data</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="other-info">
+<h1>Other Info<a class="headerlink" href="#other-info" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="help">
+<h2>Help<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-content/misc/help"></span><div class="section" id="help">
+<h3>HELP<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h3>
+<p>For feature requests, bug fixes, design suggestions, or anything else contact me at <a class="reference external" href="mailto:eroots087&#37;&#52;&#48;gmail&#46;com">eroots087<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+</div>
+</div>
+</div>
+<div class="section" id="disclaimer">
+<h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-content/misc/DISCLAIMER"></span><div class="section" id="disclaimer">
+<h3>DISCLAIMER<a class="headerlink" href="#disclaimer" title="Permalink to this headline">¶</a></h3>
+<p>This code base has been cobbled together over a few years. Parts of it were written to fulfill a specific need at a specific time and then promptly forgotten, while others were written when I was still figuring out the difference between a class and a method. While I have tried to address bugs as I come across them, this code is not unit tested (yet), and so is best used with an understanding of the the expected outcome is. There are some <a class="reference internal" href="#known-bugs">known bugs</a>, but any further unexpected behavior can be reported.</p>
+</div>
+<div class="section" id="known-bugs">
+<span id="id1"></span><h3>KNOWN BUGS<a class="headerlink" href="#known-bugs" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="general">
+<h4>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>Text is occasionally printed to the terminal. This text is usually meant to convey some information about something unexpected, and the codes attempts to work around it. Occasionally text will be printed that was meant for debugging purposes, and has just not been removed. Generally, any text that is printed that isn’t followed by a crash is fine.</p></li>
+</ul>
+</div>
+<div class="section" id="data-plot-gui">
+<h4>Data Plot GUI<a class="headerlink" href="#data-plot-gui" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>When only a <a class="reference internal" href="index.html#list-file"><span class="std std-ref">List File</span></a> is specified for the loaded dataset, a <a class="reference internal" href="index.html#data"><span class="std std-ref">Data</span></a> object will be initialized by taking logarithmically spaced periods.</dt><dd><ul>
+<li><p>In this instance, the <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> is not initialized properly, and no site locations are shown.</p></li>
+<li><p>The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>When multiple datasets are loaded, the misfit table may not be properly updated to reflect the currently selected dataset.</p></li>
+<li><dl class="simple">
+<dt>Rotating the data / stations using the ‘Azimuth’ box has a few associated bugs</dt><dd><ul>
+<li><p>The station locations and annotations in the <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> may not be accurate</p></li>
+<li><p>Non-zero azimuths also do something with the ordering of the stations in <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>, and cycling through stations with the <a class="reference internal" href="index.html#forward-and-back-buttons"><span class="std std-ref">Forward and Back Buttons</span></a> changes the order on the map. Will try to fix this.</p></li>
+<li><dl class="simple">
+<dt>The Azimuth editor is meant to be used for 3-D data, and rotates the data accordingly: Station locations are rotated clockwise from north, and the data is rotated counter-clockwise to maintain a measurement coordinate system that is consistent with the model space (see <a class="reference external" href="https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/">https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/</a>)</dt><dd><ul>
+<li><p>A consequence of this setup is that the GUI is not suitable to rotation and projection into 2-D.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>The ‘Write All Plots’ action sometimes crashes the GUI.</dt><dd><ul>
+<li><p>Known instances of this are when you attempt to overwrite an open PDF file. A permission error is thrown and not caught, resulting in a crash</p></li>
+<li><p>Occasionally, if the number of subplots in the final saved plot is different from that specified within the ‘Plot Options’ tab, the next action taken can result in a crash.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>If more subplots are used than there are stations available, one station will be re-plotted in order to fill the unused subplots.</p></li>
+<li><p>If more than one dataset is loaded into the GUI, switching between datasets may not update the misfit table.</p></li>
+<li><p>Blank items in the <a class="reference internal" href="index.html#data-component-table"><span class="std std-ref">Data Component Table</span></a> are selectable. However, this results in the first available component being plotted instead, and so should not break the GUI.</p></li>
+<li><p>The RMS misfits as shown in the <a class="reference internal" href="index.html#misfit-table"><span class="std std-ref">Misfit Table</span></a> may differ slightly from what logged by ModEM as pyMT always applies an error floor to any data read in. ModEM does not explicitly use (or store) an applied error floor, and so the hard-coded error floors of pyMT (see <a class="reference internal" href="index.html#error-floors"><span class="std std-ref">Error Floors</span></a>) may differ from those used in the inversion. As a result, if you used a lower error floor than those coded into pyMT, the misfits shown in this table will be lower.</p></li>
+</ul>
+</div>
+<div class="section" id="model-viewer-gui">
+<h4>Model Viewer GUI<a class="headerlink" href="#model-viewer-gui" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>Hovering over the plots within the 2-D will show location and resistivity information about the cursors position. This seem to generally be correct, however sometimes the resistivity shown does not match the plot itself. Likely an issue with matching the cursors location to model cells near the edges of the model.</p></li>
+<li><dl class="simple">
+<dt>The 2-D transect plot shows left-right in the order that was clicked.</dt><dd><ul>
+<li><p>This means that if you select points from north to south, the figure will plot from north on the left to south on the right.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>The 2-D transect plot does not respond to changes in the model trim. The workaround currently is to trim the volume, and then re-select the desired points for the transect plot.</p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="change-log">
+<h2>Change Log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-content/misc/changelog"></span><div class="section" id="change-log">
+<h3>Change Log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p>14/03/20
+* Fixed a few of the issues related to reading multiple data sets into Data Plot</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Use the ‘Recalculate RMS’ button in the <span class="xref std std-ref">Data Selection</span> tab to refresh the <a class="reference internal" href="index.html#misfit-table"><span class="std std-ref">Misfit Table</span></a> after switching the data set.</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>Inversion type is detected from available components when loading only a list file into <a class="reference internal" href="index.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>
+* This ‘should’ fix the bugs related to <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> not allowing plotting of induction arrows and phase tensors.</p></li>
+<li><p>Fixed bug which stopped station locations from being plotted when using only a list file.</p></li>
+<li><p>Added ‘Coordinate System’ in the <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>. Stations can be plotted in local, UTM, or lat/long. Note that which of these is available will depend on what data is loaded (e.g., a ModEM data file alone has no information about the geographic locations of the stations)</p></li>
+<li><p>Added a ‘JPEG’ menu in <a class="reference internal" href="index.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>. This allows loading of a geo-referenced JPEG image into the background. So far I have only tested it with UTM referenced JPEGs (and its corresponding world file), but I don’t see any reason why a lat/long referenced file wouldn’t work.
+* Note that when plotting these background images, the Coordinate System needs to be set appropriately.</p></li>
+<li><p>Added some documentation in <a class="reference internal" href="index.html#recipes"><span class="std std-ref">Recipes</span></a> outlining my approach to working with data with non-uniform periods and / or components.</p></li>
+</ul>
+</li>
+<li><p>01/02/20
+* Models can now be read into ‘pystart’ files in <a class="reference internal" href="index.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If loaded, plan view slices can be plotted in <span class="xref std std-ref">Map View</span>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>26/01/20
+* Can now update the RMS table with a button after changing the plotted dataset.
+* Plotting of imaginary tipper arrows.
+* Added a legend for induction arrows showing colours and reference lengths</p></li>
+<li><p>23/12/19
+* Added option to set equal or auto aspect ratio in the <a class="reference internal" href="index.html#map-window"><span class="std std-ref">Map Window</span></a> of <a class="reference internal" href="index.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>
+* Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.</p></li>
+<li><p>14/12/19
+* Fixed induction arrow plotting in data_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.
+* Added option to specify a ‘cutoff’ length for induction arrows. Arrows with magnitudes greater than this will not be plotted.
+* Added secondary phase tensor plotting as inner bars within the phase tensor ellipses (as in Hering et al., 2019)
+* Fixed bath2model script to properly specify ocean and air cells within the covariance file.
+* In the process of fixing and testing how covariance files need to be written.</p></li>
+<li><p>28/11/19
+* Fixed a bug where ModEM data files would include elevations if data was read directly from EDI files (which would put the receivers underground)
+* Added a static value to the Data class ‘Data.REMOVE_FLAG’, which is meant to be assigned to data points you want removed from the inversion data file</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Currently not functional with the GUIs, but can be used to assign recognizable error values to data points to be removed, which can then be removed manually</p></li>
+<li><p>Will (eventually) add these things into the GUIs…
+* For now, see <a class="reference internal" href="index.html#recipes"><span class="std std-ref">Recipes</span></a> for an example on how to assign the errors and remove the data points from a ModEM data file.</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>Added an option to write model to CSV file (accessible via the API only right now)</p></li>
+<li><p>Added functionality to read / write 2-D ModEM models and data
+* Still buggy and less than ideal. Is you’re data really that 2-D anyways?</p></li>
+</ul>
+</li>
+<li><p>10/11/19
+* ModEM data file read function now checks for sign convention and units</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Will automatically convert to exp(-iωt) and ohms</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>01/10/19
+* Added a script to add oceans and topography</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Still experimental - model seems to be built correctly, but covariance file needs corrections</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>To fit above, changed default behavior of data file writing:
+* By default, elevations will not be used (i.e., Z = 0 for all stations). Add ‘use_elevation=True’ as a named parameter in your write to include elevations
+* Note that due to a bug, previous versions may have included elevations in the written ModEM data files which could lead to spurious results.</p></li>
+</ul>
+</li>
+<li><p>09/09/19
+* Need to add these to the docs changelog when I get that fixed
+* Added turbo and turbo_r to colour maps</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Should automaticaly be working in Model Viewer, not yet in Data Plot</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Changed the way ModEM data files are read in to allow for arbitrary ordering of the data lines</dt><dd><ul>
+<li><p>This seems to be working without complaint, but may have some unintended side effects!</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</li>
+<li><dl class="simple">
+<dt>08/08/19</dt><dd><ul class="simple">
+<li><p>Some changes to IO to start to allow different periods for different sites (not fully implemented yet)</p></li>
+<li><p>Some bug fixes related to reading data files</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>30/07/19</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="index.html#model"><span class="std std-ref">Model</span></a> class can now read and write model covariance files</p></li>
+<li><p><a class="reference internal" href="index.html#mesh-designer"><span class="std std-ref">Mesh Designer - Main Window</span></a> will automatically prompt for covariance file output when writing a model.</p></li>
+<li><p>Added documentation for some of the more usuable scripts.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>23/07/19</dt><dd><ul class="simple">
+<li><p>Re-release of pyMT onto GitHub</p></li>
+<li><dl class="simple">
+<dt>Now with (some) documentation!</dt><dd><ul>
+<li><p>See the pyMT/docs folder for a PDF version, or pyMT/docs/build/html/index.html to load up a browser version (complete with navigation bar and search tool)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<span id="document-content/misc/LICENSE"></span><div class="section" id="license">
+<h3>LICENSE<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h3>
+<p>GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007</p>
+<p>Copyright (C) 2007 Free Software Foundation, Inc. &lt;<a class="reference external" href="http://fsf.org/">http://fsf.org/</a>&gt;
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.</p>
+<p>Preamble</p>
+<p>The GNU General Public License is a free, copyleft license for
+software and other kinds of works.</p>
+<p>The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program–to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.</p>
+<p>When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.</p>
+<p>To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.</p>
+<p>For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.</p>
+<p>Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.</p>
+<p>For the developers’ and authors’ protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users’ and
+authors’ sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.</p>
+<p>Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users’ freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.</p>
+<p>Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.</p>
+<p>The precise terms and conditions for copying, distribution and
+modification follow.</p>
+<p>TERMS AND CONDITIONS</p>
+<ol class="arabic simple" start="0">
+<li><p>Definitions.</p></li>
+</ol>
+<p>“This License” refers to version 3 of the GNU General Public License.</p>
+<p>“Copyright” also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.</p>
+<p>“The Program” refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as “you”.  “Licensees” and
+“recipients” may be individuals or organizations.</p>
+<p>To “modify” a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a “modified version” of the
+earlier work or a work “based on” the earlier work.</p>
+<p>A “covered work” means either the unmodified Program or a work based
+on the Program.</p>
+<p>To “propagate” a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.</p>
+<p>To “convey” a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.</p>
+<p>An interactive user interface displays “Appropriate Legal Notices”
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.</p>
+<ol class="arabic simple">
+<li><p>Source Code.</p></li>
+</ol>
+<p>The “source code” for a work means the preferred form of the work
+for making modifications to it.  “Object code” means any non-source
+form of a work.</p>
+<p>A “Standard Interface” means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.</p>
+<p>The “System Libraries” of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+“Major Component”, in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.</p>
+<p>The “Corresponding Source” for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work’s
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.</p>
+<p>The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.</p>
+<p>The Corresponding Source for a work in source code form is that
+same work.</p>
+<ol class="arabic simple" start="2">
+<li><p>Basic Permissions.</p></li>
+</ol>
+<p>All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.</p>
+<p>You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.</p>
+<p>Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.</p>
+<ol class="arabic simple" start="3">
+<li><p>Protecting Users’ Legal Rights From Anti-Circumvention Law.</p></li>
+</ol>
+<p>No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.</p>
+<p>When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work’s
+users, your or third parties’ legal rights to forbid circumvention of
+technological measures.</p>
+<ol class="arabic simple" start="4">
+<li><p>Conveying Verbatim Copies.</p></li>
+</ol>
+<p>You may convey verbatim copies of the Program’s source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.</p>
+<p>You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.</p>
+<ol class="arabic simple" start="5">
+<li><p>Conveying Modified Source Versions.</p></li>
+</ol>
+<p>You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:</p>
+<p>a) The work must carry prominent notices stating that you modified
+it, and giving a relevant date.</p>
+<p>b) The work must carry prominent notices stating that it is
+released under this License and any conditions added under section
+7.  This requirement modifies the requirement in section 4 to
+“keep intact all notices”.</p>
+<p>c) You must license the entire work, as a whole, under this
+License to anyone who comes into possession of a copy.  This
+License will therefore apply, along with any applicable section 7
+additional terms, to the whole of the work, and all its parts,
+regardless of how they are packaged.  This License gives no
+permission to license the work in any other way, but it does not
+invalidate such permission if you have separately received it.</p>
+<p>d) If the work has interactive user interfaces, each must display
+Appropriate Legal Notices; however, if the Program has interactive
+interfaces that do not display Appropriate Legal Notices, your
+work need not make them do so.</p>
+<p>A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+“aggregate” if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation’s users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.</p>
+<ol class="arabic simple" start="6">
+<li><p>Conveying Non-Source Forms.</p></li>
+</ol>
+<p>You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:</p>
+<p>a) Convey the object code in, or embodied in, a physical product
+(including a physical distribution medium), accompanied by the
+Corresponding Source fixed on a durable physical medium
+customarily used for software interchange.</p>
+<p>b) Convey the object code in, or embodied in, a physical product
+(including a physical distribution medium), accompanied by a
+written offer, valid for at least three years and valid for as
+long as you offer spare parts or customer support for that product
+model, to give anyone who possesses the object code either (1) a
+copy of the Corresponding Source for all the software in the
+product that is covered by this License, on a durable physical
+medium customarily used for software interchange, for a price no
+more than your reasonable cost of physically performing this
+conveying of source, or (2) access to copy the
+Corresponding Source from a network server at no charge.</p>
+<p>c) Convey individual copies of the object code with a copy of the
+written offer to provide the Corresponding Source.  This
+alternative is allowed only occasionally and noncommercially, and
+only if you received the object code with such an offer, in accord
+with subsection 6b.</p>
+<p>d) Convey the object code by offering access from a designated
+place (gratis or for a charge), and offer equivalent access to the
+Corresponding Source in the same way through the same place at no
+further charge.  You need not require recipients to copy the
+Corresponding Source along with the object code.  If the place to
+copy the object code is a network server, the Corresponding Source
+may be on a different server (operated by you or a third party)
+that supports equivalent copying facilities, provided you maintain
+clear directions next to the object code saying where to find the
+Corresponding Source.  Regardless of what server hosts the
+Corresponding Source, you remain obligated to ensure that it is
+available for as long as needed to satisfy these requirements.</p>
+<p>e) Convey the object code using peer-to-peer transmission, provided
+you inform other peers where the object code and Corresponding
+Source of the work are being offered to the general public at no
+charge under subsection 6d.</p>
+<p>A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.</p>
+<p>A “User Product” is either (1) a “consumer product”, which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, “normally used” refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.</p>
+<p>“Installation Information” for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.</p>
+<p>If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).</p>
+<p>The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.</p>
+<p>Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.</p>
+<ol class="arabic simple" start="7">
+<li><p>Additional Terms.</p></li>
+</ol>
+<p>“Additional permissions” are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.</p>
+<p>When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.</p>
+<p>Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:</p>
+<p>a) Disclaiming warranty or limiting liability differently from the
+terms of sections 15 and 16 of this License; or</p>
+<p>b) Requiring preservation of specified reasonable legal notices or
+author attributions in that material or in the Appropriate Legal
+Notices displayed by works containing it; or</p>
+<p>c) Prohibiting misrepresentation of the origin of that material, or
+requiring that modified versions of such material be marked in
+reasonable ways as different from the original version; or</p>
+<p>d) Limiting the use for publicity purposes of names of licensors or
+authors of the material; or</p>
+<p>e) Declining to grant rights under trademark law for use of some
+trade names, trademarks, or service marks; or</p>
+<p>f) Requiring indemnification of licensors and authors of that
+material by anyone who conveys the material (or modified versions of
+it) with contractual assumptions of liability to the recipient, for
+any liability that these contractual assumptions directly impose on
+those licensors and authors.</p>
+<p>All other non-permissive additional terms are considered “further
+restrictions” within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.</p>
+<p>If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.</p>
+<p>Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.</p>
+<ol class="arabic simple" start="8">
+<li><p>Termination.</p></li>
+</ol>
+<p>You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).</p>
+<p>However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.</p>
+<p>Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.</p>
+<p>Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.</p>
+<ol class="arabic simple" start="9">
+<li><p>Acceptance Not Required for Having Copies.</p></li>
+</ol>
+<p>You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.</p>
+<ol class="arabic simple" start="10">
+<li><p>Automatic Licensing of Downstream Recipients.</p></li>
+</ol>
+<p>Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.</p>
+<p>An “entity transaction” is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party’s predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.</p>
+<p>You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.</p>
+<ol class="arabic simple" start="11">
+<li><p>Patents.</p></li>
+</ol>
+<p>A “contributor” is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor’s “contributor version”.</p>
+<p>A contributor’s “essential patent claims” are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, “control” includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.</p>
+<p>Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor’s essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.</p>
+<p>In the following three paragraphs, a “patent license” is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To “grant” such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.</p>
+<p>If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  “Knowingly relying” means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient’s use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.</p>
+<p>If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.</p>
+<p>A patent license is “discriminatory” if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.</p>
+<p>Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.</p>
+<ol class="arabic simple" start="12">
+<li><p>No Surrender of Others’ Freedom.</p></li>
+</ol>
+<p>If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.</p>
+<ol class="arabic simple" start="13">
+<li><p>Use with the GNU Affero General Public License.</p></li>
+</ol>
+<p>Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.</p>
+<ol class="arabic simple" start="14">
+<li><p>Revised Versions of this License.</p></li>
+</ol>
+<p>The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.</p>
+<p>Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License “or any later version” applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.</p>
+<p>If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy’s
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.</p>
+<p>Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.</p>
+<ol class="arabic simple" start="15">
+<li><p>Disclaimer of Warranty.</p></li>
+</ol>
+<p>THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.</p>
+<ol class="arabic simple" start="16">
+<li><p>Limitation of Liability.</p></li>
+</ol>
+<p>IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.</p>
+<ol class="arabic simple" start="17">
+<li><p>Interpretation of Sections 15 and 16.</p></li>
+</ol>
+<p>If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.</p>
+<p>END OF TERMS AND CONDITIONS</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html#document-index">Table of Contents</a></h3>
+  <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/api_core/installation">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#installing-pymt">Installing pyMT</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/api_core/testing_installation">Testing Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/api_core/data_structures">data_structures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#dataset">Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#data">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#error-floors">Error Floors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#rawdata">RawData</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#response">Response</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#site">Site</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model">Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/api_core/input_files">Input File Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#startup-file">Startup File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#data-file">Data File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#response-file">Response File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#list-file">List File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-file">Model File</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/data_plot/getting_started">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#launching-the-gui">Launching the GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#required-files">Required Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#default-behavior">Default Behavior</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/data_plot/main_window">Data Plot - Main Window</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#menu-bar">Menu Bar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#forward-and-back-buttons">Forward and Back Buttons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#tabs-window">Tabs Window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#plot-window">Plot Window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#toolbar">Toolbar</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/data_plot/map_viewer">Data Plot - Map Viewer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#menu-bar">Menu Bar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#control-dock">Control Dock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#map-window">Map Window</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/model_viewer/getting_started">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#launching-the-gui">Launching the GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#required-files">Required Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#default-behavior">Default Behavior</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/model_viewer/main_window">Model Viewer - Main Window</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#menu-bar">Menu Bar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#control-dock">Control Dock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#plot-window">Plot Window</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/mesh_designer/getting_started">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#launching-the-gui">Launching the GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#required-files">Required Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#default-behavior">Default Behavior</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/mesh_designer/main_window">Mesh Designer - Main Window</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#menu-bar">Menu Bar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#control-dock">Control Dock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#plot-window">Plot Window</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/examples/recipes">Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#adding-data-to-an-existing-data-file">Adding Data to an Existing Data File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#working-with-inconsistent-periods-components">Working with Inconsistent Periods / Components</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/examples/scripts">Scripts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#general-use">General Use</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/misc/help">HELP</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/misc/DISCLAIMER">DISCLAIMER</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#known-bugs">KNOWN BUGS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#data-plot-gui">Data Plot GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-viewer-gui">Model Viewer GUI</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/misc/changelog">Change Log</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-content/misc/LICENSE">LICENSE</a></li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
+    </div>
+  </body>
+</html>

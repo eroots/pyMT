@@ -1079,7 +1079,6 @@ class MapView(object):
                                      zorder=4)
             self.window['axes'][0].add_patch(rect)
         self.set_axis_limits()
-        print('Done plotting elbars')
 
     @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
     def plot_phase_bar2(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):

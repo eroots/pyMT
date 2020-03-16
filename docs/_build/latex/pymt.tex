@@ -72,7 +72,7 @@
 
 
 \title{pyMT}
-\date{Jul 30, 2019}
+\date{Mar 16, 2020}
 \release{0.0.1}
 \author{Eric Roots}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -155,6 +155,16 @@ The tested method of installation involves installing each of these with Anacond
 
 \chapter{Testing Installation}
 \label{\detokenize{content/api_core/testing_installation:testing-installation}}\label{\detokenize{content/api_core/testing_installation::doc}}
+Test data is included in the ‘test\_data’ folder.
+From that folder, try launching each of the GUIs:
+
+{\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}: data\_plot -n pytest
+{\hyperref[\detokenize{content/mesh_designer/main_window:mesh-designer}]{\sphinxcrossref{\DUrole{std,std-ref}{Mesh Designer - Main Window}}}}: mesh\_designer testfile\_ModEM.dat
+{\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}: model\_viewer testfile\_ModEM.dat testfile\_ModEM.model
+
+If they all launch, you should be good to go.
+If not, most likely there is a dependency issue somewhere.
+
 
 \chapter{API}
 \label{\detokenize{index:api}}
@@ -1374,6 +1384,37 @@ Assuming the data file we want to modify is ‘demo.dat’, and the list file we
 \PYG{n}{data}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{new\PYGZus{}data}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{file\PYGZus{}format}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{modem}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} Write the new data out.}
 \end{sphinxVerbatim}
 
+Alternatively, multiple ModEM data files can be combined (e.g., append tipper data from one file into another), so long as resulting file still adheres to pyMT’s requirements (i.e., uniform periods and data components for all sites).
+
+
+\subsection{Working with Inconsistent Periods / Components}
+\label{\detokenize{content/examples/recipes:working-with-inconsistent-periods-components}}
+Sometimes it may be desireable to invert a data set that has a non-uniform period set and / or component set, for example when mixing AMT and BB stations. If the number of wasted data points is low (maybe 3-4 frequencies total), it is usually simpler to just set high errors to the unavailable frequencies and let the inversion run as normal (the number of processors required is the same regardless, addition RAM required for wasted data points is low).
+Note, a ‘wasted data point’ is a data point which is will be inverted at a subset of stations, but is unavailable at other stations (most often when mixing stations with different bandwidths, or stations with / without tipper)
+However, if you intend to invert many frequencies and / or components that would be unavailable at a subset of stations, there is a workaround. This workaround requires some knowledge of Python, and preferably a text editor that allows you to find, select, and remove all lines containing a particular string (e.g., Sublime Text).
+
+First, you should set up the ModEM data file as usual (i.e., using Data Plot or j2ws3d).
+Make note of (or intentionally set up) any patterns you can use to distinguish your stations. In this example, broadband stations end in ‘M’, and AMT stations end in ‘A’. The final 4 periods of AMT stations, and first 3 periods of BB stations will be flagged and removed.:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{data} \PYG{o}{=} \PYG{n}{ds}\PYG{o}{.}\PYG{n}{Data}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{demo.dat}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} Load your data set}
+\PYG{k}{for} \PYG{n}{site} \PYG{o+ow}{in} \PYG{n}{data}\PYG{o}{.}\PYG{n}{site\PYGZus{}names}\PYG{p}{:}  \PYG{c+c1}{\PYGZsh{} Loop through stations}
+        \PYG{k}{if} \PYG{n}{site}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{(}\PYG{p}{)}\PYG{o}{.}\PYG{n}{endswith}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{a}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} If its an AMT station}
+                \PYG{k}{for} \PYG{n}{comp} \PYG{o+ow}{in} \PYG{n}{data}\PYG{o}{.}\PYG{n}{components}\PYG{p}{:}  \PYG{c+c1}{\PYGZsh{} Loop over available components}
+                        \PYG{n}{data}\PYG{o}{.}\PYG{n}{sites}\PYG{p}{[}\PYG{n}{site}\PYG{p}{]}\PYG{o}{.}\PYG{n}{used\PYGZus{}error}\PYG{p}{[}\PYG{n}{comp}\PYG{p}{]}\PYG{p}{[}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{4}\PYG{p}{:}\PYG{p}{]} \PYG{o}{=} \PYG{n}{data}\PYG{o}{.}\PYG{n}{REMOVE\PYGZus{}FLAG}  \PYG{c+c1}{\PYGZsh{} Flag the errors for the last 4 periods}
+        \PYG{k}{elif} \PYG{n}{site}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{(}\PYG{p}{)}\PYG{o}{.}\PYG{n}{endswith}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{m}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}\PYG{p}{:}
+                \PYG{k}{for} \PYG{n}{comp} \PYG{o+ow}{in} \PYG{n}{data}\PYG{o}{.}\PYG{n}{components}\PYG{p}{:}
+                        \PYG{n}{data}\PYG{o}{.}\PYG{n}{sites}\PYG{p}{[}\PYG{n}{site}\PYG{p}{]}\PYG{o}{.}\PYG{n}{used\PYGZus{}error}\PYG{p}{[}\PYG{n}{comp}\PYG{p}{]}\PYG{p}{[}\PYG{p}{:}\PYG{l+m+mi}{3}\PYG{p}{]} \PYG{o}{=} \PYG{n}{data}\PYG{o}{.}\PYG{n}{REMOVE\PYGZus{}FLAG}  \PYG{c+c1}{\PYGZsh{} Flag the errors for the first 3 periods}
+\PYG{n}{data}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{demo\PYGZus{}flagged}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} Write out a new \PYGZsq{}flagged\PYGZsq{} version of the data file}
+\end{sphinxVerbatim}
+
+This will create a new data file with the periods to be removed flagged with errors corresponding to the Data.REMOVE\_FLAG (at the time of writing, it is 1234567)
+
+Open this file in your text editor of choice. Find all instances of the REMOVE\_FLAG, cut and paste the corresponding lines so they are all at the end of the file (this isn’t required, it just makes life easier). Save this to ‘demo\_flagged.dat’. Now remove the corresponding lines. Save this to a new data file (e.g., ‘demo\_removed.dat’)
+You can now invert the ‘demo\_removed.dat’. When using pyMT, you will still have to use the ‘demo\_flagged.dat’ version which has a uniform period band. Furthermore, when reading in the response file created by inverting ‘demo\_removed.dat’, you will have to copy-paste the removed periods from ‘demo\_flagged.dat’ into it (this is why I moved the flagged lines to the end of the file).
+
+I apologize for this incredibly roundabout method. Allowing for non-uniform data files in pyMT will require a large re-working of the code, and at this time it is more important to have working tools with some odd quirks than to have fully featured tools with game-breaking bugs.
+
 
 \section{Scripts}
 \label{\detokenize{content/examples/scripts:scripts}}\label{\detokenize{content/examples/scripts::doc}}
@@ -1479,6 +1520,9 @@ When multiple datasets are loaded, the misfit table may not be properly updated 
 \item {} 
 The station locations and annotations in the {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} may not be accurate
 
+\item {} 
+Non-zero azimuths also do something with the ordering of the stations in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}, and cycling through stations with the {\hyperref[\detokenize{content/data_plot/main_window:forward-and-back-buttons}]{\sphinxcrossref{\DUrole{std,std-ref}{Forward and Back Buttons}}}} changes the order on the map. Will try to fix this.
+
 \item {} \begin{description}
 \item[{The Azimuth editor is meant to be used for 3-D data, and rotates the data accordingly: Station locations are rotated clockwise from north, and the data is rotated counter-clockwise to maintain a measurement coordinate system that is consistent with the model space (see \sphinxurl{https://www.linkedin.com/pulse/grid-sites-data-rotations-3d-mt-dr-naser-meqbel/})}] \leavevmode\begin{itemize}
 \item {} 
@@ -1544,8 +1588,145 @@ The 2-D transect plot does not respond to changes in the model trim. The workaro
 
 \subsection{Change Log}
 \label{\detokenize{content/misc/changelog:change-log}}\label{\detokenize{content/misc/changelog::doc}}\begin{itemize}
+\item {} 
+14/03/20
+* Fixed a few of the issues related to reading multiple data sets into Data Plot
+\begin{itemize}
+\item {} 
+Use the ‘Recalculate RMS’ button in the \DUrole{xref,std,std-ref}{Data Selection} tab to refresh the {\hyperref[\detokenize{content/data_plot/main_window:misfit-table}]{\sphinxcrossref{\DUrole{std,std-ref}{Misfit Table}}}} after switching the data set.
+
+\end{itemize}
+\begin{itemize}
+\item {} 
+Inversion type is detected from available components when loading only a list file into {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}
+* This ‘should’ fix the bugs related to {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} not allowing plotting of induction arrows and phase tensors.
+
+\item {} 
+Fixed bug which stopped station locations from being plotted when using only a list file.
+
+\item {} 
+Added ‘Coordinate System’ in the {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}. Stations can be plotted in local, UTM, or lat/long. Note that which of these is available will depend on what data is loaded (e.g., a ModEM data file alone has no information about the geographic locations of the stations)
+
+\item {} 
+Added a ‘JPEG’ menu in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}. This allows loading of a geo-referenced JPEG image into the background. So far I have only tested it with UTM referenced JPEGs (and its corresponding world file), but I don’t see any reason why a lat/long referenced file wouldn’t work.
+* Note that when plotting these background images, the Coordinate System needs to be set appropriately.
+
+\item {} 
+Added some documentation in {\hyperref[\detokenize{content/examples/recipes:recipes}]{\sphinxcrossref{\DUrole{std,std-ref}{Recipes}}}} outlining my approach to working with data with non-uniform periods and / or components.
+
+\end{itemize}
+
+\item {} 
+01/02/20
+* Models can now be read into ‘pystart’ files in {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}.
+\begin{itemize}
+\item {} 
+If loaded, plan view slices can be plotted in \DUrole{xref,std,std-ref}{Map View}.
+
+\end{itemize}
+
+\item {} 
+26/01/20
+* Can now update the RMS table with a button after changing the plotted dataset.
+* Plotting of imaginary tipper arrows.
+* Added a legend for induction arrows showing colours and reference lengths
+
+\item {} 
+23/12/19
+* Added option to set equal or auto aspect ratio in the {\hyperref[\detokenize{content/data_plot/map_viewer:map-window}]{\sphinxcrossref{\DUrole{std,std-ref}{Map Window}}}} of {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}
+* Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.
+
+\item {} 
+14/12/19
+* Fixed induction arrow plotting in data\_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.
+* Added option to specify a ‘cutoff’ length for induction arrows. Arrows with magnitudes greater than this will not be plotted.
+* Added secondary phase tensor plotting as inner bars within the phase tensor ellipses (as in Hering et al., 2019)
+* Fixed bath2model script to properly specify ocean and air cells within the covariance file.
+* In the process of fixing and testing how covariance files need to be written.
+
+\item {} 
+28/11/19
+* Fixed a bug where ModEM data files would include elevations if data was read directly from EDI files (which would put the receivers underground)
+* Added a static value to the Data class ‘Data.REMOVE\_FLAG’, which is meant to be assigned to data points you want removed from the inversion data file
+\begin{itemize}
+\item {} 
+Currently not functional with the GUIs, but can be used to assign recognizable error values to data points to be removed, which can then be removed manually
+
+\item {} 
+Will (eventually) add these things into the GUIs…
+* For now, see {\hyperref[\detokenize{content/examples/recipes:recipes}]{\sphinxcrossref{\DUrole{std,std-ref}{Recipes}}}} for an example on how to assign the errors and remove the data points from a ModEM data file.
+
+\end{itemize}
+\begin{itemize}
+\item {} 
+Added an option to write model to CSV file (accessible via the API only right now)
+
+\item {} 
+Added functionality to read / write 2-D ModEM models and data
+* Still buggy and less than ideal. Is you’re data really that 2-D anyways?
+
+\end{itemize}
+
+\item {} 
+10/11/19
+* ModEM data file read function now checks for sign convention and units
+\begin{itemize}
+\item {} 
+Will automatically convert to exp(-iωt) and ohms
+
+\end{itemize}
+
+\item {} 
+01/10/19
+* Added a script to add oceans and topography
+\begin{itemize}
+\item {} 
+Still experimental - model seems to be built correctly, but covariance file needs corrections
+
+\end{itemize}
+\begin{itemize}
+\item {} 
+To fit above, changed default behavior of data file writing:
+* By default, elevations will not be used (i.e., Z = 0 for all stations). Add ‘use\_elevation=True’ as a named parameter in your write to include elevations
+* Note that due to a bug, previous versions may have included elevations in the written ModEM data files which could lead to spurious results.
+
+\end{itemize}
+
+\item {} 
+09/09/19
+* Need to add these to the docs changelog when I get that fixed
+* Added turbo and turbo\_r to colour maps
+\begin{itemize}
+\item {} 
+Should automaticaly be working in Model Viewer, not yet in Data Plot
+
+\end{itemize}
+\begin{itemize}
 \item {} \begin{description}
-\item[{07/30/19}] \leavevmode\begin{itemize}
+\item[{Changed the way ModEM data files are read in to allow for arbitrary ordering of the data lines}] \leavevmode\begin{itemize}
+\item {} 
+This seems to be working without complaint, but may have some unintended side effects!
+
+\end{itemize}
+
+\end{description}
+
+\end{itemize}
+
+\item {} \begin{description}
+\item[{08/08/19}] \leavevmode\begin{itemize}
+\item {} 
+Some changes to IO to start to allow different periods for different sites (not fully implemented yet)
+
+\item {} 
+Some bug fixes related to reading data files
+
+\end{itemize}
+
+\end{description}
+
+\item {} \begin{description}
+\item[{30/07/19}] \leavevmode\begin{itemize}
 \item {} 
 {\hyperref[\detokenize{content/api_core/data_structures:model}]{\sphinxcrossref{\DUrole{std,std-ref}{Model}}}} class can now read and write model covariance files
 
@@ -1560,7 +1741,7 @@ Added documentation for some of the more usuable scripts.
 \end{description}
 
 \item {} \begin{description}
-\item[{07/23/19}] \leavevmode\begin{itemize}
+\item[{23/07/19}] \leavevmode\begin{itemize}
 \item {} 
 Re-release of pyMT onto GitHub
 
@@ -1657,9 +1838,7 @@ modification follow.
 
 TERMS AND CONDITIONS
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{-1}
 \item {} 
 Definitions.
@@ -1703,9 +1882,7 @@ work under this License, and how to view a copy of this License.  If
 the interface presents a list of user commands or options, such as a
 menu, a prominent item in the list meets this criterion.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \item {} 
 Source Code.
 
@@ -1751,9 +1928,7 @@ Source.
 The Corresponding Source for a work in source code form is that
 same work.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{1}
 \item {} 
 Basic Permissions.
@@ -1783,9 +1958,7 @@ Conveying under any other circumstances is permitted solely under
 the conditions stated below.  Sublicensing is not allowed; section 10
 makes it unnecessary.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{2}
 \item {} 
 Protecting Users’ Legal Rights From Anti-Circumvention Law.
@@ -1806,9 +1979,7 @@ modification of the work as a means of enforcing, against the work’s
 users, your or third parties’ legal rights to forbid circumvention of
 technological measures.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{3}
 \item {} 
 Conveying Verbatim Copies.
@@ -1826,9 +1997,7 @@ recipients a copy of this License along with the Program.
 You may charge any price or no price for each copy that you convey,
 and you may offer support or warranty protection for a fee.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{4}
 \item {} 
 Conveying Modified Source Versions.
@@ -1870,9 +2039,7 @@ beyond what the individual works permit.  Inclusion of a covered work
 in an aggregate does not cause this License to apply to the other
 parts of the aggregate.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{5}
 \item {} 
 Conveying Non-Source Forms.
@@ -1975,9 +2142,7 @@ documented (and with an implementation available to the public in
 source code form), and must require no special password or key for
 unpacking, reading or copying.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{6}
 \item {} 
 Additional Terms.
@@ -2046,9 +2211,7 @@ Additional terms, permissive or non-permissive, may be stated in the
 form of a separately written license, or stated as exceptions;
 the above requirements apply either way.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{7}
 \item {} 
 Termination.
@@ -2081,9 +2244,7 @@ this License.  If your rights have been terminated and not permanently
 reinstated, you do not qualify to receive new licenses for the same
 material under section 10.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{8}
 \item {} 
 Acceptance Not Required for Having Copies.
@@ -2099,9 +2260,7 @@ modify any covered work.  These actions infringe copyright if you do
 not accept this License.  Therefore, by modifying or propagating a
 covered work, you indicate your acceptance of this License to do so.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{9}
 \item {} 
 Automatic Licensing of Downstream Recipients.
@@ -2131,9 +2290,7 @@ rights granted under this License, and you may not initiate litigation
 any patent claim is infringed by making, using, selling, offering for
 sale, or importing the Program or any portion of it.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{10}
 \item {} 
 Patents.
@@ -2207,9 +2364,7 @@ Nothing in this License shall be construed as excluding or limiting
 any implied license or other defenses to infringement that may
 otherwise be available to you under applicable patent law.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{11}
 \item {} 
 No Surrender of Others’ Freedom.
@@ -2226,9 +2381,7 @@ to collect a royalty for further conveying from those to whom you convey
 the Program, the only way you could satisfy both those terms and this
 License would be to refrain entirely from conveying the Program.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{12}
 \item {} 
 Use with the GNU Affero General Public License.
@@ -2244,9 +2397,7 @@ but the special requirements of the GNU Affero General Public License,
 section 13, concerning interaction through a network will apply to the
 combination as such.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{13}
 \item {} 
 Revised Versions of this License.
@@ -2277,9 +2428,7 @@ permissions.  However, no additional obligations are imposed on any
 author or copyright holder as a result of your choosing to follow a
 later version.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{14}
 \item {} 
 Disclaimer of Warranty.
@@ -2295,9 +2444,7 @@ PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
 IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
 ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{15}
 \item {} 
 Limitation of Liability.
@@ -2314,9 +2461,7 @@ PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGES.
 \begin{enumerate}
-\def\theenumi{\arabic{enumi}}
-\def\labelenumi{\theenumi .}
-\makeatletter\def\p@enumii{\p@enumi \theenumi .}\makeatother
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \setcounter{enumi}{16}
 \item {} 
 Interpretation of Sections 15 and 16.

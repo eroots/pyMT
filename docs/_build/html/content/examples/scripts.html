@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Scripts &#8212; pyMT 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="HELP" href="../misc/help.html" />
+    <link rel="prev" title="Recipes" href="recipes.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../misc/help.html" title="HELP"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="recipes.html" title="Recipes"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="scripts">
+<h1>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h1>
+<p>A number of scripts come with pyMT, although only a few of these are ready for <a class="reference internal" href="#general-use">General Use</a> . Others will need to be manually edited for your particular needs. Only a few will be described here.</p>
+<div class="section" id="general-use">
+<h2>General Use<a class="headerlink" href="#general-use" title="Permalink to this headline">¶</a></h2>
+<p>The scripts listed here are ready to run out of the box, and either have command line inputs to control them, or are so simple as to not require any inputs.</p>
+<div class="section" id="j2ws3d">
+<h3>j2ws3d<a class="headerlink" href="#j2ws3d" title="Permalink to this headline">¶</a></h3>
+<p>j2ws3d is a command line tool for preparing data for inversion. It is included in your search path upon installtion of pyMT, so it can be run from anywhere (preferably wherever your raw data is).</p>
+<p>Note, that by default j2ws3d.py tries to create both models and data through command line inputs, but the model creation aspect is bugged and will crash. Either run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">j2ws3d</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">data</span>
+</pre></div>
+</div>
+<p>to initial a data only mode, or just ignore the program crash (as it occurs after the data file is written out).</p>
+<p>Other than that, just follow the on-screen prompts.</p>
+<p>This program has is still usuable, but has been superceded by the <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> GUI.</p>
+</div>
+<div class="section" id="to-vtk">
+<h3>to_vtk<a class="headerlink" href="#to-vtk" title="Permalink to this headline">¶</a></h3>
+<p>Script for converting site locations and models to VTK files (compatible with, e.g., Paraview).</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">to_vtk</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Follow the command line prompts to select your model and/or data files. You will also have the option to project your model and data into a particular UTM zone.</p>
+<p>Note that any station / model rotations will have to be handled manually.</p>
+</div>
+<div class="section" id="ws2modem">
+<h3>ws2modem<a class="headerlink" href="#ws2modem" title="Permalink to this headline">¶</a></h3>
+<p>Simple script to convert WSINV3DMT data files into ModEM 3-D data files.
+Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ws2modem</span><span class="o">.</span><span class="n">py</span> <span class="o">&lt;</span><span class="n">ws_input_data</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">modem_output_data</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Scripts</a><ul>
+<li><a class="reference internal" href="#general-use">General Use</a><ul>
+<li><a class="reference internal" href="#j2ws3d">j2ws3d</a></li>
+<li><a class="reference internal" href="#to-vtk">to_vtk</a></li>
+<li><a class="reference internal" href="#ws2modem">ws2modem</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="recipes.html"
+                        title="previous chapter">Recipes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../misc/help.html"
+                        title="next chapter">HELP</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/content/examples/scripts.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../misc/help.html" title="HELP"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="recipes.html" title="Recipes"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyMT 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Eric Roots.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
+    </div>
+  </body>
+</html>

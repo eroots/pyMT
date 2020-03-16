@@ -548,7 +548,6 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period)
             if bar_fill != PT_toggles['fill'] and len(PT_toggles['data']) == 1:
-                print('plotting elbars')
                 self.map.plot_phase_bar(data_type=PT_toggles['data'],
                                         fill_param=bar_fill,
                                         period_idx=self.active_period)
@@ -1158,6 +1157,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.dataset.sort_sites(self.sortSites.itemText(index))
         self.siteList.clear()
         self.siteList.addItems(self.dataset.data.site_names)
+        self.update_map_data()
 
     def show_map(self):
         # print(self.map_view.map.site_locations['generic'])
@@ -1173,6 +1173,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map_view.periods = self.dataset.data.periods
         self.map_view.PeriodScrollBar.setMaximum(len(self.dataset.data.periods))
         self.map_view.dataset = self.dataset
+        self.map_view.init_map(dataset=self.dataset,
+                               sites=self.dataset.data.site_names,
+                               active_sites=self.site_names)
 
     def draw_map(self):
         if not self.map['fig']:

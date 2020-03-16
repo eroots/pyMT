@@ -43,6 +43,13 @@
             
   <div class="section" id="testing-installation">
 <h1>Testing Installation<a class="headerlink" href="#testing-installation" title="Permalink to this headline">¶</a></h1>
+<p>Test data is included in the ‘test_data’ folder.
+From that folder, try launching each of the GUIs:</p>
+<p><a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>: data_plot -n pytest
+<a class="reference internal" href="../mesh_designer/main_window.html#mesh-designer"><span class="std std-ref">Mesh Designer - Main Window</span></a>: mesh_designer testfile_ModEM.dat
+<a class="reference internal" href="../model_viewer/main_window.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a>: model_viewer testfile_ModEM.dat testfile_ModEM.model</p>
+<p>If they all launch, you should be good to go.
+If not, most likely there is a dependency issue somewhere.</p>
 </div>
 
 
@@ -95,7 +102,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Eric Roots.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>
