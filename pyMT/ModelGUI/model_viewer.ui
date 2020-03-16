@@ -114,8 +114,14 @@
     <layout class="QGridLayout" name="gridLayout_6">
      <item row="0" column="0">
       <widget class="QTabWidget" name="tabWidget">
+       <property name="maximumSize">
+        <size>
+         <width>16777210</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Mesh">
         <attribute name="title">
@@ -459,6 +465,84 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="tab_6">
+        <attribute name="title">
+         <string>Isosurface</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_12">
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="isoPlot">
+           <property name="text">
+            <string>Plot Isosurface</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4">
+          <widget class="QPushButton" name="isoRecalculate">
+           <property name="text">
+            <string>Recalculate</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QSpinBox" name="isoHigh">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>100000</number>
+           </property>
+           <property name="value">
+            <number>300</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="isoLow">
+           <property name="maximum">
+            <number>100000</number>
+           </property>
+           <property name="value">
+            <number>300</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QSpinBox" name="isoNum">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>50</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Lowest Resistivity</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>Highest Resistivity</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>Number of Contours</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="tab_2">
         <attribute name="title">
          <string>Data</string>
@@ -499,7 +583,7 @@
      <x>0</x>
      <y>0</y>
      <width>1335</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuView">
@@ -510,7 +594,15 @@
     <addaction name="viewXZ"/>
     <addaction name="viewYZ"/>
    </widget>
+   <widget class="QMenu" name="menuMesh_Lines">
+    <property name="title">
+     <string>Mesh Lines</string>
+    </property>
+    <addaction name="meshOn"/>
+    <addaction name="meshOff"/>
+   </widget>
    <addaction name="menuView"/>
+   <addaction name="menuMesh_Lines"/>
   </widget>
   <action name="viewXY">
    <property name="text">
@@ -530,6 +622,25 @@
   <action name="action1">
    <property name="text">
     <string>1</string>
+   </property>
+  </action>
+  <action name="meshOn">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>On</string>
+   </property>
+  </action>
+  <action name="meshOff">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Off</string>
    </property>
   </action>
  </widget>

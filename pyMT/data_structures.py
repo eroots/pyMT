@@ -180,6 +180,7 @@ class Dataset(object):
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
         self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
+        self.data.auto_set_inv_type()
 
     def read_model(self, modelfile=''):
         """Summary
@@ -368,6 +369,25 @@ class Dataset(object):
             print('Order {} not recognized.'.format(order))
             return
         self.data.locations = self.data.get_locs()
+        if self.has_dType('response'):
+            if order in (None, 'Default'):
+                self.response.site_names = [site for site in site_names
+                                        if site in self.response.site_names]
+            elif order.lower() == 'west-east':
+                self.response.site_names = sorted(self.response.site_names,
+                                              key=lambda x: self.response.sites[x].locations['Y'])
+            elif order.lower() == 'south-north':
+                self.response.site_names = sorted(self.response.site_names,
+                                              key=lambda x: self.response.sites[x].locations['X'])
+            elif order.lower() == 'clustering':
+                sites = sorted(self.response.site_names,
+                               key=lambda x: (self.response.sites[x].locations['X'],
+                                              self.response.sites[x].locations['Y']))
+                self.response.site_names = sites
+            else:
+                print('Order {} not recognized.'.format(order))
+                return
+            self.response.locations = self.response.get_locs()
 
     def regulate_errors(self, multiplier=2.5, fwidth=1):
         use_log = False
@@ -1165,7 +1185,7 @@ class Model(object):
             self.read_covariance(covariance_file)
         else:
             self.sigma_x, self.sigma_y, self.sigma_z = 0.3, 0.3, 0.3
-            self.num_smooth = 2
+            self.num_smooth = 1
             self.cov_exceptions = None
 
     @property
@@ -1274,20 +1294,24 @@ class Model(object):
             Convert model coordinates to UTM
             Usage: model.to_UTM(origin=None) where origin is (Easting, Northing)
         '''
+        print('in to_UTM')
         if self.coord_system == 'local':
             if origin:
+                print('in if origin')
                 self.origin = origin
             elif self.origin is None:
                 print('Must specify origin if model.origin is not set')
                 return False
-            else:
-                self._dx = [x + self.origin[1] for x in self._dx]
-                self._dy = [y + self.origin[0] for y in self._dy]
+            print('should be doing stuff')
+            self._dx = [x + self.origin[1] for x in self._dx]
+            self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':
-            self._dy, self._dx = utils.project((self._dx, self._dy))
+            print('in if latlong')
+            # self._dy, self._dx = utils.project((self._dx, self._dy))
+            self._dy, self._dx = utils.project((self._dx, self._dy), zone=self.UTM_zone[:-1], letter=self.UTM_zone[-1])
         elif self.coord_system == 'UTM':
             print('Already in UTM')
-            return
+            return False
         self.coord_system = 'UTM'
         return True
 
@@ -1427,6 +1451,26 @@ class Model(object):
             self._dz = self._dz[:index] + [value] + self._dz[index:]
             self._zCS = list(np.diff(self._dz))
             self.update_vals(axis=2, index=mod_idx, new_vals=new_vals)
+
+    def split_cells(self):
+        dx_orig = deepcopy(model.dx)
+        dy_orig = deepcopy(model.dy)
+        dx_insert = []
+        dy_insert = []
+        for ii, x in enumerate(model.dx[:-1]):
+            dx_insert.append((model.dx[ii], model.dx[ii + 1]) / 2)
+        for ii, y in enumerate(model.dy[:-1]):
+            dy_insert.append((model.dy[ii], model.dy[ii + 1]) / 2)
+        cc = 0
+        for ii, y in enumerate(dy_orig[:-1]):
+            cc += 1
+            model.dy_insert(cc, dy_insert[ii])
+            cc += 1
+        cc = 0
+        for ii, x in enumerate(dx_orig[:-1]):
+            cc += 1
+            model.dx_insert(cc, dx_insert[ii])
+            cc += 1
 # start Properties
 
     @property
@@ -1518,14 +1562,14 @@ class Model(object):
 
     def write_covariance(self, outfile):
         WS_io.write_covariance(outfile,
-                               self.nx,
-                               self.ny,
-                               self.nz,
-                               self.cov_exceptions,
-                               self.sigma_x,
-                               self.sigma_y,
-                               self.sigma_z,
-                               self.num_smooth)
+                               NX=self.nx,
+                               NY=self.ny,
+                               NZ=self.nz,
+                               exceptions=self.cov_exceptions,
+                               sigma_x=self.sigma_x,
+                               sigma_y=self.sigma_y,
+                               sigma_z=self.sigma_z,
+                               num_smooth=self.num_smooth)
 
 
 class Response(Data):
@@ -2602,7 +2646,7 @@ class RawData(object):
             self.high_tol = hTol
         if lTol is not None:
             self.low_tol = lTol
-        if hTol is not None:
+        if cTol is not None:
             self.count_tol = cTol
 
     def remove_sites(self, sites):

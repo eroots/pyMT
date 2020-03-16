@@ -27,6 +27,7 @@ import re
 from PyQt5.uic import loadUiType
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.figure import Figure
+from matplotlib.pyplot import imread
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -34,8 +35,9 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
-from pyMT.GUI_common.classes import FileDialog
+from pyMT.GUI_common.classes import FileDialog, ColourMenu
 from pyMT.IO import debug_print
+
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -54,8 +56,11 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.active_period = 0
         self.map = gplot.MapView()
         self.fig = self.map.window['figure']
+        self.background_image = {'extent': [], 'image': []}
         self.init_map(dataset, sites, active_sites)
         self.periods = self.map.site_data['data'].periods
+        self.colourMenu = ColourMenu(self)
+        self.menuBar().addMenu(self.colourMenu)
         self.set_period_label()
         self.add_mpl(self.map.window['figure'])
         self.connect_widgets()
@@ -67,21 +72,25 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_dataInduction.clicked.connect(self.update_map)
             self.toggle_responseInduction.clicked.connect(self.update_map)
             self.toggle_normalizeInduction.clicked.connect(self.update_map)
+            self.arrowType.currentIndexChanged.connect(self.update_map)
         else:
             self.toggle_dataInduction.setEnabled(False)
             self.toggle_responseInduction.setEnabled(False)
             self.toggle_normalizeInduction.setEnabled(False)
+            self.arrowType.setEnabled(False)
         #  Connect phase tensor toggles
         if self.map.dataset.data.inv_type in (1, 5, 6):
             self.toggle_dataPhaseTensor.clicked.connect(self.data_phase_tensor)
             self.toggle_responsePhaseTensor.clicked.connect(self.resp_phase_tensor)
             self.toggle_nonePhaseTensor.clicked.connect(self.none_phase_tensor)
             self.PhaseTensor_fill.currentIndexChanged.connect(self.update_map)
+            self.Bar_fill.currentIndexChanged.connect(self.update_map)
         else:
             self.toggle_dataPhaseTensor.setEnabled(False)
             self.toggle_responsePhaseTensor.setEnabled(False)
             self.toggle_nonePhaseTensor.setEnabled(False)
             self.PhaseTensor_fill.setEnabled(False)
+            self.Bar_fill.setEnabled(False)
         #  Connect pseudo-section plotting toggles
         self.toggle_rhoPseudo.clicked.connect(self.update_map)
         self.toggle_phasePseudo.clicked.connect(self.update_map)
@@ -94,16 +103,18 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.PeriodScrollBar.setMinimum(1)
         self.PeriodScrollBar.setMaximum(len(self.map.site_data['data'].periods))
         #  Set up colour map selections
+        self.colourMenu.action_group.triggered.connect(self.set_colourmap)
+        self.colourMenu.limits.triggered.connect(self.set_rho_cax)
         self.groupColourmaps = QtWidgets.QActionGroup(self)
-        self.groupColourmaps.triggered.connect(self.set_colourmap)
-        self.actionJet.setActionGroup(self.groupColourmaps)
-        self.actionJet_r.setActionGroup(self.groupColourmaps)
-        self.actionJet_plus.setActionGroup(self.groupColourmaps)
-        self.actionJet_plus_r.setActionGroup(self.groupColourmaps)
-        self.actionBgy.setActionGroup(self.groupColourmaps)
-        self.actionBgy_r.setActionGroup(self.groupColourmaps)
-        self.actionBwr.setActionGroup(self.groupColourmaps)
-        self.actionBwr_r.setActionGroup(self.groupColourmaps)
+        # self.groupColourmaps.triggered.connect(self.set_colourmap)
+        # self.actionJet.setActionGroup(self.groupColourmaps)
+        # self.actionJet_r.setActionGroup(self.groupColourmaps)
+        # self.actionJet_plus.setActionGroup(self.groupColourmaps)
+        # self.actionJet_plus_r.setActionGroup(self.groupColourmaps)
+        # self.actionBgy.setActionGroup(self.groupColourmaps)
+        # self.actionBgy_r.setActionGroup(self.groupColourmaps)
+        # self.actionBwr.setActionGroup(self.groupColourmaps)
+        # self.actionBwr_r.setActionGroup(self.groupColourmaps)
         # Set up colour limits
         self.actionRho_cax.triggered.connect(self.set_rho_cax)
         self.actionPhase_cax.triggered.connect(self.set_phase_cax)
@@ -121,20 +132,111 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.actionPhaseTensorScale.triggered.connect(self.set_pt_scale)
         self.actionInductionScale.triggered.connect(self.set_induction_scale)
         self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
+        self.actionInductionCutoff.triggered.connect(self.set_induction_cutoff)
         self.actionPTPhaseErrorTolerance.triggered.connect(self.set_pt_phase_error_tol)
         self.actionPTRhoErrorTolerance.triggered.connect(self.set_pt_rho_error_tol)
+        self.actionEqualAspect.triggered.connect(self.update_map)
         # RMS plotting
         if self.map.dataset.response.sites:
             self.plotRMS.clicked.connect(self.update_map)
+        else:
+            self.plotRMS.setEnabled(False)
+        # Model plan view plotting
+        if self.map.dataset.model.file:
+            self.toggle_planView.clicked.connect(self.update_map)
+            self.planSlice.valueChanged.connect(self.update_map)
+            self.planSlice.setMinimum(0)
+            self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
+        else:
+            self.toggle_planView.setEnabled(False)
+            self.planSlice.setEnabled(False)
+        # JPEG Loading
+        self.actionLoad_JPEG.triggered.connect(self.load_jpeg)
+        self.actionShow_JPEG.triggered.connect(self.show_jpeg)
+        self.actionOpacity.triggered.connect(self.set_image_opacity)
+        # Coordinate System
+        self.groupCoords = QtWidgets.QActionGroup(self)
+        self.action_coordUTM.setActionGroup(self.groupCoords)
+        self.action_coordLocal.setActionGroup(self.groupCoords)
+        self.action_coordLatlong.setActionGroup(self.groupCoords)
+        self.groupCoords.triggered.connect(self.coord_system)
+
+    def coord_system(self):
+        can_do = 1
+        if self.action_coordLocal.isChecked():
+            if self.map.verify_coordinate_system('local'):
+                self.map.coordinate_system = 'local'
+        elif self.action_coordUTM.isChecked():
+            if self.map.verify_coordinate_system('utm'):
+                self.map.coordinate_system = 'utm'
+            else:
+                can_do = 0
+
+        elif self.action_coordLatlong.isChecked():
+            if self.map.verify_coordinate_system('latlong'):
+                self.map.coordinate_system = 'latlong'
+            else:
+                can_do = 0
+        if can_do:
+            self.update_map()
+        else:
+            QtWidgets.QMessageBox.warning(self, 'Unable to change coordinate system.')
+            self.action_coordLocal.setChecked(True)
+
+    def set_image_opacity(self):
+        val, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                           'Opacity',
+                                                           'Value: ',
+                                                           self.map.image_opacity, 0, 1, 2)
+        if ok_pressed:
+            self.map.image_opacity = val
+            if self.actionShow_JPEG.isChecked():
+                self.update_map()
+
+    def show_jpeg(self):
+        if self.actionShow_JPEG.isChecked():
+            if self.background_image['extent']:
+                self.update_map()
+                print('Updating')
+            else:
+                self.actionShow_JPEG.setCheckState(0)
+                print('Not Updating')
+        else:
+            self.update_map()
+
+    def load_jpeg(self):
+        file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Get JPEG', '', 'Image Files (*.jpg *.jpeg)')[0]
+        if file_name:
+            try:
+                im = imread(file_name)
+                with open(file_name[:-3] + 'jgw', 'r') as f:
+                    xsize = float(f.readline())
+                    dummy = f.readline()
+                    dummy = f.readline()
+                    ysize = 1 * float(f.readline())
+                    x1 = float(f.readline())
+                    y2 = float(f.readline())
+                x2 = x1 + xsize * im.shape[1]
+                y1 = y2 + ysize * im.shape[0]
+                self.background_image['image'] = im
+                self.background_image['extent'] = [x1, x2, y1, y2]
+                self.actionShow_JPEG.setChecked(True)
+                self.update_map()
+            except FileNotFoundError:
+                QtWidgets.QMessageBox.warning(self, 'File not readable, or world file not found.')
 
     def data_phase_tensor(self):
         if self.toggle_dataPhaseTensor.isChecked():
             self.toggle_nonePhaseTensor.setCheckState(0)
+        if self.toggle_PTExclusive.isChecked():
+            self.toggle_responsePhaseTensor.setCheckState(0)
         self.update_map()
 
     def resp_phase_tensor(self):
         if self.toggle_responsePhaseTensor.isChecked():
             self.toggle_nonePhaseTensor.setCheckState(0)
+        if self.toggle_PTExclusive.isChecked():
+            self.toggle_dataPhaseTensor.setCheckState(0)
         self.update_map()
 
     def none_phase_tensor(self):
@@ -159,6 +261,17 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if ok_pressed:
             self.map.pt_scale = d
             if not self.toggle_nonePhaseTensor.isChecked():
+                self.update_map()
+
+    def set_induction_cutoff(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Scale',
+                                                         'Value:',
+                                                         self.map.induction_cutoff,
+                                                         0.01, 100, 1)
+        if ok_pressed:
+            self.map.induction_cutoff = d
+            if self.toggle_dataInduction.isChecked() or self.toggle_responseInduction.isChecked():
                 self.update_map()
 
     def set_induction_scale(self):
@@ -318,22 +431,23 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             print('Invalid colour limits')
 
     def set_colourmap(self):
-        if self.actionJet.isChecked():
-            self.map.colourmap = 'jet'
-        if self.actionJet_r.isChecked():
-            self.map.colourmap = 'jet_r'
-        if self.actionJet_plus.isChecked():
-            self.map.colourmap = 'jet_plus'
-        if self.actionJet_plus_r.isChecked():
-            self.map.colourmap = 'jet_plus_r'
-        if self.actionBgy.isChecked():
-            self.map.colourmap = 'bgy'
-        if self.actionBgy_r.isChecked():
-            self.map.colourmap = 'bgy_r'
-        if self.actionBwr.isChecked():
-            self.map.colourmap = 'bwr'
-        if self.actionBwr_r.isChecked():
-            self.map.colourmap = 'bwr_r'
+        self.map.colourmap = self.colourMenu.action_group.checkedAction().text()
+        # if self.actionJet.isChecked():
+        #     self.map.colourmap = 'jet'
+        # if self.actionJet_r.isChecked():
+        #     self.map.colourmap = 'jet_r'
+        # if self.actionJet_plus.isChecked():
+        #     self.map.colourmap = 'jet_plus'
+        # if self.actionJet_plus_r.isChecked():
+        #     self.map.colourmap = 'jet_plus_r'
+        # if self.actionBgy.isChecked():
+        #     self.map.colourmap = 'bgy'
+        # if self.actionBgy_r.isChecked():
+        #     self.map.colourmap = 'bgy_r'
+        # if self.actionBwr.isChecked():
+        #     self.map.colourmap = 'bwr'
+        # if self.actionBwr_r.isChecked():
+        #     self.map.colourmap = 'bwr_r'
         self.update_map()
 
     def set_period_label(self):
@@ -381,6 +495,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.data = dataset.data
         self.map.raw_data = dataset.raw_data
         self.map.response = dataset.response
+        self.map.model = dataset.model
         self.map.site_names = sites
         self.map._active_sites = active_sites
         self.map.site_locations['generic'] = self.map.get_locations(
@@ -394,12 +509,27 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # This should be changed to just destroy and redraw whatever features are needed
         # print(self.map.site_locations['generic'])
         # Also there should be a mechanism that makes sure this is only redrawn if something changes
+        self.x_lim = self.map.window['axes'][0].get_xlim()
+        self.y_lim = self.map.window['axes'][0].get_ylim()
         self.map.window['axes'][0].clear()
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
             self.map.window['colorbar'] = None
         # DEBUG
         # print('I am updating the map')
+        if self.actionShow_JPEG.isChecked():
+            self.map.plot_image(image=self.background_image['image'],
+                               extents=self.background_image['extent'])
+        if self.toggle_planView.checkState():
+            self.map.plot_plan_view(z_slice=self.planSlice.value())
+            depth = self.map.model.dz[self.planSlice.value()]
+            if depth < 1000:
+                depth = '{:0.6g} m'.format(depth)
+            else:
+                depth = '{:0.6g} km'.format(depth / 1000)
+            self.planDepth.setText(depth)
+            self.toggle_responsePseudo.setCheckState(0)
+            self.toggle_dataPseudo.setCheckState(0)
         pseudosection_toggles = self.get_pseudosection_toggles()
         if pseudosection_toggles['data'] and pseudosection_toggles['fill']:
             fill_param = ''.join([pseudosection_toggles['fill'],
@@ -410,21 +540,45 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                         n_interp=self.nInterp.value())
         self.map.plot_rms = self.plotRMS.checkState()
         self.map.plot_locations()
+        self.map.plot_annotate()
         PT_toggles = self.get_PT_toggles()
+        bar_fill = self.Bar_fill.itemText(self.Bar_fill.currentIndex())
         if 'None' not in PT_toggles['data']:
             self.map.plot_phase_tensor(data_type=PT_toggles['data'],
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period)
+            if bar_fill != PT_toggles['fill'] and len(PT_toggles['data']) == 1:
+                self.map.plot_phase_bar(data_type=PT_toggles['data'],
+                                        fill_param=bar_fill,
+                                        period_idx=self.active_period)
         induction_toggles = self.get_induction_toggles()
         if induction_toggles['data']:
+            if self.arrowType.itemText(self.arrowType.currentIndex()).lower() == 'real':
+                arrowType = ['R']
+            elif self.arrowType.itemText(self.arrowType.currentIndex()).lower() == 'imaginary':
+                arrowType = ['I']
+            else:
+                arrowType = ['R', 'I']
             self.map.plot_induction_arrows(data_type=induction_toggles['data'],
                                            normalize=induction_toggles['normalize'],
-                                           period_idx=self.active_period)
+                                           period_idx=self.active_period,
+                                           arrow_type=arrowType)
+        self.set_axis_settings()
+        self.canvas.draw()
+
+    def set_axis_settings(self):
+        if self.actionEqualAspect.isChecked():
+            self.map.window['axes'][0].set_aspect('equal')
+        else:
+            self.map.window['axes'][0].set_aspect('auto')
         self.toolbar.update()
         self.toolbar.push_current()
         # DEBUG
         # print('Updating Map')
-        self.canvas.draw()
+        if self.actionLockAxis.isChecked():
+            self.map.window['axes'][0].set_xlim(self.x_lim)
+            self.map.window['axes'][0].set_ylim(self.y_lim)
+
 
     def get_pseudosection_toggles(self):
         toggles = {'data': [], 'fill': None, 'component': None}
@@ -494,11 +648,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     'plots': {'all': None, 'highlight': None, 'mesh': None}}
         for ii, (dname, files) in enumerate(dataset_dict.items()):
             files = {file_type: files.get(file_type, '')
-                     for file_type in ('data', 'raw_path', 'response', 'list')}
+                     for file_type in ('data', 'raw_path', 'response', 'list', 'model')}
             dataset = data_structures.Dataset(listfile=files['list'],
                                               datafile=files['data'],
                                               responsefile=files['response'],
-                                              datpath=files['raw_path'])
+                                              datpath=files['raw_path'],
+                                              modelfile=files['model'])
             if ii == 0:
                 self.stored_datasets = {dname: dataset}
                 self.dataset = dataset
@@ -818,6 +973,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def setup_widgets(self):
         self.select_points_button.clicked.connect(self.select_points)
         self.select_points = False
+        self.recalculateRMS.clicked.connect(self.init_rms_tables)
         # self.error_table.itemChanged.connect(self.change_errmap)
         self.error_tree.itemDoubleClicked.connect(self.edit_error_tree)
         self.BackButton.clicked.connect(self.Back)
@@ -1001,6 +1157,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.dataset.sort_sites(self.sortSites.itemText(index))
         self.siteList.clear()
         self.siteList.addItems(self.dataset.data.site_names)
+        self.update_map_data()
 
     def show_map(self):
         # print(self.map_view.map.site_locations['generic'])
@@ -1016,6 +1173,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map_view.periods = self.dataset.data.periods
         self.map_view.PeriodScrollBar.setMaximum(len(self.dataset.data.periods))
         self.map_view.dataset = self.dataset
+        self.map_view.init_map(dataset=self.dataset,
+                               sites=self.dataset.data.site_names,
+                               active_sites=self.site_names)
 
     def draw_map(self):
         if not self.map['fig']:
@@ -1077,6 +1237,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         self.map_view.update_map()
         self.set_nparam_labels()
+        # if self.dataset.rms:
+            # self.init_rms_tables()
+        # else:
+            # self.init_rms_tables()
         # self.error_tree.itemChanged.connect(self.post_edit_error)
 
     def num_subplots(self):
@@ -1432,7 +1596,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # DEBUG
         # print(self.site_names)
         self.map_view.map.active_sites = self.site_names
-        self.map_view.update_map()
+        for annotation in self.map_view.map.actors['annotation']:
+            annotation.remove()
+            del annotation
+        self.map_view.map.actors['annotation'] = []
+        # del self.map_view.map.actors['annotation']
+        self.map_view.map.plot_annotate()
+        self.map_view.set_axis_settings()
+        self.map_view.canvas.draw()
+        # self.map_view.update_map()
 
     def shift_site_names(self, shift=1):
         try:
@@ -1936,7 +2108,7 @@ class FileInputParser(object):
             return False
         if 'raw' in retval.keys():
             if 'list' not in retval.keys():
-                print('Cannt read raw data with a list file!')
+                print('Cannot read raw data with a list file!')
                 return False
         return retval
 
@@ -2049,6 +2221,7 @@ def main():
     if verify:
         # Because files is a dictionary, the plotter may not load the same dataset first every time.
         # The dataset that gets loaded first should be the same given the same start file.
+        # debug_print(files, 'debug.log')
         mainGUI = DataMain(files)  # Instantiate a GUI window
         mainGUI.show()  # Show it.
         ret = app.exec_()

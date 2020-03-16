@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1030</width>
-    <height>762</height>
+    <height>801</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -114,14 +114,41 @@
      </property>
      <addaction name="actionInductionErrorTolerance"/>
      <addaction name="actionInductionScale"/>
+     <addaction name="actionInductionCutoff"/>
+    </widget>
+    <widget class="QMenu" name="menuCoordinate_System">
+     <property name="title">
+      <string>Coordinate System</string>
+     </property>
+     <addaction name="action_coordLocal"/>
+     <addaction name="action_coordUTM"/>
+     <addaction name="action_coordLatlong"/>
     </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
     <addaction name="menuPhase_Tensors"/>
     <addaction name="menuInduction_Arrows"/>
+    <addaction name="menuCoordinate_System"/>
    </widget>
+   <widget class="QMenu" name="menuAxis_Options">
+    <property name="title">
+     <string>Axis Options</string>
+    </property>
+    <addaction name="actionEqualAspect"/>
+    <addaction name="actionLockAxis"/>
+   </widget>
+   <widget class="QMenu" name="menuJPEG">
+    <property name="title">
+     <string>JPEG</string>
+    </property>
+    <addaction name="actionLoad_JPEG"/>
+    <addaction name="actionShow_JPEG"/>
+    <addaction name="actionOpacity"/>
+   </widget>
+   <addaction name="menuJPEG"/>
    <addaction name="menuOptions"/>
    <addaction name="menuPoint_options"/>
+   <addaction name="menuAxis_Options"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -134,7 +161,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>586</height>
+     <height>762</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -188,6 +215,25 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QComboBox" name="arrowType">
+          <item>
+           <property name="text">
+            <string>Real</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Imaginary</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Both</string>
+           </property>
+          </item>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -231,6 +277,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="toggle_PTExclusive">
+          <property name="text">
+           <string>Exclusive</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="label">
           <property name="text">
            <string>Fill Value</string>
@@ -239,6 +292,65 @@
         </item>
         <item>
          <widget class="QComboBox" name="PhaseTensor_fill">
+          <item>
+           <property name="text">
+            <string>Alpha</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Beta</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_max</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_min</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>det_Phi</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Azimuth</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Lambda</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Delta</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="Bar_fill">
           <item>
            <property name="text">
             <string>Alpha</string>
@@ -370,6 +482,46 @@ Resistivity</string>
           </property>
           <property name="value">
            <number>200</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string>Plan View</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0" colspan="2">
+         <widget class="QCheckBox" name="toggle_planView">
+          <property name="text">
+           <string>Plot Plan View</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Slice #</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="planSlice"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Depth:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="planDepth">
+          <property name="text">
+           <string>0 km</string>
           </property>
          </widget>
         </item>
@@ -570,6 +722,72 @@ Resistivity</string>
   <action name="actionInductionScale">
    <property name="text">
     <string>Scale</string>
+   </property>
+  </action>
+  <action name="actionEqualAspect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Equal Aspect Ratio</string>
+   </property>
+  </action>
+  <action name="actionInductionCutoff">
+   <property name="text">
+    <string>Cutoff Length</string>
+   </property>
+  </action>
+  <action name="actionLockAxis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lock Axis Limits</string>
+   </property>
+  </action>
+  <action name="actionLoad_JPEG">
+   <property name="text">
+    <string>Load JPEG</string>
+   </property>
+  </action>
+  <action name="actionShow_JPEG">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show JPEG</string>
+   </property>
+  </action>
+  <action name="actionOpacity">
+   <property name="text">
+    <string>Opacity</string>
+   </property>
+  </action>
+  <action name="action_coordLocal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Local</string>
+   </property>
+  </action>
+  <action name="action_coordUTM">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>UTM</string>
+   </property>
+  </action>
+  <action name="action_coordLatlong">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lat/Long</string>
    </property>
   </action>
  </widget>

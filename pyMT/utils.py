@@ -87,13 +87,13 @@ def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
         decade = np.log10(min_depth)
         depths = []
         for n in NZ:
-            dDecade = np.logspace(decade, min(np.floor(decade + 1), np.log10(max_depth)), n + 1)
+            dDecade = np.logspace(decade, min(np.floor(decade + 1), np.log10(max_depth)), int(n + 1))
             decade = floor(decade + 1)
             depths.append(dDecade)
         depths = flatten_list(depths)
         depths = np.array(np.unique(depths))
     except TypeError:
-        depths = np.logspace(np.log10(min_depth), np.log10(max_depth), NZ)
+        depths = np.logspace(np.log10(min_depth), np.log10(max_depth), int(NZ))
     ddz = np.diff(np.diff(depths))
     if any(ddz < 0):
         print('Warning! Second derivative of depths is not always positive.')
@@ -1029,7 +1029,7 @@ def rms(data):
     return np.sqrt(np.mean(data ** 2))
 
 
-def zone(coordinates):
+def zone_convert(coordinates):
     if 56 <= coordinates[1] < 64 and 3 <= coordinates[0] < 12:
         return 32
     if 72 <= coordinates[1] < 84 and 0 <= coordinates[0] < 42:
@@ -1044,11 +1044,11 @@ def zone(coordinates):
 
 
 def project(coordinates, zone=None, letter=None):
-    def letter(coordinates):
+    def letter_convert(coordinates):
         return 'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
     if not(zone and letter):
-        z = zone(coordinates)
-        L = letter(coordinates)
+        z = zone_convert(coordinates)
+        L = letter_convert(coordinates)
     else:
         z = zone
         L = letter

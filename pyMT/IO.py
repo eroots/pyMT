@@ -492,6 +492,8 @@ def read_raw_data(site_names, datpath=''):
                     lat = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'LONG' in line:
                     lon = (utils.dms2dd(line.split('=')[1].strip()))
+                elif 'LON' in line:  # Make exception if its spelt this way...
+                    lon = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'ELEV' in line:
                     elev = float(line.split('=')[1].strip())
             return lat, lon, elev
@@ -565,11 +567,23 @@ def read_raw_data(site_names, datpath=''):
                     else:
                         azi = data_block[0]
             # EDI format has ZxyR, ZxyI positive; ZyxR, ZyxI negative. This needs to be changed
+            # EDI is generally +iwt sign convention. Note this can be specified in EDI files, but is not read anywhere here.
             data['ZXYI'] *= -1
             data['ZYXI'] *= -1
             data['ZXXI'] *= -1
             data['ZYYI'] *= -1
-            return data, errors, azi
+            # Double check all data components have corresponding errors.
+            error_flag = 0
+            for component in data.keys():
+                try:
+                    assert(errors[component].shape == data[component].shape)
+                except KeyError:
+                    if component.lower().startswith('z'):
+                        errors.update({component: data[component] * 0.05})
+                    else:
+                        errors.update({component: np.ones(data[component].shape) * 0.03})
+                    error_flag = 1
+            return data, errors, azi, error_flag
 
         data = {}
         errors = {}
@@ -585,7 +599,10 @@ def read_raw_data(site_names, datpath=''):
                 else:
                     raise WSFileError(ID='int', offender=file, extra='Frequency block non-existent.')
                 periods = utils.truncate(1 / frequencies)
-                data, errors, azi = extract_tensor_info(blocks)
+                data, errors, azi, error_flag = extract_tensor_info(blocks)
+                if error_flag:
+                    print('Errors not properly specified in {}.'.format(file))
+                    print('Setting offending component errors to floor values.')
                 Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
                 location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
                 site_dict = {'data': data,
@@ -1597,7 +1614,8 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         if not isinstance(sigma, list):
             file.write(' '.join([str(sigma)] * N))
         elif len(sigma) == N:
-            file.write(' '.join(sigma))
+            for sig in sigma:
+                f.write('{} '.format(sig))
         else:
             print('Length of sigma not equal to mesh size: length(sigma) = {}, N = {}'.format(len(sigma), N))
             print('Printing default covariance instead.')
@@ -1607,14 +1625,17 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         file.write('\n')
 
     def write_exceptions_block(f, expections):
-        f.write('0\n')
-        # f.write('\n')
+        f.write('0')
+        f.write('\n')
         nx, ny, nz = exceptions.shape
         for iz in range(nz):
-            f.write('\n{} {}'.format(iz + 1, iz + 1))
-            for iy in range(ny):
-                #f.write('\n')
-                for ix in range(nx):
+            f.write('\n{} {}\n'.format(iz + 1, iz + 1))
+            first_z = 1
+            for ix in range(nx):
+                if not first_z:
+                    f.write('\n')
+                first_z = 0
+                for iy in range(ny):
                     f.write('{} '.format(int(exceptions[ix, iy, iz])))
 
     if not (file_name.endswith('.cov')):
@@ -1623,8 +1644,8 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
         f.write('\n'.join(header))
         f.write('\n')
         f.write('\n{} {} {}\n\n'.format(NX, NY, NZ))
-        write_smooth_block(f, NX, sigma_x)
-        write_smooth_block(f, NY, sigma_y)
+        write_smooth_block(f, NZ, sigma_x)
+        write_smooth_block(f, NZ, sigma_y)
         f.write('{}\n\n'.format(sigma_z))
         f.write('{}\n\n'.format(num_smooth))
         if exceptions is not None:

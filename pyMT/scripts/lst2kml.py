@@ -1,4 +1,4 @@
-# import simplekml
+import simplekml
 import pyMT.data_structures as WSDS
 import pandas as pd
 import numpy as np
@@ -40,28 +40,28 @@ from pyMT.WSExceptions import WSFileError
 #          'SUDBB.lst',
 #          'COBBB.lst',
 #          'BB.lst')
-transects = ['afton']
-list_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/'
-lists = ['sorted_lines.lst']
-shp_save_path = 'C:/Users/eroots/phd/ownCloud/data/ArcMap/afton/'
+transects = ['usarray']
+list_path = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/wst/j2/us_array/'
+lists = ['all.lst']
+shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/usarray/'
 # transects = ['swayze']
 # lists = ['SWZAMT.lst']
 # transects = ['BB-legacy', 'bb-legacy', 'lmt-legacy']
 # lists = ['BB.lst', 'bb.lst', 'lmt.lst']
-data_type = 'AMT_'
+data_type = 'LMT_'
 # data_type = ['BB_', 'BB_', 'LMT_']
 # list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/legacy_edi_export_all/'
 # list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/WinGLinkEDIs_final/'
 # list_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/'
-csv_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/CSV/'
+# csv_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/CSV/'
 # shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/SHPs/Jan2019/SHP/'
-kml_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/KML/'
-# csv_save_path = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/CSVs/'
-write_kml = False
+kml_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/usarray/'
+csv_save_path = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/CSVs/'
+write_kml = True
 write_csv = False
-write_shp = True
+write_shp = False
 UTM = 10
 for ii, lst in enumerate(lists):
     try:

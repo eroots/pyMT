@@ -1,5 +1,4 @@
 # TODO
-# Gridlines? Less important.
 # Menu for point options (marker shape, size, annotations)
 # Inclusion of data plotting (induction arrows, phase tensors, etc.)
 # Will eventually want to be able to save images.
@@ -32,6 +31,7 @@ from scipy.interpolate import RegularGridInterpolator as RGI
 # from PyQt5 import QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
+from PyQt5 import QtWidgets
 # from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -90,6 +90,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         exitButton.setShortcut('Ctrl+Q')
         exitButton.triggered.connect(self.close)
         fileMenu.addAction(exitButton)
+        self.mesh_group = QtWidgets.QActionGroup(self)
+        self.mesh_group.addAction(self.meshOn)
+        self.mesh_group.addAction(self.meshOff)
+        self.mesh_group.setExclusive(True)
 
         self.plot_data = {'stations': []}
         if 'dat' in files.keys():
@@ -102,10 +106,11 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.locs_3D = np.zeros((1, 3))
             self.plot_locations = False
         self.rect_grid = model_to_rectgrid(self.clip_model)
-        self.colourmap = 'jet_plus'
-        self.cmap = cm.jet_plus(64)
+        self.colourmap = 'turbo_r'
+        self.cmap = cm.get_cmap('turbo_r', 32)
         self.cax = [1, 5]
-        self.actors = {'X': [], 'Y': [], 'Z': [], 'transect': []}
+        self.actors = {'X': [], 'Y': [], 'Z': [], 'transect': [], 'isosurface': []}
+        self.contours = []
         self.slices = {'X': [], 'Y': [], 'Z': [], 'transect': []}
         self.transect_plot = {'easting': [], 'northing': []}
         self.transect_picking = False
@@ -360,7 +365,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Colour options
         self.colourMenu.action_group.triggered.connect(self.change_cmap)
         self.colourMenu.limits.triggered.connect(self.set_clim)
-
+        self.mesh_group.triggered.connect(self.show_mesh)
         # View buttons
         self.viewXY.triggered.connect(self.view_xy)
         self.viewXZ.triggered.connect(self.view_xz)
@@ -369,6 +374,51 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.selectPoints.clicked.connect(self.transect_pick)
         self.nInterp.editingFinished.connect(self.set_nInterp)
         self.interpCheckbox.clicked.connect(self.toggle_transect3D)
+        # Isosurface widgets
+        self.isoPlot.stateChanged.connect(self.update_isosurface)
+        self.isoRecalculate.clicked.connect(self.generate_isosurface)
+
+    def generate_isosurface(self):
+        if self.actors['isosurface']:
+            self.vtk_widget.remove_actor(self.actors['isosurface'])
+        low_val = self.isoLow.value()
+        high_val = self.isoHigh.value()
+        if not (low_val <= high_val):
+            low_val = high_val
+            self.isoLow.setValue(high_val)
+        if low_val == high_val:
+            self.isoNum.setValue(1)
+        self.contours = pv.DataSetFilters.cell_data_to_point_data(self.rect_grid).contour(isosurfaces=self.isoNum.value(),
+                                                                  rng=(np.log10(low_val), np.log10(high_val)))
+        # self.actors['isosurface'] = self.vtk_widget.add_points(self.contours,
+        #                                                      cmap=self.cmap,
+        #                                                      clim=self.cax)
+        self.isoPlot.setCheckState(2)
+        # self.update_isosurface()
+
+    def update_isosurface(self):
+        # print(self.isoPlot.checkState())
+        # print(self.actors['isosurface'])
+        # print(self.contours)
+        self.vtk_widget.remove_actor(self.actors['isosurface'])
+        if self.isoPlot.checkState():
+            if self.contours:
+
+                self.actors['isosurface'] = self.vtk_widget.add_mesh(self.contours,
+                                                                     cmap=self.cmap,
+                                                                     clim=self.cax)
+            else:
+                self.isoPlot.setCheckState(0)
+
+        self.vtk_widget.update()
+        self.show_bounds()
+
+    def show_mesh(self):
+        if self.meshOn.isChecked():
+            self.map.mesh = True
+        else:
+            self.map.mesh = False
+        self.update_all()
 
     def set_nInterp(self):
         try:
@@ -932,6 +982,8 @@ def main():
         return
     app = Qt.QApplication(sys.argv)
     viewer = ModelWindow(files)
+    viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
+
     viewer.show()
     ret = app.exec_()
     sys.exit(ret)
