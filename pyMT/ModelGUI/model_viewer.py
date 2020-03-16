@@ -491,6 +491,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         except ValueError:
             self.x0ClipEdit.setText(str(self.x_clip[0]))
             self.x1ClipEdit.setText(str(self.x_clip[1]))
+            x0 = int(self.x0ClipEdit.text())
+            x1 = int(self.x1ClipEdit.text())
         if x0 + x1 > self.model.nx:
             self.x0ClipEdit.setText(str(self.x_clip[0]))
             self.x1ClipEdit.setText(str(self.x_clip[1]))
@@ -515,6 +517,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         except ValueError:
             self.y0ClipEdit.setText(str(self.y_clip[0]))
             self.y1ClipEdit.setText(str(self.y_clip[1]))
+            y0 = int(self.y0ClipEdit.text())
+            y1 = int(self.y1ClipEdit.text())
         if y0 + y1 > self.model.ny:
             self.y0ClipEdit.setText(str(self.y_clip[0]))
             self.y1ClipEdit.setText(str(self.y_clip[1]))
@@ -537,6 +541,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         except ValueError:
             self.z0ClipEdit.setText(str(self.z_clip[0]))
             self.z1ClipEdit.setText(str(self.z_clip[1]))
+            z0 = int(self.z0ClipEdit.text())
+            z1 = int(self.z1ClipEdit.text())
         if z0 + z1 > self.model.nz:
             self.z0ClipEdit.setText(str(self.z_clip[0]))
             self.z1ClipEdit.setText(str(self.z_clip[1]))
