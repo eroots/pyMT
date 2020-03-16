@@ -3,17 +3,18 @@ Installation
 
 Dependencies
 ------------
-Python 3.5 (or greater)
-Numpy
-SciPy
-matplotlib
-pyqt
-colorcet
-pyshp
-pyproj
-pyvista
-pyvtk
-naturalneighbor
+
+* Python 3.5 (or greater)
+* Numpy
+* SciPy
+* matplotlib
+* pyqt
+* colorcet
+* pyshp
+* pyproj
+* pyvista
+* pyvtk
+* naturalneighbor
 
 Installing pyMT
 ---------------
