@@ -313,7 +313,6 @@ mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/H
 #                         r'ROUYN_LN141_R1_KMIG/ROUYN_LN141_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 use_seismic = 0
-=======
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
 # data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')

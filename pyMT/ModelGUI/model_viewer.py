@@ -821,7 +821,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                     (N[ii] - N[ii + 1]) ** 2))
         distance = np.array(distance)
         total_distance = np.sum(distance)
-        N_per_segment = np.ceil(self.n_interp * distance / total_distance)
+        N_per_segment = np.int64(np.ceil(self.n_interp * distance / total_distance))
         for ii in range(len(E) - 1):
             # E1, E2 = (min(E[ii], E[ii + 1]), max(E[ii], E[ii + 1]))
             if E[ii] > E[ii + 1]:
@@ -918,7 +918,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             # self.slices['transect'] = self.generate_slice('z')
             self.actors['transect'] = self.vtk_widget.add_mesh(self.slices['transect'],
                                                                style='surface',
-                                                               scalars=self.interp_vals, axis=0,
+                                                               scalars=self.interp_vals,
+                                                               # axis=0,
                                                                cmap=self.cmap,
                                                                clim=self.cax)
         else:
