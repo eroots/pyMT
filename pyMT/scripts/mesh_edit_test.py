@@ -89,35 +89,46 @@ local_path = 'E:/phd/Nextcloud'
 # data_out = local_path + r'ownCloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed.data'
 ########################################
 # GERALDTON R2
-model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\wst2ger_lastIter.rho'
-# model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\ger_Z_placed_flagged.dat'
-base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\geraldton\j2\ger_consCull_R1.lst'
-data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\GER_R2_base.data'
-list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\j2\GER_R2.lst'
-model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed_nest.model'
-data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed.data'
+# model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\wst2ger_lastIter.rho'
+# # model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\ger_Z_placed_flagged.dat'
+# base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\geraldton\j2\ger_consCull_R1.lst'
+# data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\GER_R2_base.data'
+# list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\j2\GER_R2.lst'
+# model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed_nest.model'
+# data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed.data'
 # WESTERN SUPERIOR - GERALDTON - R2
-model_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.rho'
-model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-# model_file_large = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/ger_Z_placed_large.model'
-base_data = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.dat'
-base_list = local_path + '/data/Regions/MetalEarth/geraldton/j2/ger_consCull_R1.lst'
-data_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/ger_R2_placed_Z_flagged.dat'
-list_file = local_path + '/data/Regions/MetalEarth/geraldton/j2/GER_R2.lst'
-model_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_PT_placed_nest.model'
-data_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_Z_placed.data'
+# model_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.rho'
+# model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# # model_file_large = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/ger_Z_placed_large.model'
+# base_data = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.dat'
+# base_list = local_path + '/data/Regions/MetalEarth/geraldton/j2/ger_consCull_R1.lst'
+# data_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/ger_R2_placed_Z_flagged.dat'
+# list_file = local_path + '/data/Regions/MetalEarth/geraldton/j2/GER_R2.lst'
+# model_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_PT_placed_nest.model'
+# data_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/PT/ger_Z_placed.data'
 ########################################
 # WESTERN SUPERIOR - DRYDEN - R2
-model_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.rho'
+# model_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.rho'
+# model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# # model_file_large = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/PT/ger_Z_placed_large.model'
+# base_data = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.dat'
+# base_list = local_path + '/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst'
+# data_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/dry_central_base.dat'
+# list_file = local_path + '/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst'
+# model_out = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/dry_all_placed_large.model'
+# data_out = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/ger_all_placed.data'
+########################################
+# WESTERN SUPERIOR - DRYDEN - R2
+model_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/splitCells/wst2dry-wOOQ_iter49.rho'
 model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
 # model_file_large = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/PT/ger_Z_placed_large.model'
 base_data = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.dat'
 base_list = local_path + '/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst'
-data_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/dry_central_base.dat'
-list_file = local_path + '/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst'
-model_out = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/dry_all_placed_large.model'
-data_out = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/ger_all_placed.data'
+data_file = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dryOnly_wOOQ_base.dat'
+list_file = local_path + '/data/Regions/MetalEarth/dryden/j2/dryOnly_wOOQ.lst'
+model_out = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dry_all_placed_nest.model'
+data_out = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dry_all_placed.data'
 ########################################
 # LIBEREC
 # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/4site/4site_reg.dat'
@@ -296,33 +307,25 @@ for ii in range(len(mod.dz) - 1):
 # STURGEON WST2STU
 bot_edge = min(data.locations[:, 0]) - 1500
 top_edge = max(data.locations[:, 0]) + 1500
-left_edge = min(data.locations[:, 1]) - 1500
-right_edge = max(data.locations[:, 1]) + 500
-x_interp = int(abs(bot_edge - top_edge) / 750)
-y_interp = int(abs(left_edge - right_edge) / 750)
+left_edge = min(data.locations[:, 1]) + 4500
+right_edge = max(data.locations[:, 1]) - 3500
+x_interp = int(abs(bot_edge - top_edge) / 500)
+y_interp = int(abs(left_edge - right_edge) / 500)
 # x_interp = 100
 # y_interp = 70
-n_xpad = 30
-n_ypad = 30
+n_xpad = 10
+n_ypad = 10
 # n_xpad = 25
 # n_ypad = 25
-n_xpad = 20
-n_ypad = 20
-pad_multiplier = 1.2
-min_depth = 1
-max_depth = 500000
-depths_per_decade = (8, 10, 12, 12, 10, 8)
-n_xpad = 15
-n_ypad = 15
+pad_multiplier = 1.1
 # n_xpad = 10
 # n_ypad = 10
-pad_multiplier = 1.1
-min_depth = 10
-max_depth = 650000
-depths_per_decade = (10, 12, 14, 10, 8)
-dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
+# min_depth = 10
+# max_depth = 650000
+# depths_per_decade = (10, 12, 14, 10, 8)
+# dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
 # dz[-3] = 410000
-# dz = mod.dz
+dz = mod.dz
 fill_value = 1000
 # max_depth = mod.dz[-1]
 x_interior = np.linspace(bot_edge, top_edge, x_interp)

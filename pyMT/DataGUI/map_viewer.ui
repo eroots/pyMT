@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1030</width>
-    <height>801</height>
+    <width>1291</width>
+    <height>1131</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,8 +41,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1030</width>
-     <height>21</height>
+     <width>1291</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
@@ -161,7 +161,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>762</height>
+     <height>844</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -464,6 +464,9 @@ Resistivity</string>
            </property>
           </item>
          </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="Interpolant"/>
         </item>
         <item>
          <widget class="QLabel" name="label_2">

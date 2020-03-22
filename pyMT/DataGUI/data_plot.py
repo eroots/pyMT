@@ -98,6 +98,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.toggle_responsePseudo.clicked.connect(self.update_map)
         self.Pseudosection_fill.currentIndexChanged.connect(self.update_map)
         self.nInterp.editingFinished.connect(self.update_map)
+        self.Interpolant.insertItems(0, ['Linear', 'Cubic', 'Nearest'])
+        if self.map.has_nn:
+            self.Interpolant.insertItem(0, 'Natural')
+        self.Interpolant.currentIndexChanged.connect(self.update_map)
         #  Set up period scroll bar
         self.PeriodScrollBar.valueChanged.connect(self.change_period)
         self.PeriodScrollBar.setMinimum(1)
@@ -532,6 +536,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_dataPseudo.setCheckState(0)
         pseudosection_toggles = self.get_pseudosection_toggles()
         if pseudosection_toggles['data'] and pseudosection_toggles['fill']:
+            self.map.interpolant = self.Interpolant.itemText(self.Interpolant.currentIndex()).lower()
             fill_param = ''.join([pseudosection_toggles['fill'],
                                   pseudosection_toggles['component']])
             self.map.plan_pseudosection(data_type=pseudosection_toggles['data'],

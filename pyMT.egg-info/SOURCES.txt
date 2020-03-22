@@ -43,6 +43,7 @@ pyMT/scripts/__init__.py
 pyMT/scripts/add_occam_noise.py
 pyMT/scripts/arrow_pseudosection.py
 pyMT/scripts/autogen_report.py
+pyMT/scripts/bath2model.py
 pyMT/scripts/bost1D.py
 pyMT/scripts/bostick_compare.py
 pyMT/scripts/crooked_model_slice.py

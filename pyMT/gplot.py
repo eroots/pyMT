@@ -1,12 +1,19 @@
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.colorbar import ColorbarBase
+from scipy.interpolate import griddata
 import matplotlib.patches as patches
 import matplotlib.colorbar as colorbar
 import pyMT.utils as utils
 from pyMT.IO import debug_print
 from pyMT.e_colours import colourmaps as cm
-import naturalneighbor as nn
+try:
+    import naturalneighbor as nn
+    has_nn = True
+except ModuleNotFoundError:
+    has_nn = False
+    print('Natural Neighbor not found and will not be available')
+
 # import matplotlib.pyplot as plt
 
 
@@ -578,6 +585,11 @@ class MapView(object):
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = 'active'
         self.colourmap = 'jet_plus'
+        self.has_nn = has_nn
+        if self.has_nn:
+            self.interpolant = 'natural'
+        else:
+            self.interpolant = 'nearest'
         self.rho_cax = [1, 5]
         self.phase_cax = [0, 90]
         self.diff_cax = [-10, 10]
@@ -608,6 +620,17 @@ class MapView(object):
             return self.site_colour
         else:
             return 'none'
+
+    @property
+    def interpolant(self):
+        return self._interpolant
+
+    @interpolant.setter
+    def interpolant(self, interpolant):
+        if interpolant == 'natural':
+            if not has_nn:
+                interpolant = 'linear'
+        self._interpolant = interpolant
 
     @property
     def cmap(self):
@@ -745,6 +768,28 @@ class MapView(object):
         else:
             ax.set_xlim(bounds[:2])
             ax.set_ylim(bounds[2:])
+
+    def interpolate(self, points, vals, n_interp):
+        min_x = np.min(points[:, 0])
+        max_x = np.max(points[:, 0])
+        min_y = np.min(points[:, 1])
+        max_y = np.max(points[:, 1])
+        x_pad = (max_x - min_x) / self.padding_scale
+        min_x, max_x = (min_x - x_pad, max_x + x_pad)
+        y_pad = (max_y - min_y) / self.padding_scale
+        min_y, max_y = (min_y - y_pad, max_y + y_pad)
+        X = np.linspace(min_x, max_x, n_interp)
+        Y = np.linspace(min_y, max_y, n_interp)
+        grid_x, grid_y = np.meshgrid(X, Y)
+        if self.interpolant.lower() in ('linear', 'cubic', 'nearest'):
+            gx, gy = np.mgrid[min_x:max_x:n_interp*1j, min_y:max_y:n_interp*1j]
+            grid_vals = griddata(points[:,:2], vals, (gx, gy), method=self.interpolant)
+        elif self.interpolant.lower() == 'natural' and has_nn:
+            grid_ranges = [[min_x, max_x, n_interp * 1j],
+                           [min_y, max_y, n_interp * 1j],
+                           [0, 1, 1]]
+            grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))
+        return grid_vals, grid_x, grid_y
 
     def plot_locations(self):
         # if not self.window['figure']:
@@ -1200,11 +1245,13 @@ class MapView(object):
         # step_size_y = (max_y - min_y) / n_interp
         X = np.linspace(min_x, max_x, n_interp)
         Y = np.linspace(min_y, max_y, n_interp)
-        grid_x, grid_y = np.meshgrid(X, Y)
-        grid_ranges = [[min_x, max_x, n_interp * 1j],
-                       [min_y, max_y, n_interp * 1j],
-                       [0, 1, 1]]
-        grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))
+        # grid_x, grid_y = np.meshgrid(X, Y)
+        # grid_vals = self.interpolate(points, vals)
+        # grid_ranges = [[min_x, max_x, n_interp * 1j],
+        #                [min_y, max_y, n_interp * 1j],
+        #                [0, 1, 1]]
+        # grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))
+        grid_vals, grid_x, grid_y = self.interpolate(points, vals, n_interp)
         if diff and 'rho' in fill_param.lower():
             cax = self.diff_cax
             fill_param = '% Difference'
