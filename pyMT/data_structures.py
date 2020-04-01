@@ -224,7 +224,7 @@ class Dataset(object):
             print('File already exists')
             return False
 
-    def write_data(self, outfile='', overwrite=False, file_format='wsinv3dmt'):
+    def write_data(self, outfile='', overwrite=False, file_format='modem'):
         if outfile == '':
             print('You should probably name your output first...')
             return False
