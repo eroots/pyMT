@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWS_Data_Plot">
@@ -87,9 +87,19 @@
      <addaction name="actionDegrees"/>
      <addaction name="actionUnitless"/>
     </widget>
+    <widget class="QMenu" name="menuAxis_Limits">
+     <property name="title">
+      <string>Axis Limits</string>
+     </property>
+     <addaction name="actionRhoLimits"/>
+     <addaction name="actionPhaseLimits"/>
+     <addaction name="actionImpedanceLimits"/>
+     <addaction name="actionTipperLimits"/>
+    </widget>
     <addaction name="actionPhase_Wrap"/>
     <addaction name="menuError_Bars"/>
     <addaction name="menuPhase_Tensor_Units"/>
+    <addaction name="menuAxis_Limits"/>
    </widget>
    <widget class="QMenu" name="menuWrite">
     <property name="title">
@@ -1124,6 +1134,34 @@
    </property>
    <property name="text">
     <string>10 (2-D TE+TM Impedance)</string>
+   </property>
+  </action>
+  <action name="actionVariable">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Variable</string>
+   </property>
+  </action>
+  <action name="actionRhoLimits">
+   <property name="text">
+    <string>Rho</string>
+   </property>
+  </action>
+  <action name="actionPhaseLimits">
+   <property name="text">
+    <string>Phase</string>
+   </property>
+  </action>
+  <action name="actionImpedanceLimits">
+   <property name="text">
+    <string>Impedance</string>
+   </property>
+  </action>
+  <action name="actionTipperLimits">
+   <property name="text">
+    <string>Tipper</string>
    </property>
   </action>
  </widget>

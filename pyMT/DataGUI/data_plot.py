@@ -35,7 +35,7 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
-from pyMT.GUI_common.classes import FileDialog, ColourMenu
+from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog
 from pyMT.IO import debug_print
 
 
@@ -1053,6 +1053,50 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # Super hacky axis limits setters. Fix this at some point
         # self.axmin_hack.editingFinished.connect(self.set_axis_bounds)
         # self.axmax_hack.editingFinished.connect(self.set_axis_bounds)
+        self.actionRhoLimits.triggered.connect(self.set_rho_limits)
+        self.actionPhaseLimits.triggered.connect(self.set_phase_limits)
+        self.actionTipperLimits.triggered.connect(self.set_tipper_limits)
+        self.actionImpedanceLimits.triggered.connect(self.set_impedance_limits)
+
+    def set_rho_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['rho'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['rho'][1]),
+                                     parent=self)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['rho'] = [float(x) for x in limits]
+                self.update_dpm()
+
+    def set_phase_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['phase'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['phase'][1]),
+                                     parent=self)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['phase'] = [float(x) for x in limits]
+                self.update_dpm()
+
+    def set_impedance_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['impedance'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['impedance'][1]),
+                                     parent=self)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['impedance'] = [float(x) for x in limits]
+                self.update_dpm()
+
+    def set_tipper_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['tipper'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['tipper'][1]),
+                                     parent=self)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['tipper'] = [float(x) for x in limits]
+                self.update_dpm()
 
     def change_pt_units(self):
         if self.actionDegrees.isChecked():
@@ -1662,9 +1706,20 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # print(time.time() - t)
         # t = time.time()
         if self.dpm.link_axes_bounds is True:
-            self.dpm.link_axes()
+            limits = self.dpm.ax_lim_dict[self.get_component_fullname()]
+            self.dpm.link_axes(y_bounds=limits)
         self.dpm.fig.canvas.draw()
         # print(time.time() - t)
+
+    def get_component_fullname(self):
+        if self.dpm.components[0].lower().startswith('z'):
+            return 'impedance'
+        elif self.dpm.components[0].lower().startswith('t'):
+            return 'tipper'
+        elif self.dpm.components[0].lower().startswith('p'):
+            return 'phase'
+        elif self.dpm.components[0].lower().startswith('r') or self.dpm.components[0].lower().startswith('b'):
+            return 'rho'
 
     def edit_error_tree(self, column):
         """

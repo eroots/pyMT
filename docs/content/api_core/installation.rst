@@ -42,3 +42,5 @@ These include:
 * colorcet
 
 The tested method of installation involves installing each of these with Anaconda prior to installing pyMT.
+
+Note, a previously required package 'naturalneighbor' has been removed from the dependency list. :ref:`Data Plot` will now instead offer other interpolation schemes based on scipy. If naturalneighbor is installed (it can be installed through pip, or using the wheel at https://www.lfd.uci.edu/~gohlke/pythonlibs/#naturalneighbor), the natural neighbor scheme will still be available.

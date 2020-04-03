@@ -128,6 +128,7 @@ class DataPlotManager(object):
         self.outlier_thresh = 2
         self.min_ylim = None
         self.max_ylim = None
+        self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1], 'tipper': [-1, 1]}
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
                          't': 'Transfer Function', 'p': 'Phase', 'b': 'Apparent Resistivity'}

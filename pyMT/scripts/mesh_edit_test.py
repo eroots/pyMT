@@ -10,83 +10,83 @@ from copy import deepcopy
 local_path = 'E:/phd/Nextcloud'
 ########################################
 # SWAYZE
-# model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
-# base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.dat'
-# data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
-# list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
-# base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4.model'
-# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4_placed.data'
+# model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.rho'
+# base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\swz_finish.dat'
+# data_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\R2South_4\R2South_4d.data'
+# list_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\j2\R2South_4c.lst'
+# base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
+# model_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4.model'
+# data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\R1South_4\R1South_4_placed.data'
 #########
 # NORTH
-# model_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
-# base_data = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
-# data_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all.data'
-# list_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\R2North_all.lst'
-# base_list = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-# model_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_placed.model'
-# data_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all_placed.data'
+# model_file = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
+# base_data = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
+# data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all.data'
+# list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\j2\R2North_all.lst'
+# base_list = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
+# model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_placed.model'
+# data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\R2North_1\R2North_all_placed.data'
 
 # # SOUTH-EAST
-# model_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
-# base_data = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
-# data_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2southeast_1\placed_ZTF\R2Southeast_fix_all.dat'
-# list_file = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\R2Southeast_all_NS.lst'
-# base_list = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-# model_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2southeast_1/placed_ZTF\R2Southeast_placed_nest.model'
-# data_out = local_path + r'ownCloud\data\Regions\MetalEarth\swayze\R2southeast_1/placed_ZTF\R2Southeast_all_placed.data'
+# model_file = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swzPT_lastIter.rho'
+# base_data = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\norot\mesh\PT\swz_cull1M_TFPT_regErrs.dat'
+# data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\R2southeast_1\placed_ZTF\R2Southeast_fix_all.dat'
+# list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\j2\R2Southeast_all_NS.lst'
+# base_list = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
+# model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\R2southeast_1/placed_ZTF\R2Southeast_placed_nest.model'
+# data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\swayze\R2southeast_1/placed_ZTF\R2Southeast_all_placed.data'
 
-# model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
-# base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
-# data_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2north_3b_Z.dat'
-# list_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\R2North_cull3.lst'
-# base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
-# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.model'
-# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.data'
+# model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swzPT_lastIter.rho'
+# base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\swz_cull1\finish\pt\swz_cull1i_PT.dat'
+# data_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\R2North_3\R2north_3b_Z.dat'
+# list_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\j2\R2North_cull3.lst'
+# base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\j2\swz_cull1.lst'
+# model_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.model'
+# data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\swayze\R2North_3\R2North_3_placed.data'
 
 
 
 
 ########################################
 # DRYDEN
-# data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/R2central_noOOQ/R2central_noOOQ.dat'
-# base_data = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry_noOOQ_wMoreLegacy.dat'
-# list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/R2central_noOOQ.lst'
-# base_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst'
-# model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/TFPT/dry2TFPT_lastIter.rho'
+# data_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/R2central_noOOQ/R2central_noOOQ.dat'
+# base_data = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry_noOOQ_wMoreLegacy.dat'
+# list_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/R2central_noOOQ.lst'
+# base_list = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst'
+# model_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/TFPT/dry2TFPT_lastIter.rho'
 # 
-# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.model'
-# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.data'
+# model_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.model'
+# data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.data'
 ########################################
 # WESTERN SUPERIOR - DRYDEN
 # model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
 # base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
 # base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
 # data_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry5/norot/mesh/finish/dry5_norot.dat'
-# # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry_noOOQ_wMoreLegacy.dat'
-# # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst'
-# list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
-# # # base_list = r'C:\Users\eric\phd\ownCloud\data\Regions\wst\j2\southcentral.lst'
-# model_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
-# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
+# # data_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry_noOOQ_wMoreLegacy.dat'
+# # list_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst'
+# list_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
+# # # base_list = r'C:\Users\eric\phd\Nextcloud\data\Regions\wst\j2\southcentral.lst'
+# model_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
+# data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
 ########################################
 # WESTERN SUPERIOR - STURGEON
-# model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-# base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
-# base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
-# data_file = local_path + r'ownCloud\data\Regions\MetalEarth\sturgeon\stu_new1\stu_all_flagged.dat'
-# list_file = local_path + r'ownCloud\data\Regions\MetalEarth\sturgeon\j2\STUall.lst'
-# model_out = local_path + r'ownCloud\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed.model'
-# data_out = local_path + r'ownCloud\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed.data'
+model_file = local_path + r'\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+base_data = local_path + r'\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
+base_list = local_path + r'\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
+data_file = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\wst2stu_ffmt_base.dat'
+list_file = local_path + r'\data\Regions\MetalEarth\sturgeon\j2\ffmt\stu_use.lst'
+model_out = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed_large.model'
+data_out = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed.data'
 ########################################
 # WESTERN SUPERIOR - GERALDTON
-# model_file = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-# base_data = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
-# base_list = r'C:\Users\eroots\phd\ownCloud\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
-# data_file = local_path + r'ownCloud\data\Regions\MetalEarth\geraldton\ger_consCull\fix\R1\ger_consFewer_Z_flagged.dat'
-# list_file = local_path + r'ownCloud\data\Regions\MetalEarth\geraldton\j2\ger_consCull_R1.lst'
-# model_out = local_path + r'ownCloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed_nest.model'
-# data_out = local_path + r'ownCloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed.data'
+# model_file = local_path + r'Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
+# base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
+# data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\ger_consCull\fix\R1\ger_consFewer_Z_flagged.dat'
+# list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\j2\ger_consCull_R1.lst'
+# model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed_nest.model'
+# data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed.data'
 ########################################
 # GERALDTON R2
 # model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\wst2ger_lastIter.rho'
@@ -120,26 +120,26 @@ local_path = 'E:/phd/Nextcloud'
 # data_out = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/ger_all_placed.data'
 ########################################
 # WESTERN SUPERIOR - DRYDEN - R2
-model_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/splitCells/wst2dry-wOOQ_iter49.rho'
-model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-# model_file_large = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/PT/ger_Z_placed_large.model'
-base_data = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.dat'
-base_list = local_path + '/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst'
-data_file = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dryOnly_wOOQ_base.dat'
-list_file = local_path + '/data/Regions/MetalEarth/dryden/j2/dryOnly_wOOQ.lst'
-model_out = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dry_all_placed_nest.model'
-data_out = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dry_all_placed.data'
+# model_file = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/splitCells/wst2dry-wOOQ_iter49.rho'
+# model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# # model_file_large = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/PT/ger_Z_placed_large.model'
+# base_data = local_path + '/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/wOOQ/wst2dry-wOOQPeriods_lastIter.dat'
+# base_list = local_path + '/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst'
+# data_file = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dryOnly_wOOQ_base.dat'
+# list_file = local_path + '/data/Regions/MetalEarth/dryden/j2/dryOnly_wOOQ.lst'
+# model_out = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dry_all_placed_nest.model'
+# data_out = local_path + '/data/Regions/MetalEarth/dryden/dryOnly_wOOQ/dry_all_placed.data'
 ########################################
 # LIBEREC
-# data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/4site/4site_reg.dat'
-# base_data = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/2site/901-902_reg.dat'
-# list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/j2/allsites.lst'
-# base_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/j2/2site.lst'
-# model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/Liberec/2site/smoother/lib_NLCG_008.rho'
+# data_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/Liberec/4site/4site_reg.dat'
+# base_data = 'C:/Users/eroots/phd/Nextcloud/data/Regions/Liberec/2site/901-902_reg.dat'
+# list_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/Liberec/j2/allsites.lst'
+# base_list = 'C:/Users/eroots/phd/Nextcloud/data/Regions/Liberec/j2/2site.lst'
+# model_file = 'C:/Users/eroots/phd/Nextcloud/data/Regions/Liberec/2site/smoother/lib_NLCG_008.rho'
 
-# model_out = r'C:/Users\eroots\phd\ownCloud\data\Regions\Liberec/4site/4site_placed.model'
-# data_out = r'C:\Users\eroots\phd\ownCloud\data\Regions\Liberec/4site/4site_placed.data'
-produce_large_model = 1
+# model_out = r'C:/Users\eroots\phd\Nextcloud\data\Regions\Liberec/4site/4site_placed.model'
+# data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\Liberec/4site/4site_placed.data'
+produce_large_model = 0
 plot_it = 0
 write_it = 1
 plot_depth = 20000  # in meters
@@ -307,24 +307,24 @@ for ii in range(len(mod.dz) - 1):
 # STURGEON WST2STU
 bot_edge = min(data.locations[:, 0]) - 1500
 top_edge = max(data.locations[:, 0]) + 1500
-left_edge = min(data.locations[:, 1]) + 4500
-right_edge = max(data.locations[:, 1]) - 3500
-x_interp = int(abs(bot_edge - top_edge) / 500)
-y_interp = int(abs(left_edge - right_edge) / 500)
+left_edge = min(data.locations[:, 1]) - 1500
+right_edge = max(data.locations[:, 1]) + 1500
+x_interp = int(abs(bot_edge - top_edge) / 2500)
+y_interp = int(abs(left_edge - right_edge) / 2500)
 # x_interp = 100
 # y_interp = 70
-n_xpad = 10
-n_ypad = 10
+n_xpad = 30
+n_ypad = 30
 # n_xpad = 25
 # n_ypad = 25
 pad_multiplier = 1.1
 # n_xpad = 10
 # n_ypad = 10
-# min_depth = 10
-# max_depth = 650000
-# depths_per_decade = (10, 12, 14, 10, 8)
-# dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
-# dz[-3] = 410000
+min_depth = 10
+max_depth = 650000
+depths_per_decade = (10, 12, 14, 10, 8)
+dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
+dz[-3] = 410000
 dz = mod.dz
 fill_value = 1000
 # max_depth = mod.dz[-1]

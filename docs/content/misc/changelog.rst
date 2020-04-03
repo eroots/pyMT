@@ -1,5 +1,10 @@
 Change Log
 ==========
+* 03/04/20
+  * Changed 'Lock Axis' behavior in :ref:`Data Plot` to lock bounds to static values, defined in the 'Display Options' menu.
+* 30/03/20
+  * Removed dependency on naturalneighbor. :ref:`Data Plot` will now offer other options for interpolation. If naturalneighbor happens to be installed, this option 
+  will appear.
 * 14/03/20
   * Fixed a few of the issues related to reading multiple data sets into Data Plot
     * Use the 'Recalculate RMS' button in the :ref:`Data Selection` tab to refresh the :ref:`Misfit Table` after switching the data set.
