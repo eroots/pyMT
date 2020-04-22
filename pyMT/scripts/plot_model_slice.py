@@ -11,7 +11,7 @@ import colorsys
 from pyMT.e_colours import colourmaps
 
 
-local_path = 'C:/Users/eroots/'
+local_path = 'E:/phd/Nextcloud/'
 
 
 def extents(f):
@@ -131,16 +131,16 @@ def interpolate_slice(x, y, Z, NP):
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.dat')
 #####################################################################
 # AFTON
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton3/afton3_lastIter.rho')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton3/afton3_lastIter.rho')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton3/afton2_rot25_bg100.rho')
-data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton3/afton3_lastIter.dat')
+# data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/afton/afton3/afton3_lastIter.dat')
 # data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/regions/afton/j2/afton_aroundOre.lst')
 ##_', str(int(mod.dz[slice_num])))##################################################################
 #####################################################################
 # LIBEREC
-mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006.rho')
+# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006.rho')
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006100.rho')
-data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006.dat')
+# data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006.dat')
 # LARDER
 # data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
 # # mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
@@ -150,8 +150,20 @@ data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/cor
 # kimberlines = [5.341140e+006, 5.348097e+006,
 #                5.330197e+006, 5.348247e+006,
 #                5.369642e+006]
+######################################################################
+# Upper Abitibi
+mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
 kimberlines = []
-mod.origin = data.origin
+data.locations = data.get_locs(mode='centered')
+locations = np.zeros(site_data.locations.shape)
+cc = 0
+for ii, site in enumerate(data.site_names):
+    if site in site_data.site_names:
+        locations[cc, :] = data.locations[ii, :]
+        cc += 1
+# mod.origin = data.origin
 # data.locations = np.array([[0 for ii in range(17)],
 #                            [0.000000000E+00, 0.501143799E+04, 0.104698379E+05,
 #                             0.136017852E+05, 0.178389980E+05, 0.208527168E+05,
@@ -170,8 +182,8 @@ mod.origin = data.origin
 plane = 'xz'
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-title_ = 'Standard Inversion'
-save_fig = 0
+# title_ = 'Standard Inversion'
+save_fig = 1
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -182,16 +194,25 @@ padding = 2000
 reverse_xaxis = False
 # zlim = [0, 4]
 lut = 32
-cax = [0, 3.5]
+cax = [0, 5]
 isolum = False
-slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
+tick_label_size = 12
+axis_label_size = 14
+markersize = 5
+# slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
 # lines = ['l0', 'l3', 'l6', 'l9', 'l12']
 # slices = [31]
-slices = [37]
+# slices = [37]
+slices = list(range(110, 160, 3))
+# slices = [110]
 lines = ['l0']
-# xlim = [-123.5, -121.5]
-# xlim = [-7, 74]
+xlim = [-60, 50]
+zlim = [0, 50]
+VE = 1 # Vertical exaggeration
+# xlim = [455.5, 778.7]
+# zlim = [5.25e6 / 1000, 5.455e6 / 1000]
+# xlim, zlim = [], []
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
@@ -208,43 +229,44 @@ cmap_name = 'turbo_r'
 # file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Malartic/RoughFigures/MAL_R1_slices/NS_slices/'
 #file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Larder/RoughFigures/LAR_R1_slices/'
 #file_name = ''.join(['LL_ZStatic__jet1-5_NS_', str(int(mod.dy[slice_num])), 'm.png'])
-file_path = local_path + '/phd/ownCloud/Documents/TGI/Figures/slices/plan/bg800/'
-for line, slice_num in zip(lines, slices):
+x, y, z = [np.zeros((len(mod.dx) - 1)),
+           np.zeros((len(mod.dy) - 1)),
+           np.zeros((len(mod.dz) - 1))]
+for ii in range(len(mod.dx) - 1):
+    x[ii] = (mod.dx[ii] + mod.dx[ii + 1]) / 2
+for ii in range(len(mod.dy) - 1):
+    y[ii] = (mod.dy[ii] + mod.dy[ii + 1]) / 2
+for ii in range(len(mod.dz) - 1):
+    z[ii] = (mod.dz[ii] + mod.dz[ii + 1]) / 2
+if cmap_name in ('jetplus', 'turbo', 'turbo_r'):
+    cmap = colourmaps.get_cmap(cmap_name)
+else:
+    cmap = cm.get_cmap(cmap_name, lut)
+file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/w_static/NS_slices/'
+# for line, slice_num in zip(lines, slices):
+for slice_num in slices:
+    # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
+    title_ = ''
     # file_name = ''.join(['afton3_turbo1-4_', str(int(mod.dz[slice_num])), 'm'])
-    file_types = ['.png', '.svg']
+    file_types = ['.png']
     # locations = data.get_locs(site_list=[site for site in data.site_names if site.startswith(line)])
-    locations = data.get_locs()
+    # locations = site_data.get_locs()
     # file_name = ''.join(['LL_All_jet1-5_NS_', str(slice_num), 'm.png'])
-    file_name = 'liberec_4site'
+    file_name = 'ns-slice_{}'.format(int(slice_num))
     # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
     #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
     # xlim = [5390, 5412]
     # xlim = [5300, 5370]  # Larder Hex
     # xlim = list(np.array([min(data.locations[:, 0]) - 20000, max(data.locations[:, 0]) + 20000]) / 1000)
     # xlim = [5612, 5618]
-    xlim = [-1, 2.5]
+    # xlim = []
     # zlim = [0, 4]
-    zlim = [0, 1.5]
+    # zlim = []
     # xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
     # zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
     # zlim = [0, 200]
     # xlim = [672, 679]
     # zlim = [5610, 5620]
-
-
-    x, y, z = [np.zeros((len(mod.dx) - 1)),
-               np.zeros((len(mod.dy) - 1)),
-               np.zeros((len(mod.dz) - 1))]
-    for ii in range(len(mod.dx) - 1):
-        x[ii] = (mod.dx[ii] + mod.dx[ii + 1]) / 2
-    for ii in range(len(mod.dy) - 1):
-        y[ii] = (mod.dy[ii] + mod.dy[ii + 1]) / 2
-    for ii in range(len(mod.dz) - 1):
-        z[ii] = (mod.dz[ii] + mod.dz[ii + 1]) / 2
-    if cmap_name in ('jetplus', 'turbo', 'turbo_r'):
-        cmap = colourmaps.get_cmap(cmap_name)
-    else:
-        cmap = cm.get_cmap(cmap_name, lut)
 
     # vals = np.log10(mod.vals[:, 31, :])
     # vals = np.log10(mod.vals[:, :, :])
@@ -383,17 +405,17 @@ for line, slice_num in zip(lines, slices):
             if site_markers:
                 #plt.plot(data.locations[:, 1] / 1000, data.locations[:, 0] / 1000, 'kv')
                 if plane == 'xz':
-                    locs = plt.plot(locations[:, 0] / 1000, np.zeros((locations[:, 0].shape)) - 0.025, marker)
-                    ax.set_xlabel('Distance (km)', fontsize=20)
-                    ax.set_ylabel('Depth (km)', fontsize=20)
+                    locs = plt.plot(locations[:, 0] / 1000, np.zeros((locations[:, 0].shape)) - 0.025, marker, markersize=markersize)
+                    ax.set_xlabel('Distance (km)', fontsize=axis_label_size)
+                    ax.set_ylabel('Depth (km)', fontsize=axis_label_size)
                 elif plane == 'yz':
-                    locs = plt.plot(locations[:, 1] / 1000, np.zeros((locations[:, 1].shape)) - 0.05, marker)
-                    ax.set_xlabel('Easting (km)', fontsize=20)
-                    ax.set_ylabel('Depth (km)', fontsize=20)
+                    locs = plt.plot(locations[:, 1] / 1000, np.zeros((locations[:, 1].shape)) - 0.05, marker, markersize=markersize)
+                    ax.set_xlabel('Easting (km)', fontsize=axis_label_size)
+                    ax.set_ylabel('Depth (km)', fontsize=axis_label_size)
                 elif plane == 'xy':
-                    locs = plt.plot(locations[:, 1] / 1000, locations[:, 0] / 1000, marker)
-                    ax.set_xlabel('Easting (km)', fontsize=20)
-                    ax.set_ylabel('Northing (km)', fontsize=20)
+                    locs = plt.plot(locations[:, 1] / 1000, locations[:, 0] / 1000, marker, markersize=markersize)
+                    ax.set_xlabel('Easting (km)', fontsize=axis_label_size)
+                    ax.set_ylabel('Northing (km)', fontsize=axis_label_size)
                 locs[0].set_clip_on(False)
             if annotate_sites:
                 for jj, site in enumerate(data.site_names):
@@ -418,7 +440,7 @@ for line, slice_num in zip(lines, slices):
         # ax.set_xlabel('Distance (km)', fontsize=20)
         # ax.set_xlabel('Northing (km)', fontsize=20)
         # ax.set_ylabel('Depth (km)', fontsize=20)
-        # ax.set_title(title_, y=1.02, fontsize=20)
+        ax.set_title(title_, y=1.02, fontsize=20)
         fig.canvas.draw()
         # if mod.coord_system == 'latlong':
         #     labels = [item.get_text() for item in ax.get_xticklabels()]
@@ -435,7 +457,7 @@ for line, slice_num in zip(lines, slices):
         #     ax.plot([line, line], [0, 200], 'w-', lw=0.5)
 
     # ax.autoscale_view(tight=True)
-    ax.tick_params(axis='both', labelsize=18)
+    ax.tick_params(axis='both', labelsize=tick_label_size)
     # locs = ax.plot(data.locations[:, 0]/1000, np.zeros((data.locations.shape[0])) - 0.2, 'kv', markersize=8)[0]
     # locs.set_clip_on(False)
     # for label in ax.xaxis.get_ticklabels():
@@ -456,7 +478,7 @@ for line, slice_num in zip(lines, slices):
     # cb.draw_all()
 
     fig.set_dpi(300)
-    ax.set_aspect(1)
+    ax.set_aspect(VE)
     if save_fig:
         for ext in file_types:
            fig.savefig(file_path + file_name + ext, dpi=300,

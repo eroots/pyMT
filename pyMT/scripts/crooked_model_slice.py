@@ -190,10 +190,10 @@ def project_locations(data, zone, letter):
 # # backup_data = WSDS.RawData('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst') 
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/bg800/dry5norot_lastIter.rho')
 # # reso = WSDS.Model('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/drydenR1_resolution.model')
-main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
-backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst') 
-mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry2_lastIter.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst') 
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry_noOOQ/bg800/finish/dry2_lastIter.rho')
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/dry2_lastIter.rho')
 # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/dry_noOOQ/finish/dry_hs2500_Finish_lastIter.rho')
 # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
@@ -215,13 +215,13 @@ mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/dry
 # backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst') 
 #########################################################
 # WESTERN SUPERIOR
-seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-# # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_NLCG_061.rho')
-# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_bg1000_lastIter.rho')
-mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
+# seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_NLCG_061.rho')
+# # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_bg1000_lastIter.rho')
+# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
 ##########################################################
 # MALARTIC
 # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
@@ -304,10 +304,10 @@ mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/H
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # UPPER-ABITIBI
-# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
-# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
+main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
+data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG-test300ohm_block.model')
 # seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
 #                         r'ROUYN_LN141_R1_KMIG/ROUYN_LN141_R1_KMIG_SUGETHW_UTM.txt',
@@ -322,7 +322,7 @@ use_seismic = 0
 # seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
 #                         r'ROUYN_LN141_R1_KMIG/ROUYN_LN141_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 1
+use_seismic = 0
 use_trace_ticks = 0
 force_NS = 1
 # azi = 25  # Geraldton
@@ -348,17 +348,17 @@ mode = 3
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/'
 # file_name = 'dry2_noOOQ_linear_jet0-5_siteMarkers_alongATTSeis'
 # file_path = local_path + 'phd/ownCloud/Documents/ME_Transects/Dryden_paper/RoughFigures/Dry_R1_slices/'
-file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Dryden_paper/RoughFigures/dry_noOOQ/50km/'
+# file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Dryden_paper/RoughFigures/dry_noOOQ/50km/'
 # file_name = 'dryatt_noOOQ_bg800_finish_labelled_turbo0-5'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Geraldton/RoughFigures/Ger_R1_slices/'
 # file_name = 'gerCull4_rot25_bg2500_alongSeisSouth_jet0-5'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/wst/slices/'
 # file_name = 'wst_finish_bg1000_alongLithoSeis_jet0-5_300km'
 # file_name = 'dry_norotMeshFinish_linear_jet0-5'
-# file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/'
+file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/w_static/'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_transects/Malartic/RoughFigures/Mal_R1_slices/'
 # file_name = 'swz_regional_all_linear_turbo0-5'
-file_name = 'dry_only_turbo0-5'
+# file_name = 'dry_only_turbo0-5'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/'
 # file_name = 'rou_along_MT_West2km_turbo0-5'
 # file_path = r'C:/Users/eroots/phd/ownCloud/Documents/ME_transects/Malartic/RoughFigures/forSnyder/'
@@ -378,10 +378,10 @@ file_types = ['.png']#, '.svg']
 title_ = 'Standard Inversion'
 rotate_back = 0
 linear_xaxis = 1
-save_fig = 0
+save_fig = 1
 save_dat = 0
-annotate_sites = 1
-save_dat = 1
+annotate_sites = 0
+save_dat = 0
 annotate_sites = 0
 site_markers = 1
 # site_markers = 0
@@ -393,10 +393,10 @@ use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 xlim = []
-zlim = [0, 100]
+# zlim = [0, 100]
 # zlim = [0, 60]
 aspect_ratio = 1
-# zlim = [0, 50]
+zlim = [0, 50]
 lut = 32
 # zlim = [0, 100]
 # lut = 64
@@ -452,14 +452,14 @@ all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_
                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
 # for nudge_dist in [-1200, -800, -400, 0, 400, 800, 1200]:
 # for nudge_dist in [-1200, -900, -600, -300, 300, 600, 900, 1200]:
-for nudge_dist in [0]:
-# for nudge_dist in range(-10000, 12500, 2500):
+# for nudge_dist in [0]:
+for nudge_dist in range(-10000, 12000, 2000):
     mod = copy.deepcopy(all_backups['model'])
     data = copy.deepcopy(all_backups['data'])
     main_transect = copy.deepcopy(all_backups['main_transect'])
     backup_data = copy.deepcopy(all_backups['backup_data'])
     fig_num += 1
-    file_name = 'dry-only_50kmDepth_turbo0-5_{}m-offset'.format(nudge_dist)
+    file_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
     # data.to_utm(UTM_number, UTM_letter)
     # main_transect.to_utm(UTM_number, UTM_letter)
     # backup_data.to_utm(UTM_number, UTM_letter)

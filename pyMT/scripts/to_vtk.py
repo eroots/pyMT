@@ -18,7 +18,7 @@ def transform_locations(dataset, UTM):
 
 def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
            datpath=None, origin=None, UTM=None, sea_level=0, use_elevation=False,
-           resolutionfile=None, transform_coords=None):
+           resolutionfile=None, transform_coords=None, trim=None):
     if not outfile:
         print('Output file required!')
         return
@@ -45,6 +45,15 @@ def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,
         model.origin = origin
         model.UTM_zone = UTM
         print('Writing model to {}'.format('_'.join([outfile, 'model.vtk'])))
+        if trim:
+            for ix in range(trim[0]):
+                model.dx_delete(0)
+                model.dx_delete(model.nx)
+            for ix in range(trim[1]):
+                model.dy_delete(0)
+                model.dy_delete(model.ny)
+            for ix in range(trim[2]):
+                model.dz_delete(model.nz)
         if resolutionfile:
             print('Adding resolution')
             resolution = WSDS.Model(modelfile=resolutionfile)
@@ -81,6 +90,12 @@ def get_inputs():
             resolution_file = verify_input('Resolution file name:', expected='read',
                                            default='Resolution0_inverted.model')
             args.update({'resolutionfile': resolution_file})
+        trim = verify_input('Trim model?', expected='yn', default='n')
+        if trim == 'y':
+            trim_x = verify_input('Input trim (north-south)', expected=int, default=5)
+            trim_y = verify_input('Input trim (east-west)', expected=int, default=5)
+            trim_z = verify_input('Input trim (depth)', expected=int, default=5)
+            args.update({'trim': (trim_x, trim_y, trim_z)})
     if to_output == 'd' or to_output == 'b':
         # Get data or list file
         datafile = verify_input('Input data or list file name', expected='read')

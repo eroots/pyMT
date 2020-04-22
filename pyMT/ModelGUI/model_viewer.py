@@ -17,7 +17,6 @@
 from os import path as ospath
 import sys
 from copy import deepcopy
-from PyQt5 import Qt
 import numpy as np
 import pyvista as pv
 import pyMT.data_structures as WSDS
@@ -75,7 +74,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.model.spatial_units = 'km'
         self.clip_model.spatial_units = 'km'
         # Make sure the frame fills the tab
-        vlayout3D = Qt.QVBoxLayout()
+        vlayout3D = QtWidgets.QVBoxLayout()
         # add the pyvista interactor object
         self.vtk_widget = pv.QtInteractor(self.frame3D)
         vlayout3D.addWidget(self.vtk_widget)
@@ -86,7 +85,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         fileMenu = mainMenu.addMenu('File')
         self.colourMenu = classes.ColourMenu(self)
         mainMenu.addMenu(self.colourMenu)
-        exitButton = Qt.QAction('Exit', self)
+        exitButton = QtWidgets.QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
         exitButton.triggered.connect(self.close)
         fileMenu.addAction(exitButton)
@@ -987,7 +986,7 @@ def main():
     except KeyError:
         print('Model must be specified')
         return
-    app = Qt.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     viewer = ModelWindow(files)
     viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
 
