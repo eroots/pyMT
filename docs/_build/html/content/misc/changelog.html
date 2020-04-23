@@ -44,129 +44,160 @@
   <div class="section" id="change-log">
 <h1>Change Log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h1>
 <ul>
-<li><p>14/03/20
-* Fixed a few of the issues related to reading multiple data sets into Data Plot</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>23/04/20</p>
+<ul class="simple">
+<li><p>Changed behavior of transect plotting in <a class="reference internal" href="../model_viewer/main_window.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a> such that it automatically plots and refocuses the GUI into the 3D view.</p></li>
+</ul>
+</li>
+<li><p>03/04/20</p>
+<ul class="simple">
+<li><p>Changed ‘Lock Axis’ behavior in <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> to lock bounds to static values, defined in the ‘Display Options’ menu.</p></li>
+</ul>
+</li>
+<li><p>30/03/20</p>
+<ul class="simple">
+<li><p>Removed dependency on naturalneighbor. <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> will now offer other options for interpolation. If naturalneighbor happens to be installed, this option will appear.</p></li>
+</ul>
+</li>
+<li><p>14/03/20</p>
+<ul class="simple">
+<li><p>Fixed a few of the issues related to reading multiple data sets into Data Plot</p>
+<ul>
 <li><p>Use the ‘Recalculate RMS’ button in the <span class="xref std std-ref">Data Selection</span> tab to refresh the <a class="reference internal" href="../data_plot/main_window.html#misfit-table"><span class="std std-ref">Misfit Table</span></a> after switching the data set.</p></li>
 </ul>
-</div></blockquote>
-<ul class="simple">
-<li><p>Inversion type is detected from available components when loading only a list file into <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>
-* This ‘should’ fix the bugs related to <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> not allowing plotting of induction arrows and phase tensors.</p></li>
+</li>
+<li><p>Inversion type is detected from available components when loading only a list file into <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a></p>
+<ul>
+<li><p>This ‘should’ fix the bugs related to <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> not allowing plotting of induction arrows and phase tensors.</p></li>
+</ul>
+</li>
 <li><p>Fixed bug which stopped station locations from being plotted when using only a list file.</p></li>
 <li><p>Added ‘Coordinate System’ in the <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>. Stations can be plotted in local, UTM, or lat/long. Note that which of these is available will depend on what data is loaded (e.g., a ModEM data file alone has no information about the geographic locations of the stations)</p></li>
-<li><p>Added a ‘JPEG’ menu in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>. This allows loading of a geo-referenced JPEG image into the background. So far I have only tested it with UTM referenced JPEGs (and its corresponding world file), but I don’t see any reason why a lat/long referenced file wouldn’t work.
-* Note that when plotting these background images, the Coordinate System needs to be set appropriately.</p></li>
+<li><p>Added a ‘JPEG’ menu in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a>. This allows loading of a geo-referenced JPEG image into the background. So far I have only tested it with UTM referenced JPEGs (and its corresponding world file), but I don’t see any reason why a lat/long referenced file wouldn’t work.</p>
+<ul>
+<li><p>Note that when plotting these background images, the Coordinate System needs to be set appropriately.</p></li>
+</ul>
+</li>
 <li><p>Added some documentation in <a class="reference internal" href="../examples/recipes.html#recipes"><span class="std std-ref">Recipes</span></a> outlining my approach to working with data with non-uniform periods and / or components.</p></li>
 </ul>
 </li>
-<li><p>01/02/20
-* Models can now be read into ‘pystart’ files in <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>.</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>01/02/20</p>
+<ul class="simple">
+<li><p>Models can now be read into ‘pystart’ files in <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>.</p>
+<ul>
 <li><p>If loaded, plan view slices can be plotted in <span class="xref std std-ref">Map View</span>.</p></li>
 </ul>
-</div></blockquote>
 </li>
-<li><p>26/01/20
-* Can now update the RMS table with a button after changing the plotted dataset.
-* Plotting of imaginary tipper arrows.
-* Added a legend for induction arrows showing colours and reference lengths</p></li>
-<li><p>23/12/19
-* Added option to set equal or auto aspect ratio in the <a class="reference internal" href="../data_plot/map_viewer.html#map-window"><span class="std std-ref">Map Window</span></a> of <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>
-* Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.</p></li>
-<li><p>14/12/19
-* Fixed induction arrow plotting in data_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.
-* Added option to specify a ‘cutoff’ length for induction arrows. Arrows with magnitudes greater than this will not be plotted.
-* Added secondary phase tensor plotting as inner bars within the phase tensor ellipses (as in Hering et al., 2019)
-* Fixed bath2model script to properly specify ocean and air cells within the covariance file.
-* In the process of fixing and testing how covariance files need to be written.</p></li>
-<li><p>28/11/19
-* Fixed a bug where ModEM data files would include elevations if data was read directly from EDI files (which would put the receivers underground)
-* Added a static value to the Data class ‘Data.REMOVE_FLAG’, which is meant to be assigned to data points you want removed from the inversion data file</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Currently not functional with the GUIs, but can be used to assign recognizable error values to data points to be removed, which can then be removed manually</p></li>
-<li><p>Will (eventually) add these things into the GUIs…
-* For now, see <a class="reference internal" href="../examples/recipes.html#recipes"><span class="std std-ref">Recipes</span></a> for an example on how to assign the errors and remove the data points from a ModEM data file.</p></li>
 </ul>
-</div></blockquote>
+</li>
+<li><p>26/01/20</p>
 <ul class="simple">
-<li><p>Added an option to write model to CSV file (accessible via the API only right now)</p></li>
-<li><p>Added functionality to read / write 2-D ModEM models and data
-* Still buggy and less than ideal. Is you’re data really that 2-D anyways?</p></li>
+<li><p>Can now update the RMS table with a button after changing the plotted dataset.</p></li>
+<li><p>Plotting of imaginary tipper arrows.</p></li>
+<li><p>Added a legend for induction arrows showing colours and reference lengths</p></li>
 </ul>
 </li>
-<li><p>10/11/19
-* ModEM data file read function now checks for sign convention and units</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>23/12/19</p>
+<ul class="simple">
+<li><p>Added option to set equal or auto aspect ratio in the <a class="reference internal" href="../data_plot/map_viewer.html#map-window"><span class="std std-ref">Map Window</span></a> of <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a></p></li>
+<li><p>Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.</p></li>
+</ul>
+</li>
+<li><p>14/12/19</p>
+<ul class="simple">
+<li><p>Fixed induction arrow plotting in data_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.</p></li>
+<li><p>Added option to specify a ‘cutoff’ length for induction arrows. Arrows with magnitudes greater than this will not be plotted.</p></li>
+<li><p>Added secondary phase tensor plotting as inner bars within the phase tensor ellipses (as in Hering et al., 2019)</p></li>
+<li><p>Fixed bath2model script to properly specify ocean and air cells within the covariance file.</p></li>
+<li><p>In the process of fixing and testing how covariance files need to be written.</p></li>
+</ul>
+</li>
+<li><p>28/11/19</p>
+<ul class="simple">
+<li><p>Fixed a bug where ModEM data files would include elevations if data was read directly from EDI files (which would put the receivers underground)</p></li>
+<li><p>Added a static value to the Data class ‘Data.REMOVE_FLAG’, which is meant to be assigned to data points you want removed from the inversion data file</p>
+<ul>
+<li><p>Currently not functional with the GUIs, but can be used to assign recognizable error values to data points to be removed, which can then be removed manually</p></li>
+<li><p>Will (eventually) add these things into the GUIs…</p>
+<ul>
+<li><p>For now, see <a class="reference internal" href="../examples/recipes.html#recipes"><span class="std std-ref">Recipes</span></a> for an example on how to assign the errors and remove the data points from a ModEM data file.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Added an option to write model to CSV file (accessible via the API only right now)</p></li>
+<li><p>Added functionality to read / write 2-D ModEM models and data</p>
+<ul>
+<li><p>Still buggy and less than ideal. Is you’re data really that 2-D anyways?</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>10/11/19</p>
+<ul class="simple">
+<li><p>ModEM data file read function now checks for sign convention and units</p>
+<ul>
 <li><p>Will automatically convert to exp(-iωt) and ohms</p></li>
 </ul>
-</div></blockquote>
 </li>
-<li><p>01/10/19
-* Added a script to add oceans and topography</p>
-<blockquote>
-<div><ul class="simple">
+</ul>
+</li>
+<li><p>01/10/19</p>
+<ul class="simple">
+<li><p>Added a script to add oceans and topography</p>
+<ul>
 <li><p>Still experimental - model seems to be built correctly, but covariance file needs corrections</p></li>
 </ul>
-</div></blockquote>
-<ul class="simple">
-<li><p>To fit above, changed default behavior of data file writing:
-* By default, elevations will not be used (i.e., Z = 0 for all stations). Add ‘use_elevation=True’ as a named parameter in your write to include elevations
-* Note that due to a bug, previous versions may have included elevations in the written ModEM data files which could lead to spurious results.</p></li>
+</li>
+<li><p>To fit above, changed default behavior of data file writing:</p>
+<ul>
+<li><p>By default, elevations will not be used (i.e., Z = 0 for all stations). Add ‘use_elevation=True’ as a named parameter in your write to include elevations</p></li>
+<li><p>Note that due to a bug, previous versions may have included elevations in the written ModEM data files which could lead to spurious results.</p></li>
 </ul>
 </li>
-<li><p>09/09/19
-* Need to add these to the docs changelog when I get that fixed
-* Added turbo and turbo_r to colour maps</p>
+</ul>
+</li>
+<li><p>09/09/19</p>
+<ul>
+<li><p>Need to add these to the docs changelog when I get that fixed</p></li>
+<li><p>Added turbo and turbo_r to colour maps</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>Should automaticaly be working in Model Viewer, not yet in Data Plot</p></li>
 </ul>
 </div></blockquote>
-<ul class="simple">
-<li><dl class="simple">
-<dt>Changed the way ModEM data files are read in to allow for arbitrary ordering of the data lines</dt><dd><ul>
+</li>
+<li><p>Changed the way ModEM data files are read in to allow for arbitrary ordering of the data lines</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>This seems to be working without complaint, but may have some unintended side effects!</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 </ul>
 </li>
-<li><dl class="simple">
-<dt>08/08/19</dt><dd><ul class="simple">
+<li><p>08/08/19</p>
+<ul class="simple">
 <li><p>Some changes to IO to start to allow different periods for different sites (not fully implemented yet)</p></li>
 <li><p>Some bug fixes related to reading data files</p></li>
 </ul>
-</dd>
-</dl>
 </li>
-<li><dl class="simple">
-<dt>30/07/19</dt><dd><ul class="simple">
+<li><p>30/07/19</p>
+<ul class="simple">
 <li><p><a class="reference internal" href="../api_core/data_structures.html#model"><span class="std std-ref">Model</span></a> class can now read and write model covariance files</p></li>
 <li><p><a class="reference internal" href="../mesh_designer/main_window.html#mesh-designer"><span class="std std-ref">Mesh Designer - Main Window</span></a> will automatically prompt for covariance file output when writing a model.</p></li>
 <li><p>Added documentation for some of the more usuable scripts.</p></li>
 </ul>
-</dd>
-</dl>
 </li>
-<li><dl class="simple">
-<dt>23/07/19</dt><dd><ul class="simple">
+<li><p>23/07/19</p>
+<ul class="simple">
 <li><p>Re-release of pyMT onto GitHub</p></li>
-<li><dl class="simple">
-<dt>Now with (some) documentation!</dt><dd><ul>
+<li><p>Now with (some) documentation!</p>
+<ul>
 <li><p>See the pyMT/docs folder for a PDF version, or pyMT/docs/build/html/index.html to load up a browser version (complete with navigation bar and search tool)</p></li>
 </ul>
-</dd>
-</dl>
 </li>
 </ul>
-</dd>
-</dl>
 </li>
 </ul>
 </div>

@@ -72,7 +72,7 @@
 
 
 \title{pyMT}
-\date{Mar 16, 2020}
+\date{Apr 23, 2020}
 \release{0.0.1}
 \author{Eric Roots}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -95,7 +95,7 @@
 \section{Dependencies}
 \label{\detokenize{content/api_core/installation:dependencies}}\begin{itemize}
 \item {} 
-Python 3.5 (or greater)
+Python=3.7.*
 
 \item {} 
 Numpy
@@ -107,7 +107,7 @@ SciPy
 matplotlib
 
 \item {} 
-pyqt
+pyqt5=5.14.*
 
 \item {} 
 colorcet
@@ -119,7 +119,7 @@ pyshp
 pyproj
 
 \item {} 
-pyvista
+pyvista=0.23.*
 
 \item {} 
 pyvtk
@@ -174,6 +174,22 @@ colorcet
 \end{itemize}
 
 The tested method of installation involves installing each of these with Anaconda prior to installing pyMT.
+
+Note, a previously required package ‘naturalneighbor’ has been removed from the dependency list. {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}} will now instead offer other interpolation schemes based on scipy. If naturalneighbor is installed (it can be installed through pip, or using the wheel at \sphinxurl{https://www.lfd.uci.edu/~gohlke/pythonlibs/\#naturalneighbor}), the natural neighbor scheme will still be available.
+
+As of the time of writing this (April 2020), there is an issue between versions of python and pyqt that may cause some GUIs to fail:
+\begin{itemize}
+\item {} 
+Python needs to be version 3.7.*
+
+\item {} 
+PyQT5 needs to be version 5.14.*
+
+\end{itemize}
+
+Note that as of now, Anaconda only seems to have access to pyqt5 version 5.9.*. You will therefore have to install pyqt5 using pip, and ensure this version supercedes any other version of pyqt installed in your environment.
+
+An update to pyvista version 0.24.* has also caused an error in setting up the {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}, so pyvista version 0.23.* is required for now.
 
 
 \chapter{Testing Installation}
@@ -1619,17 +1635,47 @@ The 2-D transect plot does not respond to changes in the model trim. The workaro
 \subsection{Change Log}
 \label{\detokenize{content/misc/changelog:change-log}}\label{\detokenize{content/misc/changelog::doc}}\begin{itemize}
 \item {} 
+23/04/20
+\begin{itemize}
+\item {} 
+Changed behavior of transect plotting in {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}} such that it automatically plots and refocuses the GUI into the 3D view.
+
+\end{itemize}
+
+\item {} 
+03/04/20
+\begin{itemize}
+\item {} 
+Changed ‘Lock Axis’ behavior in {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}} to lock bounds to static values, defined in the ‘Display Options’ menu.
+
+\end{itemize}
+
+\item {} 
+30/03/20
+\begin{itemize}
+\item {} 
+Removed dependency on naturalneighbor. {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}} will now offer other options for interpolation. If naturalneighbor happens to be installed, this option will appear.
+
+\end{itemize}
+
+\item {} 
 14/03/20
-* Fixed a few of the issues related to reading multiple data sets into Data Plot
+\begin{itemize}
+\item {} 
+Fixed a few of the issues related to reading multiple data sets into Data Plot
 \begin{itemize}
 \item {} 
 Use the ‘Recalculate RMS’ button in the \DUrole{xref,std,std-ref}{Data Selection} tab to refresh the {\hyperref[\detokenize{content/data_plot/main_window:misfit-table}]{\sphinxcrossref{\DUrole{std,std-ref}{Misfit Table}}}} after switching the data set.
 
 \end{itemize}
-\begin{itemize}
+
 \item {} 
 Inversion type is detected from available components when loading only a list file into {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}
-* This ‘should’ fix the bugs related to {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} not allowing plotting of induction arrows and phase tensors.
+\begin{itemize}
+\item {} 
+This ‘should’ fix the bugs related to {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} not allowing plotting of induction arrows and phase tensors.
+
+\end{itemize}
 
 \item {} 
 Fixed bug which stopped station locations from being plotted when using only a list file.
@@ -1639,7 +1685,11 @@ Added ‘Coordinate System’ in the {\hyperref[\detokenize{content/data_plot/ma
 
 \item {} 
 Added a ‘JPEG’ menu in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}. This allows loading of a geo-referenced JPEG image into the background. So far I have only tested it with UTM referenced JPEGs (and its corresponding world file), but I don’t see any reason why a lat/long referenced file wouldn’t work.
-* Note that when plotting these background images, the Coordinate System needs to be set appropriately.
+\begin{itemize}
+\item {} 
+Note that when plotting these background images, the Coordinate System needs to be set appropriately.
+
+\end{itemize}
 
 \item {} 
 Added some documentation in {\hyperref[\detokenize{content/examples/recipes:recipes}]{\sphinxcrossref{\DUrole{std,std-ref}{Recipes}}}} outlining my approach to working with data with non-uniform periods and / or components.
@@ -1648,103 +1698,161 @@ Added some documentation in {\hyperref[\detokenize{content/examples/recipes:reci
 
 \item {} 
 01/02/20
-* Models can now be read into ‘pystart’ files in {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}.
+\begin{itemize}
+\item {} 
+Models can now be read into ‘pystart’ files in {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}.
 \begin{itemize}
 \item {} 
 If loaded, plan view slices can be plotted in \DUrole{xref,std,std-ref}{Map View}.
 
 \end{itemize}
 
+\end{itemize}
+
 \item {} 
 26/01/20
-* Can now update the RMS table with a button after changing the plotted dataset.
-* Plotting of imaginary tipper arrows.
-* Added a legend for induction arrows showing colours and reference lengths
+\begin{itemize}
+\item {} 
+Can now update the RMS table with a button after changing the plotted dataset.
+
+\item {} 
+Plotting of imaginary tipper arrows.
+
+\item {} 
+Added a legend for induction arrows showing colours and reference lengths
+
+\end{itemize}
 
 \item {} 
 23/12/19
-* Added option to set equal or auto aspect ratio in the {\hyperref[\detokenize{content/data_plot/map_viewer:map-window}]{\sphinxcrossref{\DUrole{std,std-ref}{Map Window}}}} of {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}
-* Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.
+\begin{itemize}
+\item {} 
+Added option to set equal or auto aspect ratio in the {\hyperref[\detokenize{content/data_plot/map_viewer:map-window}]{\sphinxcrossref{\DUrole{std,std-ref}{Map Window}}}} of {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}
+
+\item {} 
+Also added freezing of axis limits, so you can zoom / pan and keep the same view after changing what is plotted.
+
+\end{itemize}
 
 \item {} 
 14/12/19
-* Fixed induction arrow plotting in data\_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.
-* Added option to specify a ‘cutoff’ length for induction arrows. Arrows with magnitudes greater than this will not be plotted.
-* Added secondary phase tensor plotting as inner bars within the phase tensor ellipses (as in Hering et al., 2019)
-* Fixed bath2model script to properly specify ocean and air cells within the covariance file.
-* In the process of fixing and testing how covariance files need to be written.
+\begin{itemize}
+\item {} 
+Fixed induction arrow plotting in data\_plot so that un-normalized arrows are actually useable. Not thoroughly tested however.
+
+\item {} 
+Added option to specify a ‘cutoff’ length for induction arrows. Arrows with magnitudes greater than this will not be plotted.
+
+\item {} 
+Added secondary phase tensor plotting as inner bars within the phase tensor ellipses (as in Hering et al., 2019)
+
+\item {} 
+Fixed bath2model script to properly specify ocean and air cells within the covariance file.
+
+\item {} 
+In the process of fixing and testing how covariance files need to be written.
+
+\end{itemize}
 
 \item {} 
 28/11/19
-* Fixed a bug where ModEM data files would include elevations if data was read directly from EDI files (which would put the receivers underground)
-* Added a static value to the Data class ‘Data.REMOVE\_FLAG’, which is meant to be assigned to data points you want removed from the inversion data file
+\begin{itemize}
+\item {} 
+Fixed a bug where ModEM data files would include elevations if data was read directly from EDI files (which would put the receivers underground)
+
+\item {} 
+Added a static value to the Data class ‘Data.REMOVE\_FLAG’, which is meant to be assigned to data points you want removed from the inversion data file
 \begin{itemize}
 \item {} 
 Currently not functional with the GUIs, but can be used to assign recognizable error values to data points to be removed, which can then be removed manually
 
 \item {} 
 Will (eventually) add these things into the GUIs…
-* For now, see {\hyperref[\detokenize{content/examples/recipes:recipes}]{\sphinxcrossref{\DUrole{std,std-ref}{Recipes}}}} for an example on how to assign the errors and remove the data points from a ModEM data file.
+\begin{itemize}
+\item {} 
+For now, see {\hyperref[\detokenize{content/examples/recipes:recipes}]{\sphinxcrossref{\DUrole{std,std-ref}{Recipes}}}} for an example on how to assign the errors and remove the data points from a ModEM data file.
 
 \end{itemize}
-\begin{itemize}
+
+\end{itemize}
+
 \item {} 
 Added an option to write model to CSV file (accessible via the API only right now)
 
 \item {} 
 Added functionality to read / write 2-D ModEM models and data
-* Still buggy and less than ideal. Is you’re data really that 2-D anyways?
+\begin{itemize}
+\item {} 
+Still buggy and less than ideal. Is you’re data really that 2-D anyways?
+
+\end{itemize}
 
 \end{itemize}
 
 \item {} 
 10/11/19
-* ModEM data file read function now checks for sign convention and units
+\begin{itemize}
+\item {} 
+ModEM data file read function now checks for sign convention and units
 \begin{itemize}
 \item {} 
 Will automatically convert to exp(-iωt) and ohms
 
 \end{itemize}
 
+\end{itemize}
+
 \item {} 
 01/10/19
-* Added a script to add oceans and topography
+\begin{itemize}
+\item {} 
+Added a script to add oceans and topography
 \begin{itemize}
 \item {} 
 Still experimental - model seems to be built correctly, but covariance file needs corrections
 
 \end{itemize}
-\begin{itemize}
+
 \item {} 
 To fit above, changed default behavior of data file writing:
-* By default, elevations will not be used (i.e., Z = 0 for all stations). Add ‘use\_elevation=True’ as a named parameter in your write to include elevations
-* Note that due to a bug, previous versions may have included elevations in the written ModEM data files which could lead to spurious results.
+\begin{itemize}
+\item {} 
+By default, elevations will not be used (i.e., Z = 0 for all stations). Add ‘use\_elevation=True’ as a named parameter in your write to include elevations
+
+\item {} 
+Note that due to a bug, previous versions may have included elevations in the written ModEM data files which could lead to spurious results.
+
+\end{itemize}
 
 \end{itemize}
 
 \item {} 
 09/09/19
-* Need to add these to the docs changelog when I get that fixed
-* Added turbo and turbo\_r to colour maps
+\begin{itemize}
+\item {} 
+Need to add these to the docs changelog when I get that fixed
+
+\item {} 
+Added turbo and turbo\_r to colour maps
 \begin{itemize}
 \item {} 
 Should automaticaly be working in Model Viewer, not yet in Data Plot
 
 \end{itemize}
+
+\item {} 
+Changed the way ModEM data files are read in to allow for arbitrary ordering of the data lines
 \begin{itemize}
-\item {} \begin{description}
-\item[{Changed the way ModEM data files are read in to allow for arbitrary ordering of the data lines}] \leavevmode\begin{itemize}
 \item {} 
 This seems to be working without complaint, but may have some unintended side effects!
 
 \end{itemize}
 
-\end{description}
-
 \end{itemize}
 
-\item {} \begin{description}
-\item[{08/08/19}] \leavevmode\begin{itemize}
+\item {} 
+08/08/19
+\begin{itemize}
 \item {} 
 Some changes to IO to start to allow different periods for different sites (not fully implemented yet)
 
@@ -1753,10 +1861,9 @@ Some bug fixes related to reading data files
 
 \end{itemize}
 
-\end{description}
-
-\item {} \begin{description}
-\item[{30/07/19}] \leavevmode\begin{itemize}
+\item {} 
+30/07/19
+\begin{itemize}
 \item {} 
 {\hyperref[\detokenize{content/api_core/data_structures:model}]{\sphinxcrossref{\DUrole{std,std-ref}{Model}}}} class can now read and write model covariance files
 
@@ -1768,25 +1875,21 @@ Added documentation for some of the more usuable scripts.
 
 \end{itemize}
 
-\end{description}
-
-\item {} \begin{description}
-\item[{23/07/19}] \leavevmode\begin{itemize}
+\item {} 
+23/07/19
+\begin{itemize}
 \item {} 
 Re-release of pyMT onto GitHub
 
-\item {} \begin{description}
-\item[{Now with (some) documentation!}] \leavevmode\begin{itemize}
+\item {} 
+Now with (some) documentation!
+\begin{itemize}
 \item {} 
 See the pyMT/docs folder for a PDF version, or pyMT/docs/build/html/index.html to load up a browser version (complete with navigation bar and search tool)
 
 \end{itemize}
 
-\end{description}
-
 \end{itemize}
-
-\end{description}
 
 \end{itemize}
 

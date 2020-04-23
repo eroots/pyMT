@@ -46,15 +46,15 @@
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Python 3.5 (or greater)</p></li>
+<li><p>Python=3.7.*</p></li>
 <li><p>Numpy</p></li>
 <li><p>SciPy</p></li>
 <li><p>matplotlib</p></li>
-<li><p>pyqt</p></li>
+<li><p>pyqt5=5.14.*</p></li>
 <li><p>colorcet</p></li>
 <li><p>pyshp</p></li>
 <li><p>pyproj</p></li>
-<li><p>pyvista</p></li>
+<li><p>pyvista=0.23.*</p></li>
 <li><p>pyvtk</p></li>
 <li><p>naturalneighbor</p></li>
 </ul>
@@ -84,6 +84,16 @@ These include:</p>
 <li><p>colorcet</p></li>
 </ul>
 <p>The tested method of installation involves installing each of these with Anaconda prior to installing pyMT.</p>
+<p>Note, a previously required package ‘naturalneighbor’ has been removed from the dependency list. <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> will now instead offer other interpolation schemes based on scipy. If naturalneighbor is installed (it can be installed through pip, or using the wheel at <a class="reference external" href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#naturalneighbor">https://www.lfd.uci.edu/~gohlke/pythonlibs/#naturalneighbor</a>), the natural neighbor scheme will still be available.</p>
+<p>As of the time of writing this (April 2020), there is an issue between versions of python and pyqt that may cause some GUIs to fail:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Python needs to be version 3.7.*</p></li>
+<li><p>PyQT5 needs to be version 5.14.*</p></li>
+</ul>
+</div></blockquote>
+<p>Note that as of now, Anaconda only seems to have access to pyqt5 version 5.9.*. You will therefore have to install pyqt5 using pip, and ensure this version supercedes any other version of pyqt installed in your environment.</p>
+<p>An update to pyvista version 0.24.* has also caused an error in setting up the <a class="reference internal" href="../model_viewer/main_window.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a>, so pyvista version 0.23.* is required for now.</p>
 </div>
 </div>
 
