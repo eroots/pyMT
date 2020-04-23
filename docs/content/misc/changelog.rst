@@ -1,5 +1,7 @@
 Change Log
 ==========
+* 23/04/20
+  * Changed behavior of transect plotting in :ref:`Model Viewer` such that it automatically plots and refocuses the GUI into the 3D view.
 * 03/04/20
   * Changed 'Lock Axis' behavior in :ref:`Data Plot` to lock bounds to static values, defined in the 'Display Options' menu.
 * 30/03/20
