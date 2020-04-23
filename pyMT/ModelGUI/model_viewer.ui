@@ -86,7 +86,7 @@
         <item row="0" column="0">
          <layout class="QGridLayout" name="widgetTransect">
           <property name="sizeConstraint">
-           <enum>QLayout::SetNoConstraint</enum>
+           <enum>QLayout::SetDefaultConstraint</enum>
           </property>
           <property name="spacing">
            <number>0</number>
@@ -583,7 +583,7 @@
      <x>0</x>
      <y>0</y>
      <width>1335</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuView">

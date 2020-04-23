@@ -880,7 +880,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.qz = qz
         self.query_points = query_points
         self.faces = faces
-        self.plot_transect2D(redraw=True)
+        # self.plot_transect2D(redraw=True)
 
     def generate_transect3D(self, redraw=True):
         query_points = deepcopy(self.query_points)
