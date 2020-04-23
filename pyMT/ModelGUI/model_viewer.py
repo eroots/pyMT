@@ -446,6 +446,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                 self.generate_transect2D()
                 self.generate_transect3D()
             self.cid['transect_2D'] = 0
+            self.interpCheckbox.setCheckState(2)
+            self.toggle_transect3D()
+            self.tabWidget_2.setCurrentIndex(0)
             # self.plot_transect()
             # print(self.len(transect_plot['easting']) > 1)
             # print(self.transect_plot['northing'])
