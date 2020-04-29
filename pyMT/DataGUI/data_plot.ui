@@ -210,7 +210,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>4</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -479,6 +479,9 @@
            <width>111</width>
            <height>31</height>
           </rect>
+         </property>
+         <property name="toolTip">
+          <string>Recalculate RMS in the Misfit Table. Required after changing data sets.</string>
          </property>
          <property name="text">
           <string>Recalculate RMS</string>
@@ -861,6 +864,9 @@
           </item>
           <item row="7" column="0" colspan="2">
            <widget class="QPushButton" name="resetErrors">
+            <property name="toolTip">
+             <string>Reset errors to assigned floor values</string>
+            </property>
             <property name="text">
              <string>Reset to Error Floor</string>
             </property>
