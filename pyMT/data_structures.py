@@ -198,6 +198,12 @@ class Dataset(object):
                                 self.response.sites[site].errmap[comp][idx] = self.response.MISSING_DATA_MAP
                                 self.response.sites[site].errors[comp][idx] = self.response.REMOVE_FLAG
                                 self.response.sites[site].used_error[comp][idx] = self.response.REMOVE_FLAG
+                elif (period < 0.001 and (min_diff / period) > self.raw_data.low_tol) or \
+                    (period > 0.001 and (min_diff / period) > self.raw_data.high_tol):
+                    for comp in self.data.components:
+                        self.data.sites[site].change_errmap(periods=period, mult=self.data.NO_PERIOD_MAP,
+                                                            comps=comp,
+                                                            multiplicative=True)
 
     def reset_dummy_components(self):
         for site in self.data.site_names:

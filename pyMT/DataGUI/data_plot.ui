@@ -210,7 +210,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -966,7 +966,7 @@
            <x>530</x>
            <y>10</y>
            <width>211</width>
-           <height>181</height>
+           <height>191</height>
           </rect>
          </property>
          <property name="title">
@@ -1043,6 +1043,26 @@
           </item>
           <item row="5" column="2">
            <widget class="QDoubleSpinBox" name="highPeriodToleranceRemove"/>
+          </item>
+          <item row="1" column="2">
+           <widget class="QSpinBox" name="missingPeriodMap">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>Missing Period Error</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
