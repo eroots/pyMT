@@ -182,6 +182,31 @@ class Dataset(object):
         self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
         self.data.auto_set_inv_type()
 
+    def reset_dummy_periods(self):
+        for site in self.data.site_names:
+            for ii, period in enumerate(self.data.periods):
+                min_diff = np.min(abs(period - self.raw_data.sites[site].periods))
+                if (period < 0.001 and (min_diff / period) > self.raw_data.remove_low_tol) or \
+                    (period > 0.001 and (min_diff / period) > self.raw_data.remove_high_tol):
+                    for comp in self.data.components:
+                        self.data.sites[site].errmap[comp][ii] = self.data.MISSING_DATA_MAP
+                        self.data.sites[site].errors[comp][ii] = self.data.REMOVE_FLAG
+                        self.data.sites[site].used_error[comp][ii] = self.data.REMOVE_FLAG
+                        if self.response.sites:
+                            idx = np.argmin(abs(period - self.response.periods))
+                            if (period - self.response.periods[idx]) == 0:
+                                self.response.sites[site].errmap[comp][idx] = self.response.MISSING_DATA_MAP
+                                self.response.sites[site].errors[comp][idx] = self.response.REMOVE_FLAG
+                                self.response.sites[site].used_error[comp][idx] = self.response.REMOVE_FLAG
+
+    def reset_dummy_components(self):
+        for site in self.data.site_names:
+            for component in self.data.components:
+                if component not in self.raw_data.sites[site].components:
+                    self.data.sites[site].errmap[comp][:] = self.data.MISSING_DATA_MAP
+                    self.data.sites[site].used_error[comp][:] = self.data.REMOVE_FLAG
+
+
     def read_model(self, modelfile=''):
         """Summary
 
@@ -224,12 +249,12 @@ class Dataset(object):
             print('File already exists')
             return False
 
-    def write_data(self, outfile='', overwrite=False, file_format='modem'):
+    def write_data(self, outfile='', overwrite=False, file_format='modem', write_removed=False):
         if outfile == '':
             print('You should probably name your output first...')
             return False
         if not utils.check_file(outfile) or overwrite:
-            self.data.write(outfile=outfile, file_format=file_format)
+            self.data.write(outfile=outfile, file_format=file_format, write_removed=write_removed)
             return True
         else:
             print('File already exists')
@@ -256,7 +281,7 @@ class Dataset(object):
         elif not UTM:
             UTM = self.model.UTM_zone
         if not outfile:
-            print('Need to specify outfile!')
+            print('Need to specify output!')
             return
         outfile = os.path.splitext(outfile)[0]
         mod_outfile = ''.join([outfile, '_model.vtk'])
@@ -607,6 +632,7 @@ class Data(object):
     XXYY_MAP = 5
     NO_PERIOD_MAP = 50
     NO_COMP_MAP = 9999
+    MISSING_DATA_MAP = -9999
 
     def __init__(self, datafile='', listfile='', file_format=None):
         """Summary
@@ -730,6 +756,14 @@ class Data(object):
     @property
     def spatial_units(self):
         return self._spatial_units
+
+    @property
+    def has_flagged_data(self):
+        for site in self.site_names:
+            for component in self.components:
+                if np.any(self.sites[site].errors[component] == self.REMOVE_FLAG):
+                    return True
+        return False
 
     @spatial_units.setter
     def spatial_units(self, units):
@@ -924,7 +958,7 @@ class Data(object):
             raise Exception('{} is not a valid inversion type'.format(val))
         self._inv_type = val
 
-    def write(self, outfile, to_write=None, file_format='ModEM', use_elevation=False):
+    def write(self, outfile, to_write=None, file_format='ModEM', use_elevation=False, write_removed=False):
         '''
             Write data to file.
                 INPUTS:
@@ -936,7 +970,14 @@ class Data(object):
             file_format = self.file_format
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_data(data=self, outfile=outfile, to_write=to_write, file_format=file_format, use_elevation=use_elevation)
+        WS_io.write_data(data=self, outfile=outfile,
+                         to_write=to_write, file_format=file_format,
+                         use_elevation=use_elevation)
+        if write_removed:
+            new_out = outfile.replace('.dat', '_removed.dat')
+            WS_io.write_data(data=self, outfile=new_out,
+                             to_write=to_write, file_format=file_format,
+                             use_elevation=use_elevation, include_flagged=False)
         self.spatial_units = units
 
     def write_list(self, outfile):
@@ -1629,6 +1670,7 @@ class Site(object):
     OUTLIER_FLAG = -999
     NO_PERIOD_FLAG = -9999
     NO_COMP_FLAG = -99999
+    REMOVE_FLAG = 1234567
 
     def __init__(self, data={}, name='', periods=None, locations={},
                  errors={}, errmap=None, azimuth=None, flags=None,
@@ -2267,7 +2309,7 @@ class Site(object):
                     f.append(mult)
                 except KeyError:
                     d.append(np.float(self.NO_COMP_FLAG))
-                    e.append(np.float(self.NO_COMP_FLAG))
+                    e.append(np.float(self.REMOVE_FLAG))
                     em.append(np.float(self.NO_COMP_FLAG))
                     f.append(np.float(self.NO_COMP_FLAG))
             # Check for dummy TF data
@@ -2373,6 +2415,8 @@ class RawData(object):
         self.low_tol = 0.02
         self.high_tol = 0.1
         self.count_tol = 0.5
+        self.remove_high_tol = 0.2
+        self.remove_low_tol = 0.04
         self.master_periods = self.master_period_list()
         self.narrow_periods = self.narrow_period_list()
         self._spatial_units = 'm'

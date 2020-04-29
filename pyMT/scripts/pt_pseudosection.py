@@ -7,7 +7,7 @@ from mpl_toolkits.axes_grid1 import Divider, Size
 from mpl_toolkits.axes_grid1.mpl_axes import Axes
 
 
-local_path = 'C:/Users/eroots/'
+# local_path = 'C:/Users/eroots/'
 local_path = 'E:'
 
 def generate_ellipse(phi):
@@ -28,8 +28,8 @@ listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_t
 main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
 # main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
-main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
-listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
+# main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
+# listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
 # listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
 # main_list = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst'
@@ -76,13 +76,13 @@ for use_list_dummy in [0]:
     # fill_param = 'Lambda'
     # use_periods = sorted(list(data.narrow_periods.keys()))
     # all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
-    all_periods = set(list(data.sites['18-swz022m'].periods) + list(data.sites['18-swz007a'].periods))
-    # all_periods = list(data.sites['SWZ079M'].periods)
+    # all_periods = set(list(data.sites['18-swz022m'].periods) + list(data.sites['18-swz007a'].periods))
+    all_periods = list(data.sites['SWZ079M'].periods)
     # all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
-    use_periods = sorted([p for p in all_periods if 0.005 <p < 15])
-    high_cut = 15
+    # use_periods = sorted([p for p in all_periods if 0.005 <p < 15])
+    # high_cut = 15
     # use_periods = sorted([p for p in data.narrow_period_list(count_tol=0.1, high_tol=0.1).keys() if p < 150])
-    # use_periods = data.sites[data.site_names[0]].periods
+    use_periods = data.sites[data.site_names[0]].periods
     x_scale, y_scale = 0.1, 0.1
     save_fig = 0
     freq_skip = 1
@@ -90,27 +90,27 @@ for use_list_dummy in [0]:
     # all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
     # all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
     # use_periods = sorted([p for p in all_periods if p < 15])
-    high_cut = 1000
+    high_cut = 3000
     # use_periods = sorted([p for p in data.narrow_period_list(count_tol=0.1, high_tol=0.1).keys() if p < 150])
     use_periods = data.sites[data.site_names[0]].periods
     x_scale, y_scale = 0.0075, 1
-    save_fig = 0
-    freq_skip = 2
-    radius = 0.75
+    save_fig = 1
+    freq_skip = 1
+    radius = 0.6
     # radius = 0.1
-    radius = 0.01
+    # radius = 0.01
     # radius = 1
     label_offset = -4.5
     # label_offset = -3.7
     annotate_sites = 0
-    use_colourbar = 1
+    use_colourbar = 0
     # file_path = local_path + '/phd/ownCloud/Documents/TGI/Figures/PT_pseudosections/'
-    file_path = local_path + '/phd/ownCloud/Documents/ME_transects/Swayze_paper/RoughFigures/PT_round2/'
-    file_name = 'pt_pseudosection_phi2_south_all_linear'
+    file_path = local_path + '/phd/Nextcloud/Documents/ME_transects/Swayze_paper/RoughFigures/PT_round2/'
+    file_name = 'pt_pseudosection_beta_linear'
     # file_name = '{}_{}'.format(use_list, fill_param)
     file_types = ['.png', '.svg']
     dpi = 600
-    linear_xaxis = 0
+    linear_xaxis = 1
     # cmap = cm.jet_plus_r(64)
     # cmap = cm.get_cmap('turbo', 64)
     cmap = cm.bwr(32)

@@ -978,7 +978,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def setup_widgets(self):
         self.select_points_button.clicked.connect(self.select_points)
         self.select_points = False
-        self.recalculateRMS.clicked.connect(self.init_rms_tables)
         # self.error_table.itemChanged.connect(self.change_errmap)
         self.error_tree.itemDoubleClicked.connect(self.edit_error_tree)
         self.BackButton.clicked.connect(self.Back)
@@ -1000,6 +999,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.azimuthEdit.setValue(self.dataset.azimuth)
         self.removeSites.clicked.connect(self.remove_sites)
         self.addSites.clicked.connect(self.add_sites)
+        self.recalculateRMS.clicked.connect(self.init_rms_tables)
+        if not(self.toggleResponse.checkState() and self.toggleData.checkState()):
+            self.recalculateRMS.setEnabled(False)
         if len(self.stored_datasets) > 1:
             self.removeSites.setEnabled(False)
             self.addSites.setEnabled(False)
@@ -1057,6 +1059,37 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.actionPhaseLimits.triggered.connect(self.set_phase_limits)
         self.actionTipperLimits.triggered.connect(self.set_tipper_limits)
         self.actionImpedanceLimits.triggered.connect(self.set_impedance_limits)
+        self.resetDummyErrors.clicked.connect(self.reset_dummy_errors)
+        if self.dataset.raw_data.initialized:
+            self.lowPeriodToleranceFlag.setValue(self.dataset.raw_data.low_tol * 100)
+            self.highPeriodToleranceFlag.setValue(self.dataset.raw_data.high_tol * 100)
+            self.lowPeriodToleranceFlag.valueChanged.connect(self.set_period_tolerance)
+            self.highPeriodToleranceFlag.valueChanged.connect(self.set_period_tolerance)
+            self.lowPeriodToleranceRemove.setValue(self.dataset.raw_data.remove_low_tol * 100)
+            self.highPeriodToleranceRemove.setValue(self.dataset.raw_data.remove_high_tol * 100)
+            self.lowPeriodToleranceRemove.valueChanged.connect(self.set_period_tolerance)
+            self.highPeriodToleranceRemove.valueChanged.connect(self.set_period_tolerance)
+        else:
+            self.lowPeriodTolerance.isEnabled(False)
+            self.highPeriodTolerance.isEnabled(False)
+
+        self.plotFlaggedData.clicked.connect(self.plot_flagged_data)
+
+    def set_period_tolerance(self):
+        self.dataset.raw_data.low_tol = self.lowPeriodToleranceFlag.value() / 100
+        self.dataset.raw_data.high_tol = self.highPeriodToleranceFlag.value() / 100
+        self.dataset.raw_data.remove_low_tol = self.lowPeriodToleranceRemove.value() / 100
+        self.dataset.raw_data.remove_high_tol = self.highPeriodToleranceRemove.value() / 100
+
+    def plot_flagged_data(self):
+        self.dpm.plot_flagged_data = self.plotFlaggedData.isChecked()
+        self.update_dpm()
+
+    def reset_dummy_errors(self):
+        self.dataset.reset_dummy_periods()
+        self.dataset.reset_dummy_components()
+        self.update_error_tree()
+        self.update_dpm()
 
     def set_rho_limits(self):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
@@ -1272,6 +1305,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
         dset = self.currentDataset.itemText(index)
         self.current_dataset = dset
         self.dataset = self.stored_datasets[dset]
+        if self.dataset.data.sites and self.dataset.response.sites:
+            self.recalculateRMS.setEnabled(True)
+            # self.select_points_button.setEnabled(False)
+        else:
+            self.recalculateRMS.setEnabled(False)
+            # self.select_points_button.setEnabled(True)
         self.site_names = self.shift_site_names(shift=0)
         self.map_view.init_map(dataset=self.dataset,
                                sites=self.dataset.data.site_names,
@@ -1379,9 +1418,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.dpm.fig.canvas.draw()
             self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         # Sites were removed, the map should be updated
-        self.map_view.map.site_names = self.dataset.site_names
-        self.map_view.map.active_sites = self.site_names
-        self.map_view.map.set_locations()
+        self.map_view.init_map(dataset=self.dataset,
+                               sites=self.dataset.data.site_names,
+                               active_sites=self.site_names)
+        # self.map_view.map.site_names = self.dataset.site_names
+        # self.map_view.map.active_sites = self.site_names
+        # self.map_view.map.set_locations()
         self.map_view.update_map()
         # Also update the label
         self.set_nparam_labels()
@@ -1398,9 +1440,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.siteList.addItem(self.rmSitesList.takeItem(self.rmSitesList.row(site)))
             self.dataset.add_site(self.stored_sites[name])
             del self.stored_sites[name]
-        self.map_view.map.site_names = self.dataset.site_names
-        self.map_view.map.active_sites = self.site_names
-        self.map_view.map.set_locations()
+        self.map_view.init_map(dataset=self.dataset,
+                               sites=self.dataset.data.site_names,
+                               active_sites=self.site_names)
+        # self.map_view.map.site_names = self.dataset.site_names
+        # self.map_view.map.active_sites = self.site_names
+        # self.map_view.map.set_locations()
         self.map_view.update_map()
         self.set_nparam_labels()
 
@@ -1563,6 +1608,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def WriteData(self, file_format='WSINV3DMT'):
         self.dataset.data.inv_type = self.check_inv_type()
+        if self.actionRemoveFlags.isChecked():
+            self.reset_dummy_errors()
         if not self.dataset.data.inv_type:
             reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    'No inversion type selected. Please choose one before writing',
@@ -1588,7 +1635,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     outfile = utils.check_extention(outfile, expected='data')
                 elif file_format.lower() == 'modem':
                     outfile = utils.check_extention(outfile, expected='dat')
-                retval = self.dataset.write_data(outfile=outfile, file_format=file_format)
+                write_removed = False
+                if file_format.lower() == 'modem' and self.dataset.data.has_flagged_data:
+                    reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                                            'Write both flagged and removed versions?',
+                                                            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        write_removed = True
+                retval = self.dataset.write_data(outfile=outfile, file_format=file_format, write_removed=write_removed)
             if retval:
                 break
             else:
@@ -1596,7 +1650,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                        'File already Exists. Overwrite?',
                                                        QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
-                    self.dataset.write_data(outfile=outfile, overwrite=True, file_format=file_format)
+                    self.dataset.write_data(outfile=outfile, overwrite=True, file_format=file_format, write_removed=write_removed)
                     break
 
     def WriteList(self):
@@ -1631,6 +1685,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.draw_map()
 
     def back_or_forward_button(self, shift):
+        self.collapse_tree_nodes(to_collapse=self.dpm.site_names)
         self.site_names = self.shift_site_names(shift=shift)
         # If the sites haven't changed
         if set(self.site_names) == set(self.dpm.site_names) and shift != 0:
@@ -1638,7 +1693,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
         sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
         # debug_print('returned sites: {}'.format(sites), 'debug.log')
         self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
-        self.expand_tree_nodes(to_expand=self.dpm.site_names, expand=False)
         # self.dpm.fig.canvas.draw()
         self.update_dpm()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
@@ -1826,6 +1880,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
             elif not sitenode.isExpanded() and expand:
                 sitenode.setExpanded(True)
 
+    def collapse_tree_nodes(self, to_collapse):
+        self.error_tree.collapseAll()
+        # for site in to_collapse:
+        #     sitenode = self.tree_dict[site]
+        #     if sitenode.isExpanded():
+        #         sitenode.setExpanded(False)
+
     def post_edit_error(self, item, column):
         # print(self.error_tree.columnCount())  # Number of components (+2 for site name and period)
         # print(self.error_tree.topLevelItemCount())  # of sites
@@ -1894,7 +1955,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
         comps = set(comps)
         periods = set(periods)
         for site in set(site_names):
-            print([comps, use_val])
             self.dataset.data.sites[site].change_errmap(periods=periods, mult=use_val,
                                                         comps=comps,
                                                         multiplicative=False)
@@ -2010,11 +2070,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 self.update_dpm()
                 self.update_map_data()
                 self.set_nparam_labels()
-        #     print('Right Mouse')
-        # if self.dpm.axes[ax_index].lines[2].contains(event):
-            # print('Yep, thats a point')
-        # if self.select_points:
-            # print(event.xdata, event.ydata)
 
     def disconnect_mpl_events(self):
         for key in self.cid.keys():

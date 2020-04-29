@@ -44,6 +44,24 @@
   <div class="section" id="change-log">
 <h1>Change Log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h1>
 <ul>
+<li><p>28/04/20</p>
+<ul class="simple">
+<li><p>A few QoL changes in <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>:</p>
+<ul>
+<li><p>The error tree will now properly collapse and expand nodes when you flip through the stations.</p></li>
+<li><p>Fixed a bug where removed sites were still being considered when plotting induction arrows, PTs, and pseudosections in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a></p></li>
+<li><p>Added controls for data period tolerances (in the <a class="reference internal" href="../data_plot/main_window.html#error-manipulations"><span class="std std-ref">Error Manipulations</span></a> tab)</p>
+<ul>
+<li><p>‘Flag’ tolerance sets selected periods without a cooresponding period in the Raw Data within said tolerance to have increased errors.</p></li>
+<li><p>‘Remove’ tolerance sets periods outside said tolerance to be flagged for removal. Flagged data points are placed at the end of the ModEM data block, with errors of 1234567. Use your favourite text editor to remove the block.</p></li>
+</ul>
+</li>
+<li><p>Correspondingly, controls were added to remove these points from the plots. Note that the plots in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> will still include the flagged data points.</p></li>
+<li><p>If you attempt to write a ModEM file with flagged data, you will be asked if you want to write out 2 versions of the data file (one with the flagged data, one without). The version without will have ‘_remove’ appended to your output file name.</p></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><p>23/04/20</p>
 <ul class="simple">
 <li><p>Changed behavior of transect plotting in <a class="reference internal" href="../model_viewer/main_window.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a> such that it automatically plots and refocuses the GUI into the 3D view.</p></li>

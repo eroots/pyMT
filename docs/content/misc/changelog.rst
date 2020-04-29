@@ -1,5 +1,23 @@
 Change Log
 ==========
+* 28/04/20
+
+  * A few QoL changes in :ref:`Data Plot`:
+
+    * The error tree will now properly collapse and expand nodes when you flip through the stations.
+
+    * Fixed a bug where removed sites were still being considered when plotting induction arrows, PTs, and pseudosections in :ref:`Map Viewer`
+
+    * Added controls for data period tolerances (in the :ref:`Error Manipulations` tab)
+
+      * 'Flag' tolerance sets selected periods without a cooresponding period in the Raw Data within said tolerance to have increased errors.
+
+      * 'Remove' tolerance sets periods outside said tolerance to be flagged for removal. Flagged data points are placed at the end of the ModEM data block, with errors of 1234567. Use your favourite text editor to remove the block.
+
+    * Correspondingly, controls were added to remove these points from the plots. Note that the plots in :ref:`Map Viewer` will still include the flagged data points.
+
+    * If you attempt to write a ModEM file with flagged data, you will be asked if you want to write out 2 versions of the data file (one with the flagged data, one without). The version without will have '_remove' appended to your output file name.
+
 * 23/04/20
 
   * Changed behavior of transect plotting in :ref:`Model Viewer` such that it automatically plots and refocuses the GUI into the 3D view.

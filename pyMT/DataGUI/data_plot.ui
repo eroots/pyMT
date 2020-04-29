@@ -119,6 +119,7 @@
     <addaction name="menuData_File"/>
     <addaction name="writeCurrentPlot"/>
     <addaction name="writeAllPlots"/>
+    <addaction name="actionRemoveFlags"/>
    </widget>
    <widget class="QMenu" name="menuInversion_Type_2">
     <property name="title">
@@ -149,7 +150,7 @@
    <property name="minimumSize">
     <size>
      <width>836</width>
-     <height>330</height>
+     <height>353</height>
     </size>
    </property>
    <property name="features">
@@ -441,7 +442,7 @@
          </property>
          <property name="geometry">
           <rect>
-           <x>710</x>
+           <x>730</x>
            <y>10</y>
            <width>511</width>
            <height>201</height>
@@ -475,7 +476,7 @@
           <rect>
            <x>590</x>
            <y>100</y>
-           <width>91</width>
+           <width>111</width>
            <height>31</height>
           </rect>
          </property>
@@ -591,6 +592,13 @@
               </property>
               <property name="checked">
                <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="plotFlaggedData">
+              <property name="text">
+               <string>Flagged Data</string>
               </property>
              </widget>
             </item>
@@ -934,6 +942,89 @@
           </sizepolicy>
          </property>
         </widget>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="geometry">
+          <rect>
+           <x>530</x>
+           <y>10</y>
+           <width>211</width>
+           <height>181</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Dummy Data</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="4" column="2">
+           <widget class="QDoubleSpinBox" name="highPeriodToleranceFlag">
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>10.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>p &gt; 1 s</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>p &lt; 1 s</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="lowPeriodToleranceFlag">
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="3">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>           Tolerance (%)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="3">
+           <widget class="QPushButton" name="resetDummyErrors">
+            <property name="text">
+             <string>Reset Dummy Errors</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Flag</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Remove</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="lowPeriodToleranceRemove"/>
+          </item>
+          <item row="5" column="2">
+           <widget class="QDoubleSpinBox" name="highPeriodToleranceRemove"/>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </widget>
      </item>
@@ -1162,6 +1253,28 @@
   <action name="actionTipperLimits">
    <property name="text">
     <string>Tipper</string>
+   </property>
+  </action>
+  <action name="actionRemoveFlags">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Remove Flags</string>
+   </property>
+  </action>
+  <action name="actionPlotFlaggedData">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Plot Flagged Data</string>
    </property>
   </action>
  </widget>

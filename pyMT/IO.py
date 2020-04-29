@@ -1654,7 +1654,7 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
             f.write('0')
 
 
-def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_elevation=False):
+def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_elevation=False, include_flagged=True):
     #  Writes out the contents of a Data object into format specified by 'file_format'
     #  Currently implemented options include WSINV3DMT and ModEM3D.
     #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
@@ -1722,7 +1722,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                             # for point in getattr(site, that)[comp]:
                         f.write('\n')
 
-    def write_ModEM3D(data, out_file, use_elevation=False):
+    def write_ModEM3D(data, out_file, use_elevation=False, include_flagged=True):
         if '.dat' not in out_file:
             out_file = ''.join([out_file, '.dat'])
         units = []
@@ -1778,6 +1778,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
             # If inverting impedanaces or tipper
             if data.inv_type <= 5:
                 for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                    flagged_data = []
                     f.write(z_title)
                     f.write(data_type_string)
                     f.write('> exp(-i\\omega t)\n')
@@ -1814,20 +1815,27 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                 Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
                                 if True:
                                 # if site.active_periods[jj]:
-                                    f.write(' '.join(['{:>14.7E} {:>14}',
+                                    line_out = ' '.join(['{:>14.7E} {:>14}',
                                                       '{:>8.3f} {:>8.3f}',
                                                       '{:>15.3f} {:>15.3f} {:>15.3f}',
                                                       '{:>6} {:>14.7E} {:>14.7E}',
                                                       '{:>14.7E}\n']).format(
-                                            period, site_name,
-                                            Lat, Long,
-                                            X, Y, Z,
-                                            component_code.upper(), Z_real, Z_imag,
-                                            max(site.used_error[component[:-1] + 'R'][jj],
-                                                site.used_error[component[:-1] + 'I'][jj])))
+                                                        period, site_name,
+                                                        Lat, Long,
+                                                        X, Y, Z,
+                                                        component_code.upper(), Z_real, Z_imag,
+                                                        max(site.used_error[component[:-1] + 'R'][jj],
+                                                            site.used_error[component[:-1] + 'I'][jj]))
+                                    if site.used_error[component][jj] == data.REMOVE_FLAG:
+                                        flagged_data.append(line_out)
+                                    else:
+                                        f.write(line_out)
+                    if flagged_data and include_flagged:
+                        f.write(''.join(flagged_data))
             # If inv_type is greater than 5, do phase tensors?
             else:
                 for data_type_string, inv_type, unit in zip(data_type, temp_inv_type, units):
+                    flagged_data = []
                     f.write(pt_title)
                     f.write(data_type_string)
                     f.write('> exp(-i\\omega t)\n')
@@ -1870,15 +1878,21 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                            data.locations[ii, 1],
                                            site.locations.get('elev', 0))
                                 Lat, Long = site.locations.get('Lat', 0), site.locations.get('Long', 0)
-                                f.write(' '.join(['{:>14.7E} {:>14}',
+                                line_out = ' '.join(['{:>14.7E} {:>14}',
                                                   '{:>8.3f} {:>8.3f}',
                                                   '{:>15.3f} {:>15.3f} {:>15.3f}',
                                                   '{:>6} {:>14.7E} {:>14.7E}\n']).format(
-                                        period, site_name,
-                                        Lat, Long,
-                                        X, Y, Z,
-                                        component_code.upper(), value,
-                                        error))
+                                                    period, site_name,
+                                                    Lat, Long,
+                                                    X, Y, Z,
+                                                    component_code.upper(), value,
+                                                    error)
+                                if error == data.REMOVE_FLAG:
+                                    flagged_data.append(line_out)
+                                else:
+                                    f.write(line_out)
+                if flagged_data and include_flagged:
+                    f.write(''.join(flagged_data))
         data.inv_type = actual_inv_type
 
     def write_MARE2DEM(data, out_file):
@@ -2092,7 +2106,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
         write_ws(data, outfile, to_write)
     elif file_format.lower() == 'modem':
         if data.dimensionality.lower() == '3d':
-            write_ModEM3D(data, outfile, use_elevation)
+            write_ModEM3D(data, outfile, use_elevation, include_flagged)
         elif data.dimensionality.lower() == '2d' or data.inv_type in (8, 9, 10):
             write_ModEM2D(data, outfile)
         else:

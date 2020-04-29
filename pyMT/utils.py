@@ -718,6 +718,10 @@ def compute_rho(site, calc_comp=None, errtype='none'):
             rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
             rho_log10Err = (rho_error * np.sqrt(2) /
                             ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
+            idx = zeR == site.REMOVE_FLAG
+            # Preserve remove flags
+            rho_error[idx] = site.REMOVE_FLAG
+            rho_log10Err[idx] = site.REMOVE_FLAG
         else:
             rho_error = rho_log10Err = rho_data * 0
     return np.real(rho_data), np.real(rho_error), np.real(rho_log10Err)
@@ -741,6 +745,9 @@ def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
         zE[:, 6] = np.angle(zR + zeR + zI, deg=True)
         zE[:, 7] = np.angle(zR - zeR + zI, deg=True)
         pha_error = np.mean(abs(pha_data[:, np.newaxis] - zE), 1)
+        # Preserve remove flags
+        idx = zeR == site.REMOVE_FLAG
+        pha_error[idx] = site.REMOVE_FLAG
         return pha_error
     COMPS = ('XX', 'XY',
              'YY', 'YX',

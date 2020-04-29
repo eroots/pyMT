@@ -124,6 +124,7 @@ class DataPlotManager(object):
         self.sites = None
         self.tiling = [0, 0]
         self.show_outliers = True
+        self.plot_flagged_data = True
         self.wrap = 0
         self.outlier_thresh = 2
         self.min_ylim = None
@@ -404,6 +405,25 @@ class DataPlotManager(object):
             TYPE: Description
         """
         # Can I pass other keyword args through directly to plt?
+        def pop_flagged_data(x, y, toplotErr, site, component):
+            if component in site.components:
+                e = site.used_error[component]
+            else:
+                e = site.used_error[site.components[0]]
+            idx = []
+            for ii, ie in enumerate(e):
+                if ie == site.REMOVE_FLAG:
+                    idx.append(ii)
+                    # x_popped.append(x.pop(0))
+                    # y_popped.append(y.pop(0))
+                    # e_popped.append(e.pop(0))
+            if idx:
+                x = np.delete(x, idx)
+                y = np.delete(y, idx)
+                if toplotErr is not None:
+                    toplotErr = np.delete(toplotErr, idx)
+            return x, y, toplotErr  #, x_popped, y_popped, e_popped
+
         ma = []
         mi = []
         linestyle = ''
@@ -496,6 +516,9 @@ class DataPlotManager(object):
                         toplot = toplot * site.periods
                         if Err:
                             toplotErr = Err[comp] * site.periods
+                periods = site.periods
+                if not self.plot_flagged_data:
+                    periods, toplot, toplotErr = pop_flagged_data(periods, toplot, toplotErr, site, comp)
                 if 'bost' in comp.lower():
                     artist = ax.errorbar(np.log10(depth), toplot, xerr=None,
                                          yerr=None, marker=marker,
@@ -503,7 +526,7 @@ class DataPlotManager(object):
                                          mec=self.mec, markersize=self.markersize,
                                          mew=edgewidth, picker=3)
                 else:
-                    artist = ax.errorbar(np.log10(site.periods), toplot, xerr=None,
+                    artist = ax.errorbar(np.log10(periods), toplot, xerr=None,
                                          yerr=toplotErr, marker=marker,
                                          linestyle=linestyle, color=self.colour[ii],
                                          mec=self.mec, markersize=self.markersize,

@@ -72,7 +72,7 @@
 
 
 \title{pyMT}
-\date{Apr 23, 2020}
+\date{Apr 29, 2020}
 \release{0.0.1}
 \author{Eric Roots}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -1634,6 +1634,39 @@ The 2-D transect plot does not respond to changes in the model trim. The workaro
 
 \subsection{Change Log}
 \label{\detokenize{content/misc/changelog:change-log}}\label{\detokenize{content/misc/changelog::doc}}\begin{itemize}
+\item {} 
+28/04/20
+\begin{itemize}
+\item {} 
+A few QoL changes in {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}:
+\begin{itemize}
+\item {} 
+The error tree will now properly collapse and expand nodes when you flip through the stations.
+
+\item {} 
+Fixed a bug where removed sites were still being considered when plotting induction arrows, PTs, and pseudosections in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}
+
+\item {} 
+Added controls for data period tolerances (in the {\hyperref[\detokenize{content/data_plot/main_window:error-manipulations}]{\sphinxcrossref{\DUrole{std,std-ref}{Error Manipulations}}}} tab)
+\begin{itemize}
+\item {} 
+‘Flag’ tolerance sets selected periods without a cooresponding period in the Raw Data within said tolerance to have increased errors.
+
+\item {} 
+‘Remove’ tolerance sets periods outside said tolerance to be flagged for removal. Flagged data points are placed at the end of the ModEM data block, with errors of 1234567. Use your favourite text editor to remove the block.
+
+\end{itemize}
+
+\item {} 
+Correspondingly, controls were added to remove these points from the plots. Note that the plots in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} will still include the flagged data points.
+
+\item {} 
+If you attempt to write a ModEM file with flagged data, you will be asked if you want to write out 2 versions of the data file (one with the flagged data, one without). The version without will have ‘\_remove’ appended to your output file name.
+
+\end{itemize}
+
+\end{itemize}
+
 \item {} 
 23/04/20
 \begin{itemize}
