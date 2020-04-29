@@ -210,7 +210,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -808,6 +808,9 @@
           </item>
           <item row="5" column="1">
            <widget class="QDoubleSpinBox" name="width">
+            <property name="toolTip">
+             <string>Filter width for calculating smoothed data. Smaller values allow for more erratic data.</string>
+            </property>
             <property name="minimum">
              <double>0.100000000000000</double>
             </property>
@@ -818,6 +821,9 @@
           </item>
           <item row="6" column="1">
            <widget class="QDoubleSpinBox" name="mult">
+            <property name="toolTip">
+             <string>Multiplier used when regulating errors. Higher values will result in larger errors</string>
+            </property>
             <property name="minimum">
              <double>0.100000000000000</double>
             </property>
@@ -835,6 +841,9 @@
           </item>
           <item row="1" column="0" colspan="2">
            <widget class="QPushButton" name="regErrors">
+            <property name="toolTip">
+             <string>Automatically assign errors based on deviation from smoothed raw data</string>
+            </property>
             <property name="text">
              <string>Regulate Errors</string>
             </property>
@@ -842,15 +851,18 @@
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="QPushButton" name="refreshErrorTree">
+            <property name="toolTip">
+             <string>Reset the Error Multiplier tree. May be necessary if the stations / periods have changed.</string>
+            </property>
             <property name="text">
-             <string>Refresh</string>
+             <string>Refresh Error Multipliers</string>
             </property>
            </widget>
           </item>
           <item row="7" column="0" colspan="2">
            <widget class="QPushButton" name="resetErrors">
             <property name="text">
-             <string>Reset Errors</string>
+             <string>Reset to Error Floor</string>
             </property>
            </widget>
           </item>
@@ -998,6 +1010,9 @@
           </item>
           <item row="0" column="0" colspan="3">
            <widget class="QPushButton" name="resetDummyErrors">
+            <property name="toolTip">
+             <string>Assign removal flags to data points without a raw data point within the 'remove' thresholds</string>
+            </property>
             <property name="text">
              <string>Reset Dummy Errors</string>
             </property>

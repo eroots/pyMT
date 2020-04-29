@@ -688,6 +688,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.set_nparam_labels()
 
     def init_rms_tables(self):
+        self.dataset.rms = self.dataset.calculate_RMS()
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
         header = ['Total'] + ordered_comps
