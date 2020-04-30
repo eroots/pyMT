@@ -58,6 +58,16 @@ local_path = 'E:/phd/Nextcloud'
 # model_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.model'
 # data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.data'
 ########################################
+# WESTERN SUPERIOR - MANTLE TO CRUST
+model_file = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wst_10km_lastIter.rho'
+model_file_large = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wst_embed_shield_large.model'
+base_data_file = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wst_10km_lastIter.dat'
+base_list = local_path + '/data/Regions/MetalEarth/wst/j2/mantle/wst_mantle_wNorth.lst'
+data_file = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_wUSarray2_all_flagged.dat'
+list_file = local_path + '/data/Regions/MetalEarth/wst/j2/ME_wst_usarray.lst'
+model_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/mantle2crust_placed_nest.model'
+data_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/mantle2crust_placed.dat'
+########################################
 # WESTERN SUPERIOR - DRYDEN
 # model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
 # base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
@@ -71,32 +81,32 @@ local_path = 'E:/phd/Nextcloud'
 # data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
 ########################################
 # WESTERN SUPERIOR - STURGEON
-model_file = local_path + r'\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-base_data = local_path + r'\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
-base_list = local_path + r'\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
-data_file = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\wst2stu_ffmt_base.dat'
-list_file = local_path + r'\data\Regions\MetalEarth\sturgeon\j2\ffmt\stu_use.lst'
-model_out = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed_large.model'
-data_out = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed.data'
+# model_file = local_path + r'\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# base_data = local_path + r'\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
+# base_list = local_path + r'\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
+# data_file = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\wst2stu_ffmt_base.dat'
+# list_file = local_path + r'\data\Regions\MetalEarth\sturgeon\j2\ffmt\stu_use.lst'
+# model_out = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed_large.model'
+# data_out = local_path + r'\data\Regions\MetalEarth\sturgeon\wst2stu\stu_all_placed.data'
 ########################################
 # WESTERN SUPERIOR - GERALDTON
-# model_file = local_path + r'Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-# base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
-# base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\wst\j2\ME_wst_usarray.lst'
-# data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\ger_consCull\fix\R1\ger_consFewer_Z_flagged.dat'
-# list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\j2\ger_consCull_R1.lst'
-# model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed_nest.model'
-# data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\ger_Z_placed.data'
+# model_file = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# base_data = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
+# base_list = local_path + '/data/Regions/MetalEarth/wst/j2/ME_wst_usarray.lst'
+# data_file = local_path + '/data/Regions/MetalEarth/geraldton/ger_consCull/fix/R1/ger_consFewer_Z_flagged.dat'
+# list_file = local_path + '/data/Regions/MetalEarth/geraldton/j2/ger_consCull_R1.lst'
+# model_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/ger_Z_placed_nest.model'
+# data_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/ger_Z_placed.data'
 ########################################
 # GERALDTON R2
-# model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\wst2ger_lastIter.rho'
-# # model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
-# base_data = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/geraldton\wst2ger\ger_Z_placed_flagged.dat'
-# base_list = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\geraldton\j2\ger_consCull_R1.lst'
-# data_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\GER_R2_base.data'
-# list_file = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\j2\GER_R2.lst'
-# model_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed_nest.model'
-# data_out = local_path + r'Nextcloud\data\Regions\MetalEarth\geraldton\wst2ger\R2\ger_R2_placed.data'
+# model_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/wst2ger_lastIter.rho'
+# # model_file = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# base_data = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/ger_Z_placed_flagged.dat'
+# base_list = local_path + '/data/Regions/MetalEarth/geraldton/j2/ger_consCull_R1.lst'
+# data_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/GER_R2_base.data'
+# list_file = local_path + '/data/Regions/MetalEarth/geraldton/j2/GER_R2.lst'
+# model_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/ger_R2_placed_nest.model'
+# data_out = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/R2/ger_R2_placed.data'
 # WESTERN SUPERIOR - GERALDTON - R2
 # model_file = local_path + '/data/Regions/MetalEarth/geraldton/wst2ger/PT/wst2gerPT_lastIter.rho'
 # model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
@@ -147,17 +157,27 @@ azi = -0  # Rotate the non-base data back
 
 mod = WSDS.Model(model_file)
 data = WSDS.Data(datafile=data_file, listfile=list_file)
+# data2 = WSDS.RawData(list_file)
+# data2.to_utm(zone=15, letter='U')
 data.locations = data.get_locs(azi=-azi)
+# data.locations = data2.locations
 data.set_locs()
-base_data = WSDS.Data(datafile=base_data, listfile=base_list)
-for site in base_data.site_names:
+base_data = WSDS.Data(datafile=base_data_file, listfile=base_list)
+# base_data = WSDS.RawData(listfile=base_list)
+# base_data.to_utm(zone=15, letter='U')  # Override since it was calculating locations in different UTM zones
+# base_data.locations = utils.center_locs(base_data.locations)[0]
+x_diff, y_diff = [], []
+for idx, site in enumerate(base_data.site_names):
     if site in data.site_names:
-        x_diff = data.sites[site].locations['X'] - base_data.sites[site].locations['X']
-        y_diff = data.sites[site].locations['Y'] - base_data.sites[site].locations['Y']
-        break
-data.locations[:, 0] -= x_diff
-data.locations[:, 1] -= y_diff
-file_format = 'wsinv3dmt'
+        idx2 = data.site_names.index(site)
+        x_diff.append(data.locations[idx2, 0] - base_data.locations[idx, 0])
+        y_diff.append(data.locations[idx2, 1] - base_data.locations[idx, 1])
+        # x_diff = data.sites[site].locations['X'] - base_data.sites[site].locations['X']
+        # y_diff = data.sites[site].locations['Y'] - base_data.sites[site].locations['Y']
+    #     break
+data.locations[:, 0] -= np.median(x_diff)
+data.locations[:, 1] -= np.median(y_diff)
+file_format = 'modem'
 
 if produce_large_model:
     mod_large = WSDS.Model(model_file_large)
@@ -305,26 +325,26 @@ for ii in range(len(mod.dz) - 1):
 # max_depth = 1000000
 ######################################
 # STURGEON WST2STU
-bot_edge = min(data.locations[:, 0]) - 1500
-top_edge = max(data.locations[:, 0]) + 1500
-left_edge = min(data.locations[:, 1]) - 1500
-right_edge = max(data.locations[:, 1]) + 1500
-x_interp = int(abs(bot_edge - top_edge) / 2500)
-y_interp = int(abs(left_edge - right_edge) / 2500)
+bot_edge = min(data.locations[:, 0]) - 10000
+top_edge = max(data.locations[:, 0]) + 10000
+left_edge = min(data.locations[:, 1]) - 10000
+right_edge = max(data.locations[:, 1]) + 10000
+x_interp = int(abs(bot_edge - top_edge) / 5000)
+y_interp = int(abs(left_edge - right_edge) / 5000)
 # x_interp = 100
 # y_interp = 70
-n_xpad = 30
-n_ypad = 30
+n_xpad = 10
+n_ypad = 10
 # n_xpad = 25
 # n_ypad = 25
 pad_multiplier = 1.1
 # n_xpad = 10
 # n_ypad = 10
-min_depth = 10
-max_depth = 650000
-depths_per_decade = (10, 12, 14, 10, 8)
-dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
-dz[-3] = 410000
+# min_depth = 10
+# max_depth = 650000
+# depths_per_decade = (10, 12, 14, 10, 8)
+# dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
+# dz[-3] = 410000
 dz = mod.dz
 fill_value = 1000
 # max_depth = mod.dz[-1]

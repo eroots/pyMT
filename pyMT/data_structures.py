@@ -980,7 +980,10 @@ class Data(object):
                          to_write=to_write, file_format=file_format,
                          use_elevation=use_elevation)
         if write_removed:
-            new_out = outfile.replace('.dat', '_removed.dat')
+            if outfile.endswith('.dat'):
+                new_out = outfile.replace('.dat', '_removed.dat')
+            else:
+                new_out = outfile + '_removed'
             WS_io.write_data(data=self, outfile=new_out,
                              to_write=to_write, file_format=file_format,
                              use_elevation=use_elevation, include_flagged=False)

@@ -63,12 +63,6 @@
      <height>26</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuWS_Data_Plot">
-    <property name="title">
-     <string>WS Data Plot</string>
-    </property>
-    <addaction name="separator"/>
-   </widget>
    <widget class="QMenu" name="menuDisplay_Options">
     <property name="title">
      <string>Display Options</string>
@@ -134,7 +128,6 @@
     <addaction name="inv_type9"/>
     <addaction name="inv_type10"/>
    </widget>
-   <addaction name="menuWS_Data_Plot"/>
    <addaction name="menuDisplay_Options"/>
    <addaction name="menuWrite"/>
    <addaction name="menuInversion_Type_2"/>
@@ -210,7 +203,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>4</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
