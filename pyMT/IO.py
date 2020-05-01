@@ -2319,4 +2319,36 @@ def write_model(model, outfile, file_format='modem'):
         print('ModEM, WSINV3DMT, UBC-GIF')
         return
 
+def write_phase_tensors(data, out_file, verbose=False):
+    if not out_file.endswith('.csv'):
+        out_file += '.csv'
+    with open(out_file, 'w') as f:
+        header = ['Site', 'Period', 'Easting', 'Northing', 'Azimuth', 'Phi_min', 'Phi_max']
+        if verbose:
+            header += ['Phi_1', 'Phi_2', 'Phi_3', 'Det_Phi', 'Alpha', 'Beta', 'Lambda']
+        f.write(','.join(header))
+        f.write('\n')
+        for site_name in data.site_names:
+            site = data.sites[site_name]
+            for ii, period in enumerate(site.periods):
+                f.write('{}, {}, {}, {}, {}, {}, {}'.format(site_name,
+                                                        period,
+                                                        site.locations['Y'],
+                                                        site.locations['X'],
+                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].azimuth)),
+                                                        site.phase_tensors[ii].phi_min,
+                                                        site.phase_tensors[ii].phi_max))
+                if verbose:
+                    f.write(', {}, {}, {}, {}, {}, {}, {}\n'.format(np.rad2deg(np.arctan(site.phase_tensors[ii].phi_1)),
+                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),
+                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].phi_3)),
+                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].det_phi)),
+                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].alpha)),
+                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].beta)),
+                                                                    site.phase_tensors[ii].Lambda))
+                else:
+                    f.write('\n')
+
+
+
 
