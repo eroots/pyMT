@@ -596,6 +596,9 @@
               <property name="text">
                <string>Flagged Data</string>
               </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>

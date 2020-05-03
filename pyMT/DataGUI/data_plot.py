@@ -1610,7 +1610,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def WriteData(self, file_format='WSINV3DMT'):
         self.dataset.data.inv_type = self.check_inv_type()
         if self.actionRemoveFlags.isChecked():
-            self.data.NO_PERIOD_COMP = self.missingPeriodMap.value()
+            self.dataset.data.NO_PERIOD_COMP = self.missingPeriodMap.value()
             self.reset_dummy_errors()
         if not self.dataset.data.inv_type:
             reply = QtWidgets.QMessageBox.question(self, 'Message',

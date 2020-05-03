@@ -209,8 +209,8 @@ class Dataset(object):
         for site in self.data.site_names:
             for component in self.data.components:
                 if component not in self.raw_data.sites[site].components:
-                    self.data.sites[site].errmap[comp][:] = self.data.MISSING_DATA_MAP
-                    self.data.sites[site].used_error[comp][:] = self.data.REMOVE_FLAG
+                    self.data.sites[site].errmap[component][:] = self.data.MISSING_DATA_MAP
+                    self.data.sites[site].used_error[component][:] = self.data.REMOVE_FLAG
 
 
     def read_model(self, modelfile=''):
@@ -468,9 +468,11 @@ class Dataset(object):
                         # np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
                         # print(abs(scale * data_site.data[comp][ii] -
                                                      # smoothed_data[ind]))
-                        self.data.sites[site].errors[comp][ii] = max_error
-                        self.data.sites[site].used_error[comp][ii] = max_error
-                        self.data.sites[site].errmap[comp][ii] = 1
+                        if not (self.data.sites[site].errors[comp][ii] == self.data.REMOVE_FLAG or \
+                                self.data.sites[site].used_error[comp][ii] == self.data.REMOVE_FLAG):
+                            self.data.sites[site].errors[comp][ii] = max_error
+                            self.data.sites[site].used_error[comp][ii] = max_error
+                            self.data.sites[site].errmap[comp][ii] = 1
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
             self.data.apply_no_data_map()
@@ -902,10 +904,11 @@ class Data(object):
         for site in self.site_names:
             for comp in self.components:
                 for ii, flag in enumerate(self.sites[site].flags[comp]):
-                    if flag == self.sites[site].NO_COMP_FLAG:
-                        self.sites[site].errmap[comp][ii] *= self.NO_COMP_MAP
-                    elif flag == self.sites[site].NO_PERIOD_FLAG:
-                        self.sites[site].errmap[comp][ii] *= self.NO_PERIOD_MAP
+                    if not (self.sites[site].errors[comp][ii] == self.REMOVE_FLAG):
+                        if flag == self.sites[site].NO_COMP_FLAG:
+                            self.sites[site].errmap[comp][ii] *= self.NO_COMP_MAP
+                        elif flag == self.sites[site].NO_PERIOD_FLAG:
+                            self.sites[site].errmap[comp][ii] *= self.NO_PERIOD_MAP
 
     def apply_outlier_map(self):
         for site in self.site_names:
@@ -1852,6 +1855,7 @@ class Site(object):
         for comp in components:
             if comp.lower().startswith(('t', 'z')):
                 error = np.maximum(self.used_error[comp + 'R'], self.used_error[comp + 'I'])
+                idx = np.where
                 self.used_error[comp + 'R'] = deepcopy(error)
                 self.used_error[comp + 'I'] = deepcopy(error)
                 self.errors[comp + 'R'] = deepcopy(error)
@@ -1965,38 +1969,11 @@ class Site(object):
                     self.error_floors[key] = error_floors
         floor_errors = self.calculate_error_floor(self.error_floors)
         for component in self.components:
+            idx = self.errors[component] == self.REMOVE_FLAG
             new_errors = np.maximum.reduce([floor_errors[component],
                                             self.errors[component] * self.errmap[component]])
             self.used_error[component] = deepcopy(new_errors)
-            # self.errors[component] = deepcopy(new_errors)
-
-        # if errfloorZ is None:
-        #     errfloorZ = self.errfloorZ
-        # else:
-        #     self.errfloorZ = errfloorZ
-        # if errfloorT is None:
-        #     errfloorT = self.errfloorT
-        # else:
-        #     self.errfloorT = errfloorT
-        # comps = set([comp[:3] for comp in self.components])
-        # if 'ZXY' in comps:
-        #     ZXY = self.data['ZXYR'] + 1j * self.data['ZXYI']
-        #     ZYX = self.data['ZYXR'] + 1j * self.data['ZYXI']
-        #     erabsz = np.sqrt(np.absolute(ZXY * ZYX)) * errfloorZ / 100
-        #     mapped_err = {comp: self.errors[comp] * self.errmap[comp] for
-        #                   comp in self.errors if comp[0] == 'Z'}
-        #     for comp, err in mapped_err.items():
-        #         self.used_error[comp] = np.array([max(fl, mapped)
-        #                                           for (fl, mapped) in zip(erabsz, err)])
-        # if 'TZX' in comps:
-        #     TZX = self.data['TZXR'] + 1j * self.data['TZXI']
-        #     TZY = self.data['TZYR'] + 1j * self.data['TZYI']
-        #     ERT = np.sqrt(np.absolute(TZX * TZX) + np.absolute(TZY * TZY))
-        #     erabst = ERT * errfloorT / 100
-        #     mapped_err = {comp: self.errors[comp] * self.errmap[comp] for
-        #                   comp in self.errors if comp[0] == 'T'}
-        #     for comp, err in mapped_err.items():
-        #         self.used_error[comp] = np.array([max(fl, mapped) for (fl, mapped) in zip(erabst, err)])
+            self.used_error[component][idx] = self.REMOVE_FLAG
 
     def rotate_data(self, azi=0):
         # This function is needlessly long, but I want to make sure it does it's job right...
@@ -2084,6 +2061,7 @@ class Site(object):
         data = site.data
         new_periods = site.periods
         errors = site.errors
+        used_errors = site.used_error
         errmap = site.errmap
         if errors is None:
             errors = 0.05
@@ -2097,6 +2075,7 @@ class Site(object):
         #     errmap = Data.generate_errmap(data, errmap)
         new_data = {comp: utils.np2list(self.data[comp]) for comp in self.components}
         new_errors = {comp: utils.np2list(self.errors[comp]) for comp in self.components}
+        new_used_errors = {comp: utils.np2list(self.used_error[comp]) for comp in self.components}
         new_errmap = {comp: utils.np2list(self.errmap[comp]) for comp in self.components}
         for comp in self.components:
             for ii, period in enumerate(new_periods):
@@ -2107,6 +2086,7 @@ class Site(object):
                     ind = len(current_periods)
                 new_data[comp].insert(ind - shift, data[comp][ii])
                 new_errors[comp].insert(ind - shift, errors[comp][ii])
+                new_used_errors[comp].insert(ind - shift, used_errors[comp][ii])
                 new_errmap[comp].insert(ind - shift, errmap[comp][ii])
                 if period not in current_periods:
                     self.phase_tensors.insert(ind, site.phase_tensors[ii])
@@ -2114,6 +2094,7 @@ class Site(object):
                     shift = 1
         self.data = {comp: utils.list2np(new_data[comp]) for comp in self.components}
         self.errors = {comp: utils.list2np(new_errors[comp]) for comp in self.components}
+        self.used_error = {comp: utils.list2np(new_used_errors[comp]) for comp in self.components}
         self.errmap = {comp: utils.list2np(new_errmap[comp]) for comp in self.components}
         self.periods = utils.list2np(utils.truncate(current_periods))
         self.apply_error_floor()
