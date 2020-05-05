@@ -2319,25 +2319,40 @@ def write_model(model, outfile, file_format='modem'):
         print('ModEM, WSINV3DMT, UBC-GIF')
         return
 
-def write_phase_tensors(data, out_file, verbose=False):
+def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
     if not out_file.endswith('.csv'):
         out_file += '.csv'
     with open(out_file, 'w') as f:
-        header = ['Site', 'Period', 'Easting', 'Northing', 'Azimuth', 'Phi_min', 'Phi_max']
+        header = ['Site', 'Period', 'Latitude', 'Longitude', 'Azimuth',
+                  'Phi_min', 'Phi_max', 'Phi_min_scaled', 'Phi_max_scaled']
         if verbose:
             header += ['Phi_1', 'Phi_2', 'Phi_3', 'Det_Phi', 'Alpha', 'Beta', 'Lambda']
         f.write(','.join(header))
         f.write('\n')
+        try:
+                X_key, Y_key = 'Lat', 'Long'
+        except KeyError:
+                X, Y = 'Y', 'X'
+        X_all = [site.locations['X'] for site in data.sites.values()]
+        Y_all = [site.locations['Y'] for site in data.sites.values()]
+        scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
+                        (np.max(Y_all) - np.min(Y_all)) ** 2)
+        scale *= scale_factor
         for site_name in data.site_names:
             site = data.sites[site_name]
+            X, Y = site.locations[X_key], site.locations[Y_key]
             for ii, period in enumerate(site.periods):
-                f.write('{}, {}, {}, {}, {}, {}, {}'.format(site_name,
+                phi_max = 1 * scale
+                phi_min = scale * site.phase_tensors[ii].phi_min / site.phase_tensors[ii].phi_max
+                f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}'.format(site_name,
                                                         period,
-                                                        site.locations['Y'],
-                                                        site.locations['X'],
-                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].azimuth)),
+                                                        X,
+                                                        Y,
+                                                        -np.rad2deg(np.arctan(site.phase_tensors[ii].azimuth)) + 90,
                                                         site.phase_tensors[ii].phi_min,
-                                                        site.phase_tensors[ii].phi_max))
+                                                        site.phase_tensors[ii].phi_max,
+                                                        phi_min,
+                                                        phi_max))
                 if verbose:
                     f.write(', {}, {}, {}, {}, {}, {}, {}\n'.format(np.rad2deg(np.arctan(site.phase_tensors[ii].phi_1)),
                                                                     np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),

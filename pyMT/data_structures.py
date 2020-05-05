@@ -1002,8 +1002,8 @@ class Data(object):
         WS_io.sites_to_vtk(self, outfile=outfile, origin=origin,
                            UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
 
-    def write_phase_tensors(self, out_file, verbose=False):
-        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose)
+    def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50):
+        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose, scale_factor=scal)
 
     def rotate_sites(self, azi):
         if DEBUG:
@@ -2592,8 +2592,8 @@ class RawData(object):
         WS_io.write_locations(self, out_file=out_file, file_format=file_format)
         self.spatial_units = units
 
-    def write_phase_tensors(self, out_file, verbose=False):
-        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose)
+    def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50):
+        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose, scale_factor=scale_factor)
 
     def master_period_list(self):
         """Summary
