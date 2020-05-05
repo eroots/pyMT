@@ -617,7 +617,7 @@ class MapView(object):
         self.rho_cax = [1, 5]
         self.phase_cax = [0, 90]
         self.diff_cax = [-10, 10]
-        # self.model_cax = [1, 5]
+        self.model_cax = [1, 5]
         self.model = []
         self.padding_scale = 5
         self.plot_rms = False
@@ -637,10 +637,6 @@ class MapView(object):
         else:
             self.window['figure'] = figure
         self.create_axes()
-
-    @property
-    def model_cax(self):
-        return self.rho_cax
 
     @property
     def facecolour(self):

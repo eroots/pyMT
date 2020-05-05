@@ -203,7 +203,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.map.site_names = dataset.data.site_names
         self.map.model = self.model
         self.map.colourmap = self.colourmap
-        self.map.model_cax = self.cax
+        # self.map.model_cax = self.cax
         self.map._active_sites = []
         self.map.site_locations['generic'] = self.map.get_locations(
             sites=self.map.generic_sites)
