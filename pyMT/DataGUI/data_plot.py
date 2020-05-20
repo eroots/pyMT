@@ -28,6 +28,7 @@ from PyQt5.uic import loadUiType
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.figure import Figure
 from matplotlib.pyplot import imread
+from PIL import UnidentifiedImageError
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -108,8 +109,20 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.PeriodScrollBar.setMaximum(len(self.map.site_data['data'].periods))
         #  Set up colour map selections
         self.colourMenu.action_group.triggered.connect(self.set_colourmap)
-        self.colourMenu.limits.triggered.connect(self.set_rho_cax)
+        # Reordering submenus
+        self.colourMenu.removeAction(self.colourMenu.limits)
+        self.colourMenu.removeAction(self.colourMenu.lut)
+        self.colourMenu.limits = self.colourMenu.addMenu('Colour Limits')
+        self.colourMenu.lut = self.colourMenu.addAction('# Colour Intervals')
+        self.colourMenu.rho_limits = self.colourMenu.limits.addAction('Rho')
+        self.colourMenu.phase_limits = self.colourMenu.limits.addAction('Phase')
+        self.colourMenu.difference_limits = self.colourMenu.limits.addAction('Difference')
+        # self.colourMenu.limits.triggered.connect(self.set_rho_cax)
+        self.colourMenu.lut.triggered.connect(self.set_lut)
         self.groupColourmaps = QtWidgets.QActionGroup(self)
+        self.colourMenu.rho_limits.triggered.connect(self.set_rho_cax)
+        self.colourMenu.phase_limits.triggered.connect(self.set_phase_cax)
+        self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
         # self.groupColourmaps.triggered.connect(self.set_colourmap)
         # self.actionJet.setActionGroup(self.groupColourmaps)
         # self.actionJet_r.setActionGroup(self.groupColourmaps)
@@ -120,9 +133,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # self.actionBwr.setActionGroup(self.groupColourmaps)
         # self.actionBwr_r.setActionGroup(self.groupColourmaps)
         # Set up colour limits
-        self.actionRho_cax.triggered.connect(self.set_rho_cax)
-        self.actionPhase_cax.triggered.connect(self.set_phase_cax)
-        self.actionDifference_cax.triggered.connect(self.set_difference_cax)
+        # self.actionRho_cax.triggered.connect(self.set_rho_cax)
+        # self.actionPhase_cax.triggered.connect(self.set_phase_cax)
+        # self.actionDifference_cax.triggered.connect(self.set_difference_cax)
         # Set up point / marker options
         self.groupAnnotate = QtWidgets.QActionGroup(self)
         self.actionAnnotate_All.setActionGroup(self.groupAnnotate)
@@ -203,7 +216,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                 self.update_map()
                 print('Updating')
             else:
-                self.actionShow_JPEG.setCheckState(0)
+                self.actionShow_JPEG.setChecked(0)
                 print('Not Updating')
         else:
             self.update_map()
@@ -226,8 +239,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                 self.background_image['extent'] = [x1, x2, y1, y2]
                 self.actionShow_JPEG.setChecked(True)
                 self.update_map()
-            except FileNotFoundError:
-                QtWidgets.QMessageBox.warning(self, 'File not readable, or world file not found.')
+            except (FileNotFoundError, UnidentifiedImageError) as e:
+                QtWidgets.QMessageBox.warning(self, 'Error', 'File not readable, or world file not found.')
 
     def data_phase_tensor(self):
         if self.toggle_dataPhaseTensor.isChecked():
@@ -371,68 +384,112 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.site_marker = d
             self.update_map()
 
-    def set_rho_cax(self):
-        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-                                                         'Lower limit',
-                                                         'Value:',
-                                                         self.map.rho_cax[0],
-                                                         -100, 100, 2)
-        if ok_pressed:
-            lower = d
-        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-                                                         'Upper limit',
-                                                         'Value:',
-                                                         self.map.rho_cax[1],
-                                                         -100, 100, 2)
-        if ok_pressed:
-            upper = d
-        if lower < upper and [lower, upper] != self.map.rho_cax:
-            self.map.rho_cax = [lower, upper]
+    def set_lut(self):
+        inputs, ret = self.colourMenu.set_lut(initial=self.map.lut)
+        if ret:
+            self.map.lut = inputs
             self.update_map()
+
+    def set_cax(self, initial_1, initial_2):
+        inputs, ret = self.colourMenu.set_clim(initial_1=str(initial_1),
+                                               initial_2=str(initial_2))
+        lower, upper = inputs
+        if ret and lower < upper:
+            try:
+                lower = float(lower)
+                upper = float(upper)
+                return lower, upper
+            except ValueError:
+                print('Bad inputs to clim')
         else:
             print('Invalid colour limits')
+        return None
+
+    def set_rho_cax(self):
+        limits = self.set_cax(self.map.rho_cax[0], self.map.rho_cax[1])
+        if limits is not None and limits != self.map.rho_cax:
+            self.map.rho_cax = limits
+            self.update_map()
+        # inputs, ret = self.colourMenu.set_clim(initial_1=str(self.map.rho_cax[0]),
+        #                                        initial_2=str(self.map.rho_cax[1]))
+        # lower, upper = inputs
+        # if ret and [lower, upper] != self.cax:
+        #     try:
+        #         self.map.rho_cax[0] = float(lower)
+        #         self.map.rho_cax[1] = float(upper)
+        #         self.map.model_cax = self.cax
+        #         self.update_map()
+        #     except ValueError:
+        #         print('Bad inputs to clim')
+        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+        #                                                  'Lower limit',
+        #                                                  'Value:',
+        #                                                  self.map.rho_cax[0],
+        #                                                  -100, 100, 2)
+        # if ok_pressed:
+        #     lower = d
+        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+        #                                                  'Upper limit',
+        #                                                  'Value:',
+        #                                                  self.map.rho_cax[1],
+        #                                                  -100, 100, 2)
+        # if ok_pressed:
+        #     upper = d
+        # if lower < upper and [lower, upper] != self.map.rho_cax:
+        #     self.map.rho_cax = [lower, upper]
+        #     self.update_map()
+        # else:
+        #     print('Invalid colour limits')
 
     def set_difference_cax(self):
-        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-                                                         'Lower limit',
-                                                         'Value:',
-                                                         self.map.diff_cax[0],
-                                                         -1000, 1000, 2)
-        if ok_pressed:
-            lower = d
-        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-                                                         'Upper limit',
-                                                         'Value:',
-                                                         self.map.diff_cax[1],
-                                                         -1000, 1000, 2)
-        if ok_pressed:
-            upper = d
-        if lower < upper and [lower, upper] != self.map.diff_cax:
-            self.map.diff_cax = [lower, upper]
+        limits = self.set_cax(self.map.diff_cax[0], self.map.diff_cax[1])
+        if limits is not None and limits != self.map.diff_cax:
+            self.map.diff_cax = limits
             self.update_map()
-        else:
-            print('Invalid colour limits')
+        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+        #                                                  'Lower limit',
+        #                                                  'Value:',
+        #                                                  self.map.diff_cax[0],
+        #                                                  -1000, 1000, 2)
+        # if ok_pressed:
+        #     lower = d
+        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+        #                                                  'Upper limit',
+        #                                                  'Value:',
+        #                                                  self.map.diff_cax[1],
+        #                                                  -1000, 1000, 2)
+        # if ok_pressed:
+        #     upper = d
+        # if lower < upper and [lower, upper] != self.map.diff_cax:
+        #     self.map.diff_cax = [lower, upper]
+        #     self.update_map()
+        # else:
+        #     print('Invalid colour limits')
 
     def set_phase_cax(self):
-        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-                                                         'Lower limit',
-                                                         'Value:',
-                                                         self.map.phase_cax[0],
-                                                         -180, 180, 2)
-        if ok_pressed:
-            lower = d
-        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-                                                         'Upper limit',
-                                                         'Value:',
-                                                         self.map.phase_cax[1],
-                                                         -180, 180, 2)
-        if ok_pressed:
-            upper = d
-        if lower < upper and [lower, upper] != self.map.phase_cax:
-            self.map.phase_cax = [lower, upper]
+        limits = self.set_cax(self.map.phase_cax[0], self.map.phase_cax[1])
+        if limits is not None and limits != self.map.phase_cax:
+            self.map.phase_cax = limits
             self.update_map()
-        else:
-            print('Invalid colour limits')
+        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+        #                                                  'Lower limit',
+        #                                                  'Value:',
+        #                                                  self.map.phase_cax[0],
+        #                                                  -180, 180, 2)
+        # if ok_pressed:
+        #     lower = d
+        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+        #                                                  'Upper limit',
+        #                                                  'Value:',
+        #                                                  self.map.phase_cax[1],
+        #                                                  -180, 180, 2)
+        # if ok_pressed:
+        #     upper = d
+        # if lower < upper and [lower, upper] != self.map.phase_cax:
+        #     self.map.phase_cax = [lower, upper]
+        #     self.update_map()
+        # else:
+        #     print('Invalid colour limits')
 
     def set_colourmap(self):
         self.map.colourmap = self.colourMenu.action_group.checkedAction().text()
@@ -590,8 +647,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.toggle_dataPseudo.checkState() and self.map.dataset.data.sites:
 
             toggles['data'].append('data')
-        if self.toggle_responsePseudo.checkState() and self.map.dataset.data.sites:
+        if self.toggle_responsePseudo.checkState() and self.map.dataset.response.sites:
             toggles['data'].append('response')
+        else:
+            self.toggle_responsePseudo.setCheckState(0)
         if self.toggle_rhoPseudo.isChecked():
             toggles['fill'] = 'Rho'
         elif self.toggle_phasePseudo.isChecked():

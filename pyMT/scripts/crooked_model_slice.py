@@ -8,7 +8,7 @@ from scipy.interpolate import RectBivariateSpline as RBS
 from scipy.interpolate import RegularGridInterpolator as RGI
 from scipy.interpolate import griddata
 import naturalneighbor as nn
-# import pandas as pd
+import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable, Divider, Size
 from mpl_toolkits.axes_grid1.mpl_axes import Axes
 # from scipy.interpolate import SmoothBivariateSpline as RBS
@@ -166,22 +166,22 @@ def project_locations(data, zone, letter):
 # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/placed_TFPT/southTFPT_hsRef-2_lastIter.rho')
 # ##########################################################
 # # SWAYZE
-# # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# # # # # # # # # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
-# # # # # # # # # # main_transect = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-# # # # # # # # # data = WSDS.RawData('C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller.model')
-# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/swzmesh_lastIter.rho')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
+main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # # # # # # # # # # mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/finish/swz_finish.model')
+# # # # # # # # # # main_transect = WSDS.RawData('C:/Users/eric/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# # # # # # # # # data = WSDS.RawData('C:/Users/eric/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# # mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller.model')
+# # mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/swzmesh_lastIter.rho')
+mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
 # # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
 # # # reso = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller_Resolution.model')
 # # seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
 # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
 # # reso = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/WS_J/swzFinish_lastIter_smaller_Resolution.model')
-# seismic = pd.read_table(r'C:\Users\eroots\phd\ownCloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
-                        # header=0, names=('trace', 'x', 'y'), sep='\s+')
+seismic = pd.read_table(r'E:\phd\Nextcloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
+                        header=0, names=('trace', 'x', 'y'), sep='\s+')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
 #########################################################
 # DRYDEN-ATIKOKAN
@@ -213,6 +213,15 @@ def project_locations(data, zone, letter):
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst')
 # backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst') 
+#########################################################
+# DRYDEN - R2
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/wst2dry2/R2Central/fromDryOnly/R2-fromDryOnly_lastIter.rho')
+# seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/Dryden/' + 
+#                         r'DRYDEN_LN341_R2_PSTM/Shapefiles/DRYDEN_LN341_R2_KMIG_SUGETHW_UTM.txt',
+#                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # WESTERN SUPERIOR
 # seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
@@ -256,11 +265,11 @@ def project_locations(data, zone, letter):
 # # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/mat3/mat3_lastIter.rho')
 # # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/mat2/mat2_lastIter.rho')
 # # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/matheson/mat3/bg100/moreDepths/mat3_lastIter.rho')
-main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst')
-data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-# # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_all.model')
-mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_Z.model')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+# # # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_all.model')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_Z.model')
 # seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/Matheson/CDP_coordinate.txt',
 #                         header=0, names=('trace', 'x', 'y', 'z', 'Datum', 'Rpeg', 'Fold'), sep='\s+')
 # seismic = pd.read_table(local_path + '/phd/ownCloud/Metal Earth/Data/Seismic/Matheson/MATHESON_LN261_R2_KMIG_SUGETHW_UTM.txt',
@@ -304,15 +313,14 @@ mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/matheson/H
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # UPPER-ABITIBI
-main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
-data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG-test300ohm_block.model')
 # seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
 #                         r'ROUYN_LN141_R1_KMIG/ROUYN_LN141_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
-use_seismic = 0
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG_Z_only.model')
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB.lst')
 # data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
@@ -336,9 +344,10 @@ UTM_letter = 'U'
 # UTM_letter = 'U'
 # padding = 25000
 reso = []
-ninterp = 20
-padding = 25000
-# padding = 1000
+ninterp = 50
+nz_interp = 20
+# padding = 1500
+padding = 10000
 ninterp_padding = 100
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
@@ -355,9 +364,9 @@ mode = 3
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/wst/slices/'
 # file_name = 'wst_finish_bg1000_alongLithoSeis_jet0-5_300km'
 # file_name = 'dry_norotMeshFinish_linear_jet0-5'
-file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/w_static/'
+file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Swayze_paper/forTom/'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_transects/Malartic/RoughFigures/Mal_R1_slices/'
-# file_name = 'swz_regional_all_linear_turbo0-5'
+file_name = 'swzRegional_PT_along-Seis_megaInterpolated_turbo0-5'
 # file_name = 'dry_only_turbo0-5'
 # file_path = local_path + '/phd/ownCloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/'
 # file_name = 'rou_along_MT_West2km_turbo0-5'
@@ -378,11 +387,9 @@ file_types = ['.png']#, '.svg']
 title_ = 'Standard Inversion'
 rotate_back = 0
 linear_xaxis = 1
-save_fig = 1
+save_fig = 0
 save_dat = 0
-annotate_sites = 0
-save_dat = 0
-annotate_sites = 0
+annotate_sites = 1
 site_markers = 1
 # site_markers = 0
 plot_map = 1
@@ -397,7 +404,7 @@ xlim = []
 # zlim = [0, 60]
 aspect_ratio = 1
 zlim = [0, 50]
-lut = 32
+lut = 256
 # zlim = [0, 100]
 # lut = 64
 isolum = False
@@ -430,11 +437,11 @@ reverse_nudge = ['']
 # nudge_sites = ['MAL007M', 'MAL005M', 'MAL004M']
 # nudge_sites = ['GER007M', 'GER006M', 'GER005M', 'GER004M']
 # reverse_nudge = ['MAL008M', 'MAL009M', 'MAL010L']
-# nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
-#                '18-swz006m', '18-swz001m', '18-swz125m']
+nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
+               '18-swz006m', '18-swz001m', '18-swz125m']
 # nudge_sites = ['MAL007M', 'MAL005M', 'MAL004M']
 # nudge_sites = ['GER009M', 'GER008L', 'GER007M', 'GER006M', 'GER005M', 'GER004M']
-nudge_sites = main_transect.site_names
+# nudge_sites = main_transect.site_names
 # reverse_nudge = ['MAL008M', 'MAL009M', 'MAL010L']
 # nudge_sites = ['SWZ053A', 'SWZ051A', 'SWZ050M', 'SWZ049A',
 #                'SWZ048M', 'SWZ047A', 'SWZ046M', 'SWZ045A',
@@ -452,14 +459,14 @@ all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_
                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
 # for nudge_dist in [-1200, -800, -400, 0, 400, 800, 1200]:
 # for nudge_dist in [-1200, -900, -600, -300, 300, 600, 900, 1200]:
-# for nudge_dist in [0]:
-for nudge_dist in range(-10000, 12000, 2000):
+for nudge_dist in [0]:
+# for nudge_dist in range(-10000, 12000, 2000):
     mod = copy.deepcopy(all_backups['model'])
     data = copy.deepcopy(all_backups['data'])
     main_transect = copy.deepcopy(all_backups['main_transect'])
     backup_data = copy.deepcopy(all_backups['backup_data'])
     fig_num += 1
-    file_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
+    # file_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
     # data.to_utm(UTM_number, UTM_letter)
     # main_transect.to_utm(UTM_number, UTM_letter)
     # backup_data.to_utm(UTM_number, UTM_letter)
@@ -579,7 +586,7 @@ for nudge_dist in range(-10000, 12000, 2000):
         cmap = cm.get_cmap(cmap_name, lut)
     qz = []
     for ii in range(len(z) - 1):
-        qz.append(np.linspace(z[ii], z[ii + 1], 5))
+        qz.append(np.linspace(z[ii], z[ii + 1], nz_interp))
     qz = np.array(qz).ravel()
 
     #  Important step. Since we are normalizing values to fit into the colour map,
@@ -839,11 +846,11 @@ for nudge_dist in range(-10000, 12000, 2000):
         ax2.plot(backup_data.locations[:, 1], backup_data.locations[:, 0], 'kv', markersize=6)
         ax2.plot(qx_map, qy_map, 'r--')
         # for jj, site in enumerate(backup_data.site_names):
-        # for jj, site in enumerate(data.site_names):
-        #     plt.text(s=site,
-        #              x=data.locations[jj, 1],
-        #              y=data.locations[jj, 0],
-        #              color='k')
+        for jj, site in enumerate(data.site_names):
+            plt.text(s=site,
+                     x=data.locations[jj, 1],
+                     y=data.locations[jj, 0],
+                     color='k')
         ax2.plot(main_transect.locations[:, 1], main_transect.locations[:, 0], 'rv', markersize=6)
         ax2.set_aspect('equal')
         # ax2.set_xlim([600000, 675000])

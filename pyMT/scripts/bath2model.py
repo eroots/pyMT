@@ -5,6 +5,7 @@ import numpy as np
 import scipy.interpolate
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
+import cmocean
 import pyMT.data_structures as DS
 import pyMT.utils as utils
 import pickle
@@ -29,11 +30,11 @@ import pickle
 #   - data_out: File to save the modified data to. The only difference between this and 'data_file' is that the data here will have non-zero elevation values.
 # There are a few other things you can change if you want below these lines. Comment in / out as needed.
 
-def get_bathymetry(minlat, maxlat, minlon, maxlon):
+def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1):
     print('Retrieving topo data from latitude {:>6.3g} to {:>6.3g}, longitude {:>6.3g} to {:>6.3g}'.format(minlat, maxlat, minlon, maxlon))
     # Read data from: http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.html
     response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.csv?topo[(' \
-                                  +str(maxlat)+'):1:('+str(minlat)+')][('+str(minlon)+'):1:('+str(maxlon)+')]')
+                                  +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
 
     r = csv.reader(codecs.iterdecode(response, 'utf-8'))
     # Initialize variables
@@ -110,14 +111,14 @@ def plot_it(grid_x, grid_y, grid_z, locations=None, cmap=None):
     x, y = m(grid_x, grid_y)
     # fig1 = plt.figure()
     if not cmap:
-        cmap = plt.cm.jet
-    m.pcolor(x, y, grid_z, cmap=cmap)
+        cmap = cmocean.cm.delta
+    m.pcolor(x, y, grid_z, cmap=cmap, zorder=0, vmin=-2000, vmax=2000)
     m.drawcoastlines()
     m.drawmapboundary()
-    if locations is not None:
-        m.plot(locations[:, 1], locations[:, 0], 'kv')
+    # if locations is not None:
+        # m.plot(locations[:, 1], locations[:, 0], 'kv', zorder=5)
     plt.title('SMRT30 - Bathymetry/Topography')
-    cbar = plt.colorbar(orientation='horizontal', extend='both')
+    cbar = plt.colorbar(orientation='vertical', extend='both')
     cbar.ax.set_xlabel('meters')
     plt.show()
 # Save figure (without 'white' borders)
@@ -128,15 +129,14 @@ if __name__ == '__main__':
     # Define the domain of interest
     #################################
     # LANAI
-    model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
-    list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
-    data_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_test_Z.dat'
-    bath_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/bathy.p'
-    bath_out = []
-    model_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test_wTopoAndOcean.model'
-    cov_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean.cov'
-    data_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean_Z.dat'
-
+    # model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
+    # list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
+    # data_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_test_Z.dat'
+    # bath_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/bathy.p'
+    # bath_out = []
+    # model_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test_wTopoAndOcean.model'
+    # cov_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean.cov'
+    # data_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean_Z.dat'
     #################################
     # COREDILLA
     # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/test_topo.model'
@@ -148,7 +148,6 @@ if __name__ == '__main__':
     # model_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/test_wTopo.model'
     # cov_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai_topo.cov'
     # data_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai__topoTest_Z.dat'
-    
     ################################
     # WESTERN SUPERIOR
     # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_usarray_nested.model'
@@ -160,6 +159,16 @@ if __name__ == '__main__':
     # # bath_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000_wOcean/bathy.p'
     # model_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_usarray_nested_wOcean.model'
     # cov_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_usarray_nested_ocean.cov'
+    ################################
+    #  Ciomadual
+    model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/notopo/cio_notopo_large.model'
+    list_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/FFMT/allsites.lst'
+    data_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/dummy.dat'
+    bath_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/bathy_large.p'
+    bath_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/bathy_large.p'
+    model_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/cio_wTopoAndOcean_large.model'
+    cov_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/cio_wTopoAndOcean_large.cov'
+    data_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/cio_wTopoAndOcean_large.dat'
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
     model = DS.Model(model_file)
@@ -167,7 +176,7 @@ if __name__ == '__main__':
     ####################################
     # If you want to modify the vertical meshing, do it now (see examples below)
     # Add 20 layers that are each 200 m thick, then append the existing mesh (I used this for testing purposes)
-    # model.zCS = [200] * 20 + model.zCS
+    model.zCS = [50] * 20 + model.zCS
     # Another testing mesh, this time with 100 m layers from 0-10 km, then 1 km layers from 10-100 km depth
     # model.dz = list(range(0, 10000, 100)) + list(range(10000, 100000, 1000))
     ####################################
@@ -175,7 +184,8 @@ if __name__ == '__main__':
     # model.background_resistivity = 100
     # model.generate_half_space()
     # This one is needed to make sure the projection to lat/long is correct.
-    model.UTM_zone = '4Q'
+    # model.UTM_zone = '4Q'
+    model.UTM_zone = '35N'
     # model.UTM_zone = '16N'
     # model.UTM_zone = '15U'
     model.to_latlong()
@@ -193,7 +203,7 @@ if __name__ == '__main__':
             bathy = np.genfromtxt(bath_file)
             lat, lon, topo = bathy[:, 1], bathy[:, 0], bathy[:, 2]
     else:
-        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon)
+        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=4)
         bathy = np.array((lat, lon, topo))
         pickle.dump(bathy, open(bath_out, 'wb'))
     

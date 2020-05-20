@@ -237,11 +237,14 @@ class ColourMenu(QtWidgets.QMenu):
                                            'jet_plus', 'jet_plus_r',
                                            'bwr', 'bwr_r',
                                            'greys', 'greys_r',
-                                           'turbo', 'turbo_r')}
+                                           'turbo', 'turbo_r',
+                                           'twilight', 'twilight_shifted',
+                                           'colorwheel')}
         self.action_group = QtWidgets.QActionGroup(self)
         self.setTitle('Colour Options')
         self.map = self.addMenu('Colour Map')
         self.limits = self.addAction('Colour Limits')
+        self.lut = self.addAction('# Colour Intervals')
 
         # Add all the colour maps
         for item in self.all_maps.keys():
@@ -254,4 +257,9 @@ class ColourMenu(QtWidgets.QMenu):
     def set_clim(self, initial_1='1', initial_2='5'):
         inputs, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                                 initial_1=initial_1, initial_2=initial_2, parent=self)
+        return inputs, ret
+
+    def set_lut(self, initial='32'):
+        inputs, ret = QtWidgets.QInputDialog.getInt(self, 'LUT', 'Number of Colour Intervals:', 
+                                                    initial, 0, 1024, 2)
         return inputs, ret

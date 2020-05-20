@@ -608,7 +608,7 @@ class MapView(object):
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = 'active'
-        self.colourmap = 'jet_plus'
+        self.colourmap = 'turbo_r'
         self.has_nn = has_nn
         if self.has_nn:
             self.interpolant = 'natural'
@@ -1050,10 +1050,13 @@ class MapView(object):
             lower, upper = (-10, 10)
         elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
+            # lower, upper = (0, 180)
         elif fill_param in ('delta'):
             lower, upper = (0, 100)
         if fill_param not in ('delta', 'Lambda'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
+            # if fill_param in ['alpha', 'azimuth']:
+            #     fill_vals[fill_vals < 0] = 180 + fill_vals[fill_vals < 0]
         fill_vals[fill_vals > upper] = upper
         fill_vals[fill_vals < lower] = lower
         # fill_vals = utils.normalize(fill_vals,

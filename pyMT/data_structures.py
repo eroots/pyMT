@@ -1353,12 +1353,12 @@ class Model(object):
         print('in to_UTM')
         if self.coord_system == 'local':
             if origin:
-                print('in if origin')
+                # print('in if origin')
                 self.origin = origin
             elif self.origin is None:
                 print('Must specify origin if model.origin is not set')
                 return False
-            print('should be doing stuff')
+            # print('should be doing stuff')
             self._dx = [x + self.origin[1] for x in self._dx]
             self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':

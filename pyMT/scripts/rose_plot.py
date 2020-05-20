@@ -18,10 +18,13 @@ def gen_tiling(num_plots):
 # data = WSDS.Data(datafile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/moresites/finish/mal5_all.dat',
 #                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal5.lst')
 # data = WSDS.RawData(listfile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_westLine.lst')
-data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/afton/sorted_lines.dat')
+# data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/afton/sorted_lines.dat')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R2southeast_1/2d/R2SE_2d_0deg.dat')
+data = WSDS.Data('E:/phd/Nextcloud/data/Regions/MetalEarth/rouyn/rou_north_all.dat')
 # NP = len(data.master_period_list().keys())
 NP = data.NP
+# NP = 36
+p_skip = 2
 plots_per_fig = 6
 N = 45
 bottom = 0
@@ -47,7 +50,7 @@ for ii in range(int(np.ceil(NP / plots_per_fig))):
             axes[jj].bar(theta, radii, width=width, bottom=bottom)
             # axes[jj].set_title('Period: {:>5.4g} s'.format(data.periods[p_idx]))
             axes[jj].set_title('Period: {:>5.4g} s'.format(data.sites[data.site_names[0]].periods[p_idx]))
-            p_idx += 1
+            p_idx += p_skip
 # p_idx = 0
 # for ii in range(int(np.ceil(data.NP / plots_per_fig))):
 #     figures_TF.update({ii: plt.figure()})

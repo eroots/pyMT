@@ -375,3 +375,12 @@ def get_cmap(cmap, N=64):
     elif cmap in ('turbo_r_mod'):
         idx = int(N / 32) * 3
         return(colors.ListedColormap(turbo_r(N)[idx:-idx]))
+    elif cmap in ('colorwheel', 'cet_colorwheel'):
+        return cm.get_cmap('cet_colorwheel', lut=N)
+    else:
+        try:
+            output = cm.get_cmap(cmap, lut=N)
+        except ValueError:
+            output = colorcet.cm[cmap]
+        return output
+

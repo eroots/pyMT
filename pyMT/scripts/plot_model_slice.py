@@ -156,14 +156,14 @@ mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static
 data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
 kimberlines = []
-data.locations = data.get_locs(mode='centered')
+# data.locations = data.get_locs(mode='centered')
 locations = np.zeros(site_data.locations.shape)
 cc = 0
 for ii, site in enumerate(data.site_names):
     if site in site_data.site_names:
         locations[cc, :] = data.locations[ii, :]
         cc += 1
-# mod.origin = data.origin
+mod.origin = data.origin
 # data.locations = np.array([[0 for ii in range(17)],
 #                            [0.000000000E+00, 0.501143799E+04, 0.104698379E+05,
 #                             0.136017852E+05, 0.178389980E+05, 0.208527168E+05,
@@ -171,7 +171,7 @@ for ii, site in enumerate(data.site_names):
 #                             0.345390352E+05, 0.372428438E+05, 0.394137422E+05,
 #                             0.433482109E+05, 0.467561680E+05, 0.507770469E+05,
 #                             0.534360625E+05, 0.653211367E+05]]) / 1000
-# mod.to_UTM()
+mod.to_UTM()
 # mod.to_latlong('10N')
 # data.rotate_sites(azi=25)
 # data.locations = data.get_locs(mode='centered')
@@ -179,7 +179,7 @@ for ii, site in enumerate(data.site_names):
 # if mod.coord_system == 'UTM':
 #     mod.dx = [xx / 1000 for xx in mod.dx]
 #     mod.dy = [yy / 1000 for yy in mod.dy]
-plane = 'xz'
+plane = 'xy'
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # title_ = 'Standard Inversion'
@@ -196,22 +196,22 @@ reverse_xaxis = False
 lut = 32
 cax = [0, 5]
 isolum = False
-tick_label_size = 12
-axis_label_size = 14
-markersize = 5
+tick_label_size = 10
+axis_label_size = 12
+markersize = 3
 # slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
 # lines = ['l0', 'l3', 'l6', 'l9', 'l12']
 # slices = [31]
-# slices = [37]
-slices = list(range(110, 160, 3))
+slices = [12, 16, 20, 22, 24, 26, 27]
+# slices = list(range(110, 160, 3))
 # slices = [110]
 lines = ['l0']
-xlim = [-60, 50]
-zlim = [0, 50]
+# xlim = [-60, 50]
+# zlim = [0, 50]
 VE = 1 # Vertical exaggeration
-# xlim = [455.5, 778.7]
-# zlim = [5.25e6 / 1000, 5.455e6 / 1000]
+xlim = [600, 677]
+zlim = [5290, 5400]
 # xlim, zlim = [], []
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
@@ -242,7 +242,7 @@ if cmap_name in ('jetplus', 'turbo', 'turbo_r'):
     cmap = colourmaps.get_cmap(cmap_name)
 else:
     cmap = cm.get_cmap(cmap_name, lut)
-file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/w_static/NS_slices/'
+file_path = local_path + 'Documents/ME_Transects/Rouyn/w_static/depth_slices/'
 # for line, slice_num in zip(lines, slices):
 for slice_num in slices:
     # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
@@ -252,7 +252,7 @@ for slice_num in slices:
     # locations = data.get_locs(site_list=[site for site in data.site_names if site.startswith(line)])
     # locations = site_data.get_locs()
     # file_name = ''.join(['LL_All_jet1-5_NS_', str(slice_num), 'm.png'])
-    file_name = 'ns-slice_{}'.format(int(slice_num))
+    file_name = 'depth-slice_{}m'.format(int(mod.dz[int(slice_num)]))
     # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
     #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
     # xlim = [5390, 5412]

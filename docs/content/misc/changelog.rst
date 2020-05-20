@@ -1,5 +1,17 @@
 Change Log
 ==========
+* 14/05/20
+
+  * Cleaned up a few things that would crash :ref:`Data Plot` (e.g., checking boxes that should be uncheckable)
+
+  * Added some new colour options
+
+    * You can now control LUT (number of colour intervals). I realized that while 16 or 32 is good for viewing models, it might remove necessary details when viewing things like phase tensors
+
+    * New cyclic colour maps 'twilight' and 'colorwheel' added. Useful for viewing wrapped quantities like phase tensor azimuth.
+
+    * Removed second 'Colour Options' menu in :ref:`Map Viewer` and consolidated those options into one menu. All colour map / limits / LUTs are now controlled in that one menu.
+
 * 28/04/20
 
   * A few QoL changes in :ref:`Data Plot`:

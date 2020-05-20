@@ -36,120 +36,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1291</width>
-     <height>26</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuOptions">
-    <property name="title">
-     <string>Colour Options</string>
-    </property>
-    <widget class="QMenu" name="menuColour_map">
-     <property name="title">
-      <string>Colour Map</string>
-     </property>
-     <addaction name="actionJet"/>
-     <addaction name="actionJet_r"/>
-     <addaction name="actionJet_plus"/>
-     <addaction name="actionJet_plus_r"/>
-     <addaction name="actionBgy"/>
-     <addaction name="actionBgy_r"/>
-     <addaction name="actionBwr"/>
-     <addaction name="actionBwr_r"/>
-    </widget>
-    <widget class="QMenu" name="menuColour_limits">
-     <property name="title">
-      <string>Colour Limits</string>
-     </property>
-     <addaction name="actionRho_cax"/>
-     <addaction name="actionPhase_cax"/>
-     <addaction name="actionDifference_cax"/>
-    </widget>
-    <addaction name="menuColour_map"/>
-    <addaction name="menuColour_limits"/>
-   </widget>
-   <widget class="QMenu" name="menuPoint_options">
-    <property name="title">
-     <string>Point Options</string>
-    </property>
-    <widget class="QMenu" name="menuMarker">
-     <property name="title">
-      <string>Marker</string>
-     </property>
-     <addaction name="actionMarker_Size"/>
-     <addaction name="actionMarker_Shape"/>
-     <addaction name="actionMarker_Colour"/>
-     <addaction name="actionFilled"/>
-    </widget>
-    <widget class="QMenu" name="menuAnnotate">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="title">
-      <string>Annotate</string>
-     </property>
-     <addaction name="actionAnnotate_All"/>
-     <addaction name="actionAnnotate_None"/>
-     <addaction name="actionAnnotate_Active"/>
-    </widget>
-    <widget class="QMenu" name="menuPhase_Tensors">
-     <property name="title">
-      <string>Phase Tensors</string>
-     </property>
-     <addaction name="actionPhaseTensorScale"/>
-     <addaction name="actionPTRhoErrorTolerance"/>
-     <addaction name="actionPTPhaseErrorTolerance"/>
-    </widget>
-    <widget class="QMenu" name="menuInduction_Arrows">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="title">
-      <string>Induction Arrows</string>
-     </property>
-     <addaction name="actionInductionErrorTolerance"/>
-     <addaction name="actionInductionScale"/>
-     <addaction name="actionInductionCutoff"/>
-    </widget>
-    <widget class="QMenu" name="menuCoordinate_System">
-     <property name="title">
-      <string>Coordinate System</string>
-     </property>
-     <addaction name="action_coordLocal"/>
-     <addaction name="action_coordUTM"/>
-     <addaction name="action_coordLatlong"/>
-    </widget>
-    <addaction name="menuAnnotate"/>
-    <addaction name="menuMarker"/>
-    <addaction name="menuPhase_Tensors"/>
-    <addaction name="menuInduction_Arrows"/>
-    <addaction name="menuCoordinate_System"/>
-   </widget>
-   <widget class="QMenu" name="menuAxis_Options">
-    <property name="title">
-     <string>Axis Options</string>
-    </property>
-    <addaction name="actionEqualAspect"/>
-    <addaction name="actionLockAxis"/>
-   </widget>
-   <widget class="QMenu" name="menuJPEG">
-    <property name="title">
-     <string>JPEG</string>
-    </property>
-    <addaction name="actionLoad_JPEG"/>
-    <addaction name="actionShow_JPEG"/>
-    <addaction name="actionOpacity"/>
-   </widget>
-   <addaction name="menuJPEG"/>
-   <addaction name="menuOptions"/>
-   <addaction name="menuPoint_options"/>
-   <addaction name="menuAxis_Options"/>
-  </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
@@ -161,7 +47,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>844</height>
+     <height>926</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -560,6 +446,91 @@ Resistivity</string>
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1291</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuPoint_options">
+    <property name="title">
+     <string>Point Options</string>
+    </property>
+    <widget class="QMenu" name="menuMarker">
+     <property name="title">
+      <string>Marker</string>
+     </property>
+     <addaction name="actionMarker_Size"/>
+     <addaction name="actionMarker_Shape"/>
+     <addaction name="actionMarker_Colour"/>
+     <addaction name="actionFilled"/>
+    </widget>
+    <widget class="QMenu" name="menuAnnotate">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Annotate</string>
+     </property>
+     <addaction name="actionAnnotate_All"/>
+     <addaction name="actionAnnotate_None"/>
+     <addaction name="actionAnnotate_Active"/>
+    </widget>
+    <widget class="QMenu" name="menuPhase_Tensors">
+     <property name="title">
+      <string>Phase Tensors</string>
+     </property>
+     <addaction name="actionPhaseTensorScale"/>
+     <addaction name="actionPTRhoErrorTolerance"/>
+     <addaction name="actionPTPhaseErrorTolerance"/>
+    </widget>
+    <widget class="QMenu" name="menuInduction_Arrows">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Induction Arrows</string>
+     </property>
+     <addaction name="actionInductionErrorTolerance"/>
+     <addaction name="actionInductionScale"/>
+     <addaction name="actionInductionCutoff"/>
+    </widget>
+    <widget class="QMenu" name="menuCoordinate_System">
+     <property name="title">
+      <string>Coordinate System</string>
+     </property>
+     <addaction name="action_coordLocal"/>
+     <addaction name="action_coordUTM"/>
+     <addaction name="action_coordLatlong"/>
+    </widget>
+    <addaction name="menuAnnotate"/>
+    <addaction name="menuMarker"/>
+    <addaction name="menuPhase_Tensors"/>
+    <addaction name="menuInduction_Arrows"/>
+    <addaction name="menuCoordinate_System"/>
+   </widget>
+   <widget class="QMenu" name="menuAxis_Options">
+    <property name="title">
+     <string>Axis Options</string>
+    </property>
+    <addaction name="actionEqualAspect"/>
+    <addaction name="actionLockAxis"/>
+   </widget>
+   <widget class="QMenu" name="menuJPEG">
+    <property name="title">
+     <string>JPEG</string>
+    </property>
+    <addaction name="actionLoad_JPEG"/>
+    <addaction name="actionShow_JPEG"/>
+    <addaction name="actionOpacity"/>
+   </widget>
+   <addaction name="menuJPEG"/>
+   <addaction name="menuPoint_options"/>
+   <addaction name="menuAxis_Options"/>
   </widget>
   <action name="actionJet">
    <property name="checkable">

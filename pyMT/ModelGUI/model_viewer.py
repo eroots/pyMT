@@ -105,6 +105,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.locs_3D = np.zeros((1, 3))
             self.plot_locations = False
         self.rect_grid = model_to_rectgrid(self.clip_model)
+        self.lut = 32
         self.colourmap = 'turbo_r'
         self.cmap = cm.get_cmap('turbo_r', 32)
         self.cax = [1, 5]
@@ -365,6 +366,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.colourMenu.action_group.triggered.connect(self.change_cmap)
         self.colourMenu.limits.triggered.connect(self.set_clim)
         self.mesh_group.triggered.connect(self.show_mesh)
+        self.colourMenu.lut.triggered.connect(self.set_lut)
+        self.colourMenu.all_maps[self.colourmap].setChecked(True)
         # View buttons
         self.viewXY.triggered.connect(self.view_xy)
         self.viewXZ.triggered.connect(self.view_xz)
@@ -376,6 +379,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Isosurface widgets
         self.isoPlot.stateChanged.connect(self.update_isosurface)
         self.isoRecalculate.clicked.connect(self.generate_isosurface)
+
 
     def generate_isosurface(self):
         if self.actors['isosurface']:
@@ -469,9 +473,17 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def change_cmap(self):
         self.colourmap = self.colourMenu.action_group.checkedAction().text()
-        self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text())
+        self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text(), self.lut)
         self.map.colourmap = self.colourmap
+        self.map.lut = self.lut
         self.update_all()
+
+    def set_lut(self):
+        inputs, ret = self.colourMenu.set_lut(initial=self.lut)
+        if ret:
+            self.lut = inputs
+            self.change_cmap()
+            # self.update_all()
 
     def set_clim(self):
         inputs, ret = self.colourMenu.set_clim(initial_1=str(self.cax[0]),
