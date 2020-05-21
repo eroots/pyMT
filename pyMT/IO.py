@@ -2330,9 +2330,10 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
         f.write(','.join(header))
         f.write('\n')
         try:
-                X_key, Y_key = 'Lat', 'Long'
+            test = data.sites[data.site_names[0]].locations['Lat'], data.sites[data.site_names[0]].locations['Long']
+            X_key, Y_key = 'Lat', 'Long'
         except KeyError:
-                X, Y = 'Y', 'X'
+            X_key, Y_key = 'Y', 'X'
         X_all = [site.locations['X'] for site in data.sites.values()]
         Y_all = [site.locations['Y'] for site in data.sites.values()]
         scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
@@ -2348,7 +2349,7 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
                                                         period,
                                                         X,
                                                         Y,
-                                                        -np.rad2deg(np.arctan(site.phase_tensors[ii].azimuth)) + 90,
+                                                        -np.rad2deg((site.phase_tensors[ii].azimuth)) + 90,
                                                         site.phase_tensors[ii].phi_min,
                                                         site.phase_tensors[ii].phi_max,
                                                         phi_min,
@@ -2358,8 +2359,8 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
                                                                     np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),
                                                                     np.rad2deg(np.arctan(site.phase_tensors[ii].phi_3)),
                                                                     np.rad2deg(np.arctan(site.phase_tensors[ii].det_phi)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].alpha)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].beta)),
+                                                                    np.rad2deg((site.phase_tensors[ii].alpha)),
+                                                                    np.rad2deg((site.phase_tensors[ii].beta)),
                                                                     site.phase_tensors[ii].Lambda))
                 else:
                     f.write('\n')
