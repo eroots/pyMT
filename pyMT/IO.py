@@ -2330,9 +2330,10 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
         f.write(','.join(header))
         f.write('\n')
         try:
-                X_key, Y_key = 'Lat', 'Long'
+            test = data.sites[data.site_names[0]].locations['Lat'], data.sites[data.site_names[0]].locations['Long']
+            X_key, Y_key = 'Lat', 'Long'
         except KeyError:
-                X, Y = 'Y', 'X'
+            X_key, Y_key = 'Y', 'X'
         X_all = [site.locations['X'] for site in data.sites.values()]
         Y_all = [site.locations['Y'] for site in data.sites.values()]
         scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
