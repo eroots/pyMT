@@ -2322,6 +2322,7 @@ def write_model(model, outfile, file_format='modem'):
 def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
     if not out_file.endswith('.csv'):
         out_file += '.csv'
+    print('Writing phase tensor data to {}'.format(out_file))
     with open(out_file, 'w') as f:
         header = ['Site', 'Period', 'Latitude', 'Longitude', 'Azimuth',
                   'Phi_min', 'Phi_max', 'Phi_min_scaled', 'Phi_max_scaled']
