@@ -28,7 +28,7 @@ from PyQt5.uic import loadUiType
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.figure import Figure
 from matplotlib.pyplot import imread
-from PIL import UnidentifiedImageError
+# from PIL import UnidentifiedImageError  # This will require a new dependency?
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -1130,8 +1130,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.lowPeriodToleranceRemove.valueChanged.connect(self.set_period_tolerance)
             self.highPeriodToleranceRemove.valueChanged.connect(self.set_period_tolerance)
         else:
-            self.lowPeriodTolerance.isEnabled(False)
-            self.highPeriodTolerance.isEnabled(False)
+            self.lowPeriodToleranceRemove.setEnabled(False)
+            self.highPeriodToleranceRemove.setEnabled(False)
 
         self.plotFlaggedData.clicked.connect(self.plot_flagged_data)
 

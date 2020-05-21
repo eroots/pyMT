@@ -1053,10 +1053,11 @@ class MapView(object):
             # lower, upper = (0, 180)
         elif fill_param in ('delta'):
             lower, upper = (0, 100)
-        if fill_param not in ('delta', 'Lambda'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta'):  # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
             fill_vals = np.rad2deg(np.arctan(fill_vals))
-            # if fill_param in ['alpha', 'azimuth']:
-            #     fill_vals[fill_vals < 0] = 180 + fill_vals[fill_vals < 0]
+        if fill_param in ['alpha', 'azimuth']:
+            fill_vals = np.rad2deg(fill_vals)
+                # fill_vals[fill_vals < 0] = 180 + fill_vals[fill_vals < 0]
         fill_vals[fill_vals > upper] = upper
         fill_vals[fill_vals < lower] = lower
         # fill_vals = utils.normalize(fill_vals,

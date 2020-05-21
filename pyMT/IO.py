@@ -2348,7 +2348,7 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
                                                         period,
                                                         X,
                                                         Y,
-                                                        -np.rad2deg(np.arctan(site.phase_tensors[ii].azimuth)) + 90,
+                                                        -np.rad2deg((site.phase_tensors[ii].azimuth)) + 90,
                                                         site.phase_tensors[ii].phi_min,
                                                         site.phase_tensors[ii].phi_max,
                                                         phi_min,
@@ -2358,8 +2358,8 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
                                                                     np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),
                                                                     np.rad2deg(np.arctan(site.phase_tensors[ii].phi_3)),
                                                                     np.rad2deg(np.arctan(site.phase_tensors[ii].det_phi)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].alpha)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].beta)),
+                                                                    np.rad2deg((site.phase_tensors[ii].alpha)),
+                                                                    np.rad2deg((site.phase_tensors[ii].beta)),
                                                                     site.phase_tensors[ii].Lambda))
                 else:
                     f.write('\n')

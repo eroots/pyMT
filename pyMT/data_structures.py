@@ -1003,7 +1003,7 @@ class Data(object):
                            UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
 
     def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50):
-        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose, scale_factor=scal)
+        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose, scale_factor=scale_factor)
 
     def rotate_sites(self, azi):
         if DEBUG:
