@@ -1,5 +1,14 @@
 Change Log
 ==========
+
+* 25/05/20
+
+  * Fixed a bug that were causing 'Azimuth' and 'Alpha' to be displayed improperly (colours only, PT orientations were always fine)
+
+    * This bug fix should also fix issues with exported phase tensors in ArcMap not matching those plotted with pyMT
+
+  * Fixed bug which caused a 'transect slice' in :ref:`Model Viewer` to use technically out-of-bounds locations, and therefore use a fill value instead of the actual model values.
+
 * 14/05/20
 
   * Cleaned up a few things that would crash :ref:`Data Plot` (e.g., checking boxes that should be uncheckable)
@@ -11,6 +20,8 @@ Change Log
     * New cyclic colour maps 'twilight' and 'colorwheel' added. Useful for viewing wrapped quantities like phase tensor azimuth.
 
     * Removed second 'Colour Options' menu in :ref:`Map Viewer` and consolidated those options into one menu. All colour map / limits / LUTs are now controlled in that one menu.
+
+    * Fixed and issue where model slice colour map was not responding to changes in the colour limits
 
 * 28/04/20
 

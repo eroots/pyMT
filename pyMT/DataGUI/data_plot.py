@@ -409,6 +409,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         limits = self.set_cax(self.map.rho_cax[0], self.map.rho_cax[1])
         if limits is not None and limits != self.map.rho_cax:
             self.map.rho_cax = limits
+            self.map.model_cax = limits
             self.update_map()
         # inputs, ret = self.colourMenu.set_clim(initial_1=str(self.map.rho_cax[0]),
         #                                        initial_2=str(self.map.rho_cax[1]))

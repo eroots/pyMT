@@ -1713,7 +1713,7 @@ class Site(object):
         self.azimuth = azimuth
         self.solve_static = solve_static
         self.static_multiplier = 1
-        self.minimum_error = 0.00005
+        self.minimum_error = 0.000005
         self.use_independent_errors = False
         self.error_floors = {'Off-Diagonal Impedance': 0.075,
                              'Diagonal Impedance': 0.075,

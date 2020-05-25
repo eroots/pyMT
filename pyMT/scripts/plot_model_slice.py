@@ -154,7 +154,8 @@ def interpolate_slice(x, y, Z, NP):
 # Upper Abitibi
 mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
 data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
+site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
 kimberlines = []
 # data.locations = data.get_locs(mode='centered')
 locations = np.zeros(site_data.locations.shape)
@@ -194,7 +195,7 @@ padding = 2000
 reverse_xaxis = False
 # zlim = [0, 4]
 lut = 32
-cax = [0, 5]
+cax = [1, 4]
 isolum = False
 tick_label_size = 10
 axis_label_size = 12
@@ -202,16 +203,18 @@ markersize = 3
 # slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
 # lines = ['l0', 'l3', 'l6', 'l9', 'l12']
-# slices = [31]
-slices = [12, 16, 20, 22, 24, 26, 27]
+slices = [9]
+# slices = [13, 16, 20, 22, 24, 26, 28, 30, 32, 33, 35, 37]
 # slices = list(range(110, 160, 3))
 # slices = [110]
 lines = ['l0']
 # xlim = [-60, 50]
 # zlim = [0, 50]
 VE = 1 # Vertical exaggeration
-xlim = [600, 677]
-zlim = [5290, 5400]
+# xlim = [600, 677]
+# zlim = [5290, 5400]
+xlim = [463139.0099493311 / 1000, 790673.8220597332 / 1000]
+zlim = [5246370.107073599 / 1000, 5468333.540126671 / 1000]
 # xlim, zlim = [], []
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
@@ -242,7 +245,7 @@ if cmap_name in ('jetplus', 'turbo', 'turbo_r'):
     cmap = colourmaps.get_cmap(cmap_name)
 else:
     cmap = cm.get_cmap(cmap_name, lut)
-file_path = local_path + 'Documents/ME_Transects/Rouyn/w_static/depth_slices/'
+file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbo1-4/no_geo/'
 # for line, slice_num in zip(lines, slices):
 for slice_num in slices:
     # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])

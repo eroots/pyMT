@@ -881,7 +881,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         cell_N, cell_E, cell_z = self.clip_model.cell_centers()
         vals = np.transpose(np.log10(self.clip_model.vals), [1, 0, 2])
         self.interpolator = RGI((cell_E, cell_N, cell_z),
-                                vals, bounds_error=False, fill_value=5)
+                                vals, bounds_error=False, fill_value=None)
         interp_vals = self.interpolator(query_points)
         # self.map.window['axes'][0].plot(qx, qy, 'k--')
         # self.canvas['2D'].draw()
