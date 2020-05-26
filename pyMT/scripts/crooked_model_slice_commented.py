@@ -155,7 +155,7 @@ modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}  # Image style. Use 3 if yo
 mode = 3
 
 # Figure save options
-file_path = local_path + '/phd/Nextcloud/Documents/ME_Transects/Upper_Abitibi/Figures/Rouyn/w_static/'
+file_path = 'output_filename'
 file_types = ['.png']#, '.svg']  # File save format(s)
 title_ = 'Standard Inversion'  # Title of plot
 rotate_back = 0  # If data is rotated, do you want to rotate it back to 0?
@@ -166,7 +166,7 @@ annotate_sites = 0  # Plot station names?
 site_markers = 1  # Include site markers (from main_transect) on plot? This is turned off if you aren't using transect_type 1
 plot_map = 1  # Plot a map with all stations (black) and main_transect (red)?
 dpi = 600  # DPI of saved image
-csv_name = 'C:/Users/eroots/phd/Nextcloud/Metal Earth/Data/model_csvs/wst_wUSARRAY_alongLitho.dat'
+csv_name = 'output_filename'
 # csv_name = local_path + '/phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_alongMT.dat'
 use_alpha = 0  # Apply alpha according to resolution file?
 saturation = 0.8  # Colour parameters. Leave as is, or play around
@@ -214,7 +214,7 @@ if UTM_zone:
         sys.exit()
 all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
-for nudge_dist in [-10000, 0, 10000]:  # Modify this as needed. You could use this to do slices through your transect at offsets
+for nudge_dist in [0]:  # Modify this as needed. You could use this to do slices through your transect at offsets
     mod = copy.deepcopy(all_backups['model'])
     data = copy.deepcopy(all_backups['data'])
     main_transect = copy.deepcopy(all_backups['main_transect'])
