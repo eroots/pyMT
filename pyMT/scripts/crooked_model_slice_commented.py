@@ -149,6 +149,7 @@ reso = []  # Include resolution file?
 ### Number of interpolation points between each station. 
 ### This is the number per pair of stations points, so turn this up if you're only using a few points
 ninterp = 200
+nz_interp = 20
 padding = 25000  # Padding (in m) at the ends of the slice
 ninterp_padding = 100  # Number of interpolation points in the padding
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}  # Image style. Use 3 if you're not sure.
@@ -357,7 +358,7 @@ for nudge_dist in [0]:  # Modify this as needed. You could use this to do slices
         cmap = cm.get_cmap(cmap_name, lut)
     qz = []
     for ii in range(len(z) - 1):
-        qz.append(np.linspace(z[ii], z[ii + 1], 5))
+        qz.append(np.linspace(z[ii], z[ii + 1], nz_interp))
     qz = np.array(qz).ravel()
 
     #  Important step. Since we are normalizing values to fit into the colour map,

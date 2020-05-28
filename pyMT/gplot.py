@@ -1055,7 +1055,7 @@ class MapView(object):
             lower, upper = (0, 100)
         if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta'):  # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
             fill_vals = np.rad2deg(np.arctan(fill_vals))
-        if fill_param in ['alpha', 'azimuth']:
+        if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
                 # fill_vals[fill_vals < 0] = 180 + fill_vals[fill_vals < 0]
         fill_vals[fill_vals > upper] = upper
@@ -1124,13 +1124,15 @@ class MapView(object):
         elif fill_param in ['Lambda']:
             lower, upper = (0, 1)
         elif fill_param == 'beta':
-            lower, upper = (-6, 6)
+            lower, upper = (-10, 10)
         elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
         elif fill_param in ('delta'):
             lower, upper = (0, 100)
-        if fill_param not in ('delta', 'Lambda'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta'):  # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
             fill_vals = np.rad2deg(np.arctan(fill_vals))
+        if fill_param in ['alpha', 'azimuth', 'beta']:
+            fill_vals = np.rad2deg(fill_vals)
         fill_vals[fill_vals > upper] = upper
         fill_vals[fill_vals < lower] = lower
         norm_vals = utils.normalize_range(fill_vals,
@@ -1152,63 +1154,6 @@ class MapView(object):
                                      zorder=4)
             self.window['axes'][0].add_patch(rect)
         self.set_axis_limits()
-
-    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
-    def plot_phase_bar2(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
-        rectangles = []
-        fill_vals = []
-        if fill_param != 'Lambda':
-            fill_param = fill_param.lower()
-        if len(data_type) == 2:
-            data_type = ['data', 'response']
-        X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
-        scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
-                        (np.max(Y_all) - np.min(Y_all)) ** 2)
-        good_idx = []
-        for ii, site_name in enumerate(self.site_names):
-            site = self.site_data[data_type[0]].sites[site_name]
-            phase_tensor = site.phase_tensors[period_idx]
-            xy = [Y_all[ii], X_all[ii]]
-            width = phase_tensor.phi_max / 5
-            height = 2 * phase_tensor.phi_min / phase_tensor.phi_max
-            width = 0.2
-            # height = 1
-            width, height = [(self.pt_scale * scale) * x / 100 for x in (width, height)]
-            # xy[0] -= height * (np.sin(phase_tensor.azimuth)) / 2 + width * (np.cos(phase_tensor.azimuth)) / 2
-            # xy[1] -= height * (np.cos(phase_tensor.azimuth)) / 2 + width * (np.sin(phase_tensor.azimuth)) / 2
-            rectangles.append((xy, width, height, np.rad2deg(phase_tensor.azimuth)))
-            #     ellipses.append([Y - phi_x, X - phi_y])
-            fill_vals.append(getattr(phase_tensor, fill_param))
-        fill_vals = np.array(fill_vals)
-        if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
-            lower, upper = (0, 90)
-        elif fill_param in ['Lambda']:
-            lower, upper = (0, 1)
-        elif fill_param == 'beta':
-            lower, upper = (-6, 6)
-        elif fill_param in ['alpha', 'azimuth']:
-            lower, upper = (-90, 90)
-        elif fill_param in ('delta'):
-            lower, upper = (0, 100)
-        if fill_param not in ('delta', 'Lambda'):
-            fill_vals = np.rad2deg(np.arctan(fill_vals))
-        fill_vals[fill_vals > upper] = upper
-        fill_vals[fill_vals < lower] = lower
-        norm_vals = utils.normalize_range(fill_vals,
-                                          lower_range=lower,
-                                          upper_range=upper,
-                                          lower_norm=0,
-                                          upper_norm=1)
-        for ii, rectangle in enumerate(rectangles):
-            rect = patches.Rectangle(xy=rectangle[0],
-                                     width=rectangle[1],
-                                     height=rectangle[2],
-                                     angle=rectangle[3],
-                                     color='k',
-                                     edgecolor='k')
-            self.window['axes'][0].add_patch(rect)
-        self.set_axis_limits()
-
 
     @utils.enforce_input(data_type=list, fill_param=str, n_interp=int, period_idx=int)
     def plan_pseudosection(self, data_type='data', fill_param='rhoxy', n_interp=200, period_idx=0):
