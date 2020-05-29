@@ -125,10 +125,14 @@ def project_locations(locations, zone, letter):
 # mod: the model file
 # seismic: Alternative to using a list file to define the slice, you could load a csv file with locations here
 #          e.g., a seismic line. Assumes you have 3 columns 'trace', 'x', 'y'
-main_transect = WSDS.RawData('filename')
-data = WSDS.RawData('filename')
-backup_data = WSDS.RawData('filename')
-mod = WSDS.Model('filename')
+# main_transect = WSDS.RawData('filename')
+# data = WSDS.RawData('filename')
+# backup_data = WSDS.RawData('filename')
+# mod = WSDS.Model('filename')
+main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
 # Define a UTM zone to project to. Use None if you want to use the default, or if you are using a ModEM data file
 # UTM_zone = None
 UTM_zone = '16U'
@@ -137,19 +141,19 @@ UTM_zone = '16U'
 # How to define the slice. 1 is through MT stations, 2 is through points in a csv (previously 'seismic'), and 3 is through points given by 'slice_points_x' and 'slice_points_y'
 transect_types = {1: 'mt', 2: 'csv', 3: 'points'}
 transect_type = 3  # Set to 1, 2, or 3
-slice_points_x = (676091, 611108)
-slice_points_y = (5563290, 5475470)
-# slice_points_x = (-90.77, -91.33)
-# slice_points_y = (50.18, 49.64)
+# slice_points_x = (676091, 611108)
+# slice_points_y = (5563290, 5475470)
+slice_points_x = (-82.6, -82.2)
+slice_points_y = (47.5, 48.5)
 points_in_latlong = 1 # Set to true if specifying slice_points in latlong
+xaxis_increasing = 1 # Force x-axis to be increasing (1) or decreasing (0)
 use_trace_ticks = 0  # If using seismic, do you want the x-axis to be CDP values?
-force_NS = 1  # Force the slice to plot south-to-north
 azi = 0  # Rotation angle for model (not well tested)
 reso = []  # Include resolution file?
 ### Number of interpolation points between each station. 
 ### This is the number per pair of stations points, so turn this up if you're only using a few points
-ninterp = 200
-nz_interp = 20
+ninterp = 1000
+nz_interp = 100
 padding = 25000  # Padding (in m) at the ends of the slice
 ninterp_padding = 100  # Number of interpolation points in the padding
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}  # Image style. Use 3 if you're not sure.
@@ -202,7 +206,7 @@ cmap_name = 'turbo_r'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
-
+force_NS = 1  # Force the slice to plot south-to-north
 fig_num = 0
 if UTM_zone:
     try:
@@ -222,7 +226,6 @@ for nudge_dist in [0]:  # Modify this as needed. You could use this to do slices
     backup_data = copy.deepcopy(all_backups['backup_data'])
     fig_num += 1
     file_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
-    main_transect.remove_sites(sites=[site for site in main_transect.site_names if 'att' in site.lower()])
     main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]
     # Sort the site names so the same is true
     main_transect.site_names = sorted(main_transect.site_names,
@@ -516,6 +519,9 @@ for nudge_dist in [0]:  # Modify this as needed. You could use this to do slices
             else:
                 x_axis = qy_rot
             to_plot = to_plot[1:, 1:]
+            if not xaxis_increasing:
+                x_axis = np.flipud(x_axis)
+                to_plot = np.flip(to_plot, 1)
             if transect_types[transect_type] == 'seismic' and use_trace_ticks:
                 plt.xticks(seismic['trace'][::500])
                 im, ax = pcolorimage(ax,

@@ -1099,22 +1099,12 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             # idx = np.argsort(site_periods[site])
             periods = sorted(site_periods[site])
             all_periods.append(periods)
-
             for component in site_data[site].keys():
                 sorted_periods = sorted(site_data[site][component].keys())
-                # debug_print(site_data, 'debug.log')
-                # debug_print(sorted_periods, 'debug.log')
                 sorted_site_data[site].update({component: np.array([site_data[site][component][period] for period in sorted_periods])})
                 sorted_site_error[site].update({component: np.array([site_error[site][component][period] for period in sorted_periods])})
-                # vals = site_data[site][component]
-                # site_data[site][component] = np.array(vals)[idx]
-                # vals = site_error[site][component]
-                # site_error[site][component] = np.array(vals)[idx]
         # Sites get named according to list file, but are here internally called
-        # debug_print('{}: {}'.format('1:', all_periods), 'debug.log')
-        # all_periods = np.unique(np.array(periods))
         all_periods = np.unique(np.array(utils.flatten_list(all_periods)))
-        # debug_print('{}: {}'.format('1:', all_periods), 'debug.log')
         all_components = set([component for component in site_data[site] for site in site_data.keys()])
         try:
             inv_type = [key for key in INVERSION_TYPES.keys() if all_components == set(INVERSION_TYPES[key])][0]
