@@ -21,8 +21,7 @@ import sys
 
 #local_path = 'C:/Users/eroots'
 #local_path = 'C:/Users/eric/'
-local_path = 'E:'
-# local_path = 'E:/'
+local_path = 'E:/'
 
 
 def check_UTM(UTM):
@@ -129,57 +128,60 @@ def project_locations(locations, zone, letter):
 # data = WSDS.RawData('filename')
 # backup_data = WSDS.RawData('filename')
 # mod = WSDS.Model('filename')
-main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/swzPT_lastIter.rho')
+main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb_NS.lst')
+data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/test.lst')
+backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/test.lst')
+mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
 # Define a UTM zone to project to. Use None if you want to use the default, or if you are using a ModEM data file
-# UTM_zone = None
-UTM_zone = '16U'
+UTM_zone = None
+# UTM_zone = '16U'
 # seismic = pd.read_table('file_name',
                         # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # How to define the slice. 1 is through MT stations, 2 is through points in a csv (previously 'seismic'), and 3 is through points given by 'slice_points_x' and 'slice_points_y'
 transect_types = {1: 'mt', 2: 'csv', 3: 'points'}
 transect_type = 3  # Set to 1, 2, or 3
-# slice_points_x = (676091, 611108)
-# slice_points_y = (5563290, 5475470)
-slice_points_x = (-82.6, -82.2)
-slice_points_y = (47.5, 48.5)
-points_in_latlong = 1 # Set to true if specifying slice_points in latlong
+# slice_points_x = (597464.7, 597464.7)
+# slice_points_y = (5313813, 5352797)
+slice_points_x = (585170, 607599)
+slice_points_y = (5323280, 5330550)
+points_in_latlong = 0 # Set to true if specifying slice_points in latlong
 xaxis_increasing = 1 # Force x-axis to be increasing (1) or decreasing (0)
 use_trace_ticks = 0  # If using seismic, do you want the x-axis to be CDP values?
 azi = 0  # Rotation angle for model (not well tested)
 reso = []  # Include resolution file?
 ### Number of interpolation points between each station. 
 ### This is the number per pair of stations points, so turn this up if you're only using a few points
-ninterp = 1000
-nz_interp = 100
+ninterp = 500
+nz_interp = 50
 padding = 25000  # Padding (in m) at the ends of the slice
 ninterp_padding = 100  # Number of interpolation points in the padding
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}  # Image style. Use 3 if you're not sure.
 mode = 3
 
 # Figure save options
-file_path = 'output_filename'
+file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Larder/RoughFigures/alongSeis/'
+file_name = 'larder_Z-static_straightCutSW-NE_turbomod0-5'
 file_types = ['.png']#, '.svg']  # File save format(s)
 title_ = 'Standard Inversion'  # Title of plot
 rotate_back = 0  # If data is rotated, do you want to rotate it back to 0?
-linear_xaxis = 0  # Use a linear x-axis or keep in easting-northing? Recommended if using a irregular slice
-save_fig = 0  # Save the figure?
+linear_xaxis = 1  # Use a linear x-axis or keep in easting-northing? Recommended if using a irregular slice
+save_fig = 1  # Save the figure?
 save_dat = 0  # Save the plotted slice as a csv?
 annotate_sites = 0  # Plot station names? 
 site_markers = 1  # Include site markers (from main_transect) on plot? This is turned off if you aren't using transect_type 1
 plot_map = 1  # Plot a map with all stations (black) and main_transect (red)?
+plot_contours = 0
+contour_levels = [1, 2, 3, 4]
 dpi = 600  # DPI of saved image
-csv_name = 'output_filename'
+csv_name = 'E:/phd/NextCloud/Documents/ME_Transects/Malartic/RoughFigures/Mal_R1_slices/along_transect_turbo/w_contours/'
 # csv_name = local_path + '/phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_alongMT.dat'
 use_alpha = 0  # Apply alpha according to resolution file?
 saturation = 0.8  # Colour parameters. Leave as is, or play around
 lightness = 0.4
 xlim = []  # x-axis limits
-zlim = [0, 50]  # y-axis limits
+zlim = [0, 36]  # y-axis limits
 aspect_ratio = 1  # aspect ratio of plot
-lut = 32  # number of colour values
+lut = 64  # number of colour values
 cax = [0, 5]  # Colour axis limits
 isolum = 0  # Apply isoluminate normalization?
 
@@ -187,16 +189,17 @@ isolum = 0  # Apply isoluminate normalization?
 # Input a set of sites you would like to 'nudge' a set distance off the main transect.
 # nudge_sites goes east, reverse_nudge goes west.
 # If you are using 'points' to define the slice, nudges are applied to all points
-nudge_sites = ['']
+# nudge_sites = ['']
+nudge_sites = main_transect.site_names
 reverse_nudge = ['']
-use_nudge = 1 # Do you want to use the nudges?
+use_nudge = 0 # Do you want to use the nudges?
 
 # Choose color map from below
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
 # cmap_name = 'jet_r'
-cmap_name = 'turbo_r'
-# cmap_name = 'turbo_r_mod'
+# cmap_name = 'turbo_r'
+cmap_name = 'turbo_r_mod'
 # cmap_name = 'gray'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
@@ -219,13 +222,14 @@ if UTM_zone:
         sys.exit()
 all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
-for nudge_dist in [0]:  # Modify this as needed. You could use this to do slices through your transect at offsets
+# for nudge_dist in range(-30000, 32500, 2500):  # Modify this as needed. You could use this to do slices through your transect at offsets
+for nudge_dist in [0]:
+    # file_name = 'mal_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
     mod = copy.deepcopy(all_backups['model'])
     data = copy.deepcopy(all_backups['data'])
     main_transect = copy.deepcopy(all_backups['main_transect'])
     backup_data = copy.deepcopy(all_backups['backup_data'])
     fig_num += 1
-    file_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
     main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]
     # Sort the site names so the same is true
     main_transect.site_names = sorted(main_transect.site_names,
@@ -540,6 +544,14 @@ for nudge_dist in [0]:  # Modify this as needed. You could use this to do slices
         if zlim:
             ax.set_ylim(zlim)
         ax.invert_yaxis()
+        if plot_contours:
+            if transect_types[transect_type] == 'seismic':
+                X, Y = np.meshgrid(np.array(seismic['trace']), np.array(qz))
+                ax.contour(X, Y, vals, levels=contour_levels, colors='k', vmin=cax[0], vmax=cax[1])
+            else:
+                X, Y = np.meshgrid(x_axis, qz)
+                contours = ax.contour(X, Y, vals.T, levels=contour_levels, colors='k', vmin=cax[0], vmax=cax[1])
+            ax.clabel(contours, inline=1, fmt='%1.0f')
         fig.canvas.draw()
     if linear_xaxis:
         site_x = linear_site

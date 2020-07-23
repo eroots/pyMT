@@ -24,8 +24,8 @@ def generate_ellipse(phi):
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst'
 # listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
 # main_list = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/south_main_transect_all.lst'
-listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
-main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+# listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
+# main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/southeast_R2.lst'
 # main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/north_main_transect_all.lst'
@@ -43,6 +43,8 @@ main_list = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/j2/main_
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\MetalEarth\sturgeon\stu3\stu2_j2Rot2.dat')
 # main_list = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst'
 # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst'
+list_file = local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/wst_mantle_wNorth.lst'
+main_list = local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/wst_NS_pseudosection2.lst'
 ###########################################
 # DRYDEN
 # listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
@@ -64,9 +66,9 @@ for use_list_dummy in [0]:
     # main_list = local_path + 'phd/ownCloud/data/Regions/afton/j2/l9.lst'
     # main_list = local_path + 'phd/ownCloud/data/Regions/afton/j2/' + use_list + '.lst'
 
-    data = WSDS.RawData(listfile)
+    data = WSDS.RawData(list_file)
     main_transect = WSDS.RawData(main_list)
-    UTM_number = 17
+    UTM_number = 15
     UTM_letter = 'N'
 
     # data = WSDS.RawData(listfile=listfile)
@@ -77,40 +79,43 @@ for use_list_dummy in [0]:
     # use_periods = sorted(list(data.narrow_periods.keys()))
     # all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
     # all_periods = set(list(data.sites['18-swz022m'].periods) + list(data.sites['18-swz007a'].periods))
-    all_periods = list(data.sites['SWZ079M'].periods)
+    all_periods = list(data.sites[data.site_names[0]].periods)
+    main_transect.remove_sites(sites=[s for s in main_transect.site_names if s not in data.site_names])
     # all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
     # use_periods = sorted([p for p in all_periods if 0.005 <p < 15])
     # high_cut = 15
     # use_periods = sorted([p for p in data.narrow_period_list(count_tol=0.1, high_tol=0.1).keys() if p < 150])
-    use_periods = data.sites[data.site_names[0]].periods
-    x_scale, y_scale = 0.1, 0.1
-    save_fig = 0
-    freq_skip = 1
-    all_periods = sorted(list(data.narrow_periods.keys()))
+    # use_periods = data.sites[data.site_names[0]].periods
+    # x_scale, y_scale = 0.1, 0.1
+    # save_fig = 0
+    # freq_skip = 1
+    # all_periods = sorted(list(data.narrow_periods.keys()))
     # all_periods = set(list(data.sites['SWZ047A'].periods) + list(data.sites['SWZ064M'].periods))
     # all_periods = set(list(data.sites['18-swz003a'].periods) + list(data.sites['18-swz006m'].periods))
     # use_periods = sorted([p for p in all_periods if p < 15])
-    high_cut = 3000
+    # high_cut = 3000
+    high_cut = 10000
     # use_periods = sorted([p for p in data.narrow_period_list(count_tol=0.1, high_tol=0.1).keys() if p < 150])
     use_periods = data.sites[data.site_names[0]].periods
-    x_scale, y_scale = 0.0075, 1
-    save_fig = 1
-    freq_skip = 1
-    radius = 0.6
+    # x_scale, y_scale = 0.0075, 1
+    x_scale, y_scale = 0.0035, 100
+    save_fig = 0
+    freq_skip = 0
+    # radius = 0.6
     # radius = 0.1
     # radius = 0.01
-    # radius = 1
-    label_offset = -4.5
+    radius = 50
+    label_offset = 0.
     # label_offset = -3.7
-    annotate_sites = 0
+    annotate_sites = 1
     use_colourbar = 0
     # file_path = local_path + '/phd/ownCloud/Documents/TGI/Figures/PT_pseudosections/'
-    file_path = local_path + '/phd/Nextcloud/Documents/ME_transects/Swayze_paper/RoughFigures/PT_round2/'
-    file_name = 'pt_pseudosection_beta_linear'
+    file_path = local_path + '/phd/NextCloud/Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/'
+    file_name = 'MAL_pseudosection_{}_northing'.format(fill_param.replace('_', ''))
     # file_name = '{}_{}'.format(use_list, fill_param)
     file_types = ['.png', '.svg']
     dpi = 600
-    linear_xaxis = 1
+    linear_xaxis = 0
     # cmap = cm.jet_plus_r(64)
     # cmap = cm.get_cmap('turbo', 64)
     cmap = cm.bwr(32)
@@ -323,71 +328,3 @@ for use_list_dummy in [0]:
                  # [-2.75, -2.7], 'k-')
         # plt.text(main_transect.sites[site].locations['X'] / 10000 - 0.05, -2.95, txt, rotation=50)
 
-    # plt.show()
-    # plt.savefig('F:/ownCloud/Documents/Swayze_paper/Figures/pt_pseudosection_beta.ps',
-    #             dpi=600, orientation='landscape')
-    # fig, ax = plt.subplots(figsize=(16, 12))
-    # plt.colorbar(fake_im, ax=ax)
-    # ax.remove()
-    # plt.savefig('F:/ownCloud/Documents/Swayze_paper/Figures/phase_colourbar_beta.ps', dpi=600)
-
-# def plot_phase_tensor(data, normalize=True, fill_param='Beta'):
-# def generate_ellipse(phi):
-#     jx = np.cos(np.arange(0, 2 * np.pi, np.pi / 30))
-#     jy = np.sin(np.arange(0, 2 * np.pi, np.pi / 30))
-#     phi_x = phi[0, 0] * jx + phi[0, 1] * jy
-#     phi_y = phi[1, 0] * jx + phi[1, 1] * jy
-#     return phi_x, phi_y
-# ellipses = []
-# if fill_param != 'Lambda':
-#     fill_param = fill_param.lower()
-# # if fill_param == 'azimuth':
-# #     cmap = cm.hsv()
-# # else:
-# cmap = cm.jet()
-# X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
-# scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
-#                 (np.max(Y_all) - np.min(Y_all)) ** 2)
-# for ii, site_name in enumerate(self.site_names):
-#     site = self.site_data[data_type].sites[site_name]
-#     phi_x, phi_y = generate_ellipse(site.phase_tensors[period_idx].phi)
-#     X, Y = X_all[ii], Y_all[ii]
-#     phi_x, phi_y = (1000 * phi_x / site.phase_tensors[period_idx].phi_max,
-#                     1000 * phi_y / site.phase_tensors[period_idx].phi_max)
-#     radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
-#     # if radius > 1000:
-#     phi_x, phi_y = [(5 * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
-#     ellipses.append([Y - phi_x, X - phi_y])
-# fill_vals = np.array([getattr(self.site_data[data_type].sites[site].phase_tensors[period_idx],
-#                               fill_param)
-#                       for site in self.site_names])
-# if fill_param in ['phi_max', 'phi_min', 'det_phi', ' phi_1', 'phi_2', 'phi_3']:
-#     lower, upper = (0, 90)
-# elif fill_param in ['Lambda']:
-#     lower, upper = (np.min(fill_vals), np.max(fill_vals))
-# elif fill_param == 'beta':
-#     lower, upper = (-10, 10)
-# elif fill_param in ['alpha', 'azimuth']:
-#     lower, upper = (-90, 90)
-# fill_vals = np.rad2deg(np.arctan(fill_vals))
-# fill_vals[fill_vals > upper] = upper
-# fill_vals[fill_vals < lower] = lower
-# norm_vals = utils.normalize_range(fill_vals,
-#                                   lower_range=lower,
-#                                   upper_range=upper,
-#                                   lower_norm=0,
-#                                   upper_norm=1)
-# for ii, ellipse in enumerate(ellipses):
-#     self.window['axes'][0].fill(ellipse[0], ellipse[1],
-#                                 color=cmap(norm_vals[ii]),
-#                                 zorder=0)
-# fake_vals = np.linspace(lower, upper, len(fill_vals))
-# fake_im = self.window['axes'][0].scatter(self.site_locations['all'][:, 1],
-#                                          self.site_locations['all'][:, 0],
-#                                          c=fake_vals, cmap=cmap)
-# fake_im.set_visible(False)
-# cb = self.window['colorbar'] = self.window['figure'].colorbar(mappable=fake_im)
-# cb.set_label(fill_param,
-#              rotation=270,
-#              labelpad=20,
-#              fontsize=18)

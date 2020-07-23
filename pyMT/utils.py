@@ -6,6 +6,9 @@ from copy import deepcopy
 from math import log10, floor
 import pyproj
 from scipy.interpolate import RegularGridInterpolator as RGI
+from pyMT.IO import debug_print
+
+
 MU = 4 * np.pi * 1e-7
 
 
@@ -648,7 +651,11 @@ def flatten_list(List):
     Returns:
         TYPE: Description
     """
-    return [float(point) for sublist in List for point in sublist]
+    try:
+        ret = [float(point) for sublist in List for point in sublist]
+    except ValueError:
+        ret = [point for sublist in List for point in sublist]
+    return  ret
 
 
 def validate_input(inval, expected_type):
@@ -980,10 +987,16 @@ def calculate_misfit(data_site, response_site):
         return
     for comp in components:
         if comp in data_site.components:
-            misfit[comp] = (np.abs(response_site.data[comp] - data_site.data[comp]) /
-                            data_site.used_error[comp]) ** 2
-            comp_misfit[comp] = ((misfit[comp]))
-            period_misfit += misfit[comp]
+            try:
+                misfit[comp] = (np.abs(response_site.data[comp] - data_site.data[comp]) /
+                                data_site.used_error[comp]) ** 2
+                comp_misfit[comp] = ((misfit[comp]))
+                period_misfit += misfit[comp]
+            except ValueError:
+                debug_print(response_site.data[comp], 'debug.log')
+                debug_print(data_site.data[comp], 'debug.log')
+                debug_print(data_site.used_error[comp], 'debug.log')
+                a+=1
     period_misfit = (period_misfit / NR)
     comp_misfit.update({'Total': period_misfit})
     return misfit, comp_misfit

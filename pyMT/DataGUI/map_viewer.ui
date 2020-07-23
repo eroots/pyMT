@@ -47,7 +47,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>926</height>
+     <height>955</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -130,6 +130,13 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
+         <widget class="QComboBox" name="phaseTensorType">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Φ: Conventional Phase Tensor&lt;/p&gt;&lt;p&gt;Φₐ: Resistivity Phase Tensor&lt;/p&gt;&lt;p&gt;Uₐ: Real Apparent Resistivity Tensor&lt;/p&gt;&lt;p&gt;Vₐ: Imaginary Apparent Resistivity Tensor&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="toggle_dataPhaseTensor">
           <property name="text">
            <string>Data</string>
@@ -178,6 +185,9 @@
         </item>
         <item>
          <widget class="QComboBox" name="PhaseTensor_fill">
+          <property name="currentText">
+           <string>Phi_max</string>
+          </property>
           <item>
            <property name="text">
             <string>Alpha</string>
@@ -237,6 +247,9 @@
         </item>
         <item>
          <widget class="QComboBox" name="Bar_fill">
+          <property name="currentText">
+           <string>Phi_min</string>
+          </property>
           <item>
            <property name="text">
             <string>Alpha</string>
@@ -484,9 +497,18 @@ Resistivity</string>
      <property name="title">
       <string>Phase Tensors</string>
      </property>
+     <widget class="QMenu" name="menuRotation_Axis_Definition">
+      <property name="title">
+       <string>Rotation Axis Definition</string>
+      </property>
+      <addaction name="actionPTRotAxisX"/>
+      <addaction name="actionPTRotAxisY"/>
+     </widget>
      <addaction name="actionPhaseTensorScale"/>
      <addaction name="actionPTRhoErrorTolerance"/>
      <addaction name="actionPTPhaseErrorTolerance"/>
+     <addaction name="menuRotation_Axis_Definition"/>
+     <addaction name="actionMinimumAxisRatio"/>
     </widget>
     <widget class="QMenu" name="menuInduction_Arrows">
      <property name="enabled">
@@ -762,6 +784,30 @@ Resistivity</string>
    </property>
    <property name="text">
     <string>Lat/Long</string>
+   </property>
+  </action>
+  <action name="actionPTRotAxisX">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>X-axis</string>
+   </property>
+  </action>
+  <action name="actionPTRotAxisY">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Y-Axis</string>
+   </property>
+  </action>
+  <action name="actionMinimumAxisRatio">
+   <property name="text">
+    <string>Minimum Axis Ratio</string>
    </property>
   </action>
  </widget>

@@ -8,6 +8,9 @@ import shapefile
 import datetime
 
 
+REMOVE_FLAG = 1234567
+
+
 INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
                        'ZXYR', 'ZXYI',
                        'ZYXR', 'ZYXI',
@@ -525,8 +528,9 @@ def read_raw_data(site_names, datpath=''):
             # if (elev_head != elev_info) or (elev_head != elev_define) or (elev_define != elev_info):
             #     print('Elevations listed in HEAD, INFO and DEFINEMEAS do not match.')
             # print('Location information extracted from DEFINEMEAS block')
-            # lat, lon, elev = lat_define, lon_define, elev_define
-            lat, lon, elev = lat_head, lon_head, elev_head
+            lat, lon, elev = lat_define, lon_define, elev_define
+            if lat == lon == elev == 0:
+                lat, lon, elev = lat_head, lon_head, elev_head
             return lat, lon, elev
 
         def read_data_block(block):
@@ -1095,17 +1099,42 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         all_periods = []
         sorted_site_data = copy.deepcopy(site_data)
         sorted_site_error = copy.deepcopy(site_error)
+        all_periods = np.unique(np.array(utils.flatten_list([site_periods[site] for site in new_site_names])))
+        all_components = set(utils.flatten_list([list(site_data[site].keys()) for site in site_data.keys()]))
         for site in new_site_names:
+            thrown_error = 0
             # idx = np.argsort(site_periods[site])
             periods = sorted(site_periods[site])
-            all_periods.append(periods)
-            for component in site_data[site].keys():
-                sorted_periods = sorted(site_data[site][component].keys())
-                sorted_site_data[site].update({component: np.array([site_data[site][component][period] for period in sorted_periods])})
-                sorted_site_error[site].update({component: np.array([site_error[site][component][period] for period in sorted_periods])})
+            for component in all_components:
+                data, error = [], []
+                if component in site_data[site].keys():
+                    for period in all_periods:
+                        try:
+                            data.append(site_data[site][component][period])
+                            error.append(site_error[site][component][period])
+                        except KeyError:
+                            if thrown_error == 0:
+                                print('Non-uniform period map at site {}. Creating dummy data.'.format(site))
+                                thrown_error = 1
+                            idx = np.argmin(abs(period - periods))
+                            if periods[idx] not in site_data[site][component].keys():
+                                if thrown_error == 1:
+                                    print('Non-uniform component usage at site {}. Creating even dummier data.'.format(site))
+                                    thrown_error = 2
+                                idx = list(site_data[site][component].keys())[0]
+                                data.append(site_data[site][component][idx])
+                            else:
+                                data.append(site_data[site][component][periods[idx]])
+                            error.append(REMOVE_FLAG)
+                else:
+                    data = np.zeros((all_periods.shape))
+                    error = np.ones((all_periods.shape)) * REMOVE_FLAG
+                sorted_site_data[site].update({component: np.array(data)})
+                sorted_site_error[site].update({component: np.array(error)})
+                # sorted_periods = sorted(site_data[site][component].keys())
+                # sorted_site_data[site].update({component: np.array([site_data[site][component][period] for period in sorted_periods])})
+                # sorted_site_error[site].update({component: np.array([site_error[site][component][period] for period in sorted_periods])})
         # Sites get named according to list file, but are here internally called
-        all_periods = np.unique(np.array(utils.flatten_list(all_periods)))
-        all_components = set([component for component in site_data[site] for site in site_data.keys()])
         try:
             inv_type = [key for key in INVERSION_TYPES.keys() if all_components == set(INVERSION_TYPES[key])][0]
         except IndexError:

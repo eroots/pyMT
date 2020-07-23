@@ -3,28 +3,36 @@ from pyMT.IO import verify_input
 import os
 from pyMT.WSExceptions import WSFileError
 from pyMT.utils import project
+import pyproj
 
 
 def transform_locations(dataset, UTM):
     dataset.raw_data.locations = dataset.raw_data.get_locs(mode='latlong')
-    UTM_letter = UTM[-1]
-    while True:
-        if len(UTM) == 3:
-            UTM_number = int(UTM[:2])
-            break
-        elif len(UTM) == 2:
-            UTM_number = int(UTM[0])
-            break
-        else:
-            print('UTM {} is not a valid zone.'.format(UTM))
-            UTM = verify_input('UTM Zone',
-                               expected=str,
-                               default='dummy')
-    for ii in range(len(dataset.raw_data.locations)):
-        easting, northing = project((dataset.raw_data.locations[ii, 1],
-                                     dataset.raw_data.locations[ii, 0]),
-                                    zone=UTM_number, letter=UTM_letter)[2:]
-        dataset.raw_data.locations[ii, 1], dataset.raw_data.locations[ii, 0] = easting, northing
+    if UTM.lower() == 'lam':
+        transformer = pyproj.Transformer.from_crs('epsg:4326', 'epsg:3979')
+        for ii, (lat, lon) in enumerate(dataset.raw_data.locations):
+            x, y = transformer.transform(lat, lon)
+            dataset.raw_data.locations[ii, :] = y, x
+
+    else:
+        UTM_letter = UTM[-1]
+        while True:
+            if len(UTM) == 3:
+                UTM_number = int(UTM[:2])
+                break
+            elif len(UTM) == 2:
+                UTM_number = int(UTM[0])
+                break
+            else:
+                print('UTM {} is not a valid zone.'.format(UTM))
+                UTM = verify_input('UTM Zone',
+                                   expected=str,
+                                   default='dummy')
+        for ii in range(len(dataset.raw_data.locations)):
+            easting, northing = project((dataset.raw_data.locations[ii, 1],
+                                         dataset.raw_data.locations[ii, 0]),
+                                        zone=UTM_number, letter=UTM_letter)[2:]
+            dataset.raw_data.locations[ii, 1], dataset.raw_data.locations[ii, 0] = easting, northing
 
 
 def to_vtk(outfile, datafile=None, listfile=None, modelfile=None,

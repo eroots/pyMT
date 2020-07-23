@@ -121,13 +121,14 @@ def interpolate_slice(x, y, Z, NP):
 #                  listfile='C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst')
 #####################################################################
 # MALARTIC
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
-# data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
-# mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/Hex2Mod/HexMal_Z.model')
-# data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_hex.lst')
+# mod = WSDS.Model(local path + '/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.rho')
+# data = WSDS.Data(local path + '/data/Regions/MetalEarth/malartic/mal1/mal3_lastIter.dat')
+# mod = WSDS.Model(local_path + '/data/Regions/MetalEarth/malartic/Hex2Mod/HexMal_Z.model')
+# data = WSDS.Data(local_path + '/data/Regions/MetalEarth/malartic/Hex2Mod/Hex_all.data')
+# site_data = WSDS.Data(local_path + '/data/Regions/MetalEarth/malartic/Hex2Mod/Hex_all.data')
 #####################################################################
 # DRYDEN
-# mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
+# mod = WSDS.Model(local path + '/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.dat')
 #####################################################################
 # AFTON
@@ -142,9 +143,10 @@ def interpolate_slice(x, y, Z, NP):
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006100.rho')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006.dat')
 # LARDER
-# data = WSDS.RawData(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/test.lst')
-# # mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
-# mod = WSDS.Model(local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
+data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
+site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
+# # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
+mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
 # reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
@@ -152,9 +154,9 @@ def interpolate_slice(x, y, Z, NP):
 #                5.369642e+006]
 ######################################################################
 # Upper Abitibi
-mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
-data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+# data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
 kimberlines = []
 # data.locations = data.get_locs(mode='centered')
@@ -190,12 +192,12 @@ saturation = 0.8
 lightness = 0.4
 annotate_sites = False
 site_markers = True
-marker = 'kv'
+marker = 'k.'
 padding = 2000
 reverse_xaxis = False
 # zlim = [0, 4]
-lut = 32
-cax = [1, 4]
+lut = 256
+cax = [1, 5]
 isolum = False
 tick_label_size = 10
 axis_label_size = 12
@@ -203,24 +205,27 @@ markersize = 3
 # slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
 # lines = ['l0', 'l3', 'l6', 'l9', 'l12']
-slices = [9]
-# slices = [13, 16, 20, 22, 24, 26, 28, 30, 32, 33, 35, 37]
+# slices = [9]
+# slices = [5, 13, 16, 20, 22, 24, 26, 28, 30, 32, 33, 35, 37]
+slices = list(range(4, 21, 2))
 # slices = list(range(110, 160, 3))
 # slices = [110]
 lines = ['l0']
-# xlim = [-60, 50]
-# zlim = [0, 50]
+# xlim = [-50, 50]
+# zlim = [-100, 100]
 VE = 1 # Vertical exaggeration
 # xlim = [600, 677]
+xlim = [data.origin[0]/1000 - 10, data.origin[0]/1000 + 10]
+zlim = [data.origin[1]/1000 - 10, data.origin[1]/1000 + 5]
 # zlim = [5290, 5400]
-xlim = [463139.0099493311 / 1000, 790673.8220597332 / 1000]
-zlim = [5246370.107073599 / 1000, 5468333.540126671 / 1000]
+# xlim = [463139.0099493311 / 1000, 790673.8220597332 / 1000]
+# zlim = [5246370.107073599 / 1000, 5468333.540126671 / 1000]
 # xlim, zlim = [], []
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
 # cmap_name = 'jet_r'
-cmap_name = 'turbo_r'
+cmap_name = 'turbo_r_mod'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
@@ -241,15 +246,16 @@ for ii in range(len(mod.dy) - 1):
     y[ii] = (mod.dy[ii] + mod.dy[ii + 1]) / 2
 for ii in range(len(mod.dz) - 1):
     z[ii] = (mod.dz[ii] + mod.dz[ii + 1]) / 2
-if cmap_name in ('jetplus', 'turbo', 'turbo_r'):
+if cmap_name in ('jetplus', 'turbo', 'turbo_r', 'turbo_r_mod'):
     cmap = colourmaps.get_cmap(cmap_name)
 else:
     cmap = cm.get_cmap(cmap_name, lut)
-file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbo1-4/no_geo/'
+file_path = local_path + 'Documents/ME_Transects/Larder/RoughFigures/plan_views/zoomed/'
+# file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbo1-4/no_geo/'
 # for line, slice_num in zip(lines, slices):
 for slice_num in slices:
-    # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
-    title_ = ''
+    title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
+    # title_ = ''
     # file_name = ''.join(['afton3_turbo1-4_', str(int(mod.dz[slice_num])), 'm'])
     file_types = ['.png']
     # locations = data.get_locs(site_list=[site for site in data.site_names if site.startswith(line)])

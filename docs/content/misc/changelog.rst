@@ -1,6 +1,46 @@
 Change Log
 ==========
 
+* 22/07/20
+  
+  * Added Complex Apparent Resistivity Tensor (CART) representation into :ref:`Map Viewer`
+
+    * A drop down menu in :ref:`Map Viewer` can be used to switch between conventional PT and CART ellipses
+
+    * Note that not all of the ellipse fill values will be meaningful when display CART ellipses.
+
+      * Most useful parameters will be 'Phi_max' and 'Phi_min'
+
+    * Also note that while I have tested and compared the plotted CART ellipses against identical data plotted using FFMT (Frankfurt MT Software package, where CARTs were created), this feature is still experimental, and there is a possibility that some features supported by the conventional PT plotting tools have not been properly applied to the CARTs.
+
+  * Linked more plot elements to the colour scales that can be set in :ref:`Map Viewer`
+
+    * Rho pseudosections, model slices are controlled using the 'Rho' colour limits. Real resistivity tensor phi_max / phi_min values will be coloured by a log scale colour bar going from -U, U, where U is the upper 'Rho' colour limit. Imaginary resistivity tensor will use a linear scale from -U, U.
+
+    * Phase pseudosection and non-rotational phase tensor parameters (e.g., det_phi, phi_min, etc.) will use the 'Phase' colour limits. Resistivity phase tensor will use -U, U, where U is the upper 'Phase' colour limit.
+
+* 05/07/20
+
+  * Added options in :ref:`Map Viewer` to change the rotation axis definition for phase tensors
+
+    * By default it was (is) X-axis, meaning alpha, beta, azimuth are calculated counter-clockwise from X
+
+    * Alternate definition is to measure clockwise from Y
+
+    * Note that this only changes the numerical values and therefore the colours alpha, beta, and azimuth, but not the orientations.
+
+  * Added some logic in the IO module to allow slightly more robust reading of EDI files
+
+    * Locations where only being read from the 'DEFINEMEAS' block, but will now pull from 'HEAD' if the former is not defined.
+
+  * Added 1D modelling to :ref:`Data Plot`
+
+    * Open another window that allows you to enter layer thicknesses and resistivities, and the calculated response can then be plotted across all your stations
+
+    * Meant to allow for quick comparision between your data and the response for a 1D model.
+
+    * TODO: Allow writing of the 1D model.
+
 * 25/05/20
 
   * Fixed a bug that were causing 'Azimuth' and 'Alpha' to be displayed improperly (colours only, PT orientations were always fine)

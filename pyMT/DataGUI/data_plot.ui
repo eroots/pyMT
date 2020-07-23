@@ -128,9 +128,17 @@
     <addaction name="inv_type9"/>
     <addaction name="inv_type10"/>
    </widget>
+   <widget class="QMenu" name="menu1D_Modeling">
+    <property name="title">
+     <string>1D Modeling</string>
+    </property>
+    <addaction name="actionLaunchModeler"/>
+    <addaction name="actionPlot1DResponse"/>
+   </widget>
    <addaction name="menuDisplay_Options"/>
    <addaction name="menuWrite"/>
    <addaction name="menuInversion_Type_2"/>
+   <addaction name="menu1D_Modeling"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dock">
@@ -143,7 +151,7 @@
    <property name="minimumSize">
     <size>
      <width>836</width>
-     <height>353</height>
+     <height>357</height>
     </size>
    </property>
    <property name="features">
@@ -578,6 +586,16 @@
               </property>
               <property name="checked">
                <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="toggle1DResponse">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>1D Response</string>
               </property>
              </widget>
             </item>
@@ -1312,6 +1330,22 @@
    </property>
    <property name="text">
     <string>Plot Flagged Data</string>
+   </property>
+  </action>
+  <action name="actionLaunchModeler">
+   <property name="text">
+    <string>Launch Window</string>
+   </property>
+  </action>
+  <action name="actionPlot1DResponse">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Plot Response</string>
    </property>
   </action>
  </widget>

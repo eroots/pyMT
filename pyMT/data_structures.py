@@ -145,7 +145,7 @@ class Dataset(object):
         if dType in self.data_types:
             return bool(getattr(self, dType).sites)
         else:
-            print('{} is not a valid data type'.format(dType))
+            # print('{} is not a valid data type'.format(dType))
             return False
 
     @property
@@ -183,35 +183,40 @@ class Dataset(object):
         self.data.auto_set_inv_type()
 
     def reset_dummy_periods(self):
-        for site in self.data.site_names:
-            for ii, period in enumerate(self.data.periods):
-                min_diff = np.min(abs(period - self.raw_data.sites[site].periods))
-                if (period < 0.001 and (min_diff / period) > self.raw_data.remove_low_tol) or \
-                    (period > 0.001 and (min_diff / period) > self.raw_data.remove_high_tol):
-                    for comp in self.data.components:
-                        self.data.sites[site].errmap[comp][ii] = self.data.MISSING_DATA_MAP
-                        self.data.sites[site].errors[comp][ii] = self.data.REMOVE_FLAG
-                        self.data.sites[site].used_error[comp][ii] = self.data.REMOVE_FLAG
-                        if self.response.sites:
-                            idx = np.argmin(abs(period - self.response.periods))
-                            if (period - self.response.periods[idx]) == 0:
-                                self.response.sites[site].errmap[comp][idx] = self.response.MISSING_DATA_MAP
-                                self.response.sites[site].errors[comp][idx] = self.response.REMOVE_FLAG
-                                self.response.sites[site].used_error[comp][idx] = self.response.REMOVE_FLAG
-                elif (period < 0.001 and (min_diff / period) > self.raw_data.low_tol) or \
-                    (period > 0.001 and (min_diff / period) > self.raw_data.high_tol):
-                    for comp in self.data.components:
-                        self.data.sites[site].change_errmap(periods=period, mult=self.data.NO_PERIOD_MAP,
-                                                            comps=comp,
-                                                            multiplicative=True)
+        if self.has_dType('data') and self.has_dType('raw_data'):
+            for site in self.data.site_names:
+                for ii, period in enumerate(self.data.periods):
+                    min_diff = np.min(abs(period - self.raw_data.sites[site].periods))
+                    if (period < 0.001 and (min_diff / period) > self.raw_data.remove_low_tol) or \
+                        (period > 0.001 and (min_diff / period) > self.raw_data.remove_high_tol):
+                        for comp in self.data.components:
+                            self.data.sites[site].errmap[comp][ii] = self.data.MISSING_DATA_MAP
+                            self.data.sites[site].errors[comp][ii] = self.data.REMOVE_FLAG
+                            self.data.sites[site].used_error[comp][ii] = self.data.REMOVE_FLAG
+                            if self.response.sites:
+                                idx = np.argmin(abs(period - self.response.periods))
+                                if (period - self.response.periods[idx]) == 0:
+                                    self.response.sites[site].errmap[comp][idx] = self.response.MISSING_DATA_MAP
+                                    self.response.sites[site].errors[comp][idx] = self.response.REMOVE_FLAG
+                                    self.response.sites[site].used_error[comp][idx] = self.response.REMOVE_FLAG
+                    elif (period < 0.001 and (min_diff / period) > self.raw_data.low_tol) or \
+                        (period > 0.001 and (min_diff / period) > self.raw_data.high_tol):
+                        for comp in self.data.components:
+                            self.data.sites[site].change_errmap(periods=period, mult=self.data.NO_PERIOD_MAP,
+                                                                comps=comp,
+                                                                multiplicative=True)
+        else:
+            print('Cannot reset dummy periods without both data and raw data')
 
     def reset_dummy_components(self):
-        for site in self.data.site_names:
-            for component in self.data.components:
-                if component not in self.raw_data.sites[site].components:
-                    self.data.sites[site].errmap[component][:] = self.data.MISSING_DATA_MAP
-                    self.data.sites[site].used_error[component][:] = self.data.REMOVE_FLAG
-
+        if self.has_dType('data') and self.has_dType('raw_data'):
+            for site in self.data.site_names:
+                for component in self.data.components:
+                    if component not in self.raw_data.sites[site].components:
+                        self.data.sites[site].errmap[component][:] = self.data.MISSING_DATA_MAP
+                        self.data.sites[site].used_error[component][:] = self.data.REMOVE_FLAG
+        else:
+            print('Cannot reset dummy components without both data and raw data')
 
     def read_model(self, modelfile=''):
         """Summary
@@ -1352,7 +1357,7 @@ class Model(object):
         '''
         print('in to_UTM')
         if self.coord_system == 'local':
-            if origin:
+            if origin is not None:
                 # print('in if origin')
                 self.origin = origin
             elif self.origin is None:
@@ -1362,7 +1367,6 @@ class Model(object):
             self._dx = [x + self.origin[1] for x in self._dx]
             self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':
-            print('in if latlong')
             # self._dy, self._dx = utils.project((self._dx, self._dy))
             self._dy, self._dx = utils.project((self._dx, self._dy), zone=self.UTM_zone[:-1], letter=self.UTM_zone[-1])
         elif self.coord_system == 'UTM':
@@ -2090,6 +2094,7 @@ class Site(object):
                 new_errmap[comp].insert(ind - shift, errmap[comp][ii])
                 if period not in current_periods:
                     self.phase_tensors.insert(ind, site.phase_tensors[ii])
+                    self.CART.insert(ind, site.CART[ii])
                     current_periods.insert(ind, period)
                     shift = 1
         self.data = {comp: utils.list2np(new_data[comp]) for comp in self.components}
@@ -2335,6 +2340,7 @@ class Site(object):
 
     def calculate_phase_tensors(self):
         self.phase_tensors = []
+        self.CART = []
         if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)):
             rhoxy, rhoxy_err, rhoxy_log10err = utils.compute_rho(self, calc_comp='xy', errtype='used_error')
             rhoyx, rhoyx_err, rhoyx_log10err = utils.compute_rho(self, calc_comp='yx', errtype='used_error')
@@ -2348,6 +2354,7 @@ class Site(object):
                                                            rhoxy_err[ii], rhoyx_err[ii]],
                                                       phase=[phaxy[ii], phayx[ii],
                                                              phaxy_err[ii], phayx_err[ii]]))
+                self.CART.append(CART(period=period, Z=Z))
         else:
             print('Phase tensor calculation requires all impedance components.')
             print('If input data is phase tensors, use "define_phase_tensor" method instead.')
@@ -2720,6 +2727,8 @@ class RawData(object):
 
 class PhaseTensor(object):
     def __init__(self, period, Z=None, rho=None, phase=None, phi=None, phi_error=None):
+        # Are alpha, beta, azimuth considered clockwise from 'y', or counter-clockwise from 'x'
+        self._rotation_axis = 'x' 
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.error_floor = np.tan(np.deg2rad(3))
         self.period = period
@@ -2767,6 +2776,19 @@ class PhaseTensor(object):
             self.valid_data = False
         if self.valid_data:
             self.calculate_phase_parameters()
+
+    @property
+    def rotation_axis(self):
+        return self._rotation_axis
+
+    @rotation_axis.setter
+    def rotation_axis(self, value):
+        if value in ('x', 'y'):
+            self._rotation_axis = value
+            self.alpha, self.beta = self.calculate_rotation_parameters()
+        else:
+            print('Rotation axis must be x or y')
+
 
     @property
     def PTXX(self):
@@ -2859,6 +2881,17 @@ class PhaseTensor(object):
             # Error with data. Use dummy data and set flag
             self.valid_data = False
 
+    def calculate_rotation_parameters(self):
+        if self.rotation_axis.lower() == 'x':
+            alpha = 0.5 * np.arctan2((self.phi[0, 1] + self.phi[1, 0]), (self.phi[0, 0] - self.phi[1, 1]))
+            beta = 0.5 * np.arctan2((self.phi[0, 1] - self.phi[1, 0]), (self.phi[0, 0] + self.phi[1, 1]))
+        elif self.rotation_axis.lower() == 'y':
+        #############
+        # This method defines then clockwise from north, in the more typically MT way.
+            alpha = 0.5 * np.arctan2((self.phi[1, 0] + self.phi[0, 1]), (self.phi[1, 1] - self.phi[0, 0]))
+            beta = -0.5 * np.arctan2((self.phi[0, 1] - self.phi[1, 0]), (self.phi[0, 0] + self.phi[1, 1]))
+        return alpha, beta
+
     def calculate_phase_parameters(self):
         # det_phi = (np.linalg.det(self.phi))
         det_phi = self.phi[0, 0] * self.phi[1, 1] - self.phi[0, 1] * self.phi[1, 0]
@@ -2872,7 +2905,6 @@ class PhaseTensor(object):
         phi_min = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) -
                    np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
         # alpha = 0.5 * np.arctan2((self.phi[0, 0] - self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
-        alpha = 0.5 * np.arctan2((self.phi[0, 1] + self.phi[1, 0]), (self.phi[0, 0] - self.phi[1, 1]))
         # Lambda = (phi_max - phi_min) / (phi_max + phi_min)
         Lambda = (np.sqrt((self.phi[0, 0] - self.phi[1, 1]) ** 2 +
                           (self.phi[0, 1] + self.phi[1, 0]) ** 2) /
@@ -2880,8 +2912,11 @@ class PhaseTensor(object):
                           (self.phi[0, 1] - self.phi[1, 0]) ** 2))
         # beta = 0.5 * np.arctan(2 * phi_3 / 2 * phi_1)
         # beta = 0.5 * np.arctan2((self.phi[0, 0] + self.phi[1, 1]), (self.phi[0, 1] - self.phi[1, 0]))
-        beta = 0.5 * np.arctan2((self.phi[0, 1] - self.phi[1, 0]), (self.phi[0, 0] + self.phi[1, 1]))
+        #############
+        # This definition (I think) is that suggested in Caldwell et al., where angles are measured
+        # counter-clockwise from east (typical cartesian method)
         # azimuth = 0.5 * np.pi - (alpha - beta)
+        alpha, beta = self.calculate_rotation_parameters()
         azimuth = (alpha - beta)
         self.det_phi = (det_phi)
         self.skew_phi = skew_phi
@@ -2939,4 +2974,256 @@ class PhaseTensor(object):
         # new_phi.Lambda = self.Lambda - y.Lambda
         # new_phi.beta = self.beta - y.beta
         # new_phi.azimuth = self.azimuth - y.azimuth
+        return new_phi
+
+class CART(PhaseTensor):
+    def __init__(self, period, Z=None, rho=None, phase=None, phi=None, phi_error=None):
+        # Are alpha, beta, azimuth considered clockwise from 'y', or counter-clockwise from 'x'
+        self._rotation_axis = 'x' 
+        self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
+        self.error_floor = np.tan(np.deg2rad(3))
+        self.period = period
+        self.Z = Z
+        self.det_phi = 0
+        self.skew_phi = 0
+        self.phi_1 = 0
+        self.phi_2 = 0
+        self.phi_max = 0
+        self.phi_min = 0
+        self.alpha = 0
+        self.beta = 0
+        self.Lambda = 0
+        self.azimuth = 0
+        if not rho:
+            rho = (0, 0, 0, 0)
+        if not phase:
+            phase = (0, 0, 0, 0)
+        self.rhoxy = rho[0]
+        self.rhoyx = rho[1]
+        self.phasexy = phase[0]
+        self.phaseyx = phase[1]
+        self.rhoxy_error = rho[2]
+        self.rhoyx_error = rho[3]
+        self.phasexy_error = phase[2]
+        self.phaseyx_error = phase[3]
+        if Z:
+            self.valid_data = True
+            self.form_tensors(Z)
+            self.calculate_CART()
+            self.phi_error = np.array(((self.error_floor, self.error_floor),
+                                       (self.error_floor, self.error_floor)))
+        elif phi:
+            self.valid_data = True
+            for k, v in phi.items():
+                setattr(self, k, v)
+            if phi_error:
+                self.phi_error = np.zeros((2, 2))
+                for k, v in phi_error.items():
+                    setattr(self, k + '_error', v)
+            else:
+                self.phi_error = np.array(((self.error_floor, self.error_floor),
+                                           (self.error_floor, self.error_floor)))
+        else:
+            self.valid_data = False
+        if self.valid_data:
+            self.calculate_phase_parameters()
+
+    @property
+    def rotation_axis(self):
+        return self._rotation_axis
+
+    @rotation_axis.setter
+    def rotation_axis(self, value):
+        if value in ('x', 'y'):
+            self._rotation_axis = value
+            for tensor in ('phi', 'Ua', 'Va'):
+                alpha, beta = self.calculate_rotation_parameters(tensor=getattr(self, tensor))
+                if tensor == 'phi':
+                    self.alpha, self.beta = alpha, beta
+                else:
+                    setattr(self, '_'.join([tensor, 'alpha']), alpha)
+                    setattr(self, '_'.join([tensor, 'beta']), beta)
+        else:
+            print('Rotation axis must be x or y')
+
+    def calculate_rotation_parameters(self, tensor):
+    #         psi_new = atan2d(PTskew,PTtrace);   % eq(19)
+    # if psi_new < -90
+    #     psi_new = psi_new+180;
+    # elseif psi_new> 90
+    #     psi_new = psi_new-180;
+    # end
+    # alpha = theta+0.5*psi_new;
+    # beta=psi_new/2;
+        if self.rotation_axis.lower() == 'x':
+            x, y = 0, 1
+            # alpha = 0.5 * np.arctan2((tensor[0, 1] + tensor[1, 0]), (tensor[0, 0] - tensor[1, 1]))
+            # beta = 0.5 * np.arctan2((tensor[0, 1] - tensor[1, 0]), (tensor[0, 0] + tensor[1, 1]))
+        elif self.rotation_axis.lower() == 'y':
+            x, y = 1, 0
+        #############
+        # This method defines then clockwise from north, in the more typically MT way.
+            # alpha = 0.5 * np.arctan2((tensor[1, 0] + tensor[0, 1]), (tensor[1, 1] - tensor[0, 0]))
+            # beta = -0.5 * np.arctan2((tensor[0, 1] - tensor[1, 0]), (tensor[0, 0] + tensor[1, 1]))
+        skew = tensor[x, y] - tensor[y, x]
+        trace = tensor[x, x] + tensor[y, y]
+        psi_new = np.arctan2(skew, trace)
+        # if psi_new < -np.pi / 2:
+        #     psi_new = psi_new + np.pi
+        # elif psi_new > np.pi / 2:
+        #     psi_new = psi_new - np.pi
+        Rpsi_new = np.array(((np.cos(psi_new), np.sin(psi_new)), (-np.sin(psi_new), np.cos(psi_new))))
+        PT_phi_new = np.matmul(tensor, Rpsi_new.T)
+        theta = 0.5 * np.arctan2(tensor[x, y] + tensor[y, x], tensor[x, x] - tensor[y, y]) - (0.5 * psi_new)
+        if not np.any(np.isnan(PT_phi_new)):
+            v, d = np.linalg.eig(PT_phi_new)
+            eigs = d[1, 1], d[0, 0]
+        else:
+            eigs = [np.NaN, np.NaN]
+        maxind = np.argmax(np.abs(eigs))
+        minind = np.argmin(np.abs(eigs))
+        tensor_max = eigs[maxind]
+        tensor_min = eigs[minind]
+        # if tensor_min <= 0 and tensor_max < 0:
+        #     theta += (np.pi / 2)
+        # elif tensor_min > 0 and tensor_max < 0:            
+        #     theta += (np.pi / 2)
+        beta = psi_new / 2
+        alpha = theta + 0.5 * psi_new
+        return alpha, beta
+
+    def calculate_CART(self):
+        omega = 2 * np.pi / self.period
+        MU = 4 * np.pi * 1e-7
+        U = deepcopy(self.X)
+        V = deepcopy(self.Y)
+        # Must be some issue with units. This is not right for my data
+        # C = - MU / (omega * scale_factor)
+        # This one works?
+        C = - 1 / (MU * omega)
+        RT = np.zeros((2, 2))
+        RT_I = np.zeros((2, 2))
+        RT[0, 0] = C * (U[0,0] * V[1,1] + U[1,1] * V[0,0] - 2 * U[0,1] * V[0,1])
+        RT[0, 1] = C * (U[0,0] * (V[0,1] - V[1,0]) + V[0,0] * (U[0,1] - U[1,0]))
+        RT[1, 0] = C * (U[1,1] * (V[1,0] - V[0,1]) + V[1,1] * (U[1,0] - U[0,1]))
+        RT[1, 1] = C * (U[0,0] * V[1,1] + U[1,1] * V[0,0] - 2 * U[1,0] * V[1,0])
+        RT_I[0, 0] = -C * (U[0,0] * U[1,1] - V[0,0] * V[1,1] - U[0,1]**2 + V[0,1]**2)
+        RT_I[0, 1] = -C * (U[0,0] * (U[0,1] - U[1,0]) + V[0,0] * (V[1,0] - V[0,1]))
+        RT_I[1, 0] = -C * (U[1,1] * (U[1,0] - U[0,1]) + V[1,1] * (V[0,1] - V[1,0]))
+        RT_I[1, 1] = -C * (U[0,0] * U[1,1] - V[0,0] * V[1,1] - U[1,0]**2 + V[1,0]**2)
+        # RT[1, 1] = C * (U[0,0] * V[1,1] + U[1,1] * V[0,0] - 2 * U[0,1] * V[0,1])
+        # RT[1, 0] = C * (U[0,0] * (V[0,1] - V[1,0]) + V[0,0] * (U[0,1] - U[1,0]))
+        # RT[0, 1] = C * (U[1,1] * (V[1,0] - V[0,1]) + V[1,1] * (U[1,0] - U[0,1]))
+        # RT[0, 0] = C * (U[0,0] * V[1,1] + U[1,1] * V[0,0] - 2 * U[1,0] * V[1,0])
+        # RT_I[1, 1] = -C * (U[0,0] * U[1,1] - V[0,0] * V[1,1] - U[0,1]**2 + V[0,1]**2)
+        # RT_I[1, 0] = -C * (U[0,0] * (U[0,1] - U[1,0]) + V[0,0] * (V[1,0] - V[0,1]))
+        # RT_I[0, 1] = -C * (U[1,1] * (U[1,0] - U[0,1]) + V[1,1] * (V[0,1] - V[1,0]))
+        # RT_I[0, 0] = -C * (U[0,0] * U[1,1] - V[0,0] * V[1,1] - U[1,0]**2 + V[1,0]**2)
+        self.Ua = RT
+        self.Va = RT_I
+        # self.phi = np.linalg.inv(RT) * RT_I
+        self.phi[0, 0] = RT[1, 1] * RT_I[0, 0] - RT[0, 1] * RT_I[1, 0]
+        self.phi[0, 1] = RT[1, 1] * RT_I[0, 1] - RT[0, 1] * RT_I[1, 1]
+        self.phi[1, 0] = -RT[1, 0] * RT_I[0, 0] + RT[0, 0] * RT_I[1, 0]
+        self.phi[1, 1] = -RT[1, 0] * RT_I[0, 1] + RT[0, 0] * RT_I[1, 1]
+        self.phi /= RT[0, 0] * RT[1, 1] - RT[0, 1] * RT[1, 0]
+
+    def calculate_phase_parameters(self):
+        # det_phi = (np.linalg.det(self.phi))
+        x, y = 0, 1
+        for param in ('phi', 'Ua', 'Va'):
+            tensor = getattr(self, param)
+            det_phi = tensor[0, 0] * tensor[1, 1] - tensor[0, 1] * tensor[1, 0]
+            skew_phi = (tensor[0, 1] - tensor[1, 0])
+            phi_1 = (tensor[0, 0] + tensor[1, 1]) / 2
+            phi_2 = np.sqrt(np.abs(det_phi))
+            phi_3 = skew_phi / 2
+            # pi1 = 0.5 * np.sqrt((tensor[0, 0] - tensor[1, 1]) ** 2 +
+                  # (tensor[0, 1] + tensor[1, 0]) ** 2)
+            # pi2 = 0.5 * np.sqrt((tensor[0, 0] + tensor[1, 1]) ** 2 +
+                    # (tensor[0, 1] - tensor[1, 0]) ** 2)
+            # phi_max = pi1 + pi2
+            # phi_min = pi2 - pi1
+            # Note there is no abs on det_phi here by recommendation of Moorkamp (2007)
+            # phi_max = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) +
+                       # np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
+            # phi_min = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) -
+                       # np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
+            skew = tensor[x, y] - tensor[y, x]
+            trace = tensor[x, x] + tensor[y, y]
+            psi_new = np.arctan2(skew, trace)
+            if psi_new < -np.pi / 2:
+                psi_new = psi_new + np.pi
+            elif psi_new > np.pi / 2:
+                psi_new = psi_new - np.pi
+            Rpsi_new = np.array(((np.cos(psi_new), np.sin(psi_new)), (-np.sin(psi_new), np.cos(psi_new))))
+            PT_phi_new = np.matmul(tensor, Rpsi_new.T)
+            if not np.any(np.isnan(PT_phi_new)):
+                v, d = np.linalg.eig(PT_phi_new)
+                eigs = v[1], v[0]
+            else:
+                eigs = [np.NaN, np.NaN]
+            maxind = np.argmax(np.abs(eigs))
+            minind = np.argmin(np.abs(eigs))
+            phi_max = eigs[maxind]
+            phi_min = eigs[minind]
+            Lambda = phi_max / phi_min
+            # Lambda = (np.sqrt((tensor[0, 0] - tensor[1, 1]) ** 2 +
+            #                   (tensor[0, 1] + tensor[1, 0]) ** 2) /
+            #           np.sqrt((tensor[0, 0] + tensor[1, 1]) ** 2 +
+            #                   (tensor[0, 1] - tensor[1, 0]) ** 2))
+            alpha, beta = self.calculate_rotation_parameters(tensor)
+            azimuth = (alpha - beta)
+            delta = np.linalg.norm(tensor)
+            if param == 'phi':
+                self.det_phi = (det_phi)
+                self.skew_phi = skew_phi
+                self.phi_1 = phi_1
+                self.phi_2 = phi_2
+                self.phi_3 = phi_3
+                self.phi_max = phi_max
+                self.phi_min = phi_min
+                self.alpha = alpha
+                self.Lambda = Lambda
+                self.beta = beta
+                self.azimuth = azimuth
+                self.delta = np.linalg.norm(self.phi)
+            else:
+                setattr(self, '_'.join([param, 'det_phi']), det_phi)
+                setattr(self, '_'.join([param, 'skew_phi']), skew_phi)
+                setattr(self, '_'.join([param, 'phi_1']), phi_1)
+                setattr(self, '_'.join([param, 'phi_2']), phi_2)
+                setattr(self, '_'.join([param, 'phi_3']), phi_3)
+                setattr(self, '_'.join([param, 'phi_max']), phi_max)
+                setattr(self, '_'.join([param, 'phi_min']), phi_min)
+                setattr(self, '_'.join([param, 'alpha']), alpha)
+                setattr(self, '_'.join([param, 'beta']), beta)
+                setattr(self, '_'.join([param, 'azimuth']), azimuth)
+                setattr(self, '_'.join([param, 'Lambda']), Lambda)
+                setattr(self, '_'.join([param, 'delta']), delta)
+
+    def __add__(self, y):
+        new_phi = CART(self.period, None)
+        new_phi.phi = self.phi + y.phi
+        new_phi.calculate_phase_parameters()
+        return new_phi
+
+    def __sub__(self, y):
+        new_phi = CART(self.period, None)
+        inv_phi = np.linalg.inv(self.phi)
+        new_phi.phi = np.identity(2) - 0.5 * (np.matmul(inv_phi, y.phi) + np.matmul(y.phi, inv_phi))
+        inv_Ua = np.linalg.inv(self.Ua)
+        new_phi.Ua = np.identity(2) - 0.5 * (np.matmul(inv_Ua, y.Ua) + np.matmul(y.Ua, inv_Ua))
+        inv_Va = np.linalg.inv(self.Va)
+        new_phi.Va = np.identity(2) - 0.5 * (np.matmul(inv_Va, y.Va) + np.matmul(y.Va, inv_Va))
+        new_phi.calculate_phase_parameters()
+        new_phi.phi = np.abs(self.phi - y.phi)
+        new_phi.delta = 100 * (np.linalg.norm(new_phi.phi) / np.linalg.norm(self.phi))
+        new_phi.phi /= np.linalg.norm(self.phi)
+        new_phi.Ua = np.abs(self.Ua - y.Ua)
+        new_phi.Ua_delta = 100 * (np.linalg.norm(new_phi.Ua) / np.linalg.norm(self.Ua))
+        new_phi.Ua /= np.linalg.norm(self.Ua)
+        new_phi.Va = np.abs(self.Va - y.Va)
+        new_phi.Va_delta = 100 * (np.linalg.norm(new_phi.Va) / np.linalg.norm(self.Va))
+        new_phi.Va /= np.linalg.norm(self.Va)
         return new_phi

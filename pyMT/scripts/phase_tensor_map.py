@@ -66,50 +66,59 @@ def plot_ellipse(data, fill_param):
 
 
 if __name__ == '__main__':
-    # filename = 'F:/GJH/TNG&MTR-EDI/all.lst'
-    # filename = 'C:/users/eroots/phd/ownCloud/data/ArcMap/LegacyMT/ag_edi/ag/all.lst'
-    # filename = 'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/GJH/ForEric/TNG&MTR-EDI/all.lst'
-    # filename = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/cull_allSuperior.data'
-    # listfile = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/j2/culled_allSuperior.lst'
-    # out_path = 'C:/Users/eric/phd/ownCloud/Documents/Seminars/Seminar 3/Figures/PTs/'
-    # filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry5_3.dat'
-    # listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/j2/dry5_3.lst'
-    # out_path = 'C:/Users/eroots/phd/ownCloud/Documents/Dryden_paper/RoughFigures/PTs/'
-    filename = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/sorted_lines.dat'
-    listfile = 'C:/Users/eroots/phd/ownCloud/data/Regions/afton/j2/sorted_lines.lst'
-    out_path = 'C:/Users/eroots/phd/ownCloud/Documents/TGI/Figures/'
-    local_path = 'C:/Users/eroots'
-    filename = local_path + '/phd/ownCloud/data/Regions/afton/sorted_lines.dat'
-    listfile = local_path + '/phd/ownCloud/data/Regions/afton/j2/sorted_lines.lst'
-    out_path = local_path + '/phd/ownCloud/Documents/TGI/Figures//PT_sections/'
-    out_file = 'afton_PT_'
-    ext = '.png'
-    dpi = 600
-    save_fig = 0
-    cutoff_distance = 500
+    # local_path = 'C:/Users/eroots'
+    local_path = 'E:/phd/Nextcloud/'
+    filename = local_path + 'data/Regions/MetalEarth/AG/AG_plotset.dat'
+    listfile = local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
+    out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_beta/removed/'
+    # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
+    jpg_file_name = []
+    out_file = 'AG_PT_'
+    ext = ['.png', '.svg']
+    dpi = 150
+    padding = 30
+    save_fig = 1
+    cutoff_distance = 3500
+    remove_close_sites = 1
+    fill_param = ['phi_2', 'beta']
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
     # data.locations = rawdata.get_locs(mode='latlong')
+    freq_skip = 0
 
     all_sites = deepcopy(data.site_names)
     # Remove redunantly close points
-    # for ii, site1 in enumerate(data.site_names):
-    #     for jj, site2 in enumerate(data.site_names):
-    #         dist = euclidean((data.locations[ii, 1], data.locations[ii, 0]),
-    #                          (data.locations[jj, 1], data.locations[jj, 0]))
-    #         if dist < cutoff_distance and site1 in all_sites and (site1 != site2):
-    #             if site2 in all_sites:
-    #                 all_sites.remove(site2)
-    # rm_sites = [site for site in data.site_names if site not in all_sites]
-    # # rm_sites = [site for site in data.site_names[2:]]
-    # data.remove_sites(sites=rm_sites)
-    # raw.remove_sites(sites=rm_sites)
+    if remove_close_sites:
+        for ii, site1 in enumerate(data.site_names):
+            for jj, site2 in enumerate(data.site_names):
+                dist = euclidean((data.locations[ii, 1], data.locations[ii, 0]),
+                                 (data.locations[jj, 1], data.locations[jj, 0]))
+                if dist < cutoff_distance and site1 in all_sites and (site1 != site2):
+                    if site2 in all_sites:
+                        all_sites.remove(site2)
+        rm_sites = [site for site in data.site_names if site not in all_sites]
+        # rm_sites = [site for site in data.site_names[2:]]
+        data.remove_sites(sites=rm_sites)
+        raw.remove_sites(sites=rm_sites)
     raw.locations = raw.get_locs(mode='latlong')
     for ii in range(len(raw.locations)):
-        lon, lat = utils.project((raw.locations[ii, 1], raw.locations[ii, 0]), zone=10, letter='U')[2:]
+        lon, lat = utils.project((raw.locations[ii, 1], raw.locations[ii, 0]), zone=17, letter='U')[2:]
         raw.locations[ii, 1], raw.locations[ii, 0] = lon, lat
-    data.locations = raw.locations
+    data.locations = raw.locations / 1000
     
+    if jpg_file_name:
+        im = plt.imread(jpg_file_name)
+        with open(jpg_file_name[:-3] + 'jgw', 'r') as f:
+            xsize = float(f.readline())
+            dummy = f.readline()
+            dummy = f.readline()
+            ysize = 1 * float(f.readline())
+            x1 = float(f.readline())
+            y2 = float(f.readline())
+        x2 = x1 + xsize * im.shape[1]
+        y1 = y2 + ysize * im.shape[0]
+        extents = [x1, x2, y1, y2]
+
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111)
     MV = gplot.MapView(fig=fig)
@@ -123,33 +132,86 @@ if __name__ == '__main__':
     MV.pt_scale = 1
     MV.phase_error_tol = 1000
     MV.rho_error_tol = 1000
+    MV.lut = 32
     # # MV.site_locations['generic'] = MV.get_locations(sites=MV.generic_sites)
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
+    first_time = 0
     # for ii in range(len(data.periods)):
     # for ii in [30]:
-    # for ii in range(0, len(data.periods), 4):
-    for ii in [0]:
+    for ii in range(0, len(data.periods), freq_skip + 1):
+    # for ii in [10]:
+    # for ii in range(len(data.periods)):   
+        if not first_time:
+            MV.window['figure'] = plt.figure(figsize=(12, 8))
+            MV.window['axes'] = [MV.window['figure'].add_subplot(111)]
+        else:
+            first_time = 1
         period = data.periods[ii]
         if period < 1:
             period = -1 / period
         period = str(int(period))
+        if jpg_file_name:
+            MV.plot_image(im, extents)
         MV.plot_phase_tensor(data_type='data', normalize=True,
-                             fill_param='phi_max', period_idx=ii)
-        MV.plot_phase_bar(data_type='data', normalize=True,
-                          fill_param='phi_min', period_idx=ii)
+                             fill_param=fill_param[0], period_idx=ii)
+        if (fill_param[0] != fill_param[1]) and fill_param[1]:
+            two_param = 1
+            MV.plot_phase_bar(data_type='data', normalize=True,
+                              fill_param='beta', period_idx=ii)
+        else:
+            two_param = 0
         # MV.plot_phase_bar2(data_type='data', normalize=True,
         #                    fill_param='phi_min', period_idx=ii)
-        MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - 250,
-                                   max(data.locations[:, 1]) + 250,
-                                   min(data.locations[:, 0]) - 250,
-                                   max(data.locations[:, 0]) + 250])
+        MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - padding,
+                                   max(data.locations[:, 1]) + padding,
+                                   min(data.locations[:, 0]) - padding,
+                                   max(data.locations[:, 0]) + padding])
         MV.window['axes'][0].set_aspect(1)
+        MV.window['axes'][0].set_xlabel('Easting (m)', fontsize=14)
+        MV.window['axes'][0].set_ylabel('Northing (m)', fontsize=14)
+        if not two_param:
+            label = MV.get_label(fill_param[0])
+            MV.window['colorbar'].set_label(label + r' ($^{\circ}$)',
+                                            rotation=270,
+                                            labelpad=20,
+                                            fontsize=18)
+            caxes = [MV.window['colorbar'].ax]
+        else:
+            cax1 = MV.window['colorbar'].ax
+            pos = MV.window['colorbar'].ax.get_position()
+            cax1.set_aspect('auto')
+            cax2 = MV.window['colorbar'].ax.twinx()
+            # MV.window['colorbar'].ax.yaxis.set_label_position('left')
+            cax2.set_ylim([-10, 10])
+            newlabel = [str(x) for x in range(-10, 12, 2)]
+            cax2.set_yticks(range(-10, 12, 2))
+            cax2.set_yticklabels(newlabel)
+            pos.x0 += 0.05
+            pos.x1 += 0.05
+            cax1.set_position(pos)
+            cax2.set_position(pos)
+            label = MV.get_label(fill_param[0])
+            cax1.set_ylabel(label + r' ($^{\circ}$)', fontsize=18)
+            cax1.yaxis.set_ticks_position('right')
+            cax1.yaxis.set_label_position('right')
+            cax2.yaxis.set_ticks_position('left')
+            cax2.yaxis.set_label_position('left')
+            label = MV.get_label(fill_param[1])
+            cax2.set_ylabel(label + r' ($^{\circ}$)', fontsize=18)
+            caxes = [cax1, cax2]
+        MV.window['axes'][0].set_title('Period: {0:.5g} s'.format(data.periods[ii]))
         # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
         if save_fig:
-            plt.savefig(out_path + out_file + 'idx' + str(ii) + '_p' + period + ext, dpi=dpi,
-                        transparent=True)
-            ax.clear()
+            for file_format in ext:
+                plt.savefig(out_path + out_file + 'idx' + str(ii) + '_p' + period + file_format, dpi=dpi,
+                            transparent=True)
+            plt.close('all')
+            MV.window['colorbar'] = None
+            # ax.clear()
+
+            # for x in caxes:
+            #     x.clear()
         else:
             plt.show()

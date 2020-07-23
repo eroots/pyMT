@@ -111,8 +111,9 @@ class DataPlotManager(object):
         self.axis_padding = 0.1
         self.colour = ['darkgray', 'r', 'g', 'm', 'y', 'lime', 'peru', 'palegreen']
         self.sites = {'raw_data': [], 'data': [], 'response': []}
-        self.toggles = {'raw_data': True, 'data': True, 'response': True}
-        self.marker = {'raw_data': 'o', 'data': 'oo', 'response': '-'}
+        self.toggles = {'raw_data': True, 'data': True, 'response': True, '1d': False}
+        self.site1D = []
+        self.marker = {'raw_data': 'o', 'data': 'oo', 'response': '-', '1d': '--'}
         self.errors = 'mapped'
         self.which_errors = ['data', 'raw_data']
         self.components = ['ZXYR']
@@ -130,7 +131,7 @@ class DataPlotManager(object):
         self.min_ylim = None
         self.max_ylim = None
         self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1], 'tipper': [-1, 1]}
-        self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
+        self.artist_ref = {'raw_data': [], 'data': [], 'response': [], '1d': []}
         self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
                          't': 'Transfer Function', 'p': 'Phase', 'b': 'Apparent Resistivity'}
         self.pt_units = 'degrees'
@@ -248,25 +249,31 @@ class DataPlotManager(object):
             return
         elif axnum is None:
             axnum = self.site_names.index(site_name)
-        # print('Checking...')
-        # print(axnum, site_name, self.site_names[axnum])
         self.axes[axnum].clear()
         site_name = self.site_names[axnum]
         Max = -99999
         Min = 99999
-        for ii, Type in enumerate(['raw_data', 'data', 'response']):
+        for ii, Type in enumerate(['raw_data', 'data', 'response', '1d']):
             if self.sites[Type] != []:
                 # site = next(s for s in self.sites[Type] if s.name == self.site_names[axnum])
-                site = self.sites[Type][axnum]
+                # debug_print('\n'.join([Type, str(len(self.sites[Type])), str(axnum)]), 'plotter.log')
+                try:
+                    site = self.sites[Type][axnum]
+                except IndexError:
+                    site = None
                 if site is not None and self.toggles[Type]:
-                    self.axes[axnum], ma, mi, artist = self.plot_site(site, Type=Type,
-                                                                      ax=self.axes[axnum])
-                    Max = max(Max, ma)
-                    Min = min(Min, mi)
-                    if axnum >= len(self.artist_ref[Type]):
-                        self.artist_ref[Type].append(artist)
+                    if Type != '1d':
+                        self.axes[axnum], ma, mi, artist = self.plot_site(site, Type=Type,
+                                                                          ax=self.axes[axnum])
+                        Max = max(Max, ma)
+                        Min = min(Min, mi)
+                        if axnum >= len(self.artist_ref[Type]):
+                            self.artist_ref[Type].append(artist)
+                        else:
+                            self.artist_ref[Type][axnum] = artist
                     else:
-                        self.artist_ref[Type][axnum] = artist
+                        self.axes[axnum], ma, mi, artist = self.plot_site(self.site1D, Type='1d',
+                                                                          ax=self.axes[axnum])
         if axnum == 0:
             self.set_legend()
         self.set_bounds(Max=Max, Min=Min, axnum=axnum)
@@ -289,7 +296,7 @@ class DataPlotManager(object):
                 self.y_labels[self.components[0][0].lower()], self.units))
         if axnum + 1 > cols * (rows - 1):
             if 'bost' in self.components[0].lower():
-                self.axes[axnum].set_xlabel('log10 Depth (m)')
+                self.axes[axnum].set_xlabel('log10 Depth (km)')
             else:
                 self.axes[axnum].set_xlabel('log10 of Period (s)')
 
@@ -305,17 +312,15 @@ class DataPlotManager(object):
         else:
             self.fig.clear()
         if len(self.fig.get_axes()) != self.num_sites:
-            # print('Redrawing Axes')
             self.redraw_axes()
         Max = np.zeros([tiling[1] * tiling[0]])
         Min = np.zeros([tiling[1] * tiling[0]])
         if not self.components:
             self.components = ['ZXYR']
-        for jj, Type in enumerate(['raw_data', 'data', 'response']):  # plot raw first, if avail
+        for jj, Type in enumerate(['raw_data', 'data', 'response', '1d']):  # plot raw first, if avail
             for ii, site in enumerate(self.sites[Type]):
                 # xi is the row, yi is the column of the current axis.
                 if site is not None and self.toggles[Type]:
-                    # print('Plotting on axis {} with type {}'.format(ii, Type))
                     self.axes[ii], ma, mi, artist = self.plot_site(site,
                                                                    Type=Type, ax=self.axes[ii])
                     Max[ii] = max(Max[ii], ma)
@@ -325,7 +330,6 @@ class DataPlotManager(object):
                     else:
                         self.artist_ref[Type][ii] = artist
                 if jj == 0:
-                    # print(site.name)
                     self.set_labels(axnum=ii, site_name=site.name)
         self.set_bounds(Max=Max, Min=Min, axnum=list(range(ii + 1)))
         # self.set_bounds(axnum=list(range(ii + 1)))
@@ -333,7 +337,6 @@ class DataPlotManager(object):
         # plt.show()
 
     def set_bounds(self, Max, Min, axnum=None):
-        # print('I am setting the bounds')
         try:
             for ax in axnum:
                 if not self.min_ylim:
@@ -355,7 +358,6 @@ class DataPlotManager(object):
                 max_y = Max
             else:
                 max_y = self.max_ylim
-            # print(self.min_ylim, self.max_ylim)
             axrange = max_y - min_y
             self.axes[axnum].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
         # if axnum is None:
@@ -383,7 +385,6 @@ class DataPlotManager(object):
                         max([ax.get_ybound()[1] for ax in self.axes]))
         # x_axrange = x_bounds[1] - x_bounds[0]
         # y_axrange = y_bounds[1] - y_bounds[0]
-        # print(x_bounds, y_bounds)
         for ax in axnum:
             self.axes[ax].set_xmargin(self.axis_padding)
             self.axes[ax].set_ymargin(self.axis_padding)
@@ -423,7 +424,7 @@ class DataPlotManager(object):
                 if toplotErr is not None:
                     toplotErr = np.delete(toplotErr, idx)
             return x, y, toplotErr  #, x_popped, y_popped, e_popped
-
+        response_types = ('response', '1d')
         ma = []
         mi = []
         linestyle = ''
@@ -435,6 +436,9 @@ class DataPlotManager(object):
         if marker == '-':
             marker = ''
             linestyle = self.linestyle
+        if marker == '--':
+            marker = ''
+            linestyle = '--'
         if not self.components:
             self.components = [site.components[0]]
         if self.errors.lower() == 'raw':
@@ -447,7 +451,7 @@ class DataPlotManager(object):
             Err = None
             toplotErr = None
             errtype = 'none'
-        if Type.lower() == 'response':
+        if Type.lower() in response_types:
             Err = None
             toplotErr = None
             errtype = 'none'
@@ -456,6 +460,7 @@ class DataPlotManager(object):
             toplotErr = None
             errtype = 'none'
         for ii, comp in enumerate(self.components):
+            
             try:
                 if 'rho' in comp.lower():
                     toplot, e, log10_e = utils.compute_rho(site, calc_comp=comp, errtype=errtype)
@@ -465,21 +470,20 @@ class DataPlotManager(object):
                         print('Adjusting values, ignore them.')
                         toplot[ind] = np.max(toplot)
                     toplot = np.log10(toplot)
-                    if Type.lower() != 'response' and self.errors.lower() != 'none':
+                    if Type.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = log10_e
                 elif 'pha' in comp.lower():
                     toplot, e = utils.compute_phase(site,
                                                     calc_comp=comp,
                                                     errtype=errtype,
                                                     wrap=self.wrap)
-                    if Type.lower() != 'response' and self.errors.lower() != 'none':
+                    if Type.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e
                 elif 'pt' in comp.lower():
                     # If PTs are actually the inverted data, take them directly from the site
                     if comp in site.components:
                         toplot = site.data[comp]
                         e = site.used_error[comp]
-                        # debug_print(e, 'PT_debug.log')
                     # Otherwise use the associated PT object
                     else:
                         toplot = np.array([getattr(site.phase_tensors[ii],
@@ -488,9 +492,8 @@ class DataPlotManager(object):
                         e = np.array([getattr(site.phase_tensors[ii],
                                               comp.upper() + '_error')
                                       for ii in range(site.NP)])
-                        # debug_print(e, 'PT_debug.log')
                     # Convert to degrees
-                    if Type.lower() != 'response' and self.errors.lower() != 'none':
+                    if Type.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e
                     else:
                         toplotErr = e * 0
@@ -622,7 +625,9 @@ class MapView(object):
         self.padding_scale = 5
         self.plot_rms = False
         self.use_colourbar = True
+        self.min_pt_ratio = 1 / 3
         self.pt_scale = 2
+        self.pt_rotation_axis = 'x'
         self.induction_scale = 5
         self.induction_cutoff = 2
         self.induction_error_tol = 0.5
@@ -711,19 +716,24 @@ class MapView(object):
         coordinate_system = coordinate_system.lower()
         if coordinate_system in MapView.COORD_SYSTEMS and coordinate_system != self._coordinate_system:
             if self.verify_coordinate_system(coordinate_system):
+                if coordinate_system == 'utm' and self._coordinate_system == 'local':
+                    correction = utils.center_locs(np.fliplr(self.site_locations['all']))[1]
+                else:
+                    correction = np.array([0, 0])
                 self._coordinate_system = coordinate_system
                 generic_sites = list(set(self.site_names) - set(self.active_sites))
                 self.site_locations['generic'] = self.get_locations(sites=generic_sites)
                 self.site_locations['active'] = self.get_locations(sites=self.active_sites)
                 self.site_locations['all'] = self.get_locations(sites=self.site_names)
                 if self.model != []:
-                    center = utils.center_locs(self.site_locations['all'])[1]
-                    print(center)
+                    print('Correction factor is: {}'.format(correction))
                     if coordinate_system.lower() == 'utm':
-                        self.model.to_UTM(origin=utils.center_locs(np.fliplr(self.site_locations['all']))[1])
+                        station_center = np.array(utils.center_locs(np.fliplr(self.site_locations['all']))[1])
+                        print('Station center at: {}'.format(station_center))
+                        self.model.to_UTM(origin=station_center-correction)
                     else:
                         self.model.to_local()
-                    print(self.model.center)
+                    print('Model center shifted to: {}'.format(self.model.center))
                 # self.plot_locations()
 
     def verify_coordinate_system(self, coordinate_system):
@@ -846,13 +856,10 @@ class MapView(object):
                                                linewidths=self.edgewidth,
                                                facecolors=facecolour,
                                                zorder=9)
+                # debug_print(len(self.site_locations['generic']), 'debug.log'[])
             except IndexError:
-                debug_print(len(self.site_locations['generic']), 'debug.log')
+                pass
 
-            # print('Hi Should be plotting now')
-            # print(self.site_locations['generic'])
-            # print(marker_size['generic'])
-            # print(marker)
         if self.active_sites:
             self.window['axes'][0].scatter(self.site_locations['active'][:, 1],
                                            self.site_locations['active'][:, 0],
@@ -931,12 +938,11 @@ class MapView(object):
                     arrows[lengths > 1, 1] = 2 * arrows[lengths > 1, 1] / lengths[lengths > 1]
                     lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
                     cutoff_idx = lengths > self.induction_cutoff
-                    # print(idx)
+
                     arrows[cutoff_idx, :] = 0
                     lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
                     largest_arrow = np.max(lengths)
-                    # print('Hello I am inside')
-                    # print(normalize)
+
                     if normalize:
                         arrows = 0.5 * arrows / np.transpose(np.tile(lengths, [2, 1]))
                         # print('Normalizing...')
@@ -987,16 +993,86 @@ class MapView(object):
                                                   coordinates='data')
             num_keys += 1
 
-    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
-    def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
-        def generate_ellipse(phi):
-            jx = np.cos(np.arange(0, 2 * np.pi, np.pi / 30))
-            jy = np.sin(np.arange(0, 2 * np.pi, np.pi / 30))
+    def pt_fill_limits(self, fill_param, pt_type):
+        if fill_param in ['Lambda']:
+            lower, upper = (0, 1)
+        elif fill_param == 'beta':
+            lower, upper = (-10, 10)
+        elif fill_param in ['alpha', 'azimuth']:
+            lower, upper = (-90, 90)
+            # lower, upper = (0, 180)
+        elif fill_param in ('delta'):
+            lower, upper = (0, 100)
+        else:
+            if pt_type.lower() == 'phi':
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                    lower, upper = self.phase_cax
+            elif pt_type.lower() == 'phi_a':
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                    lower, upper = [-1*self.phase_cax[1], self.phase_cax[1]]
+            elif pt_type.lower() == 'ua':
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                    lower, upper = self.rho_cax
+            elif pt_type.lower() == 'va':
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                    lower, upper = [-10 ** self.rho_cax[1], 10 ** self.rho_cax[1]]
+        return lower, upper
+
+    def generate_ellipse(self, phi):
+            jx = np.cos(np.arange(0, 2 * np.pi + np.pi / 30, np.pi / 30))
+            jy = np.sin(np.arange(0, 2 * np.pi + np.pi / 30, np.pi / 30))
             phi_x = phi[0, 0] * jx + phi[0, 1] * jy
             phi_y = phi[1, 0] * jx + phi[1, 1] * jy
             return phi_x, phi_y
+
+    def get_tensor_params(self, pt_type, fill_param, site=None, tensor=None, period_idx=None):
+        if pt_type == 'phi':
+            if not tensor:
+                tensor = site.phase_tensors[period_idx]
+            phi = tensor.phi
+            phi_max = tensor.phi_max
+            phi_min = tensor.phi_min
+            azimuth = tensor.azimuth
+            fill_val = getattr(tensor, fill_param)
+            # print('Plotting Conventional PT')
+        elif pt_type == 'phi_a':
+            if not tensor:
+                tensor = site.CART[period_idx]
+            phi = tensor.phi
+            phi_max = tensor.phi_max
+            phi_min = tensor.phi_min
+            azimuth = tensor.azimuth
+            fill_val = getattr(tensor, fill_param)
+        else:
+            if not tensor:
+                tensor = site.CART[period_idx]
+            phi = getattr(tensor, pt_type)
+            phi_max = getattr(tensor, '_'.join([pt_type, 'phi_max']))
+            phi_min = getattr(tensor, '_'.join([pt_type, 'phi_min']))
+            azimuth = getattr(tensor, '_'.join([pt_type, 'azimuth']))
+            fill_val = getattr(tensor, '_'.join([pt_type, fill_param]))
+            if fill_param in ('phi_1', 'phi_2', 'phi_3', 'phi_min', 'phi_max', 'det_phi') and pt_type.lower() == 'ua':
+                # print('Taking log10 of fill value: {}'.format(fill_val))
+                fill_val = np.log10(abs(fill_val))
+        return tensor, phi, phi_max, phi_min, azimuth, fill_val
+
+    def resize_ellipse(self, azimuth, phi_max):
+        R = np.array(((np.cos(azimuth), -np.sin(azimuth)),
+                       (np.sin(azimuth), np.cos(azimuth))))
+        max_element = np.abs(phi_max)
+        minimal_phi = np.array(((max_element, 0), (0, max_element * self.min_pt_ratio)))
+        phi_x, phi_y = self.generate_ellipse(minimal_phi)
+        for kk in range(len(phi_x)):
+            phi_new = np.matmul(R, np.array((phi_x[kk], phi_y[kk])))
+            phi_x[kk], phi_y[kk] = phi_new
+        return phi_x, phi_y
+
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str)
+    def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None):
         ellipses = []
         fill_vals = []
+        if not pt_type:
+            pt_type = 'phi'
         if fill_param != 'Lambda':
             fill_param = fill_param.lower()
         if len(data_type) == 2:
@@ -1008,62 +1084,74 @@ class MapView(object):
         for ii, site_name in enumerate(self.site_names):
             site = self.site_data[data_type[0]].sites[site_name]
             if len(data_type) == 1:
-                phase_tensor = site.phase_tensors[period_idx]
+                tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
+                                                                                          fill_param,
+                                                                                          site=site,
+                                                                                          period_idx=period_idx)
+                        # print('New fill val: {}'.format(fill_val))
+                    # print('Plotting RPT')
                 # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
                 #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
                 #     (phase_tensor.phasexy_error < self.phase_error_tol) and
                 #     (phase_tensor.phaseyx_error < self.phase_error_tol)):
                 if True:
                     cont = 1
-                    phi_x, phi_y = generate_ellipse(phase_tensor.phi)
+                    phi_x, phi_y = self.generate_ellipse(phi)
+                    radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
+                    if np.min(radii) < np.max(radii) * self.min_pt_ratio:
+                        phi_x, phi_y = self.resize_ellipse(azimuth, phi_max)
+
                     norm_x, norm_y = (phi_x, phi_y)
                     good_idx.append(ii)
-                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
+                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phaseyx_error, rhoyx_error))
                 else:
                     cont = 0
-                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phase_tensor.phaseyx_error, phase_tensor.rhoyx_error))
-                    phi_x, phi_y = generate_ellipse(phase_tensor.phi)
+                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phaseyx_error, rhoyx_error))
+                    phi_x, phi_y = self.generate_ellipse(phi)
                     norm_x, norm_y = (phi_x, phi_y)
             else:
                 if True:  # Buffer for error tolerances at some point...
-                    phase_tensor = (self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx] -
-                                    self.site_data[data_type[1]].sites[site_name].phase_tensors[period_idx])
-                    good_idx.append(ii)
-                    phi_x, phi_y = generate_ellipse(phase_tensor.phi)
-                    norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
+                    tensor1 = self.get_tensor_params(pt_type,
+                                                     fill_param,
+                                                     site=self.site_data[data_type[0]].sites[site_name],
+                                                     period_idx=period_idx)[0]
+                    tensor2 = self.get_tensor_params(pt_type,
+                                                     fill_param,
+                                                     site=self.site_data[data_type[1]].sites[site_name],
+                                                     period_idx=period_idx)[0]
+
+                    residual_tensor = tensor1 - tensor2
+                    tensor, phi, phi_max, phi_min, azimuth, fill_val  = self.get_tensor_params(pt_type,
+                                                                                               fill_param, 
+                                                                                               tensor=residual_tensor)
+                    phi_x, phi_y = self.generate_ellipse(phi)
+                    radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
+                    if np.min(radii) < np.max(radii) * self.min_pt_ratio:
+                        phi_x, phi_y = self.resize_ellipse(phi_max, azimuth)
+                    good_idx.append(ii)                   
+                    # norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
                     cont = 1
             if cont:
                 X, Y = X_all[ii], Y_all[ii]
-                phi_x, phi_y = (1000 * phi_x / phase_tensor.phi_max,
-                                1000 * phi_y / phase_tensor.phi_max)
+                phi_x, phi_y = (1000 * phi_x / np.abs(phi_max),
+                                1000 * phi_y / np.abs(phi_max))
                 radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
                 # if radius > 1000:
                 phi_x, phi_y = [(self.pt_scale * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
                 ellipses.append([Y - phi_x, X - phi_y])
-                fill_vals.append(getattr(phase_tensor, fill_param))
+                # fill_vals.append(getattr(phase_tensor, fill_param))
+                fill_vals.append(fill_val)
+                # debug_print([site_name, getattr(phase_tensor, fill_param)], 'rpt.log')
         fill_vals = np.array(fill_vals)
-        if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
-            lower, upper = (0, 90)
-        elif fill_param in ['Lambda']:
-            lower, upper = (0, 1)
-        elif fill_param == 'beta':
-            lower, upper = (-10, 10)
-        elif fill_param in ['alpha', 'azimuth']:
-            lower, upper = (-90, 90)
-            # lower, upper = (0, 180)
-        elif fill_param in ('delta'):
-            lower, upper = (0, 100)
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta'):  # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
+        lower, upper = self.pt_fill_limits(fill_param, pt_type)
+        # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
                 # fill_vals[fill_vals < 0] = 180 + fill_vals[fill_vals < 0]
         fill_vals[fill_vals > upper] = upper
         fill_vals[fill_vals < lower] = lower
-        # fill_vals = utils.normalize(fill_vals,
-        #                             lower=lower,
-        #                             upper=upper,
-        #                             explicit_bounds=True)
         norm_vals = utils.normalize_range(fill_vals,
                                           lower_range=lower,
                                           upper_range=upper,
@@ -1092,10 +1180,12 @@ class MapView(object):
                                               fontsize=18)
         self.set_axis_limits()
 
-    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int)
-    def plot_phase_bar(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1):
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str)
+    def plot_phase_bar(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None):
         rectangles = []
         fill_vals = []
+        if not pt_type:
+            pt_type = 'phi'
         if fill_param != 'Lambda':
             fill_param = fill_param.lower()
         if len(data_type) == 2:
@@ -1106,30 +1196,28 @@ class MapView(object):
         good_idx = []
         for ii, site_name in enumerate(self.site_names):
             site = self.site_data[data_type[0]].sites[site_name]
-            phase_tensor = site.phase_tensors[period_idx]
+            tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
+                                                                                      fill_param,
+                                                                                      site=site,
+                                                                                      period_idx=period_idx)
             xy = [Y_all[ii], X_all[ii]]
-            width = phase_tensor.phi_max / 5
-            height = 2 * phase_tensor.phi_min / phase_tensor.phi_max
+            width = np.abs(phi_max / 5)
+            if np.abs(phi_min / phi_max) < self.min_pt_ratio:
+                height = 2 * self.min_pt_ratio
+            else:
+                height = np.abs(2 * phi_min / phi_max)
             width = 0.2
             # height = 1
             width, height = [(self.pt_scale * scale) * x / 100 for x in (width, height)]
-            xy[0] = xy[0] + height * (np.sin(phase_tensor.azimuth)) / 2 - width * (np.cos(phase_tensor.azimuth)) / 2
-            xy[1] = xy[1] - height * (np.cos(phase_tensor.azimuth)) / 2 - width * (np.sin(phase_tensor.azimuth)) / 2
-            rectangles.append((xy, width, height, np.rad2deg(phase_tensor.azimuth)))
+            xy[0] = xy[0] + height * (np.sin(azimuth)) / 2 - width * (np.cos(azimuth)) / 2
+            xy[1] = xy[1] - height * (np.cos(azimuth)) / 2 - width * (np.sin(azimuth)) / 2
+            rectangles.append((xy, width, height, np.rad2deg(azimuth)))
             #     ellipses.append([Y - phi_x, X - phi_y])
-            fill_vals.append(getattr(phase_tensor, fill_param))
+            fill_vals.append(fill_val)
         fill_vals = np.array(fill_vals)
-        if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
-            lower, upper = (0, 90)
-        elif fill_param in ['Lambda']:
-            lower, upper = (0, 1)
-        elif fill_param == 'beta':
-            lower, upper = (-10, 10)
-        elif fill_param in ['alpha', 'azimuth']:
-            lower, upper = (-90, 90)
-        elif fill_param in ('delta'):
-            lower, upper = (0, 100)
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta'):  # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
+        lower, upper = self.pt_fill_limits(fill_param, pt_type)
+        # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
@@ -1140,11 +1228,6 @@ class MapView(object):
                                           upper_range=upper,
                                           lower_norm=0,
                                           upper_norm=1)
-        # print(['XY: ', [x[0] for x in rectangles]])
-        # print(['width: ', [x[1] for x in rectangles]])
-        # print(['height: ', [x[2] for x in rectangles]])
-        # print(['angle: ', [x[3] for x in rectangles]])
-        # print(['Fill:', [x for x in norm_vals]])
         for ii, rectangle in enumerate(rectangles):
             rect = patches.Rectangle(xy=rectangle[0],
                                      width=rectangle[1],
@@ -1168,18 +1251,6 @@ class MapView(object):
             if 'rho' in fill_param.lower():
                 data_label = 'Resistivity'
                 use_log = True
-                # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
-                #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
-                #     (phase_tensor.phasexy_error < self.phase_error_tol) and
-                #     (phase_tensor.phaseyx_error < self.phase_error_tol)):
-                # for site in data.site_names:
-                    # phase_tensor = data.sites[site].phase_tensors[period_idx]
-                    # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
-                    #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol)):
-                    #     temp_vals.append(np.log10(utils.compute_rho(site=data.sites[site],
-                    #                                                 calc_comp=fill_param,
-                    #                                                 errtype='none')[0][period_idx]))
-                    #     good_idx.append(ii)
                 vals.append([np.log10(utils.compute_rho(site=data.sites[site],
                                                         calc_comp=fill_param,
                                                         errtype='none')[0][period_idx]) for site in data.site_names])
@@ -1187,10 +1258,6 @@ class MapView(object):
             elif 'pha' in fill_param.lower():
                 data_label = 'Phase'
                 use_log = False
-                # vals.append(utils.compute_phase(site=data.sites[site],
-                #                                 calc_comp=fill_param,
-                #                                 errtype='none',
-                #                                 wrap=1)[0][period_idx])
                 vals.append([utils.compute_phase(site=data.sites[site],
                                                  calc_comp=fill_param,
                                                  errtype='none',
@@ -1214,16 +1281,8 @@ class MapView(object):
         min_y, max_y = (min(loc_y), max(loc_y))
         y_pad = (max_y - min_y) / self.padding_scale
         min_y, max_y = (min_y - y_pad, max_y + y_pad)
-        # step_size_x = (max_x - min_x) / n_interp
-        # step_size_y = (max_y - min_y) / n_interp
         X = np.linspace(min_x, max_x, n_interp)
         Y = np.linspace(min_y, max_y, n_interp)
-        # grid_x, grid_y = np.meshgrid(X, Y)
-        # grid_vals = self.interpolate(points, vals)
-        # grid_ranges = [[min_x, max_x, n_interp * 1j],
-        #                [min_y, max_y, n_interp * 1j],
-        #                [0, 1, 1]]
-        # grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))
         grid_vals, grid_x, grid_y = self.interpolate(points, vals, n_interp)
         if diff and 'rho' in fill_param.lower():
             cax = self.diff_cax
@@ -1232,7 +1291,6 @@ class MapView(object):
             cax = self.diff_cax
             fill_param = r'Difference ($^{\circ}$)'
         elif 'rho' in fill_param.lower():
-            # grid_vals = np.log10(grid_vals)
             cax = self.rho_cax
         else:
             cax = self.phase_cax
@@ -1270,9 +1328,9 @@ class MapView(object):
         elif param.lower() == 'azimuth':
             label = r'Azimuth'
         elif param.lower() == 'phi_max':
-            label = r'$\phi_max$'
+            label = r'$\phi_{max}$'
         elif param.lower() == 'phi_min':
-            label = r'$\phi_min$'
+            label = r'$\phi_{min}$'
         else:
             label = ''
         return label

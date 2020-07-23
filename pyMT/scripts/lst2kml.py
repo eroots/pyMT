@@ -7,7 +7,7 @@ from pyproj import Proj
 import shapefile
 from pyMT.WSExceptions import WSFileError
 
-
+local_path = 'E:/phd/NextCloud/'
 # list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/all.lst'
 # list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/abi-gren/New/j2/allsites.lst'
 # list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/dryden/j2/allsites.lst'
@@ -40,15 +40,15 @@ from pyMT.WSExceptions import WSFileError
 #          'SUDBB.lst',
 #          'COBBB.lst',
 #          'BB.lst')
-transects = ['usarray']
-list_path = 'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/wst/j2/us_array/'
-lists = ['all.lst']
-shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/usarray/'
+transects = ['ttz']
+list_path = local_path + 'data/Regions/TTZ/j2/'
+lists = ['allsites.lst']
+shp_save_path = local_path + 'data/ArcMap/MT-locations/TTZ/'
 # transects = ['swayze']
 # lists = ['SWZAMT.lst']
 # transects = ['BB-legacy', 'bb-legacy', 'lmt-legacy']
 # lists = ['BB.lst', 'bb.lst', 'lmt.lst']
-data_type = 'LMT_'
+data_type = 'all_'
 # data_type = ['BB_', 'BB_', 'LMT_']
 # list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
 # list_path = 'F:/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
@@ -57,11 +57,11 @@ data_type = 'LMT_'
 # list_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/'
 # csv_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/CSV/'
 # shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/SHPs/Jan2019/SHP/'
-kml_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/usarray/'
-csv_save_path = r'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/CSVs/'
-write_kml = True
+kml_save_path = local_path + 'data/ArcMap/MT-locations/rae/'
+csv_save_path = local_path + 'data/ArcMap/MT-locations/rae/'
+write_kml = False
 write_csv = False
-write_shp = False
+write_shp = True
 UTM = 10
 for ii, lst in enumerate(lists):
     try:
@@ -111,18 +111,19 @@ for ii, lst in enumerate(lists):
         if write_shp:
             print('Writing SHP for {}'.format(transects[ii]))
             if data.site_names:
-                w = shapefile.Writer(shapefile.POINTM)
-                w.field('X', 'F', 10, 5)
-                w.field('Y', 'F', 10, 5)
-                w.field('Z', 'F', 10, 5)
-                w.field('Label')
-                for site in data.site_names:
-                    lat, lon, elev = (data.sites[site].locations['Lat'],
-                                      data.sites[site].locations['Long'],
-                                      data.sites[site].locations['elev'])
-                    w.point(lon, lat, elev)
-                    w.record(lon, lat, elev, site)
-                w.save(shp_save_file)
+                # w = shapefile.Writer(shp_save_file)
+                with shapefile.Writer(shp_save_file) as w:
+                    w.field('X', 'F', 10, 5)
+                    w.field('Y', 'F', 10, 5)
+                    # w.field('Z', 'F', 10, 5)
+                    w.field('Label')
+                    for site in data.site_names:
+                        lat, lon, elev = (data.sites[site].locations['Lat'],
+                                          data.sites[site].locations['Long'],
+                                          data.sites[site].locations['elev'])
+                        w.point(lon, lat)
+                        w.record(lon, lat, site)
+                # w.save(shp_save_file)
                 # w.close()
     except WSFileError as e:
         print('List {} not found'.format(list_file))

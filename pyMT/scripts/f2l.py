@@ -6,7 +6,7 @@ def search_dir(suffix):
     lst = []
     for file in os.listdir():
         print(file)
-        if suffix in file and file.endswith('edi'):
+        if suffix in file and (file.endswith('edi') or file.endswith('.dat')):
             lst.append(file)
     return lst
 
@@ -27,7 +27,7 @@ def write_list(transect, lst, data_type):
     if data_type:
         lst = [file for file in lst if file[-5] in ending]
     else:
-        lst = [file for file in lst if file.endswith('edi')]
+        lst = [file for file in lst if file.endswith(('edi', '.dat'))]
     with open(''.join([transect, suffix, '.lst']), 'w') as f:
 
         f.write(str(len(lst)) + '\n')
@@ -37,8 +37,8 @@ def write_list(transect, lst, data_type):
 
 if __name__ == '__main__':
     if sys.argv[1].lower() == 'simple':
-        suffix = ''
-        data_types = ''
+        suffix = ['']
+        data_types = ['']
     else:
         suffix = ['DRY', 'ATT', 'RRV', 'STU',
                   'CHI', 'COB', 'GER', 'LAR',
