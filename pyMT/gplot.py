@@ -256,7 +256,6 @@ class DataPlotManager(object):
         for ii, Type in enumerate(['raw_data', 'data', 'response', '1d']):
             if self.sites[Type] != []:
                 # site = next(s for s in self.sites[Type] if s.name == self.site_names[axnum])
-                # debug_print('\n'.join([Type, str(len(self.sites[Type])), str(axnum)]), 'plotter.log')
                 try:
                     site = self.sites[Type][axnum]
                 except IndexError:
@@ -318,19 +317,22 @@ class DataPlotManager(object):
         if not self.components:
             self.components = ['ZXYR']
         for jj, Type in enumerate(['raw_data', 'data', 'response', '1d']):  # plot raw first, if avail
-            for ii, site in enumerate(self.sites[Type]):
-                # xi is the row, yi is the column of the current axis.
-                if site is not None and self.toggles[Type]:
-                    self.axes[ii], ma, mi, artist = self.plot_site(site,
-                                                                   Type=Type, ax=self.axes[ii])
-                    Max[ii] = max(Max[ii], ma)
-                    Min[ii] = min(Min[ii], mi)
-                    if ii >= len(self.artist_ref[Type]):
-                        self.artist_ref[Type].append(artist)
-                    else:
-                        self.artist_ref[Type][ii] = artist
-                if jj == 0:
-                    self.set_labels(axnum=ii, site_name=site.name)
+            if Type == '1d':
+                pass
+            else:
+                for ii, site in enumerate(self.sites[Type]):
+                    # xi is the row, yi is the column of the current axis.
+                    if site is not None and self.toggles[Type]:
+                        self.axes[ii], ma, mi, artist = self.plot_site(site,
+                                                                       Type=Type, ax=self.axes[ii])
+                        Max[ii] = max(Max[ii], ma)
+                        Min[ii] = min(Min[ii], mi)
+                        if ii >= len(self.artist_ref[Type]):
+                            self.artist_ref[Type].append(artist)
+                        else:
+                            self.artist_ref[Type][ii] = artist
+                    if jj == 0:
+                        self.set_labels(axnum=ii, site_name=site.name)
         self.set_bounds(Max=Max, Min=Min, axnum=list(range(ii + 1)))
         # self.set_bounds(axnum=list(range(ii + 1)))
         self.set_legend()
@@ -498,7 +500,6 @@ class DataPlotManager(object):
                     else:
                         toplotErr = e * 0
                     if self.pt_units.lower() == 'degrees':
-                            # debug_print(toplotErr, 'debug.log')
                         toplot = np.rad2deg(np.arctan(toplot))
                         try:
                             toplotErr = np.rad2deg(np.arctan(toplotErr))
@@ -626,7 +627,10 @@ class MapView(object):
         self.plot_rms = False
         self.use_colourbar = True
         self.min_pt_ratio = 1 / 3
+        self.pt_ratio_cutoff = 0
         self.pt_scale = 2
+        self.ellipse_VE = 1
+        self.ellipse_linewidth = 1
         self.pt_rotation_axis = 'x'
         self.induction_scale = 5
         self.induction_cutoff = 2
@@ -856,7 +860,6 @@ class MapView(object):
                                                linewidths=self.edgewidth,
                                                facecolors=facecolour,
                                                zorder=9)
-                # debug_print(len(self.site_locations['generic']), 'debug.log'[])
             except IndexError:
                 pass
 
@@ -903,21 +906,6 @@ class MapView(object):
                 #     colour = 'r'
                 idx = []
                 for ii, site in enumerate(self.site_names):
-                    # Just takes the last frequency. Will have to grab the right one from a list.
-                    # if ((abs(self.site_data[dType].sites[site].used_error['TZXR'][period_idx] /
-                    #          self.site_data[dType].sites[site].data['TZXR'][period_idx]) < self.induction_error_tol) and
-                    #     (abs(self.site_data[dType].sites[site].used_error['TZYR'][period_idx] /
-                    #          self.site_data[dType].sites[site].data['TZYR'][period_idx]) < self.induction_error_tol)):
-                    # if True:
-                    #     idx.append(ii)
-                    #     if 'TZXR' in self.site_data[dType].sites[site].components:
-                    #         X.append(-self.site_data[dType].sites[site].data['TZXR'][period_idx])
-                    #     else:
-                    #         X.append(0)
-                    #     if 'TZYR' in self.site_data[dType].sites[site].components:
-                    #         Y.append(-self.site_data[dType].sites[site].data['TZYR'][period_idx])
-                    #     else:
-                    #         Y.append(0)
                     idx.append(ii)
                     if 'TZX' + R_or_L in self.site_data[dType].sites[site].components:
                         X.append(-self.site_data[dType].sites[site].data['TZX' + R_or_L][period_idx])
@@ -953,12 +941,6 @@ class MapView(object):
                         # print('Shrinking arrows')
                     #     print('Not normalizing')
                     arrows = arrows * self.induction_scale / (50) # * np.sqrt(lengths))
-                    # print(self.induction_scale)
-                    # print(arrows)
-                    # lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
-                    # print(self.site_locations['all'])
-                    # headwidth = max(3 * self.induction_scale / 5, 1)
-                    # width = 0.0025 * self.induction_scale / 5
                     headwidth = max(3, 1)
                     # scale = self.induction_scale * max_length / 100
                     lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
@@ -1018,11 +1000,21 @@ class MapView(object):
                     lower, upper = [-10 ** self.rho_cax[1], 10 ** self.rho_cax[1]]
         return lower, upper
 
+    def generate_rectangle(self, width, height, angle):
+        t = np.arange(0, 2 * np.pi + np.pi / 30, np.pi / 30)
+        x = width * (abs(np.cos(t)) * np.cos(t) + abs(np.sin(t)) * np.sin(t))
+        y = height * (abs(np.cos(t)) * np.cos(t) - abs(np.sin(t)) * np.sin(t))
+        R = np.array(((np.cos(angle), -np.sin(angle)), (np.sin(angle), np.cos(angle))))
+        x, y = np.matmul(R, np.array((x, y)))
+        return x, y
+
     def generate_ellipse(self, phi):
             jx = np.cos(np.arange(0, 2 * np.pi + np.pi / 30, np.pi / 30))
             jy = np.sin(np.arange(0, 2 * np.pi + np.pi / 30, np.pi / 30))
             phi_x = phi[0, 0] * jx + phi[0, 1] * jy
             phi_y = phi[1, 0] * jx + phi[1, 1] * jy
+            # phi_x = jx
+            # phi_y = jy
             return phi_x, phi_y
 
     def get_tensor_params(self, pt_type, fill_param, site=None, tensor=None, period_idx=None):
@@ -1098,6 +1090,8 @@ class MapView(object):
                     cont = 1
                     phi_x, phi_y = self.generate_ellipse(phi)
                     radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
+                    if np.min(radii) < np.max(radii) * self.pt_ratio_cutoff:
+                        cont = 0
                     if np.min(radii) < np.max(radii) * self.min_pt_ratio:
                         phi_x, phi_y = self.resize_ellipse(azimuth, phi_max)
 
@@ -1126,6 +1120,8 @@ class MapView(object):
                                                                                                tensor=residual_tensor)
                     phi_x, phi_y = self.generate_ellipse(phi)
                     radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
+                    if np.min(radii) < np.max(radii) * self.pt_ratio_cutoff:
+                        cont = 0
                     if np.min(radii) < np.max(radii) * self.min_pt_ratio:
                         phi_x, phi_y = self.resize_ellipse(phi_max, azimuth)
                     good_idx.append(ii)                   
@@ -1141,7 +1137,6 @@ class MapView(object):
                 ellipses.append([Y - phi_x, X - phi_y])
                 # fill_vals.append(getattr(phase_tensor, fill_param))
                 fill_vals.append(fill_val)
-                # debug_print([site_name, getattr(phase_tensor, fill_param)], 'rpt.log')
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
@@ -1201,7 +1196,9 @@ class MapView(object):
                                                                                       site=site,
                                                                                       period_idx=period_idx)
             xy = [Y_all[ii], X_all[ii]]
-            width = np.abs(phi_max / 5)
+            # width = np.abs(phi_max / 5)
+            if np.abs(phi_min / phi_max) < self.pt_ratio_cutoff:
+                continue
             if np.abs(phi_min / phi_max) < self.min_pt_ratio:
                 height = 2 * self.min_pt_ratio
             else:
@@ -1416,3 +1413,195 @@ class MapView(object):
         if not ax:
             ax = self.window['axes'][0]
         ax.imshow(image, extent=extents, alpha=self.image_opacity, zorder=2)
+
+    @utils.enforce_input(sites=list, data_type=str, fill_param=str, periods=tuple, pt_type=str, x_axis=str)
+    def tensor_ellipse_pseudosection(self, sites=None, data_type='data', fill_param='beta', periods=(), pt_type=None, x_axis='linear'):
+        # Here periods is defined by the tuple (lower, upper, skip). Done this way to ensure we can treat both raw and used data
+        ellipses = []
+        fill_vals = []
+        if not pt_type:
+            pt_type = 'phi'
+        if fill_param != 'Lambda':
+            fill_param = fill_param.lower()
+
+        if x_axis.lower() == 'x':
+            X = np.array([self.site_data[data_type].sites[site_name].locations['X'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = 'Northing ({})'.format(self.site_data[data_type].spatial_units)
+        elif x_axis.lower() == 'y':
+            X = np.array([self.site_data[data_type].sites[site_name].locations['Y'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = 'Easting ({})'.format(self.site_data[data_type].spatial_units)
+        elif x_axis.lower() == 'linear':
+            # If linear distance is used, assume the user has the sites in the desired order
+            x = np.array([self.site_data[data_type].sites[site_name].locations['X'] for site_name in sites])
+            y = np.array([self.site_data[data_type].sites[site_name].locations['Y'] for site_name in sites])
+            X = utils.linear_distance(x, y)
+            label = 'Distance ({})'.format(self.site_data[data_type].spatial_units)
+        # scale = np.sqrt((np.max(X) - np.min(X)) ** 2 +
+                        # (np.max(np.log10(periods[0])) - np.log10(np.min(periods[1]))) ** 2)
+        x_scale = (np.max(X) - np.min(X))
+        y_scale = (np.log10(periods[1]) - np.log10(periods[0]))
+        X_all, Y_all = [], []
+        for ii, site_name in enumerate(sites):
+            site = self.site_data[data_type].sites[site_name]
+            for ip, period in enumerate(site.periods):
+                if (period >= periods[0] and period <= periods[1]) and (ip % (periods[2] + 1)) == 0:
+                    X_all.append(X[ii])
+                    Y_all.append(np.log10(period))
+                    tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
+                                                                                              fill_param,
+                                                                                              site=site,
+                                                                                              period_idx=ip)
+                    phi_x, phi_y = self.generate_ellipse(phi)
+                    radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
+                    if np.min(radii) < np.max(radii) * self.pt_ratio_cutoff:
+                        X_all.pop()
+                        Y_all.pop()
+                        continue
+                    if np.min(radii) < np.max(radii) * self.min_pt_ratio:
+                        phi_x, phi_y = self.resize_ellipse(azimuth, phi_max)
+                    current_x, current_y = X_all[-1], Y_all[-1]
+                    phi_x, phi_y = (1000 * phi_x / np.abs(phi_max),
+                                    1000 * phi_y / np.abs(phi_max))
+                    radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
+                    # if radius > 1000:
+                    phi_x = [self.ellipse_VE * (self.pt_scale * x_scale / (radius * 100)) * x for x in phi_x]
+                    phi_y = [(self.pt_scale * y_scale / (radius * 100)) * y for y in phi_y]
+                    ellipses.append([current_x - phi_x, current_y - phi_y])
+                    fill_vals.append(fill_val)
+        fill_vals = np.array(fill_vals)
+        lower, upper = self.pt_fill_limits(fill_param, pt_type)
+        # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
+            fill_vals = np.rad2deg(np.arctan(fill_vals))
+        if fill_param in ['alpha', 'azimuth', 'beta']:
+            fill_vals = np.rad2deg(fill_vals)
+        fill_vals[fill_vals > upper] = upper
+        fill_vals[fill_vals < lower] = lower
+        norm_vals = utils.normalize_range(fill_vals,
+                                          lower_range=lower,
+                                          upper_range=upper,
+                                          lower_norm=0,
+                                          upper_norm=1)
+        for ii, ellipse in enumerate(ellipses):
+            self.window['axes'][0].fill(ellipse[0], ellipse[1],
+                                        color=self.cmap(norm_vals[ii]),
+                                        zorder=3,
+                                        edgecolor='k',
+                                        linewidth=0)
+            self.window['axes'][0].plot(ellipse[0], ellipse[1],
+                                        'k-', linewidth=self.ellipse_linewidth, zorder=3)
+        fake_vals = np.linspace(lower, upper, len(fill_vals))
+        self.fake_im = self.window['axes'][0].scatter(X_all,
+                                                      Y_all,
+                                                      c=fake_vals, cmap=self.cmap)
+        # fake_im.colorbar()
+        self.fake_im.set_visible(False)
+        if not self.window['colorbar'] and self.use_colourbar:
+            self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
+            label = self.get_label(fill_param)
+            self.window['colorbar'].set_label(label,
+                                              rotation=270,
+                                              labelpad=20,
+                                              fontsize=18)
+        xlim = [min(X_all) - 5, max(X_all) + 5]
+        ylim = [min(Y_all) - 0.2, max(Y_all) + 0.2]
+        aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])
+        self.set_axis_limits(bounds=xlim + ylim)
+        self.window['axes'][0].set_aspect(aspect)
+        self.window['axes'][0].invert_yaxis()
+
+    @utils.enforce_input(sites=list, data_type=str, fill_param=str, periods=tuple, pt_type=str, x_axis=str)
+    def tensor_bar_pseudosection(self, sites=None, data_type='data', fill_param='beta', periods=(), pt_type=None, x_axis='linear'):
+        # Here periods is defined by the tuple (lower, upper, skip). Done this way to ensure we can treat both raw and used data
+        rectangles = []
+        fill_vals = []
+        if not pt_type:
+            pt_type = 'phi'
+        if fill_param != 'Lambda':
+            fill_param = fill_param.lower()
+
+        if x_axis.lower() == 'x':
+            X = np.array([self.site_data[data_type].sites[site_name].locations['X'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = 'Northing ({})'.format(self.site_data[data_type].spatial_units)
+        elif x_axis.lower() == 'y':
+            X = np.array([self.site_data[data_type].sites[site_name].locations['Y'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = 'Easting ({})'.format(self.site_data[data_type].spatial_units)
+        elif x_axis.lower() == 'linear':
+            # If linear distance is used, assume the user has the sites in the desired order
+            x = np.array([self.site_data[data_type].sites[site_name].locations['X'] for site_name in sites])
+            y = np.array([self.site_data[data_type].sites[site_name].locations['Y'] for site_name in sites])
+            X = utils.linear_distance(x, y)
+            label = 'Distance ({})'.format(self.site_data[data_type].spatial_units)
+        scale = np.sqrt((np.max(X) - np.min(X)) ** 2 +
+                        (np.max(np.log10(periods[0])) - np.log10(np.min(periods[1]))) ** 2)
+        x_scale = np.sqrt((np.max(X) - np.min(X)) ** 2)
+        y_scale = np.sqrt((np.log10(periods[1]) - np.log10(periods[0])) ** 2)
+        X_all, Y_all = [], []
+        for ii, site_name in enumerate(sites):
+            site = self.site_data[data_type].sites[site_name]
+            for ip, period in enumerate(site.periods):
+                if (period >= periods[0] and period <= periods[1]) and (ip % (periods[2] + 1)) == 0:
+                    X_all.append(X[ii])
+                    Y_all.append(np.log10(period))
+                    tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
+                                                                                              fill_param,
+                                                                                              site=site,
+                                                                                              period_idx=ip)
+                    xy = [X_all[-1], Y_all[-1]]
+                    # print(xy)
+                    # width = np.abs(phi_max / 5)
+                    if np.abs(phi_min / phi_max) < self.pt_ratio_cutoff:
+                        X_all.pop()
+                        Y_all.pop()
+                        continue
+                    if np.abs(phi_min / phi_max) < self.min_pt_ratio:
+                        height = 2 * self.min_pt_ratio
+                    else:
+                        height = np.abs(2 * phi_min / phi_max)
+                    width = 0.2
+                    height = height / 2
+                    x, y = self.generate_rectangle(width, height, azimuth)
+                    # # x *= (self.pt_scale * x_scale / (100))
+                    # # y *= (self.pt_scale * y_scale / (100))
+                    x = self.ellipse_VE * (self.pt_scale * x_scale / (100)) * x
+                    y = (self.pt_scale * y_scale / (100)) * y
+                    rectangles.append([xy[0] - x, xy[1] - y])
+                    fill_vals.append(fill_val)
+        fill_vals = np.array(fill_vals)
+        lower, upper = self.pt_fill_limits(fill_param, pt_type)
+        # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
+            fill_vals = np.rad2deg(np.arctan(fill_vals))
+        if fill_param in ['alpha', 'azimuth', 'beta']:
+            fill_vals = np.rad2deg(fill_vals)
+        fill_vals[fill_vals > upper] = upper
+        fill_vals[fill_vals < lower] = lower
+        norm_vals = utils.normalize_range(fill_vals,
+                                          lower_range=lower,
+                                          upper_range=upper,
+                                          lower_norm=0,
+                                          upper_norm=1)
+        for ii, rectangle in enumerate(rectangles):
+            self.window['axes'][0].fill(rectangle[0], rectangle[1],
+                                        color=self.cmap(norm_vals[ii]),
+                                        zorder=4,
+                                        edgecolor=None)
+        self.window['axes'][0].invert_yaxis()
+        xlim = [min(X_all) - 5, max(X_all) + 5]
+        ylim = [min(Y_all) - 0.2, max(Y_all) + 0.2]
+        aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])
+        self.set_axis_limits(bounds=xlim + ylim)
+        self.window['axes'][0].set_aspect(aspect)
+        self.window['axes'][0].invert_yaxis()

@@ -72,7 +72,7 @@
 
 
 \title{pyMT}
-\date{Apr 29, 2020}
+\date{Aug 04, 2020}
 \release{0.0.1}
 \author{Eric Roots}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -1634,6 +1634,142 @@ The 2-D transect plot does not respond to changes in the model trim. The workaro
 
 \subsection{Change Log}
 \label{\detokenize{content/misc/changelog:change-log}}\label{\detokenize{content/misc/changelog::doc}}\begin{itemize}
+\item {} 
+04/08/20
+\begin{itemize}
+\item {} 
+The {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} ‘Lock Axis’ option should now properly hold the axis limits when site annotations change (i.e., when using the forward and back buttons in {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}})
+
+\item {} 
+Periods (and data) will now be sorted in ascending order at the Site (class) level.
+\begin{itemize}
+\item {} 
+Having some EDIs with periods in ascending and some in descending was causing data at different sites to have different orders.
+
+\item {} 
+I don’t think this was having any significant effects (and so this fix shouldn’t change anything), but it was still worrying.
+
+\end{itemize}
+
+\end{itemize}
+
+\item {} 
+22/07/20
+\begin{itemize}
+\item {} 
+Added Complex Apparent Resistivity Tensor (CART) representation into {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}
+\begin{itemize}
+\item {} 
+A drop down menu in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} can be used to switch between conventional PT and CART ellipses
+
+\item {} 
+Note that not all of the ellipse fill values will be meaningful when display CART ellipses.
+\begin{itemize}
+\item {} 
+Most useful parameters will be ‘Phi\_max’ and ‘Phi\_min’. Note that this always correspond to the maximum and minimum axis values, be it phase (in the case of PT and RPT) or resistivity (in the case of Ua and Va)
+
+\end{itemize}
+
+\item {} 
+Also note that while I have tested and compared the plotted CART ellipses against identical data plotted using FFMT (Frankfurt MT Software package, where CARTs were created), this feature is still experimental, and there is a possibility that some features supported by the conventional PT plotting tools have not been properly applied to the CARTs.
+
+\end{itemize}
+
+\item {} 
+Linked more plot elements to the colour scales that can be set in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}
+\begin{itemize}
+\item {} 
+Rho pseudosections, model slices are controlled using the ‘Rho’ colour limits. Real resistivity tensor phi\_max / phi\_min values will be coloured by a log scale colour bar going from -U, U, where U is the upper ‘Rho’ colour limit. Imaginary resistivity tensor will use a linear scale from -U, U.
+
+\item {} 
+Phase pseudosection and non-rotational phase tensor parameters (e.g., det\_phi, phi\_min, etc.) will use the ‘Phase’ colour limits. Resistivity phase tensor will use -U, U, where U is the upper ‘Phase’ colour limit.
+
+\end{itemize}
+
+\end{itemize}
+
+\item {} 
+05/07/20
+\begin{itemize}
+\item {} 
+Added options in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} to change the rotation axis definition for phase tensors
+\begin{itemize}
+\item {} 
+By default it was (is) X-axis, meaning alpha, beta, azimuth are calculated counter-clockwise from X
+
+\item {} 
+Alternate definition is to measure clockwise from Y
+
+\item {} 
+Note that this only changes the numerical values and therefore the colours alpha, beta, and azimuth, but not the orientations.
+
+\end{itemize}
+
+\item {} 
+Added some logic in the IO module to allow slightly more robust reading of EDI files
+\begin{itemize}
+\item {} 
+Locations where only being read from the ‘DEFINEMEAS’ block, but will now pull from ‘HEAD’ if the former is not defined.
+
+\end{itemize}
+
+\item {} 
+Added 1D modelling to {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}}
+\begin{itemize}
+\item {} 
+Open another window that allows you to enter layer thicknesses and resistivities, and the calculated response can then be plotted across all your stations
+
+\item {} 
+Meant to allow for quick comparision between your data and the response for a 1D model.
+
+\item {} 
+TODO: Allow writing of the 1D model.
+
+\end{itemize}
+
+\end{itemize}
+
+\item {} 
+25/05/20
+\begin{itemize}
+\item {} 
+Fixed a bug that were causing ‘Azimuth’ and ‘Alpha’ to be displayed improperly (colours only, PT orientations were always fine)
+\begin{itemize}
+\item {} 
+This bug fix should also fix issues with exported phase tensors in ArcMap not matching those plotted with pyMT
+
+\end{itemize}
+
+\item {} 
+Fixed bug which caused a ‘transect slice’ in {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}} to use technically out-of-bounds locations, and therefore use a fill value instead of the actual model values.
+
+\end{itemize}
+
+\item {} 
+14/05/20
+\begin{itemize}
+\item {} 
+Cleaned up a few things that would crash {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}} (e.g., checking boxes that should be uncheckable)
+
+\item {} 
+Added some new colour options
+\begin{itemize}
+\item {} 
+You can now control LUT (number of colour intervals). I realized that while 16 or 32 is good for viewing models, it might remove necessary details when viewing things like phase tensors
+
+\item {} 
+New cyclic colour maps ‘twilight’ and ‘colorwheel’ added. Useful for viewing wrapped quantities like phase tensor azimuth.
+
+\item {} 
+Removed second ‘Colour Options’ menu in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} and consolidated those options into one menu. All colour map / limits / LUTs are now controlled in that one menu.
+
+\item {} 
+Fixed and issue where model slice colour map was not responding to changes in the colour limits
+
+\end{itemize}
+
+\end{itemize}
+
 \item {} 
 28/04/20
 \begin{itemize}

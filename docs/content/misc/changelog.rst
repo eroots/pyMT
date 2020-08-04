@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+* 04/08/20
+
+  * The :ref:`Map Viewer` 'Lock Axis' option should now properly hold the axis limits when site annotations change (i.e., when using the forward and back buttons in :ref:`Data Plot`)
+
+  * Periods (and data) will now be sorted in ascending order at the Site (class) level.
+
+    * Having some EDIs with periods in ascending and some in descending was causing data at different sites to have different orders.
+
+    * I don't think this was having any significant effects (and so this fix shouldn't change anything), but it was still worrying.
+
 * 22/07/20
   
   * Added Complex Apparent Resistivity Tensor (CART) representation into :ref:`Map Viewer`
@@ -9,7 +19,7 @@ Change Log
 
     * Note that not all of the ellipse fill values will be meaningful when display CART ellipses.
 
-      * Most useful parameters will be 'Phi_max' and 'Phi_min'
+      * Most useful parameters will be 'Phi_max' and 'Phi_min'. Note that this always correspond to the maximum and minimum axis values, be it phase (in the case of PT and RPT) or resistivity (in the case of Ua and Va)
 
     * Also note that while I have tested and compared the plotted CART ellipses against identical data plotted using FFMT (Frankfurt MT Software package, where CARTs were created), this feature is still experimental, and there is a possibility that some features supported by the conventional PT plotting tools have not been properly applied to the CARTs.
 

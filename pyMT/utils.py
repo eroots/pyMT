@@ -6,7 +6,7 @@ from copy import deepcopy
 from math import log10, floor
 import pyproj
 from scipy.interpolate import RegularGridInterpolator as RGI
-from pyMT.IO import debug_print
+# from pyMT.IO import debug_print
 
 
 MU = 4 * np.pi * 1e-7
@@ -362,6 +362,20 @@ def closest_periods(available_p, wanted_p):
     if isinstance(available_p, np.ndarray):
         retval = np.array(retval)
     return retval
+
+
+def linear_distance(x, y):
+    nodes = np.array([x, y]).T
+    linear_x = np.zeros(x.shape)
+    linear_x[1:] = np.sqrt((x[1:] - x[:-1]) ** 2 +
+                           (y[1:] - y[:-1]) ** 2)
+    linear_x = np.cumsum(linear_x)
+    linear_site = np.ones((x.shape))
+    for ii, (x1, y1) in enumerate(zip(x, y)):
+        dist = np.sum((nodes - np.array([x1, y1]).T) ** 2, axis=1)
+        idx = np.argmin(dist)
+        linear_site[ii] = linear_x[idx]
+    return linear_site
 
 
 def list_or_numpy(func):
@@ -993,9 +1007,6 @@ def calculate_misfit(data_site, response_site):
                 comp_misfit[comp] = ((misfit[comp]))
                 period_misfit += misfit[comp]
             except ValueError:
-                debug_print(response_site.data[comp], 'debug.log')
-                debug_print(data_site.data[comp], 'debug.log')
-                debug_print(data_site.used_error[comp], 'debug.log')
                 a+=1
     period_misfit = (period_misfit / NR)
     comp_misfit.update({'Total': period_misfit})
@@ -1088,6 +1099,14 @@ def unproject(z, l, x, y):
     lng, lat = _projections[z](x, y, inverse=True)
     return (lng, lat)
 
+
+def to_lambert(x, y):
+    transformer = pyproj.Transformer.from_crs('epsg:4326', 'epsg:3979')
+    lam_x = np.zeros(x.shape)
+    lam_y = np.zeris(y.shape)
+    for ii, (lat, lon) in enumerate(zip(x, y)):
+        lam_x[ii], lam_y[ii] = transformer.transform(lat, lon)
+    return lam_x, lam_y
 
 def parse_dms(dms):
     '''

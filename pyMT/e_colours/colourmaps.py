@@ -375,6 +375,12 @@ def get_cmap(cmap, N=64):
     elif cmap in ('turbo_r_mod'):
         idx = int(N / 32) * 3
         return(colors.ListedColormap(turbo_r(N)[idx:-idx]))
+    elif cmap in ('turbo_capped', 'turbo_capped_r'):
+        purple = np.array([128 / 256, 0, 128 / 256])
+        output = np.vstack([purple, turbo(N), purple])
+        if cmap.endswith('r'):
+            output = output[::-1]
+        return colors.ListedColormap(output)
     elif cmap in ('colorwheel', 'cet_colorwheel'):
         return cm.get_cmap('cet_colorwheel', lut=N)
     else:

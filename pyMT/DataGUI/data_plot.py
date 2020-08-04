@@ -1242,7 +1242,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def update_comp_list(self):
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
-        # debug_print(ordered_comps, 'debug.log')
         c = 0
         if 'ZXXR' in ordered_comps:
             ordered_comps.append('RhoXX')
@@ -1679,7 +1678,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.set_data_toggles()
         # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
         # self.error_tree.itemChanged.disconnect()
-        # debug_print('self.sites: {}\n dataset sites: {}'.format(self.site_names, self.dataset.site_names), 'debug.log')
         self.sort_sites()
         self.update_error_tree()
         self.back_or_forward_button(shift=0)
@@ -2064,7 +2062,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if set(self.site_names) == set(self.dpm.site_names) and shift != 0:
             return
         sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
-        # debug_print('returned sites: {}'.format(sites), 'debug.log')
         self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
         # self.dpm.fig.canvas.draw()
         self.update_dpm()
@@ -2077,6 +2074,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
             del annotation
         self.map_view.map.actors['annotation'] = []
         # del self.map_view.map.actors['annotation']
+        self.map_view.x_lim = self.map_view.map.window['axes'][0].get_xlim()
+        self.map_view.y_lim = self.map_view.map.window['axes'][0].get_ylim()
         self.map_view.map.plot_annotate()
         self.map_view.set_axis_settings()
         self.map_view.canvas.draw()
@@ -2098,7 +2097,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if any(x > num_sites - 1 for x in idx_toplot):
             overflow = idx_toplot[-1] - num_sites
             idx_toplot = [x - overflow - 1 for x in idx_toplot]
-        # debug_print((self.dataset.data.site_names, idx_toplot), 'debug.log')
         # return(self.dataset.data.site_names[:6])
         return [self.dataset.data.site_names[idx] for idx in idx_toplot]
 
@@ -2709,7 +2707,6 @@ def main():
     if verify:
         # Because files is a dictionary, the plotter may not load the same dataset first every time.
         # The dataset that gets loaded first should be the same given the same start file.
-        # debug_print(files, 'debug.log')
         mainGUI = DataMain(files)  # Instantiate a GUI window
         mainGUI.show()  # Show it.
         ret = app.exec_()

@@ -44,6 +44,84 @@
   <div class="section" id="change-log">
 <h1>Change Log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h1>
 <ul>
+<li><p>04/08/20</p>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> ‘Lock Axis’ option should now properly hold the axis limits when site annotations change (i.e., when using the forward and back buttons in <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>)</p></li>
+<li><p>Periods (and data) will now be sorted in ascending order at the Site (class) level.</p>
+<ul>
+<li><p>Having some EDIs with periods in ascending and some in descending was causing data at different sites to have different orders.</p></li>
+<li><p>I don’t think this was having any significant effects (and so this fix shouldn’t change anything), but it was still worrying.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>22/07/20</p>
+<ul class="simple">
+<li><p>Added Complex Apparent Resistivity Tensor (CART) representation into <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a></p>
+<ul>
+<li><p>A drop down menu in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> can be used to switch between conventional PT and CART ellipses</p></li>
+<li><p>Note that not all of the ellipse fill values will be meaningful when display CART ellipses.</p>
+<ul>
+<li><p>Most useful parameters will be ‘Phi_max’ and ‘Phi_min’. Note that this always correspond to the maximum and minimum axis values, be it phase (in the case of PT and RPT) or resistivity (in the case of Ua and Va)</p></li>
+</ul>
+</li>
+<li><p>Also note that while I have tested and compared the plotted CART ellipses against identical data plotted using FFMT (Frankfurt MT Software package, where CARTs were created), this feature is still experimental, and there is a possibility that some features supported by the conventional PT plotting tools have not been properly applied to the CARTs.</p></li>
+</ul>
+</li>
+<li><p>Linked more plot elements to the colour scales that can be set in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a></p>
+<ul>
+<li><p>Rho pseudosections, model slices are controlled using the ‘Rho’ colour limits. Real resistivity tensor phi_max / phi_min values will be coloured by a log scale colour bar going from -U, U, where U is the upper ‘Rho’ colour limit. Imaginary resistivity tensor will use a linear scale from -U, U.</p></li>
+<li><p>Phase pseudosection and non-rotational phase tensor parameters (e.g., det_phi, phi_min, etc.) will use the ‘Phase’ colour limits. Resistivity phase tensor will use -U, U, where U is the upper ‘Phase’ colour limit.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>05/07/20</p>
+<ul class="simple">
+<li><p>Added options in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> to change the rotation axis definition for phase tensors</p>
+<ul>
+<li><p>By default it was (is) X-axis, meaning alpha, beta, azimuth are calculated counter-clockwise from X</p></li>
+<li><p>Alternate definition is to measure clockwise from Y</p></li>
+<li><p>Note that this only changes the numerical values and therefore the colours alpha, beta, and azimuth, but not the orientations.</p></li>
+</ul>
+</li>
+<li><p>Added some logic in the IO module to allow slightly more robust reading of EDI files</p>
+<ul>
+<li><p>Locations where only being read from the ‘DEFINEMEAS’ block, but will now pull from ‘HEAD’ if the former is not defined.</p></li>
+</ul>
+</li>
+<li><p>Added 1D modelling to <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a></p>
+<ul>
+<li><p>Open another window that allows you to enter layer thicknesses and resistivities, and the calculated response can then be plotted across all your stations</p></li>
+<li><p>Meant to allow for quick comparision between your data and the response for a 1D model.</p></li>
+<li><p>TODO: Allow writing of the 1D model.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>25/05/20</p>
+<ul class="simple">
+<li><p>Fixed a bug that were causing ‘Azimuth’ and ‘Alpha’ to be displayed improperly (colours only, PT orientations were always fine)</p>
+<ul>
+<li><p>This bug fix should also fix issues with exported phase tensors in ArcMap not matching those plotted with pyMT</p></li>
+</ul>
+</li>
+<li><p>Fixed bug which caused a ‘transect slice’ in <a class="reference internal" href="../model_viewer/main_window.html#model-viewer"><span class="std std-ref">Model Viewer - Main Window</span></a> to use technically out-of-bounds locations, and therefore use a fill value instead of the actual model values.</p></li>
+</ul>
+</li>
+<li><p>14/05/20</p>
+<ul class="simple">
+<li><p>Cleaned up a few things that would crash <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a> (e.g., checking boxes that should be uncheckable)</p></li>
+<li><p>Added some new colour options</p>
+<ul>
+<li><p>You can now control LUT (number of colour intervals). I realized that while 16 or 32 is good for viewing models, it might remove necessary details when viewing things like phase tensors</p></li>
+<li><p>New cyclic colour maps ‘twilight’ and ‘colorwheel’ added. Useful for viewing wrapped quantities like phase tensor azimuth.</p></li>
+<li><p>Removed second ‘Colour Options’ menu in <a class="reference internal" href="../data_plot/map_viewer.html#map-viewer"><span class="std std-ref">Data Plot - Map Viewer</span></a> and consolidated those options into one menu. All colour map / limits / LUTs are now controlled in that one menu.</p></li>
+<li><p>Fixed and issue where model slice colour map was not responding to changes in the colour limits</p></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><p>28/04/20</p>
 <ul class="simple">
 <li><p>A few QoL changes in <a class="reference internal" href="../data_plot/main_window.html#data-plot"><span class="std std-ref">Data Plot - Main Window</span></a>:</p>

@@ -1326,12 +1326,12 @@ class Model(object):
     def read_covariance(self, covariance_file=''):
         if covariance_file:
             NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions = WS_io.read_covariance(covariance_file)
-            if (NX == self.NX) and (NY == self.NY) and (NZ == self.NZ):
-                sigma_x
-                sigma_y
-                sigma_z
-                num_smooth
-                cov_exceptions
+            if (NX == self.nx) and (NY == self.ny) and (NZ == self.nz):
+                self.sigma_x = sigma_x
+                self.sigma_y = sigma_y
+                self.sigma_z = sigma_z
+                self.num_smooth = num_smooth
+                self.cov_exceptions = cov_exceptions
 
     def to_vtk(self, outfile=None, sea_level=0, origin=None, UTM=None):
         if origin:
@@ -1390,6 +1390,8 @@ class Model(object):
         if not self.UTM_zone:
             print('UTM zone must be set or given')
             return
+        if zone.lower() == 'lam':
+            lam_x, lam_y = utils.to_lambert(self._dy)
         if len(self.UTM_zone) == 2:
             number = int(self.UTM_zone[0])
         else:
@@ -1742,7 +1744,6 @@ class Site(object):
             self.flags = flags
         else:
             self.flags = self.generate_errmap(mult=1)
-            # WS_io.debug_print(self.data.items(), 'debug.log')
         if not self.errors or utils.is_all_empties(self.errors):
             self.errors = self.generate_errmap(mult=1)
         if not self.errmap or utils.is_all_empties(self.errmap):
@@ -1761,9 +1762,9 @@ class Site(object):
             self.apply_error_floor()
         self.validate_data()
         self.validate_errors()
+        self.check_period_order()
         if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)) \
                 and self.periods is not None:
-            # WS_io.debug_print('{}: {}'.format(self.name, self.periods), 'debug.log')
             self.calculate_phase_tensors()
         elif set(self.PHASE_TENSOR_COMPONENTS).issubset(set(self.components)) \
                 and self.periods is not None:
@@ -1853,6 +1854,18 @@ class Site(object):
             all_actual.append(min_actual)
             all_used.append(min_used)
         return all_actual, all_used
+
+    def check_period_order(self):
+        sorted_periods = np.sort(self.periods)
+        if np.any(sorted_periods != self.periods):
+            print('Site {} periods not in order. Reordering them...'.format(self.name))
+            sort_idx = np.argsort(self.periods)
+            self.periods = sorted_periods
+            for comp in self.components:
+                self.data[comp] = self.data[comp][sort_idx]
+                self.errors[comp] = self.errors[comp][sort_idx]
+                self.used_error[comp] = self.used_error[comp][sort_idx]
+                self.errmap[comp] = self.errmap[comp][sort_idx]
 
     def equalize_complex_errors(self):
         components = set([component[:3] for component in self.components])

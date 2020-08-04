@@ -245,18 +245,32 @@ def model_to_vtk(model, outfile=None, origin=None, UTM=None, azi=0, sea_level=0)
 
 
 def read_covariance(cov_file):
+    # Currently does not support actual smoothing exceptions, just air and ocean masks.
     with open(cov_file, 'r') as f:
         for ii in range(16):
-            f.next()
+            f.readline()
         lines = f.readlines()
-        lines = [line.strip() for line in lines if line]
-        NX, NY, NZ = [int(x) for x in lines[0]]
-        sigma_x = [float(x) for x in lines[1]]
-        sigma_y = [float(x) for x in lines[2]]
-        sigma_z = [float(x) for x in lines[3]]
+        lines = [line.strip() for line in lines]
+        lines = [line for line in lines if line]
+        nx, ny, nz = [int(x) for x in lines[0].split()]
+        sigma_x = [float(x) for x in lines[1].split()]
+        sigma_y = [float(x) for x in lines[2].split()]
+        sigma_z = [float(x) for x in lines[3].split()]
         num_smooth = int(lines[4])
-        cov_exceptions = lines[5]
-        return NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions
+        num_exception = int(lines[5])
+        # A standard covariance file would end here.
+        try:
+            covlines = lines[6:]
+            covlines = [l.strip() for l in covlines]
+            covlines = [l for l in covlines if l]
+            cov_exceptions = np.ones((nx, ny, nz))
+            for ii in range(nz):
+                idx1, idx2 = [int(x) for x in covlines[ii + ii * nx].strip().split()]
+                for jj in range(nx):
+                    cov_exceptions[model.nx - jj - 1, :, idx1-1:idx2] = np.expand_dims(np.array([int(x) for x in covlines[jj + 1 + ii * (nx + 1)].split()]), axis=1)
+        except IndexError:
+            cov_expections = 0
+        return nx, ny, nz, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions
 
 
 def read_freqset(path='./'):
@@ -576,6 +590,11 @@ def read_raw_data(site_names, datpath=''):
             data['ZYXI'] *= -1
             data['ZXXI'] *= -1
             data['ZYYI'] *= -1
+            try:
+                data['TZXI'] *= -1
+                data['TZYI'] *= -1
+            except KeyError:
+                pass
             # Double check all data components have corresponding errors.
             error_flag = 0
             for component in data.keys():
@@ -603,6 +622,8 @@ def read_raw_data(site_names, datpath=''):
                 else:
                     raise WSFileError(ID='int', offender=file, extra='Frequency block non-existent.')
                 periods = utils.truncate(1 / frequencies)
+                # if periods[0] > periods[1]:
+                    # print('Periods in {} are not in ascending order'.format(file))
                 data, errors, azi, error_flag = extract_tensor_info(blocks)
                 if error_flag:
                     print('Errors not properly specified in {}.'.format(file))
@@ -1138,7 +1159,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         try:
             inv_type = [key for key in INVERSION_TYPES.keys() if all_components == set(INVERSION_TYPES[key])][0]
         except IndexError:
-            msg = 'Components listed in {}} are not yet a supported inversion type'.format(datafile)
+            msg = 'Components listed in {} are not yet a supported inversion type'.format(datafile)
             raise(WSFileError(id='int', offender=datafile, extra=msg))
         # debug_print(inv_type, 'debug.log')
         # according to the data file
@@ -1424,7 +1445,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         else:
             em_format = 'Data'
         #  It's not entirely clear how strike is used in the program
-        UTM_zone, o_x, o_y, strike = re.split(r'\s{2,}', lines[1].split(':')[1].strip())
+        # UTM_zone, 
+        o_x, o_y, strike = re.split(r'\s{2,}', lines[1].split(':')[1].strip())
         o_x, o_y, strike = [float(x) for x in [o_x, o_y, strike]]
         #  Will have to look into the code to see what is done, but I think this makes sense
         azimuth = strike + 90
@@ -1655,7 +1677,7 @@ def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_
                     f.write('\n')
                 first_z = 0
                 for iy in range(ny):
-                    f.write('{} '.format(int(exceptions[ix, iy, iz])))
+                    f.write('{} '.format(int(exceptions[nx - ix - 1, iy, iz])))
 
     if not (file_name.endswith('.cov')):
         file_name += '.cov'

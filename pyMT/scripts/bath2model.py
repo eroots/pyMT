@@ -106,17 +106,18 @@ def plot_it(grid_x, grid_y, grid_z, locations=None, cmap=None):
     # Create map
     minlat, maxlat = np.min(grid_y.ravel()), np.max(grid_y.ravel())
     minlon, maxlon = np.min(grid_x.ravel()), np.max(grid_x.ravel())
-    m = Basemap(projection='mill', llcrnrlat=minlat, urcrnrlat=maxlat,
-                llcrnrlon=minlon, urcrnrlon=maxlon, resolution='l')
-    x, y = m(grid_x, grid_y)
+    # m = Basemap(projection='mill', llcrnrlat=minlat, urcrnrlat=maxlat,
+                # llcrnrlon=minlon, urcrnrlon=maxlon, resolution='l')
+    # x, y = m(grid_x, grid_y)
     # fig1 = plt.figure()
     if not cmap:
         cmap = cmocean.cm.delta
-    m.pcolor(x, y, grid_z, cmap=cmap, zorder=0, vmin=-2000, vmax=2000)
-    m.drawcoastlines()
-    m.drawmapboundary()
-    # if locations is not None:
-        # m.plot(locations[:, 1], locations[:, 0], 'kv', zorder=5)
+    plt.pcolor(grid_x, grid_y, grid_z, cmap=cmap)
+    # m.pcolor(x, y, grid_z, cmap=cmap, zorder=0)#, vmin=-2000, vmax=2000)
+    # m.drawcoastlines()
+    # m.drawmapboundary()
+    if locations is not None:
+        plt.plot(locations[:, 1], locations[:, 0], 'kv', zorder=5)
     plt.title('SMRT30 - Bathymetry/Topography')
     cbar = plt.colorbar(orientation='vertical', extend='both')
     cbar.ax.set_xlabel('meters')
@@ -150,33 +151,49 @@ if __name__ == '__main__':
     # data_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai__topoTest_Z.dat'
     ################################
     # WESTERN SUPERIOR
-    # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_usarray_nested.model'
-    # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_usarray.lst'
-    # bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/bathy.p'
-    # data_out = []
-    # # data_file = 
-    # # # bath_file = []
-    # # bath_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000_wOcean/bathy.p'
-    # model_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_usarray_nested_wOcean.model'
-    # cov_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_usarray_nested_ocean.cov'
+    size = 'nest'
+    model_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_hs500_{}.model'.format(size)
+    list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_mantle_fullrun_ffmt.lst'
+    data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_LAMBERT_all_flagged.dat'
+    data_out = []
+    # bath_file = []
+    bath_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
+    bath_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
+    model_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.model'.format(size)
+    cov_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.cov'.format(size)
     ################################
     #  Ciomadual
-    model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/notopo/cio_notopo_large.model'
-    list_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/FFMT/allsites.lst'
-    data_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/dummy.dat'
-    bath_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/bathy_large.p'
-    bath_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/bathy_large.p'
-    model_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/cio_wTopoAndOcean_large.model'
-    cov_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/cio_wTopoAndOcean_large.cov'
-    data_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio1/cio_wTopoAndOcean_large.dat'
+    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D-smooth.model'
+    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D_nest.model'
+    # list_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/originals/rotated/fixed/ffmt_sorted.lst'
+    # data_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio4_halfPers.dat'
+    # bath_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/bathy_nest.p'
+    # bath_file = []
+    # bath_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/bathy_nest.p'
+    # model_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cioHS_wTopoAndOcean_nest.model'
+    # cov_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cioHS_wTopoAndOceanFlipX_nest.cov'
+    # data_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cioHS_wTopoAndOcean_nest.dat'
+    ###############################
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
     model = DS.Model(model_file)
     model.origin = raw_data.origin
+    lat_pad = 5
+    lon_pad = 5
+    data_collect_stride = 4
+    with_topography = True
+    cmap = cmocean.cm.haline
     ####################################
     # If you want to modify the vertical meshing, do it now (see examples below)
     # Add 20 layers that are each 200 m thick, then append the existing mesh (I used this for testing purposes)
-    model.zCS = [50] * 20 + model.zCS
+    # Z = [50] * 20 + model.zCS
+    # model.zCS = Z
+    # model.vals[:,:,:] = 10
+    # model.zCS = [50] * 12 + [20] + model.zCS
+    # model.dz = list(np.arange(0, 620, 20)) + list(np.logspace(np.log10(620), 4.5, 80)) + list(np.logspace(4.5, 6, 20))[1:]
+    # model.zCS = [20] * 31 + list(np.logspace(np.log10(20), 3, 80)) + list(np.logspace(3.1, 5, 20))
+    # for ii in range(20):
+        # model.dz_insert(0, 50)
     # Another testing mesh, this time with 100 m layers from 0-10 km, then 1 km layers from 10-100 km depth
     # model.dz = list(range(0, 10000, 100)) + list(range(10000, 100000, 1000))
     ####################################
@@ -185,12 +202,12 @@ if __name__ == '__main__':
     # model.generate_half_space()
     # This one is needed to make sure the projection to lat/long is correct.
     # model.UTM_zone = '4Q'
-    model.UTM_zone = '35N'
+    # model.UTM_zone = '35N'
     # model.UTM_zone = '16N'
-    # model.UTM_zone = '15U'
+    model.UTM_zone = '16U'
     model.to_latlong()
-    minlat, maxlat = model.dx[0] - 1, model.dx[-1] + 1
-    minlon, maxlon = model.dy[0] - 1, model.dy[-1] + 1
+    minlat, maxlat = model.dx[0] - lat_pad, model.dx[-1] + lat_pad
+    minlon, maxlon = model.dy[0] - lon_pad, model.dy[-1] + lon_pad
     # minlat = 18
     # maxlat = 22
     # minlon = -157
@@ -203,13 +220,13 @@ if __name__ == '__main__':
             bathy = np.genfromtxt(bath_file)
             lat, lon, topo = bathy[:, 1], bathy[:, 0], bathy[:, 2]
     else:
-        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=4)
+        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=data_collect_stride)
         bathy = np.array((lat, lon, topo))
         pickle.dump(bathy, open(bath_out, 'wb'))
     
     grid_x, grid_y, grid_z = bathymetry_to_model(model, lat, lon, topo)
-    insert_topography(model, grid_x, grid_y, grid_z)
-    insert_oceans(model, grid_x, grid_y, grid_z, with_topography=True)
+    # insert_topography(model, grid_x, grid_y, grid_z)
+    insert_oceans(model, grid_x, grid_y, grid_z, with_topography=with_topography)
     model.to_local()
     reposition_data(data, model)
     # # Should be straightforward to assign model vals and covariances for AIR
@@ -220,6 +237,7 @@ if __name__ == '__main__':
     model.write_covariance(cov_out)
     if data_out:
         data.write(data_out, use_elevation=True)
-    plot_it(grid_x, grid_y, grid_z, raw_data.locations)
+    raw_data.locations = raw_data.get_locs(mode='latlong')
+    plot_it(grid_x, grid_y, grid_z, raw_data.locations, cmap=cmap)
     # main()
 
