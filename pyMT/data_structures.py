@@ -1390,7 +1390,7 @@ class Model(object):
         if not self.UTM_zone:
             print('UTM zone must be set or given')
             return
-        if zone.lower() == 'lam':
+        if 'lam' in self.UTM_zone.lower():
             lam_x, lam_y = utils.to_lambert(self._dy)
         if len(self.UTM_zone) == 2:
             number = int(self.UTM_zone[0])
