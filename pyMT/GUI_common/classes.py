@@ -239,7 +239,7 @@ class ColourMenu(QtWidgets.QMenu):
                                            'greys', 'greys_r',
                                            'turbo', 'turbo_r',
                                            'twilight', 'twilight_shifted',
-                                           'colorwheel')}
+                                           'colorwheel', 'turbo_capped', 'turbo_capped_r')}
         self.action_group = QtWidgets.QActionGroup(self)
         self.setTitle('Colour Options')
         self.map = self.addMenu('Colour Map')

@@ -9,7 +9,8 @@ import cmocean
 import pyMT.data_structures as DS
 import pyMT.utils as utils
 import pickle
-
+import rasterio
+from rasterio.warp import calculate_default_transform, reproject, Resampling
 
 #####################################
 ########## INSTRUCTIONS #############
@@ -129,50 +130,14 @@ def plot_it(grid_x, grid_y, grid_z, locations=None, cmap=None):
 if __name__ == '__main__':
     # Define the domain of interest
     #################################
-    # LANAI
-    # model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
-    # list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
-    # data_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_test_Z.dat'
-    # bath_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/bathy.p'
-    # bath_out = []
-    # model_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test_wTopoAndOcean.model'
-    # cov_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean.cov'
-    # data_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean_Z.dat'
-    #################################
-    # COREDILLA
-    # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/test_topo.model'
-    # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/j2/select.lst'
-    # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/modem.dat'
-    # # bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.xyz'
-    # bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.p'
-    # # bath_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.p'
-    # model_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/test_wTopo.model'
-    # cov_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai_topo.cov'
-    # data_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai__topoTest_Z.dat'
-    ################################
-    # WESTERN SUPERIOR
-    size = 'nest'
-    model_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_hs500_{}.model'.format(size)
-    list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_mantle_fullrun_ffmt.lst'
-    data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_LAMBERT_all_flagged.dat'
-    data_out = []
-    # bath_file = []
-    bath_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
-    bath_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
-    model_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.model'.format(size)
-    cov_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.cov'.format(size)
-    ################################
-    #  Ciomadual
-    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D-smooth.model'
-    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D_nest.model'
-    # list_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/originals/rotated/fixed/ffmt_sorted.lst'
-    # data_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio4_halfPers.dat'
-    # bath_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/bathy_nest.p'
-    # bath_file = []
-    # bath_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/bathy_nest.p'
-    # model_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cioHS_wTopoAndOcean_nest.model'
-    # cov_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cioHS_wTopoAndOceanFlipX_nest.cov'
-    # data_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cioHS_wTopoAndOcean_nest.dat'
+    model_file = ''
+    list_file = ''
+    data_file = ''
+    bath_file = ''
+    bath_out = ''
+    model_out = ''
+    cov_out = ''
+    data_out = ''
     ###############################
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
@@ -202,9 +167,9 @@ if __name__ == '__main__':
     # model.generate_half_space()
     # This one is needed to make sure the projection to lat/long is correct.
     # model.UTM_zone = '4Q'
-    # model.UTM_zone = '35N'
+    model.UTM_zone = '35N'
     # model.UTM_zone = '16N'
-    model.UTM_zone = '16U'
+    # model.UTM_zone = '16U'
     model.to_latlong()
     minlat, maxlat = model.dx[0] - lat_pad, model.dx[-1] + lat_pad
     minlon, maxlon = model.dy[0] - lon_pad, model.dy[-1] + lon_pad
@@ -213,19 +178,56 @@ if __name__ == '__main__':
     # minlon = -157
     # maxlon = -154
     if bath_file:
-        try:
-            bathy = pickle.load(open(bath_file, 'rb'))
-            lat, lon, topo = bathy[0, :], bathy[1, :], bathy[2, :]
-        except pickle.UnpicklingError:
-            bathy = np.genfromtxt(bath_file)
-            lat, lon, topo = bathy[:, 1], bathy[:, 0], bathy[:, 2]
+        if bath_file.endswith('tif') or bath_file.endswith('.tiff'):
+            print('Reading topography from GeoTIFF {}'.format(bath_file))
+            # This is a huge workaround until I figure out how to do it properly.
+            dst_crs = 'EPSG:4326'  # WGS
+            with rasterio.open(bath_file,) as src:
+                transform, width, height = calculate_default_transform(src.crs,
+                                                                       'EPSG:4326',
+                                                                       src.width,
+                                                                       src.height,
+                                                                       *src.bounds)
+                kwargs = src.meta.copy()
+                kwargs.update({'crs': dst_crs,
+                                'transform':transform,
+                                'width': width,
+                                'height':height})
+            
+                with rasterio.open('temp.tif', 'w', **kwargs) as dst:
+                    for i in range(1, src.count + 1):
+                        reproject(source=rasterio.band(src,i),
+                        destination=rasterio.band(dst,i),
+                        src_transform=src.transform,
+                        src_crs=src.crs,
+                        dst_transform=transform,
+                        dst_resolution=0.01,
+                        dst_crs=dst_crs)
+            with rasterio.open('temp.tif') as dst:
+                topo = dst.read(1).ravel()
+                lat, lon = [], []
+                for iy in range(dst.height):
+                    for ix in range(dst.width):
+                        x, y = dst.transform * (ix, iy)
+                        lat.append(y)
+                        lon.append(x)
+                lat = np.array(lat)
+                lon = np.array(lon)
+        else:
+
+            try:
+                bathy = pickle.load(open(bath_file, 'rb'))
+                lat, lon, topo = bathy[0, :], bathy[1, :], bathy[2, :]
+            except pickle.UnpicklingError:
+                bathy = np.genfromtxt(bath_file)
+                lat, lon, topo = bathy[:, 1], bathy[:, 0], bathy[:, 2]
     else:
         lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=data_collect_stride)
         bathy = np.array((lat, lon, topo))
         pickle.dump(bathy, open(bath_out, 'wb'))
     
     grid_x, grid_y, grid_z = bathymetry_to_model(model, lat, lon, topo)
-    # insert_topography(model, grid_x, grid_y, grid_z)
+    insert_topography(model, grid_x, grid_y, grid_z)
     insert_oceans(model, grid_x, grid_y, grid_z, with_topography=with_topography)
     model.to_local()
     reposition_data(data, model)
@@ -239,5 +241,5 @@ if __name__ == '__main__':
         data.write(data_out, use_elevation=True)
     raw_data.locations = raw_data.get_locs(mode='latlong')
     plot_it(grid_x, grid_y, grid_z, raw_data.locations, cmap=cmap)
-    # main()
+    main()
 
