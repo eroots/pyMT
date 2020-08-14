@@ -122,9 +122,9 @@ def project_locations(data, zone, letter):
 # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/placed_TFPT/southTFPT_hsRef-2_lastIter.rho')
 # ##########################################################
 # # SWAYZE
-main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
 
 # seismic = pd.read_table(r'E:\phd\Nextcloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
@@ -237,10 +237,16 @@ backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # UPPER-ABITIBI
-# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/MALBB_seisNS.lst')
-# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+seismic = pd.read_table(local_path + '/phd/NextCloud/data/Regions/MetalEarth/rouyn/rapolai_2d/Model4_F_corrected.csv',
+                     header=0, names=('x','y','z','rho'), sep=',')
+seismic_all = copy.deepcopy(seismic)
+seismic = seismic.loc[np.unique(seismic['x'], return_index=True)[1]]
+seismic = seismic[3:-3]
+main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/ROUBB_NS.lst')
+data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/Hex2Mod/HexAG-test300ohm_block.model')
 # seismic = pd.read_table(local_path + '/phd/NextCloud/data/Regions/MetalEarth/AG/seismic/rewesternsuperiorandabitibimt/12.cdp',
 #                         header=0, names=('trace', 'x', 'y'), sep='/s+')
@@ -267,7 +273,7 @@ seisline = ['swayze']
 # seismic = pd.read_table(local_path + '/phd/NextCloud/data/Regions/MetalEarth/AG/seismic/rewesternsuperiorandabitibimt/{}.cdp'.format(seisline),
 #                         # header=0, names=('trace', 'x', 'y'),  sep='\s+')
 #                         header=0, names=('ffid', 'trace', 'x', 'y', 'z'), sep='\s+')
-use_seismic = 0
+use_seismic = 1
 overlay_seismic = 0
 only_seismic = 0
 seismic_is_depth = 1
@@ -286,7 +292,7 @@ UTM_letter = 'U'
 reso = []
 ninterp = 100
 nz_interp = 5
-interp_method = 'nearest'
+interp_method = 'linear'
 # padding = 1500
 padding = 10000
 ninterp_padding = 100
@@ -294,25 +300,27 @@ modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 
 # file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/line{}/'.format(seisline)
-file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/EditFigures/'
-file_name = 'mathesonPad30k-HexMT_linear_turbo0-5'
+# file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/EditFigures/'
+file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Rouyn/rapolai_2d/'
+file_name = 'rouyn-WinGLink_linear_turbo0-5'
 
-file_types = ['.png'] #, '.svg']
+file_types = ['.png', '.svg']
 title_ = 'Standard Inversion'
 rotate_back = 0
 plot_direction = 'sn'
 linear_xaxis = 1
 save_fig = 1
 save_dat = 0
-annotate_sites = 0
-site_markers = 0
+annotate_sites = 1
+site_markers = 1
 plot_contours = 0
 
 # site_markers = 0
 plot_map = 1
 dpi = 300
-csv_name = 'C:/Users/eroots/phd/Nextcloud/Metal Earth/Data/model_csvs/wst_wUSARRAY_alongLitho.dat'
-# csv_name = local_path + '/phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_alongMT.dat'
+# csv_name = 'C:/Users/eroots/phd/Nextcloud/Metal Earth/Data/model_csvs/wst_wUSARRAY_alongLitho.dat'
+csv_name = local_path + '/phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_along2D.dat'
+# csv_name = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/rouyn/model_csvs/rouyn_alongMT.dat'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -320,7 +328,7 @@ xlim = []
 # zlim = [0, 100]
 # zlim = [0, 60]
 aspect_ratio = 1
-zlim = [0, 50]
+zlim = [0, 60]
 lut = 64
 # zlim = [0, 100]
 # lut = 64
@@ -371,7 +379,7 @@ reverse_nudge = ['']
 
 # nudge_dist = 500
 # nudge_dist = -750
-use_nudge = 1
+use_nudge = 0
 fig_num = 0
 # all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
 #                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
@@ -381,15 +389,16 @@ all_backups = {'main_transect': copy.deepcopy(main_transect),
 # for nudge_dist in [-1200, -900, -600, -300, 300, 600, 900, 1200]:
 # for seisline in seismic_lines:
 # for nudge_dist in range(-10000, 12000, 2000):
-rho = [10, 50, 100, 300, 500]
-# rho = [500]
-depth = ['5.0', '10.0', '14.0', '23.0']
+# rho = [10, 50, 100, 300, 500]
+rho = [500]
+depth = ['5.0']
+# depth = ['5.0', '10.0', '14.0', '23.0']
 # for nudge_dist in [5000]:
     # for line in seisline:
 for r in rho:
     for d in depth:
-        path = local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/'
-        mod = WSDS.Model(path + '{}ohm/swz_lccTest_{}ohm_{}kmDepth.model'.format(r, r, d))
+        # path = local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/'
+        # mod = WSDS.Model(path + '{}ohm/swz_lccTest_{}ohm_{}kmDepth.model'.format(r, r, d))
         for nudge_dist in [0]:
                 
             # for nudge_dist in [0]:
@@ -397,8 +406,8 @@ for r in rho:
             # file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/{}/'.format(line)
             # file_name = 'AG_alongSeisModified_northing_line_{}_{}_mOffset'.format(line, nudge_dist)
             # file_name = 'AG_seis_northing_line_{}'.format(line)
-            file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/featureTests/{}ohm/'.format(r)
-            file_name = 'Swayze_{}ohm_{}kmDep'.format(r, d)
+            # file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/featureTests/{}ohm/'.format(r)
+            # file_name = 'Swayze_{}ohm_{}kmDep'.format(r, d)
             # if line in ['12', '14']:
             #     seismic = pd.read_table(local_path + '/phd/NextCloud/data/Regions/MetalEarth/AG/seismic/rewesternsuperiorandabitibimt/{}.cdp'.format(line),
             #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
@@ -624,7 +633,13 @@ for r in rho:
             else:
                 print('Interpolating...')
             # vals = griddata(data_points, data_values, query_points, 'nearest')
-                interpolator = RGI((y, x, z), np.transpose(vals, [1, 0, 2]), bounds_error=False, fill_value=5, method=interp_method)
+                # interpolator = RGI((y, x, z), np.transpose(vals, [1, 0, 2]), bounds_error=False, fill_value=5, method=interp_method)
+                # sz = utils.edge2center(seismic_all['z'])
+                # sy = utils.edge2center(seismic_all['y'])
+                # srho = np.array(list(seismic_all['rho']) + [seismic_all['rho'][0]])
+                # interpolator = RGI((sy, sz), 
+                #                     np.reshape(np.array(seismic_all['rho']), [411, 53]),
+                #                     bounds_error=False, fill_value=5, method=interp_method)
                 vals = interpolator(query_points)
                 vals = np.reshape(vals, [len(qx), len(qz)])
                 if reso:

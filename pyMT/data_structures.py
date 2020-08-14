@@ -176,7 +176,10 @@ class Dataset(object):
             self.data.sites[site].detect_outliers(self.data.OUTLIER_MAP)
         self.data._runErrors = []
         self.data.periods = np.array([p for p in self.data.sites[self.data.site_names[0]].periods])
-        self.data.components = RawData.ACCEPTED_COMPONENTS
+        try:
+            self.data.components = [comp for comp in components if comp in RawData.ACCEPTED_COMPONENTS]
+        except TypeError:
+            self.data.components = RawData.ACCEPTED_COMPONENTS
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
         self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
@@ -437,10 +440,10 @@ class Dataset(object):
                     try:
                         if comp[0].lower() == 'z':
                             scale = np.sqrt(raw_site.periods)
-                            to_smooth = raw_site.data[comp]
+                            to_smooth = deepcopy(raw_site.data[comp])
                             data_comp = data_site.data[comp]
                         elif comp[0].lower() == 't':
-                            to_smooth = raw_site.data[comp]
+                            to_smooth = deepcopy(raw_site.data[comp])
                             data_comp = data_site.data[comp]
                         elif comp[0].lower() == 'p':
                             to_smooth = [getattr(raw_site.phase_tensors[ii], comp) for ii, p in enumerate(raw_site.periods)]
@@ -456,6 +459,18 @@ class Dataset(object):
                         print('Component {} not found'.format(comp))
                         return
                     # error_map = np.zeros(data_site.data[comp].shape)
+                    # Replace insane values with the nearest non-insane value
+                    idx = np.abs(to_smooth) <= 100000 * np.median(np.abs(to_smooth) + 0.000001)
+
+                    if not np.all(idx):
+                        print([site, comp])
+                        for ii in range(len(idx)):
+                            if not idx[ii]:
+                                if ii == 0:
+                                    to_smooth[0] = to_smooth[np.argmax(idx)]
+                                else:
+                                    to_smooth[ii] = to_smooth[np.argmin(np.abs(ii - np.argwhere(idx)))]
+
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
                                                           scale * to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
@@ -578,6 +593,7 @@ class Data(object):
                            'ModEM': '.dat'}
     INVERSION_TYPES = WS_io.INVERSION_TYPES
     REMOVE_FLAG = 1234567
+    FLOAT_CAP = 1e10
     # INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
     #                        'ZXYR', 'ZXYI',
     #                        'ZYXR', 'ZYXI',
@@ -1692,6 +1708,7 @@ class Site(object):
     NO_PERIOD_FLAG = -9999
     NO_COMP_FLAG = -99999
     REMOVE_FLAG = 1234567
+    FLOAT_CAP = 1e10
 
     def __init__(self, data={}, name='', periods=None, locations={},
                  errors={}, errmap=None, azimuth=None, flags=None,

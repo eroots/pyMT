@@ -626,8 +626,9 @@ def read_raw_data(site_names, datpath=''):
                     # print('Periods in {} are not in ascending order'.format(file))
                 data, errors, azi, error_flag = extract_tensor_info(blocks)
                 if error_flag:
-                    print('Errors not properly specified in {}.'.format(file))
-                    print('Setting offending component errors to floor values.')
+                    pass
+                    # print('Errors not properly specified in {}.'.format(file))
+                    # print('Setting offending component errors to floor values.')
                 Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
                 location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
                 site_dict = {'data': data,
@@ -1115,8 +1116,12 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             site_names = new_site_names
         elif site_names != new_site_names:
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
-            print('Proceeding with names set in list file.\n')
-            # site_names = new_site_names
+            if set(site_names) == set(new_site_names):
+                print('Looks like just the order of sites is different. Proceeding anyways, watch out for buggy behavior...')
+                site_names = new_site_names
+            else:
+                print('Proceeding with names set in list file.\n')
+
         all_periods = []
         sorted_site_data = copy.deepcopy(site_data)
         sorted_site_error = copy.deepcopy(site_error)
@@ -1839,6 +1844,12 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                     component_code = component_code[0] + component_code[2]
                                 Z_real = site.data[component][jj]
                                 Z_imag = site.data[component[:3] + 'I'][jj]
+                                if abs(Z_real) > data.FLOAT_CAP:
+                                    print('Exceedingly large value at station {}. Capping, but consider investigating...'.format(site_name))
+                                    Z_real = np.sign(Z_real) * data.FLOAT_CAP
+                                if abs(Z_imag) > data.FLOAT_CAP:
+                                    print('Exceedingly large value at station {}. Capping, but consider investigating...'.format(site_name))
+                                    Z_imag = np.sign(Z_imag) * data.FLOAT_CAP
                                 if use_elevation:
                                     X, Y, Z = (data.locations[ii, 0],
                                                data.locations[ii, 1],
@@ -1865,8 +1876,9 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                                         Lat, Long,
                                                         X, Y, Z,
                                                         component_code.upper(), Z_real, Z_imag,
-                                                        max(site.used_error[component[:-1] + 'R'][jj],
-                                                            site.used_error[component[:-1] + 'I'][jj]))
+                                                        min(max(site.used_error[component[:-1] + 'R'][jj],
+                                                                site.used_error[component[:-1] + 'I'][jj]),
+                                                            data.FLOAT_CAP))
                                     if site.used_error[component][jj] == data.REMOVE_FLAG:
                                         flagged_data.append(line_out)
                                     else:

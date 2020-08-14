@@ -1,5 +1,12 @@
 Change Log
 ==========
+* 14/08/20
+
+  * Added some logic to 'regulate_errors' so that it would ignore extreme outliers.
+
+  * ModEM has an upper limit on floating point values - exceeding these values causes a crash. Therefore, data and error values are now capped when written to file (and a message is printed).
+
+    * Note that things could still go wrong with this fix (e.g., if data at the cap is inverted, the nRMS is likely to be off the charts). I hesistate to flat out zero such data, and prefer to let the user fix things.
 
 * 04/08/20
 

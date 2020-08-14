@@ -718,13 +718,19 @@ def compute_rho(site, calc_comp=None, errtype='none'):
     # mu = 0.2 / (4 * np.pi * 1e-7)
     if calc_comp.upper() not in COMPS[:4]:
         if calc_comp.lower() == 'det':
-            det = compute_MT_determinant(site)
+            det, err = compute_MT_determinant(site)
+
         elif calc_comp == 'gav':
-            det = compute_gav(site)
+            det, err = compute_gav(site)
         elif calc_comp == 'aav':
-            det = compute_aav(site)
+            det, err = compute_aav(site)
         rho_data = det * np.conj(det) * site.periods / (MU * 2 * np.pi)
-        rho_error = rho_log10Err = rho_data * 0
+        print(err)
+        rho_max = rho_data * (1 + 2*err)
+        rho_min = rho_data / (1 + 2*err)
+        rho_error = rho_max - rho_min
+        rho_log10Err = np.log10(rho_error)
+        # rho_error = rho_log10Err = rho_data * 0
         # Do errors here...
     else:
         comp = ''.join(['Z', calc_comp.upper()])
@@ -819,22 +825,26 @@ def compute_gav(site):
     try:
         gav = np.sqrt((site.data['ZXYR'] - 1j * site.data['ZXYI']) *
                       (site.data['ZYXR'] - 1j * site.data['ZYXI']))
+        gav_err = np.sqrt(abs((site.used_error['ZXYR'] - 1j * site.used_error['ZXYI']) *
+                              (site.used_error['ZYXR'] - 1j * site.used_error['ZYXI'])))
     except KeyError as e:
         print('Missing component needed for computation')
         raise e
     else:
-        return gav
+        return gav, gav_err
 
 
 def compute_aav(site):
     try:
         aav = ((abs(site.data['ZXYR']) + 1j * abs(site.data['ZXYI'])) +
                (abs(site.data['ZYXR']) + 1j * abs(site.data['ZYXI']))) / 2
+        aav_err = ((abs(site.used_error['ZXYR']) + abs(site.used_error['ZXYI'])) +
+                   (abs(site.used_error['ZYXR']) + abs(site.used_error['ZYXI']))) / 4
     except KeyError as e:
         print('Missing component needed for computation')
         raise e
     else:
-        return aav
+        return aav, aav_err
 
 
 def compute_MT_determinant(site):
@@ -843,11 +853,15 @@ def compute_MT_determinant(site):
                       (site.data['ZYXR'] - 1j * site.data['ZYXI']) -
                       (site.data['ZXXR'] - 1j * site.data['ZXXI']) *
                       (site.data['ZYYR'] - 1j * site.data['ZYYI']))
+        det_err = (site.used_error['ZXXR'] * (abs(site.data['ZYYR'] + 1j*site.data['ZYYI'])) +
+                   site.used_error['ZYYR'] * (abs(site.data['ZXXR'] + 1j*site.data['ZXXI'])) +
+                   site.used_error['ZXYR'] * (abs(site.data['ZYXR'] + 1j*site.data['ZYXI'])) +
+                   site.used_error['ZYXR'] * (abs(site.data['ZXYR'] + 1j*site.data['ZXYI']))) / (2 * abs(det))
     except KeyError as e:
         print('Determinant cannot be computed unless all impedance components are available')
         raise e
     else:
-        return det
+        return det, det_err
 
 
 def geotools_filter(x, y, fwidth=1, use_log=True):

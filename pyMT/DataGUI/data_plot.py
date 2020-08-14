@@ -881,8 +881,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.plot_annotate()
         PT_toggles = self.get_PT_toggles()
         bar_fill = self.Bar_fill.itemText(self.Bar_fill.currentIndex())
-        self.set_pt_rot_axis()
+        
         if 'None' not in PT_toggles['data']:
+            self.set_pt_rot_axis()
             self.map.plot_phase_tensor(data_type=PT_toggles['data'],
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period,
