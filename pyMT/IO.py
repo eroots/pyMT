@@ -70,7 +70,7 @@ INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
                         'TZYR', 'TZYI')}
 
 
-if os.name is 'nt':
+if os.name == 'nt':
     PATH_CONNECTOR = '\\'
 else:
     PATH_CONNECTOR = '/'
@@ -580,10 +580,11 @@ def read_raw_data(site_names, datpath=''):
                 elif key == 'ZROT':
                     data_block = read_data_block(blocks[key])
                     if not np.all(data_block == data_block[1]):
-                        print('Not all rotations are the same. This is not supported yet...')
                         azi = data_block[0]
+                        equal_rots = 0
                     else:
                         azi = data_block[0]
+                        equal_rots = 1
             # EDI format has ZxyR, ZxyI positive; ZyxR, ZyxI negative. This needs to be changed
             # EDI is generally +iwt sign convention. Note this can be specified in EDI files, but is not read anywhere here.
             data['ZXYI'] *= -1
@@ -606,11 +607,12 @@ def read_raw_data(site_names, datpath=''):
                     else:
                         errors.update({component: np.ones(data[component].shape) * 0.03})
                     error_flag = 1
-            return data, errors, azi, error_flag
+            return data, errors, azi, error_flag, equal_rots
 
         data = {}
         errors = {}
         try:
+            # print('Reading file: {}'.format(file))
             with open(file, 'r') as f:
                 # Need to also read in INFO and DEFINEMEAS blocks to confirm that the location
                 # info is consistent
@@ -624,7 +626,9 @@ def read_raw_data(site_names, datpath=''):
                 periods = utils.truncate(1 / frequencies)
                 # if periods[0] > periods[1]:
                     # print('Periods in {} are not in ascending order'.format(file))
-                data, errors, azi, error_flag = extract_tensor_info(blocks)
+                data, errors, azi, error_flag, equal_rots = extract_tensor_info(blocks)
+                if not equal_rots:
+                    print('Not all rotations are the same, site: {}. This is not supported yet...'.format(file))
                 if error_flag:
                     pass
                     # print('Errors not properly specified in {}.'.format(file))
@@ -645,7 +649,7 @@ def read_raw_data(site_names, datpath=''):
 
     siteData = {}
     long_origin = 999
-    if os.name is 'nt':
+    if os.name == 'nt':
         connector = '\\'
     else:
         connector = '/'
@@ -1164,8 +1168,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         try:
             inv_type = [key for key in INVERSION_TYPES.keys() if all_components == set(INVERSION_TYPES[key])][0]
         except IndexError:
-            msg = 'Components listed in {} are not yet a supported inversion type'.format(datafile)
-            raise(WSFileError(id='int', offender=datafile, extra=msg))
+            msg = 'Components listed in {} are not yet a supported inversion type. Sorry ¯\\_(-_-)_/¯'.format(datafile)
+            raise(WSFileError(ID='int', offender=datafile, extra=msg))
         # debug_print(inv_type, 'debug.log')
         # according to the data file
         for ii, site in enumerate(site_names):
@@ -1435,7 +1439,28 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                             125: 'log10RhoZYX',
                             127: 'log10RhoZYY',
                             133: 'TZYR',
-                            134: 'TZYI'}
+                            134: 'TZYI',
+                            151: 'EXR',
+                            152: 'EXI',
+                            153: 'EYR',
+                            154: 'EYI',
+                            161: 'HXR',
+                            162: 'HXI',
+                            163: 'HYR',
+                            164: 'HYI',
+                            165: 'HZR',
+                            166: 'HZI'}
+        fields_data_names = ('EXR',
+                             'EXI',
+                             'EYR',
+                             'EYI',
+                             'HXR',
+                             'HXI',
+                             'HYR',
+                             'HYI',
+                             'HZR',
+                             'HZI')
+        is_fields = False
         #  Assumes you're only working with MT data
         try:
             with open(datafile, 'r') as f:
@@ -1451,7 +1476,9 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             em_format = 'Data'
         #  It's not entirely clear how strike is used in the program
         # UTM_zone, 
-        o_x, o_y, strike = re.split(r'\s{2,}', lines[1].split(':')[1].strip())
+        UTM_zone, o_x, o_y, strike = re.split(r'\s{2,}', lines[1].split(':')[1].strip())
+        # a = re.split(r'\s{2,}', lines[1].split(':')[1].strip())
+        # debug_print(a, 'io.txt')
         o_x, o_y, strike = [float(x) for x in [o_x, o_y, strike]]
         #  Will have to look into the code to see what is done, but I think this makes sense
         azimuth = strike + 90
@@ -1470,7 +1497,11 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         site_aliases = {x: [] for x in range(NS)}
         for ii, line in enumerate(lines[1:NS + 1]):
             site = {value_ids[ii]: value for ii, value in enumerate(line.split())}
-            site_aliases.update({ii + 1: site['Name']})
+            try:
+                site_aliases.update({ii + 1: site['Name']})
+            except KeyError:
+                site['Name'] = str(ii)
+                site_aliases.update({ii + 1: site['Name']})
             site_names.append(site['Name'])
             site_dict.update({site['Name']: {'locations': {'X': float(site['X']),
                                                            'Y': float(site['Y']),
@@ -1488,7 +1519,10 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         for line in lines[NS + 2:]:
             site = {value_ids[ii]: float(value) for ii, value in enumerate(line.split())}
             site_name = site_aliases[int(site['Rx#'])]
+            data_type_int = int(site['Type'])
             data_type = data_type_lookup[int(site['Type'])]
+            if data_type_int > 150:
+                is_fields = True
             if data_type_lookup[site['Type']] not in site_dict[site_name]['data'].keys():
                 site_dict[site_name]['data'].update({data_type: [0 for x in range(NP)]})
                 site_dict[site_name]['errors'].update({data_type: [0 for x in range(NP)]})
@@ -1504,10 +1538,80 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                 site_dict[site]['data'].update({component: np.array(vals)})
                 vals = site_dict[site]['errors'][component]
                 site_dict[site]['errors'].update({component: np.array(vals)})
+        if is_fields: # Hacky but whatever
+            fields_data = {site: {field: [] for field in fields_data_names} for site in site_dict.keys()}
+            for site in site_dict.keys():
+                ZXX = np.zeros(len(site_dict[site]['data']['EXR']), dtype=np.complex128)
+                ZYY = np.zeros(len(site_dict[site]['data']['EXR']), dtype=np.complex128)
+                ZXY = np.zeros(len(site_dict[site]['data']['EXR']), dtype=np.complex128)
+                ZYX = np.zeros(len(site_dict[site]['data']['EXR']), dtype=np.complex128)
+                TZX = np.zeros(len(site_dict[site]['data']['EXR']), dtype=np.complex128)
+                TZY = np.zeros(len(site_dict[site]['data']['EXR']), dtype=np.complex128)
+                for ii in range(len(site_dict[site]['data']['EXR'])):
+                    # E = np.array((site_dict[site]['data']['EXR'][ii] + 1j*site_dict[site]['data']['EXI'][ii],
+                                  # site_dict[site]['data']['EYR'][ii] + 1j*site_dict[site]['data']['EYI'][ii]))
+                    # H = np.array((site_dict[site]['data']['HXR'][ii] + 1j*site_dict[site]['data']['HXI'][ii], 
+                                  # site_dict[site]['data']['HYR'][ii] + 1j*site_dict[site]['data']['HYI'][ii]))
+                    EX = np.array((site_dict[site]['data']['EXR'][ii] + 1j*site_dict[site]['data']['EXI'][ii]))
+                    EY = np.array((site_dict[site]['data']['EYR'][ii] + 1j*site_dict[site]['data']['EYI'][ii]))
+                    HX = np.array((site_dict[site]['data']['HXR'][ii] + 1j*site_dict[site]['data']['HXI'][ii]))
+                    HY = np.array((site_dict[site]['data']['HYR'][ii] + 1j*site_dict[site]['data']['HYI'][ii]))
+                    HZ = np.array((site_dict[site]['data']['HZR'][ii] + 1j*site_dict[site]['data']['HZI'][ii]))
+
+                    # try:
+                    #     Z = np.inner(np.outer(E, np.conj(H)), np.linalg.inv((np.outer(H, np.conj(H)))))
+                    # except np.linalg.LinAlgError:
+                    #     print('Singular matrix at site {}, assuming 2D'.format(site))
+                    Z = np.zeros((2, 2), dtype=np.complex128)
+                    # Z[0, 0] = (EX * np.conj(HX)) / (HX * np.conj(HX))
+                    Z[0, 1] = (EX * np.conj(HY)) / (HY * np.conj(HY))
+                    Z[1, 0] = (EY * np.conj(HX)) / (HX * np.conj(HX))
+                    # Z[1, 1] = (EY * np.conj(HY)) / (HY * np.conj(HY))
+                    Z[np.isnan(Z)] = 1e-10
+                    Z[Z == 0] = 1e-10
+                    #     H[H == 0] = 1e12
+                    #     Z[0, 1] = E[0] / H[1]
+                    #     Z[1, 0] = E[1] / H[0]
+
+                    ZXX[ii], ZXY[ii], ZYX[ii], ZYY[ii] = Z[0, 0], Z[0, 1], Z[1, 0], Z[1, 1]
+                    # TZX[ii] = 0 + 0j
+                    TZY[ii] = HZ / HY
+                site_dict[site]['data'].update({'ZXXR': np.real(ZXX),
+                                                'ZXYR': np.real(ZXY),
+                                                'ZYXR': np.real(ZYX),
+                                                'ZYYR': np.real(ZYY),
+                                                'TZXR': np.real(TZX),
+                                                'TZYR': np.real(TZY),
+                                                'ZXXI': -np.imag(ZXX),
+                                                'ZXYI': -np.imag(ZXY),
+                                                'ZYXI': -np.imag(ZYX),
+                                                'ZYYI': -np.imag(ZYY),
+                                                'TZXI': -np.imag(TZX),
+                                                'TZYI': -np.imag(TZY)})
+                site_dict[site]['errors'].update({'ZXXR': abs(np.real(ZXY) * 0.05),
+                                                  'ZXYR': abs(np.real(ZXY) * 0.05),
+                                                  'ZYXR': abs(np.real(ZYX) * 0.05),
+                                                  'ZYYR': abs(np.real(ZYX) * 0.05),
+                                                  'ZXXI': abs(np.imag(ZXY) * 0.05),
+                                                  'ZXYI': abs(np.imag(ZXY) * 0.05),
+                                                  'ZYXI': abs(np.imag(ZYX) * 0.05),
+                                                  'ZYYI': abs(np.imag(ZYX) * 0.05),
+                                                  'TZXR': 0.05 * np.ones(TZY.shape),
+                                                  'TZYR': 0.05 * np.ones(TZY.shape),
+                                                  'TZXI': 0.05 * np.ones(TZY.shape),
+                                                  'TZYI': 0.05 * np.ones(TZY.shape)})
+                for field in fields_data_names:
+                    fields_data[site][field] = site_dict[site]['data'][field]
+                    del site_dict[site]['data'][field]
+                    del site_dict[site]['errors'][field]
+                site_dict[site].update({'fields': fields_data[site]})
+        else:
+            fields = None
         other_info = {'site_names': site_names,
                       'inversion_type': None,
                       'origin': (o_x, o_y),
-                      'UTM_zone': UTM_zone}
+                      'UTM_zone': UTM_zone,
+                      'dimensionality': '2d'}
         return site_dict, other_info
 
     if file_format.lower() == 'wsinv3dmt':
@@ -1975,7 +2079,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
         frequencies = [(1 / p) for p in data.periods]
         with open(outfile, 'w') as f:
             f.write('Format:\tEMData_2.2\n')
-            f.write('UTM of x, y origin (UTM zone, N, E, 2D strike): {:>10}{:>10}{:>10}{:>10}\n'.format(
+            f.write('UTM of x, y origin (UTM zone, N, E, 2D strike): {:>10} {:>10.4f} {:>10.4f} {:>10.2f}\n'.format(
                     data.UTM_zone, data.origin[0], data.origin[1], strike))
             f.write('# MT Frequencies: {}\n'.format(data.NP))
             for freq in frequencies:
@@ -1984,9 +2088,9 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
             f.write('!{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
                     'X', 'Y', 'Z', 'Theta', 'Alpha', 'Beta', 'Length', 'SolveStatic', 'Name'))
             for site in data.site_names:
-                f.write(' {:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
-                    utils.truncate(data.sites[site].locations['X']),
+                f.write(' {:>15.4f}{:>15.4f}{:>15.4f}{:>15.4f}{:>15.4f}{:>15.4f}{:>15.4f}{:>15.4f}{:>15}\n'.format(
                     utils.truncate(data.sites[site].locations['Y']),
+                    utils.truncate(data.sites[site].locations['X']),
                     getattr(data.sites[site].locations, 'elev', 0),
                     data.sites[site].azimuth,
                     getattr(data.sites[site], 'alpha', 0),
@@ -2001,12 +2105,16 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                 for jj, frequency in enumerate(frequencies):
                     for component in data.used_components:
                         if not component.lower()[:3] == 'tzx':
-                            f.write('{:>15}{:>15}{:>15}{:>15}{:>15}{:>15}\n'.format(
+                            data_point = data.sites[site].data[component][jj]
+                            if component.endswith('I'):
+                                data_point = -1 * data_point
+                            f.write('{:>15} {:>15} {:>15} {:>15} {:>15.6g} {:>15.6g}\n'.format(
                                     data_type_lookup[component],
                                     jj + 1,
-                                    1,
                                     ii + 1,
-                                    data.sites[site].data[component][jj],
+                                    ii + 1,
+                                    data_point,
+                                    # data.sites[site].data[component][jj],
                                     data.sites[site].used_error[component][jj]))
 
     def write_occam(data, outfile):
@@ -2369,7 +2477,7 @@ def write_model(model, outfile, file_format='modem'):
     else:
         print('File format {} not supported'.format(file_format))
         print('Supported formats are: ')
-        print('ModEM, WSINV3DMT, UBC-GIF')
+        print('ModEM, WSINV3DMT, UBC-GIF, CSV')
         return
 
 def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):

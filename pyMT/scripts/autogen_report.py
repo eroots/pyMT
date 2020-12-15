@@ -86,9 +86,10 @@ def generate_misfit_plots(dataset):
                   'rho_off-diagonal': ('RhoXY', 'RhoYX'),
                   'phase_off-diagonal': ('PhaXY', 'PhaYX'),
                   'tipper': ('TZXR', 'TZXI', 'TZYR', 'TZYI')}
-    dpm.show_outliers = False
+    dpm.show_outliers = True
     dpm.markersize = 6
     dpm.outlier_thresh = 5
+    dpm.wrap = True
     if 'TZXR' not in dataset.data.components:
         del components['tipper']
     for comps in components.keys():
@@ -105,6 +106,7 @@ def generate_misfit_plots(dataset):
                 dpm.scale = 'sqrt(periods)'
             sites = dataset.data.site_names[ii:ii + 6]
             dpm.sites = dataset.get_sites(site_names=sites, dTypes='all')
+            dpm.which_errors = ['data']
             dpm.plot_data()
             if ii == 0:
                 pp = PdfPages(''.join([path, comps, '_misfit.pdf']))
@@ -114,10 +116,16 @@ def generate_misfit_plots(dataset):
 
 
 def main():
-    best_model, models = scan_models()
-    startup = WSIO.read_startup()
-    model, listfile, outfile = confirm_details(best_model, models)
-    response = model.replace('model', 'resp')
+    # best_model, models = scan_models()
+    # startup = WSIO.read_startup()
+    # model, listfile, outfile = confirm_details(best_model, models)
+    outfile = 'ttz_report.txt'
+    # response = model.replace('model', 'resp')
+    model = 'E:/phd/NextCloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioTifTopo1D_lastIter.rho'
+    response = 'E:/phd/NextCloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioTifTopo1D_lastIter.dat'
+    data = 'E:/phd/NextCloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioHS_wTopoAndOcean_nest.dat'
+    listfile = 'E:/phd/NextCloud/data/Regions/Ciomadul/j2/originals/rotated/fixed/ffmt_sorted.lst'
+    startup = {'errFloorZ': 0.05, 'inv_type': 1, 'datafile': data}
     dataset = WSDS.Dataset(modelfile=model, datafile=startup['datafile'],
                            responsefile=response, listfile=listfile)
     write_template(dataset, startup, outfile)

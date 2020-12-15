@@ -124,7 +124,7 @@
         <enum>QTabWidget::Rounded</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Mesh">
         <attribute name="title">
@@ -474,23 +474,20 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_12">
          <item row="2" column="0">
-          <widget class="QCheckBox" name="isoPlot">
+          <widget class="QLabel" name="label_10">
            <property name="text">
-            <string>Plot Isosurface</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
+            <string>Opacity</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="4">
+         <item row="6" column="5">
           <widget class="QPushButton" name="isoRecalculate">
            <property name="text">
             <string>Recalculate</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="2">
+         <item row="6" column="3">
           <widget class="QSpinBox" name="isoHigh">
            <property name="minimum">
             <number>1</number>
@@ -503,7 +500,31 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Lowest Resistivity</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="4">
+          <widget class="QSpinBox" name="isoNum">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>50</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>Number of Contours</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
           <widget class="QSpinBox" name="isoLow">
            <property name="maximum">
             <number>100000</number>
@@ -514,33 +535,35 @@
           </widget>
          </item>
          <item row="2" column="3">
-          <widget class="QSpinBox" name="isoNum">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>50</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>Lowest Resistivity</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
           <widget class="QLabel" name="label_8">
            <property name="text">
             <string>Highest Resistivity</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="3">
-          <widget class="QLabel" name="label_9">
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="isoPlot">
            <property name="text">
-            <string>Number of Contours</string>
+            <string>Plot Isosurface</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QDoubleSpinBox" name="isoOpacity">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -554,9 +577,30 @@
          <item row="0" column="0">
           <widget class="QGroupBox" name="groupBox_2">
            <property name="title">
-            <string>GroupBox</string>
+            <string>Options</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout_9"/>
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="resolutionCheckBox">
+              <property name="text">
+               <string>Resolution</string>
+              </property>
+              <property name="tristate">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="elevationCheckBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Station Elevation</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>
@@ -593,9 +637,20 @@
     <property name="title">
      <string>3-D Options</string>
     </property>
+    <widget class="QMenu" name="menuBackground_Type">
+     <property name="title">
+      <string>Background Type</string>
+     </property>
+     <addaction name="actionDefault"/>
+     <addaction name="actionGrey"/>
+     <addaction name="actionWhite"/>
+     <addaction name="actionBlack"/>
+     <addaction name="actionBlue"/>
+    </widget>
     <addaction name="viewXY"/>
     <addaction name="viewXZ"/>
     <addaction name="viewYZ"/>
+    <addaction name="menuBackground_Type"/>
    </widget>
    <widget class="QMenu" name="menuMesh_Lines">
     <property name="title">
@@ -619,7 +674,7 @@
   </action>
   <action name="viewYZ">
    <property name="text">
-    <string>Zoom toYZ</string>
+    <string>Zoom to YZ</string>
    </property>
   </action>
   <action name="action1">
@@ -644,6 +699,52 @@
    </property>
    <property name="text">
     <string>Off</string>
+   </property>
+  </action>
+  <action name="actionWhite">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>White</string>
+   </property>
+  </action>
+  <action name="actionBlack">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black</string>
+   </property>
+  </action>
+  <action name="actionBlue">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Blue</string>
+   </property>
+  </action>
+  <action name="actionGrey">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Grey</string>
+   </property>
+  </action>
+  <action name="actionDefault">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Default</string>
    </property>
   </action>
  </widget>

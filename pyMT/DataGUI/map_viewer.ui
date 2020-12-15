@@ -47,7 +47,7 @@
    <property name="minimumSize">
     <size>
      <width>150</width>
-     <height>955</height>
+     <height>1038</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -186,11 +186,16 @@
         <item>
          <widget class="QComboBox" name="PhaseTensor_fill">
           <property name="currentText">
-           <string>Phi_max</string>
+           <string>Alpha</string>
           </property>
           <item>
            <property name="text">
             <string>Alpha</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Dimensionality</string>
            </property>
           </item>
           <item>
@@ -241,6 +246,11 @@
           <item>
            <property name="text">
             <string>Delta</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_split</string>
            </property>
           </item>
          </widget>
@@ -248,11 +258,16 @@
         <item>
          <widget class="QComboBox" name="Bar_fill">
           <property name="currentText">
-           <string>Phi_min</string>
+           <string>Alpha</string>
           </property>
           <item>
            <property name="text">
             <string>Alpha</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Dimensionality</string>
            </property>
           </item>
           <item>
@@ -303,6 +318,11 @@
           <item>
            <property name="text">
             <string>Delta</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_split</string>
            </property>
           </item>
          </widget>
@@ -317,6 +337,45 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
+         <widget class="QComboBox" name="pseudoFillType">
+          <item>
+           <property name="text">
+            <string>Apparent Resistivity</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Bostick Depth</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phase</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Tipper Amplitude</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Beta</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Abs. Beta</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PT Azimuth</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
          <widget class="QRadioButton" name="toggle_rhoPseudo">
           <property name="text">
            <string>Apparent 
@@ -325,9 +384,23 @@ Resistivity</string>
          </widget>
         </item>
         <item>
+         <widget class="QRadioButton" name="toggle_depthPseudo">
+          <property name="text">
+           <string>Bostick Depth</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QRadioButton" name="toggle_phasePseudo">
           <property name="text">
            <string>Phase</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="toggle_tipPseudo">
+          <property name="text">
+           <string>Tipper Amp.</string>
           </property>
          </widget>
         </item>
@@ -360,6 +433,11 @@ Resistivity</string>
           <item>
            <property name="text">
             <string>Det</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>XY-YX</string>
            </property>
           </item>
          </widget>
@@ -438,13 +516,6 @@ Resistivity</string>
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="plotRMS">
-       <property name="text">
-        <string>Plot RMS</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QScrollBar" name="PeriodScrollBar">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -454,6 +525,13 @@ Resistivity</string>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="plotRMS">
+       <property name="text">
+        <string>Plot RMS</string>
        </property>
       </widget>
      </item>
@@ -528,6 +606,7 @@ Resistivity</string>
      <addaction name="action_coordLocal"/>
      <addaction name="action_coordUTM"/>
      <addaction name="action_coordLatlong"/>
+     <addaction name="action_coordLambert"/>
     </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
@@ -550,9 +629,17 @@ Resistivity</string>
     <addaction name="actionShow_JPEG"/>
     <addaction name="actionOpacity"/>
    </widget>
+   <widget class="QMenu" name="menuData_Options">
+    <property name="title">
+     <string>Pseudosection Options</string>
+    </property>
+    <addaction name="actionIncludeOutliers"/>
+    <addaction name="actionStandardDeviation"/>
+   </widget>
    <addaction name="menuJPEG"/>
    <addaction name="menuPoint_options"/>
    <addaction name="menuAxis_Options"/>
+   <addaction name="menuData_Options"/>
   </widget>
   <action name="actionJet">
    <property name="checkable">
@@ -808,6 +895,30 @@ Resistivity</string>
   <action name="actionMinimumAxisRatio">
    <property name="text">
     <string>Minimum Axis Ratio</string>
+   </property>
+  </action>
+  <action name="action_coordLambert">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lambert</string>
+   </property>
+  </action>
+  <action name="actionIncludeOutliers">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Include Outliers</string>
+   </property>
+  </action>
+  <action name="actionStandardDeviation">
+   <property name="text">
+    <string># Standard Deviation</string>
    </property>
   </action>
  </widget>
