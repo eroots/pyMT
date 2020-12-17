@@ -1,8 +1,14 @@
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 from PyQt5 import QtWidgets, Qt
+from PyQt5.uic import loadUiType
 import pyMT.utils as utils
 import re
+import os
+
+
+path = os.path.dirname(os.path.realpath(__file__))
+UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
 
 
 class DraggablePoint:
@@ -373,3 +379,39 @@ class FileInputParser(object):
                 print('Cannot read raw data with a list file!')
                 return False
         return retval
+
+
+class MyPopupDialog(UiPopupMain, QPopupWindow):
+    """
+    Creates a pop-up window belonging to parent
+
+    Args:
+        parent (obj): The parent window the created pop-up will be attached to
+    """
+
+    def __init__(self, parent=None):
+        super(MyPopupDialog, self).__init__(parent)
+        self.setupUi(self)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+    @staticmethod
+    def get_file(parent=None, message='', default='', label='Output'):
+        """Summary
+
+        Args:
+            parent (None, optional): Description
+            message (str, optional): Description
+            default (str, optional): Description
+            label (str, optional): Description
+
+        Returns:
+            TYPE: Description
+        """
+        dialog = MyPopupDialog(parent)
+        dialog.message.setText(message)
+        dialog.lineEdit.setText(default)
+        dialog.label.setText(label)
+        ret = dialog.exec_()
+        file = dialog.lineEdit.text()
+        return file, ret

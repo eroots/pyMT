@@ -937,13 +937,16 @@ class MapView(object):
                 #     colour = 'r'
                 idx = []
                 for ii, site in enumerate(self.site_names):
+                    site = self.site_data[dType].sites[site]
+                    if np.all(np.array([site.used_error[comp][period_idx] for comp in site.TIPPER_COMPONENTS]) == site.REMOVE_FLAG):
+                        continue
                     idx.append(ii)
-                    if 'TZX' + R_or_L in self.site_data[dType].sites[site].components:
-                        X.append(-self.site_data[dType].sites[site].data['TZX' + R_or_L][period_idx])
+                    if 'TZX' + R_or_L in site.components:
+                        X.append(-site.data['TZX' + R_or_L][period_idx])
                     else:
                         X.append(0)
-                    if 'TZY' + R_or_L in self.site_data[dType].sites[site].components:
-                        Y.append(-self.site_data[dType].sites[site].data['TZY' + R_or_L][period_idx])
+                    if 'TZY' + R_or_L in site.components:
+                        Y.append(-site.data['TZY' + R_or_L][period_idx])
                     else:
                         Y.append(0)
                 if idx:

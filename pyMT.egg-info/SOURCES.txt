@@ -28,10 +28,14 @@ pyMT/DataGUI/data_plot.py
 pyMT/DataGUI/data_plot.ui
 pyMT/DataGUI/map_viewer.ui
 pyMT/DataGUI/model_map.ui
-pyMT/DataGUI/saveFile.ui
 pyMT/GUI_common/__init__.py
 pyMT/GUI_common/classes.py
 pyMT/GUI_common/common_functions.py
+pyMT/GatewayGUI/__init__.py
+pyMT/GatewayGUI/gateway_main.py
+pyMT/GatewayGUI/gateway_main.ui
+pyMT/GatewayGUI/new_project.ui
+pyMT/GatewayGUI/new_project_treeFormat.ui
 pyMT/ModelGUI/mesh_designer.py
 pyMT/ModelGUI/mesh_designer.ui
 pyMT/ModelGUI/model_viewer.py
@@ -53,6 +57,7 @@ pyMT/scripts/bostick_compare.py
 pyMT/scripts/convert_locations.py
 pyMT/scripts/crooked_model_slice.py
 pyMT/scripts/crooked_model_slice_commented.py
+pyMT/scripts/edi_fix_rotation.py
 pyMT/scripts/f2l.py
 pyMT/scripts/interp_plan_rms.py
 pyMT/scripts/interp_rhopha.py
@@ -61,6 +66,7 @@ pyMT/scripts/krig_moho.py
 pyMT/scripts/lst2kml.py
 pyMT/scripts/mesh_edit_test.py
 pyMT/scripts/mod_errors.py
+pyMT/scripts/mtpy_strike.py
 pyMT/scripts/period_to_depth.py
 pyMT/scripts/phase_tensor_map.py
 pyMT/scripts/phase_tensor_test.py
@@ -75,6 +81,7 @@ pyMT/scripts/plot_parameter_linechart.py
 pyMT/scripts/plot_pseudosection.py
 pyMT/scripts/plot_rhopha_nice.py
 pyMT/scripts/plot_transect.py
+pyMT/scripts/plot_with_shapefile.py
 pyMT/scripts/pt2csv.py
 pyMT/scripts/pt_pseudosection.py
 pyMT/scripts/pt_pseudosection_gplot.py

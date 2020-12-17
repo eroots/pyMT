@@ -36,7 +36,7 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
-from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser
+from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser, MyPopupDialog
 from pyMT.IO import debug_print
 from copy import deepcopy
 
@@ -45,7 +45,6 @@ from copy import deepcopy
 path = os.path.dirname(os.path.realpath(__file__))
 
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
-UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
 UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
 UI_ModelingWindow, QModelingMain = loadUiType(os.path.join(path, '1D_modeling.ui'))
 
@@ -2546,41 +2545,6 @@ class MyTableModel(QtCore.QAbstractTableModel):
 
 # Should just modify this to allow for multiple lines of input, as well as a browse button.
 # The returned files can then be parsed by FileInputParser.
-class MyPopupDialog(UiPopupMain, QPopupWindow):
-    """
-    Creates a pop-up window belonging to parent
-
-    Args:
-        parent (obj): The parent window the created pop-up will be attached to
-    """
-
-    def __init__(self, parent=None):
-        super(MyPopupDialog, self).__init__(parent)
-        self.setupUi(self)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-
-    @staticmethod
-    def get_file(parent=None, message='', default='', label='Output'):
-        """Summary
-
-        Args:
-            parent (None, optional): Description
-            message (str, optional): Description
-            default (str, optional): Description
-            label (str, optional): Description
-
-        Returns:
-            TYPE: Description
-        """
-        dialog = MyPopupDialog(parent)
-        dialog.message.setText(message)
-        dialog.lineEdit.setText(default)
-        dialog.label.setText(label)
-        ret = dialog.exec_()
-        file = dialog.lineEdit.text()
-        return file, ret
-
 
 def parse_commandline(args):
     start_file = None
