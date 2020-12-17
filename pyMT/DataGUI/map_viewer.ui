@@ -376,35 +376,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="toggle_rhoPseudo">
-          <property name="text">
-           <string>Apparent 
-Resistivity</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="toggle_depthPseudo">
-          <property name="text">
-           <string>Bostick Depth</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="toggle_phasePseudo">
-          <property name="text">
-           <string>Phase</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="toggle_tipPseudo">
-          <property name="text">
-           <string>Tipper Amp.</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QCheckBox" name="toggle_dataPseudo">
           <property name="text">
            <string>Data</string>

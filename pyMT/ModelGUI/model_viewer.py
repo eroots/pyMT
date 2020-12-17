@@ -73,11 +73,20 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.setupUi(self)
 
         # Add the model
-        try:
+        if files.get('data', None):
             self.dataset = WSDS.Dataset(modelfile=files['model'],
-                                        datafile=files['dat'])
-        except KeyError:
+                                        datafile=files['data'])
+        elif files.get('response', None):
+            self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                        datafile=files['response'])
+        else:
             self.dataset = WSDS.Dataset(modelfile=files['model'])
+            print('No data file given. Site locations will not be available.')
+        # try:
+            # self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                        # datafile=files['data'])
+        # except KeyError:
+            # self.dataset = WSDS.Dataset(modelfile=files['model'])
         if self.dataset.model.dimensionality == '2d':
             # idx = np.argmin(abs(np.array(self.dataset.model.dy)))
             self.dataset.data.locations[:, 1] += self.dataset.model.dy[0] #sum(self.dataset.model.dy[:idx])
@@ -118,7 +127,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.mesh_group.setExclusive(True)
 
         self.plot_data = {'stations': []}
-        if 'dat' in files.keys():
+        if 'data' in files.keys() or 'response' in files.keys():
             self.plot_locations = True
             self.locs_3D = np.zeros((len(self.dataset.data.locations), 3))
             self.plot_data['stations'] = pv.PolyData(self.locs_3D)
@@ -1107,11 +1116,11 @@ def main():
             print('File {} not found.'.format(file))
             return
     files = sort_files(files=files)
-    try:
-        data = WSDS.Data(datafile=files['dat'])
-    except KeyError:
-        print('No data file given. Site locations will not be available.')
-        data = None
+    # try:
+    #     data = WSDS.Data(datafile=files['dat'])
+    # except KeyError:
+    #     print('No data file given. Site locations will not be available.')
+    #     data = None
     try:
         model = WSDS.Model(files['model'])
     except KeyError:

@@ -113,7 +113,7 @@ class DataPlotManager(object):
     def __init__(self, fig=None):
         self.link_axes_bounds = False
         self.axis_padding = 0.1
-        self.colour = ['darkgray', 'r', 'g', 'm', 'y', 'lime', 'peru', 'palegreen']
+        self.colour = ['royalblue', 'r', 'darkgray', 'g', 'm', 'y', 'lime', 'peru']
         self.sites = {'raw_data': [], 'data': [], 'response': []}
         self.toggles = {'raw_data': True, 'data': True, 'response': True, '1d': False}
         self.site1D = []

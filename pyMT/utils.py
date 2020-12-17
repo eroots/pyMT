@@ -1040,22 +1040,43 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
     return bostick, depth, rhofit, phase
 
 
+# @enforce_input(files=list)
+# def sort_files(files):
+#     ret_dict = {}
+#     print(files)
+#     types = ('model', 'dat', 'resp', 'lst', 'reso')
+#     for file in files:
+#         try:
+#             file_type = (next(x for x in types if '.'+x in file))
+#         except StopIteration:
+#             if '.rho' in file.lower():
+#                 ret_dict.update({'model': file})
+#             else:
+#                 print('{} does not correspond to a recognized file type'.format(file))
+#         else:
+#             ret_dict.update({file_type: file})
+#     return ret_dict
 @enforce_input(files=list)
 def sort_files(files):
-    ret_dict = {}
-    print(files)
-    types = ('model', 'dat', 'resp', 'lst', 'reso')
-    for file in files:
-        try:
-            file_type = (next(x for x in types if '.'+x in file))
-        except StopIteration:
-            if '.rho' in file.lower():
+        ret_dict = {}
+        # types = ('model', 'dat', 'resp', 'lst', 'reso')
+
+        for file in files:
+            name, ext = os.path.splitext(file)
+            if ext in ('.rho', '.model'):
                 ret_dict.update({'model': file})
-            else:
-                print('{} does not correspond to a recognized file type'.format(file))
-        else:
-            ret_dict.update({file_type: file})
-    return ret_dict
+            elif ext in ('.dat', '.data'):
+                with open(file, 'r') as f:
+                    line = f.readline()
+                if 'response' in line:
+                    ret_dict.update({'response': file})
+                else:
+                    ret_dict.update({'data': file})
+            elif ext in ('.lst', '.list'):
+                ret_dict.update({'list': file})
+            elif ext in ('.reso', '.resolution'):
+                ret_dict.update({'resolution': file})
+        return ret_dict
 
 
 def calculate_misfit(data_site, response_site):

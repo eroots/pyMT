@@ -1,6 +1,38 @@
 Change Log
 ==========
 
+* 17/12/20
+
+  * New 'Gateway' GUI for creating, modifying, and loading your projects (.pymt files, previous 'pystartup' files)
+
+    * Should be compatible with old pystart files, and all previous calling methods should still work (e.g., command line calling of data_plot, model_viewer, etc.)
+
+      * Add a '.pymt' extention to your old project files to get the GUI to automatically recognize them
+
+  * Add Niblett-Bostick depth, PT Skew, and PT Azimuth to pseudosection options in :ref:`Map Viewer`
+    
+    * Since there are now many options for pseudosections, the radio buttons which previously controlled the plot were replaced with a drop-down menu
+
+  * Added 'XY-YX' to the component option of the pseudosections
+
+    * Only works for App. Rho, Phase, and Bostick depths, but shows XY-YX (TE minus TM) versions
+
+    * Mainly useful for showing phase splitting, but could also be useful for showing variations in penetration depth
+
+  * Similarly, 'Phi_split' has been added to the phase tensor plotting
+
+    * Maybe a misnomer, but this shows XY-YX phases, NOT phi_max - phi_min.
+
+  * Added 'Dimensionality' fill option for PT plotting. This is calculated using skew and ellipticity thresholds of the phase tensor (by default at 3 degrees and 0.1, respectively)
+
+  * Added 'Lambert' projection option in :ref:`Map Viewer`.
+
+  * Added 'Include Outliers' option in pseudosection plotting, along with defineable standard deviation limits
+
+    * Values outside the defined range won't be plotted, so you don't get one station with 400 degree phase colouring your whole plot
+
+  * Data points with the REMOVE_FLAG set (e.g., after using 'Reset Dummy Errors') no longer plot phase tensors in :ref:`Map Viewer`. Should result in much cleaner plots.
+
 * 30/09/20
 
   * Changed the way missing period fill-in is handled
