@@ -129,9 +129,15 @@ def project_locations(locations, zone, letter):
 # backup_data = WSDS.RawData('filename')
 # mod = WSDS.Model('filename')
 main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb_NS.lst')
-data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/test.lst')
-backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/test.lst')
-mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
+data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+# TTZ
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/TTZ/j2/ttz_south.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/TTZ/j2/allsites.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/TTZ/j2/allsites.lst')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/TTZ/full_run/ZK/1D/ttz1D-all_lastIter.rho')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/TTZ/full_run/ZK/hs2500/ttz_NLCG_072.rho')
 # Define a UTM zone to project to. Use None if you want to use the default, or if you are using a ModEM data file
 UTM_zone = None
 # UTM_zone = '16U'
@@ -140,10 +146,12 @@ UTM_zone = None
 # How to define the slice. 1 is through MT stations, 2 is through points in a csv (previously 'seismic'), and 3 is through points given by 'slice_points_x' and 'slice_points_y'
 transect_types = {1: 'mt', 2: 'csv', 3: 'points'}
 transect_type = 3  # Set to 1, 2, or 3
-# slice_points_x = (597464.7, 597464.7)
-# slice_points_y = (5313813, 5352797)
-slice_points_x = (585170, 607599)
-slice_points_y = (5323280, 5330550)
+slice_points_x = main_transect.locations[:, 1]
+slice_points_y = main_transect.locations[:, 0]
+slice_points_x = (653376, 653376)
+slice_points_y = (5332020, 5375000)
+# slice_points_x = (585170, 607599)
+# slice_points_y = (5323280, 5330550)
 points_in_latlong = 0 # Set to true if specifying slice_points in latlong
 xaxis_increasing = 1 # Force x-axis to be increasing (1) or decreasing (0)
 use_trace_ticks = 0  # If using seismic, do you want the x-axis to be CDP values?
@@ -151,24 +159,26 @@ azi = 0  # Rotation angle for model (not well tested)
 reso = []  # Include resolution file?
 ### Number of interpolation points between each station. 
 ### This is the number per pair of stations points, so turn this up if you're only using a few points
-ninterp = 500
-nz_interp = 50
+ninterp = 200
+nz_interp = 5
 padding = 25000  # Padding (in m) at the ends of the slice
 ninterp_padding = 100  # Number of interpolation points in the padding
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}  # Image style. Use 3 if you're not sure.
 mode = 3
 
 # Figure save options
-file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Larder/RoughFigures/alongSeis/'
-file_name = 'larder_Z-static_straightCutSW-NE_turbomod0-5'
+file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/line14/'
+# file_name = 'ttz-1D-ZK_south_line'
+file_name = 'AG_straighSN-L14_60kmDeep-Linear_turbo0-4.5'
 file_types = ['.png']#, '.svg']  # File save format(s)
 title_ = 'Standard Inversion'  # Title of plot
 rotate_back = 0  # If data is rotated, do you want to rotate it back to 0?
 linear_xaxis = 1  # Use a linear x-axis or keep in easting-northing? Recommended if using a irregular slice
+plot_direction = 'sn'
 save_fig = 1  # Save the figure?
 save_dat = 0  # Save the plotted slice as a csv?
 annotate_sites = 0  # Plot station names? 
-site_markers = 1  # Include site markers (from main_transect) on plot? This is turned off if you aren't using transect_type 1
+site_markers = 0  # Include site markers (from main_transect) on plot? This is turned off if you aren't using transect_type 1
 plot_map = 1  # Plot a map with all stations (black) and main_transect (red)?
 plot_contours = 0
 contour_levels = [1, 2, 3, 4]
@@ -179,10 +189,10 @@ use_alpha = 0  # Apply alpha according to resolution file?
 saturation = 0.8  # Colour parameters. Leave as is, or play around
 lightness = 0.4
 xlim = []  # x-axis limits
-zlim = [0, 36]  # y-axis limits
+zlim = [0, 60]  # y-axis limits
 aspect_ratio = 1  # aspect ratio of plot
 lut = 64  # number of colour values
-cax = [0, 5]  # Colour axis limits
+cax = [0, 4.5]  # Colour axis limits
 isolum = 0  # Apply isoluminate normalization?
 
 # For more complicated slicing
@@ -238,8 +248,11 @@ for nudge_dist in [0]:
         nudge_locations = np.array((slice_points_y, slice_points_x)).T
         if points_in_latlong and UTM_zone:
             nudge_locations = project_locations(nudge_locations, letter=UTM_letter, zone=UTM_number)
-        nudge_locations = nudge_locations[nudge_locations[:, 0].argsort()]
-        site_markers = 0
+        if plot_direction.lower  == 'sn':
+            nudge_locations = nudge_locations[nudge_locations[:, 0].argsort()]
+        elif plot_direction.lower  == 'we':
+            nudge_locations = nudge_locations[nudge_locations[:, 1].argsort()]
+        # site_markers = 1
     elif transect_types[transect_type] == 'mt':
         nudge_locations = copy.deepcopy(main_transect.locations)
     if use_nudge:
@@ -342,7 +355,10 @@ for nudge_dist in [0]:
         qx = []
         qy = []
         # for ii in range(len(data.locations[:, 0]) - 1):
-        use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
+        if plot_direction == 'sn':
+            use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
+        else:
+            use_x, use_y = nudge_locations[:, 0], nudge_locations[:, 1]
         for ii in range(len(slice_points_x) - 1):
             X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
             Y = np.interp(X, use_y[:], use_x[:])
@@ -389,6 +405,8 @@ for nudge_dist in [0]:
     query_points = np.zeros((len(qx) * len(qz), 3))
     #  Build Nx3 array of query points
     cc = 0
+    if plot_direction == 'we':
+            qx, qy = qy, qx
     print('Number of query points: {}'.format(query_points.size))
     for ix in range(len(qx)):
             for iz in qz:
@@ -521,7 +539,10 @@ for nudge_dist in [0]:
             if linear_xaxis:
                 x_axis = linear_x
             else:
-                x_axis = qy_rot
+                if plot_direction == 'sn':
+                    x_axis = qy_rot
+                else:
+                    x_axis = qx_rot
             to_plot = to_plot[1:, 1:]
             if not xaxis_increasing:
                 x_axis = np.flipud(x_axis)
@@ -557,7 +578,10 @@ for nudge_dist in [0]:
         site_x = linear_site
         ax.set_xlabel('Distance (km)', fontsize=14)
     else:
-        site_x = data.locations[:, 0] / 1000
+        if plot_direction == 'sn':
+            site_x = data.locations[:, 0] / 1000
+        else:
+            site_x = data.locations[:, 1] / 1000
     ax.autoscale_view(tight=True)
     ax.tick_params(axis='both', labelsize=14)
     if site_markers:

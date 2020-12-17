@@ -43,12 +43,27 @@ path = ospath.dirname(ospath.realpath(__file__))
 UI_ModelWindow, QModelWindow = loadUiType(ospath.join(path, 'model_viewer.ui'))
 
 
-def model_to_rectgrid(model):
+def model_to_rectgrid(model, resolution=None):
     grid = pv.RectilinearGrid(np.array(model.dy),
                               np.array(model.dx),
                               -np.array(model.dz))
     vals = np.log10(np.swapaxes(np.flip(model.vals, 2), 0, 1)).flatten(order='F')
-    grid.cell_arrays['Resitivity'] = vals
+    grid.cell_arrays['Resistivity'] = vals
+    if resolution:
+        X, Y, Z = np.meshgrid(resolution.yCS, resolution.xCS, resolution.zCS)
+        volume = np.swapaxes(np.flip(X * Y * Z, 2), 0, 1).flatten(order='F')
+        resvals = np.swapaxes(np.flip(resolution.vals, 2), 0, 1).flatten(order='F')
+        grid.cell_arrays['RawResolution'] = np.log10(resvals)
+        resvals = resvals / (volume.ravel())# ** (2/3))
+        resvals[resvals > np.median(resvals.ravel())] = np.median(resvals.ravel())
+        resvals = resvals - np.mean(resvals)
+        resvals = resvals / np.std(resvals)
+        resvals = 0.5 + resvals * np.sqrt(0.5)
+        resvals[resvals > 1] = 1
+        grid.cell_arrays['Resolution'] = resvals
+    else:
+        grid.cell_arrays['Resolution'] = np.ones(vals.shape)
+        grid.cell_arrays['Resolution'][0] = .99
     return grid
 
 
@@ -58,17 +73,34 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.setupUi(self)
 
         # Add the model
-        try:
+        if files.get('data', None):
             self.dataset = WSDS.Dataset(modelfile=files['model'],
-                                        datafile=files['dat'])
-        except KeyError:
+                                        datafile=files['data'])
+        elif files.get('response', None):
+            self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                        datafile=files['response'])
+        else:
             self.dataset = WSDS.Dataset(modelfile=files['model'])
+            print('No data file given. Site locations will not be available.')
+        # try:
+            # self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                        # datafile=files['data'])
+        # except KeyError:
+            # self.dataset = WSDS.Dataset(modelfile=files['model'])
         if self.dataset.model.dimensionality == '2d':
             # idx = np.argmin(abs(np.array(self.dataset.model.dy)))
             self.dataset.data.locations[:, 1] += self.dataset.model.dy[0] #sum(self.dataset.model.dy[:idx])
+        try:
+            self.resolution = WSDS.Model(files['reso'])
+            self.use_resolution = 'Resolution'
+        except KeyError:
+            self.resolution = None            
+            # self.resolution.vals = np.ones(self.dataset.model.vals.shape)
+        self.use_resolution = 1
+        self.use_scalar = 'Resistivity'
         self.model = self.dataset.model
         self.clip_model = deepcopy(self.model)
-
+        self.clip_resolution = deepcopy(self.resolution)
         # self.dataset.data.locations /= 1000
         self.dataset.spatial_units = 'km'
         self.model.spatial_units = 'km'
@@ -79,7 +111,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.vtk_widget = pv.QtInteractor(self.frame3D)
         vlayout3D.addWidget(self.vtk_widget)
         self.frame3D.setLayout(vlayout3D)
-
+        self.pv_default_background = deepcopy(self.vtk_widget.background_color)
         # simple menu to demo functions
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('File')
@@ -95,7 +127,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.mesh_group.setExclusive(True)
 
         self.plot_data = {'stations': []}
-        if 'dat' in files.keys():
+        if 'data' in files.keys() or 'response' in files.keys():
             self.plot_locations = True
             self.locs_3D = np.zeros((len(self.dataset.data.locations), 3))
             self.plot_data['stations'] = pv.PolyData(self.locs_3D)
@@ -104,11 +136,11 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         else:
             self.locs_3D = np.zeros((1, 3))
             self.plot_locations = False
-        self.rect_grid = model_to_rectgrid(self.clip_model)
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution)
         self.lut = 32
         self.colourmap = 'turbo_r'
         self.cmap = cm.get_cmap('turbo_r', 32)
-        self.cax = [1, 5]
+        self.cax, self.rho_cax, self.resolution_cax = [1, 5], [1, 5], [-6, -2]
         self.actors = {'X': [], 'Y': [], 'Z': [], 'transect': [], 'isosurface': []}
         self.contours = []
         self.slices = {'X': [], 'Y': [], 'Z': [], 'transect': []}
@@ -341,6 +373,12 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.y1ClipEdit.setText('0')
         self.z1ClipEdit.setText('0')
         self.nInterp.setText(str(self.n_interp))
+        if not self.resolution:
+            self.resolutionCheckBox.setEnabled(False)
+        if self.plot_locations:
+            if np.any([site.locations['elev'] for site in self.dataset.data.sites.values()]):
+                self.elevationCheckBox.setEnabled(True)
+
 
     def connect_widgets(self):
         # Slicer widgets
@@ -379,11 +417,59 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Isosurface widgets
         self.isoPlot.stateChanged.connect(self.update_isosurface)
         self.isoRecalculate.clicked.connect(self.generate_isosurface)
+        self.isoOpacity.valueChanged.connect(self.update_isosurface)
+        # Resolution toggles
+        self.resolutionCheckBox.clicked.connect(self.set_resolution_plot)
+        # Station location toggles
+        self.elevationCheckBox.clicked.connect(self.set_station_elevation)
+        # PyVista backgrounds
+        self.pv_background_group = QtWidgets.QActionGroup(self)
+        self.pv_background_group.addAction(self.actionDefault)
+        self.pv_background_group.addAction(self.actionGrey)
+        self.pv_background_group.addAction(self.actionBlack)
+        self.pv_background_group.addAction(self.actionBlue)
+        self.pv_background_group.addAction(self.actionWhite)
+        self.pv_background_group.setExclusive(True)
 
+        self.pv_background_group.triggered.connect(self.change_background)
+
+    def change_background(self):
+        color = self.pv_background_group.checkedAction().text().lower()
+        if color != 'default':
+            self.vtk_widget.background_color = color
+        else:
+            self.vtk_widget.background_color = deepcopy(self.pv_default_background)
+        # self.render_3D(reset_camera=False)
+
+    def set_station_elevation(self):
+        if self.elevationCheckBox.checkState():
+            # self.locs_3D = np.zeros((len(self.dataset.data.locations), 3))
+            # self.plot_data['stations'] = pv.PolyData(self.locs_3D)
+            # self.locs_3D[:, 0] = self.dataset.data.locations[:, 1]
+            # self.locs_3D[:, 1] = self.dataset.data.locations[:, 0]
+            self.locs_3D[:, 2] = np.array([-self.dataset.data.sites[site].locations['elev'] / 1000 for site in self.dataset.data.site_names])
+        else:
+            self.locs_3D[:, 2] = 0
+        self.render_3D(reset_camera=False)
+
+    def set_resolution_plot(self):
+        if self.resolutionCheckBox.checkState() == 0:
+            self.use_scalar = 'Resistivity'
+            self.use_resolution = 1
+            self.cax = self.rho_cax
+        elif self.resolutionCheckBox.checkState() == 1:
+            self.use_scalar = 'Resistivity'
+            self.use_resolution = 'Resolution'
+            self.cax = self.rho_cax
+        elif self.resolutionCheckBox.checkState() == 2:
+            self.use_scalar = 'RawResolution'
+            self.use_resolution = 1
+            self.cax = self.resolution_cax
+        self.render_3D(reset_camera=False)
 
     def generate_isosurface(self):
-        if self.actors['isosurface']:
-            self.vtk_widget.remove_actor(self.actors['isosurface'])
+        # if self.actors['isosurface']:
+            # self.vtk_widget.remove_actor(self.actors['isosurface'])
         low_val = self.isoLow.value()
         high_val = self.isoHigh.value()
         if not (low_val <= high_val):
@@ -397,7 +483,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         #                                                      cmap=self.cmap,
         #                                                      clim=self.cax)
         self.isoPlot.setCheckState(2)
-        # self.update_isosurface()
+        self.update_isosurface()
 
     def update_isosurface(self):
         # print(self.isoPlot.checkState())
@@ -406,10 +492,17 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.vtk_widget.remove_actor(self.actors['isosurface'])
         if self.isoPlot.checkState():
             if self.contours:
-
-                self.actors['isosurface'] = self.vtk_widget.add_mesh(self.contours,
-                                                                     cmap=self.cmap,
-                                                                     clim=self.cax)
+                opacity = self.isoOpacity.value()
+                try:
+                    self.actors['isosurface'] = self.vtk_widget.add_mesh(self.contours,
+                                                                         cmap=self.cmap,
+                                                                         clim=self.cax,
+                                                                         opacity=opacity)
+                except RuntimeError:
+                    self.isoPlot.setCheckState(0)
+                    # QtWidgets.QMessageBox.warning(self, 'Unable to change coordinate system.')
+                    QtWidgets.QMessageBox.warning(self, '...', 'No model values fit the requested contour.')
+                    return
             else:
                 self.isoPlot.setCheckState(0)
 
@@ -629,7 +722,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.slices['X'] = self.generate_slice('x')
             self.actors['X'] = self.vtk_widget.add_mesh(self.slices['X'],
                                                         cmap=self.cmap,
-                                                        clim=self.cax)
+                                                        clim=self.cax,
+                                                        scalars=self.use_scalar,
+                                                        opacity=self.use_resolution,
+                                                        use_transparency=False)
         self.update_2D_X()
         self.update_slice_indicators(direction='x', redraw=False)
         self.fig_2D.canvas.draw()
@@ -645,7 +741,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.slices['Y'] = self.generate_slice('y')
             self.actors['Y'] = self.vtk_widget.add_mesh(self.slices['Y'],
                                                         cmap=self.cmap,
-                                                        clim=self.cax)
+                                                        clim=self.cax,
+                                                        scalars=self.use_scalar,
+                                                        opacity=self.use_resolution,
+                                                        use_transparency=False)
         self.update_2D_Y()
         self.update_slice_indicators(direction='y', redraw=False)
         self.fig_2D.canvas.draw()
@@ -660,7 +759,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.slices['Z'] = self.generate_slice('z')
             self.actors['Z'] = self.vtk_widget.add_mesh(self.slices['Z'],
                                                         cmap=self.cmap,
-                                                        clim=self.cax)
+                                                        clim=self.cax,
+                                                        scalars=self.use_scalar,
+                                                        opacity=self.use_resolution,
+                                                        use_transparency=False)
         self.update_plan_view()
         self.vtk_widget.update()
         self.show_bounds()
@@ -689,20 +791,33 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # clip = [x[0], x[1], y[0], y[1], z[0], z[1]]
         # self.clipped_volume = self.rect_grid.clip_box(clip)
         self.clip_model = deepcopy(self.model)
+        self.clip_resolution = deepcopy(self.resolution)
         for ix in range(self.x_clip[0]):
             self.clip_model.dx_delete(0)
+            if self.resolution:
+                self.clip_resolution.dx_delete(0)
         for ix in range(self.x_clip[1]):
             self.clip_model.dx_delete(self.clip_model.nx)
+            if self.resolution:
+                self.clip_resolution.dx_delete(self.clip_model.nx)
         for iy in range(self.y_clip[0]):
             self.clip_model.dy_delete(0)
+            if self.resolution:
+                self.clip_resolution.dy_delete(0)
         for iy in range(self.y_clip[1]):
             self.clip_model.dy_delete(self.clip_model.ny)
+            if self.resolution:
+                self.clip_resolution.dy_delete(self.clip_model.ny)
         for iz in range(self.z_clip[0]):
             self.clip_model.dz_delete(0)
+            if self.resolution:
+                self.clip_resolution.dz_delete(0)
         for iz in range(self.z_clip[1]):
             self.clip_model.dz_delete(self.clip_model.nz)
+            if self.resolution:
+                self.clip_resolution.dz_delete(self.clip_model.nz)
         # self.map.model = self.clip_model
-        self.rect_grid = model_to_rectgrid(self.clip_model)
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution)
         self.validate_slice_locations()
         # debug_print([self.model.dy[self.y_slice], self.model.dy[self.y_clip[0]], self.model.dy[self.model.ny]], 'C:/Users/eric/Desktop/debug.log')
         self.xSliceSlider.setMinimum(self.x_clip[0] + 1)
@@ -751,7 +866,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.ySliceEdit.editingFinished.connect(self.y_text_change)
         self.zSliceEdit.editingFinished.connect(self.z_text_change)
 
-    def render_3D(self):
+    def render_3D(self, reset_camera=True):
         """ add a sphere to the pyqt frame """
         # sphere = pv.Sphere()
         # self.model = WSDS.Model(model_path)
@@ -764,18 +879,27 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         if self.xSliceCheckbox.checkState():
             self.slices['X'] = self.generate_slice('x')
             self.actors['X'] = self.vtk_widget.add_mesh(self.slices['X'],
+                                                        scalars=self.use_scalar,
                                                         cmap=self.cmap,
-                                                        clim=self.cax)
+                                                        clim=self.cax,
+                                                        opacity=self.use_resolution,
+                                                        use_transparency=False)
         if self.ySliceCheckbox.checkState():
             self.slices['Y'] = self.generate_slice('y')
             self.actors['Y'] = self.vtk_widget.add_mesh(self.slices['Y'],
+                                                        scalars=self.use_scalar,
                                                         cmap=self.cmap,
-                                                        clim=self.cax)
+                                                        clim=self.cax,
+                                                        opacity=self.use_resolution,
+                                                        use_transparency=False)
         if self.zSliceCheckbox.checkState():
             self.slices['Z'] = self.generate_slice('z')
             self.actors['Z'] = self.vtk_widget.add_mesh(self.slices['Z'],
+                                                        scalars=self.use_scalar,
                                                         cmap=self.cmap,
-                                                        clim=self.cax)
+                                                        clim=self.cax,
+                                                        opacity=self.use_resolution,
+                                                        use_transparency=False)
         if len(self.transect_plot['easting']) > 1:
             self.generate_transect3D(redraw=False)
         # Checkbox for sites?
@@ -783,7 +907,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.actors['stations'] = self.vtk_widget.add_mesh(self.plot_data['stations'])
         self.vtk_widget.update()
         self.show_bounds()
-        self.vtk_widget.reset_camera()
+        if reset_camera:
+            self.vtk_widget.reset_camera()
 
     def show_bounds(self):
         self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
@@ -991,11 +1116,11 @@ def main():
             print('File {} not found.'.format(file))
             return
     files = sort_files(files=files)
-    try:
-        data = WSDS.Data(datafile=files['dat'])
-    except KeyError:
-        print('No data file given. Site locations will not be available.')
-        data = None
+    # try:
+    #     data = WSDS.Data(datafile=files['dat'])
+    # except KeyError:
+    #     print('No data file given. Site locations will not be available.')
+    #     data = None
     try:
         model = WSDS.Model(files['model'])
     except KeyError:

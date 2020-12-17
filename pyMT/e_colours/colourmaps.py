@@ -6,7 +6,9 @@ import colorcet  # This needs to be imported to register the cet colourmaps into
 
 
 COLOUR_MAPS = ('jet', 'jet_r', 'jet_plus', 'jet_plus_r',
-               'bwr', 'bwr_r', 'bgy', 'bgy_r', 'turbo', 'turbo_r')
+               'bwr', 'bwr_r', 'bgy', 'bgy_r', 'turbo', 'turbo_r',
+               'turbo_capped', 'turbo_capped_r', 'turbo_r_mod',
+               'cet_colorwheel')
 
 
 def jet_plus(N=64):

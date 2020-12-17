@@ -1,6 +1,78 @@
 Change Log
 ==========
 
+* 17/12/20
+
+  * New 'Gateway' GUI for creating, modifying, and loading your projects (.pymt files, previous 'pystartup' files)
+
+    * Should be compatible with old pystart files, and all previous calling methods should still work (e.g., command line calling of data_plot, model_viewer, etc.)
+
+      * Add a '.pymt' extention to your old project files to get the GUI to automatically recognize them
+
+  * Add Niblett-Bostick depth, PT Skew, and PT Azimuth to pseudosection options in :ref:`Map Viewer`
+    
+    * Since there are now many options for pseudosections, the radio buttons which previously controlled the plot were replaced with a drop-down menu
+
+  * Added 'XY-YX' to the component option of the pseudosections
+
+    * Only works for App. Rho, Phase, and Bostick depths, but shows XY-YX (TE minus TM) versions
+
+    * Mainly useful for showing phase splitting, but could also be useful for showing variations in penetration depth
+
+  * Similarly, 'Phi_split' has been added to the phase tensor plotting
+
+    * Maybe a misnomer, but this shows XY-YX phases, NOT phi_max - phi_min.
+
+  * Added 'Dimensionality' fill option for PT plotting. This is calculated using skew and ellipticity thresholds of the phase tensor (by default at 3 degrees and 0.1, respectively)
+
+  * Added 'Lambert' projection option in :ref:`Map Viewer`.
+
+  * Added 'Include Outliers' option in pseudosection plotting, along with defineable standard deviation limits
+
+    * Values outside the defined range won't be plotted, so you don't get one station with 400 degree phase colouring your whole plot
+
+  * Data points with the REMOVE_FLAG set (e.g., after using 'Reset Dummy Errors') no longer plot phase tensors in :ref:`Map Viewer`. Should result in much cleaner plots.
+
+* 30/09/20
+
+  * Changed the way missing period fill-in is handled
+
+    * Previously would just grab the closest period - now the data point is 'corrected' for mismatch in period
+
+    * This correction means that the impedance value is different, but the apparent resistivity and phase values are the same
+
+    * Note that this correction is only applied for impedance data - all other data is in-filled as before
+
+  * :ref:`Map Viewer` can now plot tipper amplitude pseudosections
+
+    * Should behave identically to Rho and Phase pseudosections, except that the 'XY / YX/ Det' menu does nothing (only real tipper amplitudes are plotted)
+
+  * Induction arrows and phase tensors now override station location plotting in :ref:`Map Viewer` - no more giant dots hiding PT info!
+
+* 14/08/20
+
+  * Added some logic to 'regulate_errors' so that it would ignore extreme outliers.
+
+  * ModEM has an upper limit on floating point values - exceeding these values causes a crash. Therefore, data and error values are now capped when written to file (and a message is printed).
+
+    * Note that things could still go wrong with this fix (e.g., if data at the cap is inverted, the nRMS is likely to be off the charts). I hesistate to flat out zero such data, and prefer to let the user fix things.
+
+  * Error bars are now shown for average (AAV, GAV, DET) apparent resistivities and phases. The errors are calculated following GEOTOOLS, where the maximum error between XY and YX is taken.
+
+  * Fixed a bug where :ref:`Map Viewer` would let you try to change the coordinate system even if no raw data was loaded, and promptly crash. 
+
+  * Fixed a few issues with isosurface plotting in :ref:`Model Viewer`
+
+    * Isosurface will now automatically refresh when recalculated
+
+    * Added opacity toggles so that you can actually see multiple isosurfaces if plotted
+
+    * Added try/except block to make sure you can't plot a contour that has no values (e.g., if your desired contour line is lower than all the values in the model)
+
+  * Added toggle to plot station locations at their inverted elevation.
+
+  * Added some canned background colours for the 3D view in :ref:`Model Viewer`:. Mostly cosmetic, but also useful if you are plotting transparency based on resolution.
+
 * 04/08/20
 
   * The :ref:`Map Viewer` 'Lock Axis' option should now properly hold the axis limits when site annotations change (i.e., when using the forward and back buttons in :ref:`Data Plot`)

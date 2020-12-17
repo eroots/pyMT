@@ -1,7 +1,14 @@
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 from PyQt5 import QtWidgets, Qt
+from PyQt5.uic import loadUiType
 import pyMT.utils as utils
+import re
+import os
+
+
+path = os.path.dirname(os.path.realpath(__file__))
+UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
 
 
 class DraggablePoint:
@@ -237,7 +244,7 @@ class ColourMenu(QtWidgets.QMenu):
                                            'jet_plus', 'jet_plus_r',
                                            'bwr', 'bwr_r',
                                            'greys', 'greys_r',
-                                           'turbo', 'turbo_r',
+                                           'turbo', 'turbo_r', 'turbo_capped', 'turbo_capped_r',
                                            'twilight', 'twilight_shifted',
                                            'colorwheel', 'turbo_capped', 'turbo_capped_r')}
         self.action_group = QtWidgets.QActionGroup(self)
@@ -261,5 +268,150 @@ class ColourMenu(QtWidgets.QMenu):
 
     def set_lut(self, initial='32'):
         inputs, ret = QtWidgets.QInputDialog.getInt(self, 'LUT', 'Number of Colour Intervals:', 
-                                                    initial, 0, 1024, 2)
+                                                    initial, 1, 1024, 2)
         return inputs, ret
+
+
+class FileInputParser(object):
+    # If I add functionality to add datasets after you've already opened a GUI,
+    # I may want to make it so I can create an instance of this with a list
+    # of accepted file types, and then use that instance to check every time something
+    # is added.
+
+    def __init__(self, files=''):
+        pass
+
+    @staticmethod
+    def get_files_dialog():
+        keep_going = True
+        start_dict = {}
+        while keep_going:
+            startup, ret = MyPopupDialog.get_file(default='pystart', label='Startup:')
+            if not ret or not startup:
+                print('OK Fine, don''t use me...')
+                return '', ret
+            if ret and startup:
+                try:
+                    start_dict = FileInputParser.read_pystart(startup)
+                except FileNotFoundError as e:
+                    print('File {} not found. Try again.'.format(startup))
+                else:
+                    keep_going = False
+        return start_dict, ret
+
+    @staticmethod
+    def verify_files(files):
+        if files:
+            for dataset_name, startup in files.items():
+                for Type, file in startup.items():
+                    if Type != 'raw_path':
+                        if not utils.check_file(file):
+                            print('File {} not found.'.format(file))
+                            return False
+                        # try:
+                        #     with open(file, 'r'):
+                        #         pass
+                        # except FileNotFoundError as e:
+                        #     print('File {} not found.'.format(file))
+                        #     return False
+            else:
+                return True
+        else:
+            return False
+
+    @staticmethod
+    def read_pystart(startup):
+        dset = ''
+        acceptable = ('data', 'list', 'response', 'raw_path', 'model', 'path')
+        abbreviations = {'raw': 'raw_path', 'resp': 'response', 'mod': 'model', 'lst': 'list'}
+        try:
+            with open(startup, 'r') as f:
+                lines = f.readlines()
+                for line in lines:
+                    if line[0] == '#' or line[0].strip() == '':
+                        continue
+                    elif line[0] == '%':
+                        dname = [x.strip() for x in line.split('%') if x]
+                        if dset == '':
+                            dset = dname[0]
+                            retval = {dset: {}}
+                        else:
+                            dset = dname[0]
+                            retval.update({dset: {}})
+                        continue
+                    elif line[0] in '!@$^&*':
+                        print('Unrecognized character {} in {}.'
+                              ' Are you sure you don\'t mean %?'.format(line[0], startup))
+                        return False
+                    elif dset == '':
+                        dset = 'dataset1'
+                        retval = {dset: {}}
+                    parts = line.split()
+                    # Only check for abbreviations if the keyword isn't already present in the list
+                    dType = parts[0].lower()
+                    dType_abr = re.sub(r'\b' + '|'.join(abbreviations.keys()) + r'\b',
+                                       lambda m: abbreviations[m.group(0)], parts[0])
+                    # If there are spaces in a path, make sure they are joined back up
+                    if len(parts) > 2:
+                        parts[1] = ' '.join(parts[1:])
+                    if dType in acceptable:
+                        retval[dset].update({dType: parts[1]})
+                    elif dType_abr in acceptable:
+                        retval[dset].update({dType_abr: parts[1]})
+                    else:
+                        print('Unrecognized keyword: {}'.format(dType))
+            # If a dataset 'COMMON' is present, fill in any blanks in the other datasets
+            # with its values
+            # if 'common' in [dname.lower() for dname in r'etval.keys()]:
+            # for dataset_files in
+            for dataset_files in retval.values():
+                if 'path' in dataset_files.keys():
+                    path = dataset_files['path']
+                    del dataset_files['path']
+                    for file_type in dataset_files.keys():
+                        if not os.path.dirname(dataset_files[file_type]):
+                            dataset_files[file_type] = os.path.join(path, dataset_files[file_type])
+        except FileNotFoundError:
+            print('File not found: {}'.format(startup))
+            return False
+        if 'raw' in retval.keys():
+            if 'list' not in retval.keys():
+                print('Cannot read raw data with a list file!')
+                return False
+        return retval
+
+
+class MyPopupDialog(UiPopupMain, QPopupWindow):
+    """
+    Creates a pop-up window belonging to parent
+
+    Args:
+        parent (obj): The parent window the created pop-up will be attached to
+    """
+
+    def __init__(self, parent=None):
+        super(MyPopupDialog, self).__init__(parent)
+        self.setupUi(self)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+    @staticmethod
+    def get_file(parent=None, message='', default='', label='Output'):
+        """Summary
+
+        Args:
+            parent (None, optional): Description
+            message (str, optional): Description
+            default (str, optional): Description
+            label (str, optional): Description
+
+        Returns:
+            TYPE: Description
+        """
+        dialog = MyPopupDialog(parent)
+        dialog.message.setText(message)
+        dialog.lineEdit.setText(default)
+        dialog.label.setText(label)
+        ret = dialog.exec_()
+        file = dialog.lineEdit.text()
+        return file, ret

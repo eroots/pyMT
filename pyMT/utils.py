@@ -704,6 +704,23 @@ def compute_rho(site, calc_comp=None, errtype='none'):
         np.array: Associated errors. Note that the errors are set to 0 for the determinant apparent
                   resistivities (Proper calculatation not implemented yet)
     """
+    def compute_rho_error(sited, errtyped, compd):
+        # compd = ''.join(['Z', compd.upper()])
+        zeR = getattr(sited, errtyped)[''.join([compd, 'R'])]
+        zeI = getattr(sited, errtyped)[''.join([compd, 'I'])]
+        z = site.data[''.join([compd, 'R'])] - 1j * site.data[''.join([compd, 'I'])]
+        if len(zeR) == 0:
+            zeR = zeI = z * 0
+        C = 2 * sited.periods / (MU * 2 * np.pi)
+        rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
+        rho_log10Err = (rho_error * np.sqrt(2) /
+                        ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
+        idx = zeR == sited.REMOVE_FLAG
+        # Preserve remove flags
+        rho_error[idx] = sited.REMOVE_FLAG
+        rho_log10Err[idx] = sited.REMOVE_FLAG
+        return rho_error, rho_log10Err
+
     COMPS = ('XX', 'XY',
              'YY', 'YX',
              'DET', 'GAV', 'AAV')
@@ -718,58 +735,78 @@ def compute_rho(site, calc_comp=None, errtype='none'):
     # mu = 0.2 / (4 * np.pi * 1e-7)
     if calc_comp.upper() not in COMPS[:4]:
         if calc_comp.lower() == 'det':
-            det = compute_MT_determinant(site)
+            det, err = compute_MT_determinant(site)
+
         elif calc_comp == 'gav':
-            det = compute_gav(site)
+            det, err = compute_gav(site)
         elif calc_comp == 'aav':
-            det = compute_aav(site)
+            det, err = compute_aav(site)
         rho_data = det * np.conj(det) * site.periods / (MU * 2 * np.pi)
-        rho_error = rho_log10Err = rho_data * 0
+        # print(err)
+        if errtype.lower() != 'none':
+
+            eXY, eXY_log10 = compute_rho_error(deepcopy(site), errtype, 'ZXY')
+            eYX, eYX_log10 = compute_rho_error(site, errtype, 'ZYX')
+            rho_error = np.max((eXY, eYX), axis=0)
+            rho_log10Err = np.max((eXY_log10, eYX_log10), axis=0)
+            # rho_error = rho_data * 0
+            # rho_log10Err = rho_data * 0
+        else:
+        # rho_max = rho_data * (1 + 2*err)
+        # rho_min = rho_data / (1 + 2*err)
+        # rho_error = rho_max - rho_min
+        # rho_log10Err = np.log10(rho_error)
+            rho_error = rho_data * 0
+            rho_log10Err = rho_data * 0
         # Do errors here...
     else:
         comp = ''.join(['Z', calc_comp.upper()])
         z = site.data[''.join([comp, 'R'])] - 1j * site.data[''.join([comp, 'I'])]
         rho_data = z * np.conj(z) * site.periods / (MU * 2 * np.pi)
         if errtype.lower() != 'none':
-            zeR = getattr(site, errtype)[''.join([comp, 'R'])]
-            zeI = getattr(site, errtype)[''.join([comp, 'I'])]
-            if len(zeR) == 0:
-                zeR = zeI = z * 0
-            C = 2 * site.periods / (MU * 2 * np.pi)
-            rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
-            rho_log10Err = (rho_error * np.sqrt(2) /
-                            ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
-            idx = zeR == site.REMOVE_FLAG
-            # Preserve remove flags
-            rho_error[idx] = site.REMOVE_FLAG
-            rho_log10Err[idx] = site.REMOVE_FLAG
+            rho_error, rho_log10Err = compute_rho_error(site, errtype, comp)
+            # zeR = getattr(site, errtype)[''.join([comp, 'R'])]
+            # zeI = getattr(site, errtype)[''.join([comp, 'I'])]
+            # if len(zeR) == 0:
+            #     zeR = zeI = z * 0
+            # C = 2 * site.periods / (MU * 2 * np.pi)
+            # rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
+            # rho_log10Err = (rho_error * np.sqrt(2) /
+            #                 ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
+            # idx = zeR == site.REMOVE_FLAG
+            # # Preserve remove flags
+            # rho_error[idx] = site.REMOVE_FLAG
+            # rho_log10Err[idx] = site.REMOVE_FLAG
         else:
             rho_error = rho_log10Err = rho_data * 0
     return np.real(rho_data), np.real(rho_error), np.real(rho_log10Err)
 
 
 def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
-    def compute_phase_error(phase_data, r_error, im_err):
+    def compute_phase_error(phase_data, z_real, z_imag, r_error, im_err):
         # Phase error is calculated by first calculating the phase at
         # the 8 possible points when considering the complex errors,
         # and then averaging the results. This is probably not strictly speaking correct,
         # but it makes sense as an approximation at least. Overestimates phase errors
         # when impedance errors are large
-        pha_error = np.zeros(pha_data.shape, dtype=np.complex128)
-        zE = np.zeros((len(pha_error), 8))
-        zE[:, 0] = np.angle(zR - zeR + (zI + zeI), deg=True)
-        zE[:, 1] = np.angle(zR + zeR + (zI + zeI), deg=True)
-        zE[:, 2] = np.angle(zR + zeR + (zI - zeI), deg=True)
-        zE[:, 3] = np.angle(zR - zeR + (zI - zeI), deg=True)
-        zE[:, 4] = np.angle(zR + (zI - zeI), deg=True)
-        zE[:, 5] = np.angle(zR + (zI + zeI), deg=True)
-        zE[:, 6] = np.angle(zR + zeR + zI, deg=True)
-        zE[:, 7] = np.angle(zR - zeR + zI, deg=True)
-        pha_error = np.mean(abs(pha_data[:, np.newaxis] - zE), 1)
+        # pha_error = np.zeros(z_real.shape, dtype=np.complex128)
+        zE = np.zeros((len(z_real), 8))
+        zE[:, 0] = np.angle(z_real - r_error + (z_imag + im_err), deg=True)
+        zE[:, 1] = np.angle(z_real + r_error + (z_imag + im_err), deg=True)
+        zE[:, 2] = np.angle(z_real + r_error + (z_imag - im_err), deg=True)
+        zE[:, 3] = np.angle(z_real - r_error + (z_imag - im_err), deg=True)
+        zE[:, 4] = np.angle(z_real + (z_imag - im_err), deg=True)
+        zE[:, 5] = np.angle(z_real + (z_imag + im_err), deg=True)
+        zE[:, 6] = np.angle(z_real + r_error + z_imag, deg=True)
+        zE[:, 7] = np.angle(z_real - r_error + z_imag, deg=True)
+        pha_error = np.mean(abs(phase_data[:, np.newaxis] - zE), 1)
+        # print(np.angle(z_real - r_error + (z_imag + im_err)))
+        # print(phase_data)
         # Preserve remove flags
-        idx = zeR == site.REMOVE_FLAG
+        idx = r_error == site.REMOVE_FLAG
         pha_error[idx] = site.REMOVE_FLAG
         return pha_error
+
     COMPS = ('XX', 'XY',
              'YY', 'YX',
              'DET', 'GAV', 'AAV')
@@ -785,17 +822,41 @@ def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
         return
     if calc_comp.upper() not in COMPS[:4]:
         if calc_comp == 'det':
-            det = compute_MT_determinant(site)
+            det, err = compute_MT_determinant(site)
         elif calc_comp == 'gav':
-            det = compute_gav(site)
+            det, err = compute_gav(site)
         elif calc_comp == 'aav':
-            det = compute_aav(site)
-        pha_data = np.angle(det, deg=True) + 90
+            det, err = compute_aav(site)
+        # pha_data = (np.angle(det, deg=True) + 90) % 90
+        pha_data = np.rad2deg(np.arctan2(np.imag(det), np.real(det)))
         if calc_comp == 'aav':
             pha_data = pha_data % 90
-        pha_error = pha_data * 0
-        zR = np.real(det)
-        zI = -np.imag(det)
+            # zR = np.real(det)
+            # zI = 1j*np.imag(det)
+        else:
+            # zR = np.real(det)
+            # zI = 1j*np.imag(det)
+            pha_data += 90
+        # pha_error = pha_data * 0
+        
+        
+        if errtype.lower() != 'none':
+            zR = site.data['ZXYR']
+            zI = -1j*site.data['ZXYI']
+            z = zR + zI
+            zeR = getattr(site, errtype)['ZXYR']
+            zeI = -1j*getattr(site, errtype)['ZXYI']
+            eXY = compute_phase_error(np.angle(z, deg=True), zR, zI, zeR, zeI)
+            zR = site.data['ZYXR']
+            zI = -1j*site.data['ZYXI']
+            z = zR + zI
+            zeR = getattr(site, errtype)['ZYXR']
+            zeI = -1j*getattr(site, errtype)['ZYXI']
+            eYX = compute_phase_error(np.angle(z, deg=True), zR, zI, zeR, zeI)
+            pha_error = np.max((eXY, eYX), axis=0)
+        else:
+            pha_error = 0 * pha_data
+        # pha_error = np.rad2deg(np.arctan(err))
     else:
         comp = ''.join(['Z', calc_comp.upper()])
         zR = site.data[''.join([comp, 'R'])]
@@ -809,7 +870,7 @@ def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
         if errtype.lower() != 'none':
             zeR = getattr(site, errtype)[''.join([comp, 'R'])]
             zeI = -1j * getattr(site, errtype)[''.join([comp, 'I'])]
-            pha_error = compute_phase_error(pha_data, zeR, zeI)
+            pha_error = compute_phase_error(pha_data, zR, zI, zeR, zeI)
         if 'yx' in calc_comp and wrap:
             pha_data += 180
     return pha_data, pha_error
@@ -819,22 +880,26 @@ def compute_gav(site):
     try:
         gav = np.sqrt((site.data['ZXYR'] - 1j * site.data['ZXYI']) *
                       (site.data['ZYXR'] - 1j * site.data['ZYXI']))
+        gav_err = np.sqrt(abs((site.used_error['ZXYR'] + 1j * site.used_error['ZXYI']) *
+                              (site.used_error['ZYXR'] + 1j * site.used_error['ZYXI'])))
     except KeyError as e:
         print('Missing component needed for computation')
         raise e
     else:
-        return gav
+        return gav, gav_err
 
 
 def compute_aav(site):
     try:
         aav = ((abs(site.data['ZXYR']) + 1j * abs(site.data['ZXYI'])) +
                (abs(site.data['ZYXR']) + 1j * abs(site.data['ZYXI']))) / 2
+        aav_err = ((abs(site.used_error['ZXYR']) + abs(site.used_error['ZXYI'])) +
+                   (abs(site.used_error['ZYXR']) + abs(site.used_error['ZYXI']))) / 4
     except KeyError as e:
         print('Missing component needed for computation')
         raise e
     else:
-        return aav
+        return aav, aav_err
 
 
 def compute_MT_determinant(site):
@@ -843,11 +908,15 @@ def compute_MT_determinant(site):
                       (site.data['ZYXR'] - 1j * site.data['ZYXI']) -
                       (site.data['ZXXR'] - 1j * site.data['ZXXI']) *
                       (site.data['ZYYR'] - 1j * site.data['ZYYI']))
+        det_err = (site.used_error['ZXXR'] * (abs(site.data['ZYYR'] + 1j*site.data['ZYYI'])) +
+                   site.used_error['ZYYR'] * (abs(site.data['ZXXR'] + 1j*site.data['ZXXI'])) +
+                   site.used_error['ZXYR'] * (abs(site.data['ZYXR'] + 1j*site.data['ZYXI'])) +
+                   site.used_error['ZYXR'] * (abs(site.data['ZXYR'] + 1j*site.data['ZXYI']))) / (2 * abs(det))
     except KeyError as e:
         print('Determinant cannot be computed unless all impedance components are available')
         raise e
     else:
-        return det
+        return det, det_err
 
 
 def geotools_filter(x, y, fwidth=1, use_log=True):
@@ -956,6 +1025,7 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
         slope = np.array(slope)
         slope[abs(slope) > 0.95] = np.sign(slope[abs(slope) > 0.95]) * 0.95
         bostick = rhofit * ((1 + slope) / (1 - slope))
+        phase = compute_phase(site, calc_comp=comp)[0]
     elif method.lower() == 'phase-bostick':
         phase = compute_phase(site, calc_comp=comp)[0]
         phase = phase[idx]
@@ -970,22 +1040,43 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
     return bostick, depth, rhofit, phase
 
 
+# @enforce_input(files=list)
+# def sort_files(files):
+#     ret_dict = {}
+#     print(files)
+#     types = ('model', 'dat', 'resp', 'lst', 'reso')
+#     for file in files:
+#         try:
+#             file_type = (next(x for x in types if '.'+x in file))
+#         except StopIteration:
+#             if '.rho' in file.lower():
+#                 ret_dict.update({'model': file})
+#             else:
+#                 print('{} does not correspond to a recognized file type'.format(file))
+#         else:
+#             ret_dict.update({file_type: file})
+#     return ret_dict
 @enforce_input(files=list)
 def sort_files(files):
-    ret_dict = {}
-    print(files)
-    types = ('model', 'dat', 'resp', 'lst')
-    for file in files:
-        try:
-            file_type = (next(x for x in types if x in file))
-        except StopIteration:
-            if '.rho' in file.lower():
+        ret_dict = {}
+        # types = ('model', 'dat', 'resp', 'lst', 'reso')
+
+        for file in files:
+            name, ext = os.path.splitext(file)
+            if ext in ('.rho', '.model'):
                 ret_dict.update({'model': file})
-            else:
-                print('{} does not correspond to a recognized file type'.format(file))
-        else:
-            ret_dict.update({file_type: file})
-    return ret_dict
+            elif ext in ('.dat', '.data'):
+                with open(file, 'r') as f:
+                    line = f.readline()
+                if 'response' in line:
+                    ret_dict.update({'response': file})
+                else:
+                    ret_dict.update({'data': file})
+            elif ext in ('.lst', '.list'):
+                ret_dict.update({'list': file})
+            elif ext in ('.reso', '.resolution'):
+                ret_dict.update({'resolution': file})
+        return ret_dict
 
 
 def calculate_misfit(data_site, response_site):
@@ -1103,7 +1194,7 @@ def unproject(z, l, x, y):
 def to_lambert(x, y):
     transformer = pyproj.Transformer.from_crs('epsg:4326', 'epsg:3979')
     lam_x = np.zeros(x.shape)
-    lam_y = np.zeris(y.shape)
+    lam_y = np.zeros(y.shape)
     for ii, (lat, lon) in enumerate(zip(x, y)):
         lam_x[ii], lam_y[ii] = transformer.transform(lat, lon)
     return lam_x, lam_y
@@ -1120,9 +1211,13 @@ def dms2dd(dms):
     '''
         Converts strings containing dms lat longs to decimal degrees
     '''
-    d, m, s = parse_dms(dms)
-    dd = abs(d) + abs(m) / 60 + abs(s) / 3600
-    return dd * np.sign(d)
+    try:
+        d, m, s = parse_dms(dms)
+        dd = abs(d) + abs(m) / 60 + abs(s) / 3600
+        val = dd * np.sign(d)
+    except ValueError: # In case its already in decimal degrees
+        return float(dms)
+    return val
 
 
 def normalize(vals, lower=0, upper=1, explicit_bounds=False):

@@ -76,8 +76,8 @@ class format_model_coords(object):
         # row = int(y + 0.5)
         # if col >=0 and col < numcols and row >=0 and row < numrows:
         # val = X[row, col]
-        x_idx = (np.abs(self.X - x + 0.5)).argmin() - 1
-        y_idx = (np.abs(self.Y - y + 0.5)).argmin() - 1
+        x_idx = (np.abs(self.X - x + 0.05)).argmin() - 1
+        y_idx = (np.abs(self.Y - y + 0.05)).argmin() - 1
         # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
         vals = np.array(self.im.get_array())
         # print((vals.shape, len(self.X), len(self.Y), len(self.X) * len(self.Y)))
@@ -86,8 +86,12 @@ class format_model_coords(object):
             vals = 10 ** vals
         if self.data_label.lower() == 'resistivity':
             self.data_units = 'ohm-m'
-        elif self.data_label.lower() == 'phase':
+        elif self.data_label.lower() in ('phase', 'skew', 'azimuth'):
             self.data_units = 'Degrees'
+        elif self.data_label.lower() == 'depth':
+            self.data_units = 'km'
+        else:
+            self.data_units = ''
         # z = vals[x_idx, y_idx]
         # print((x_idx, y_idx))
         # z = self.im.get_array()[x_idx * len(self.X) + y_idx]
@@ -109,7 +113,7 @@ class DataPlotManager(object):
     def __init__(self, fig=None):
         self.link_axes_bounds = False
         self.axis_padding = 0.1
-        self.colour = ['darkgray', 'r', 'g', 'm', 'y', 'lime', 'peru', 'palegreen']
+        self.colour = ['royalblue', 'r', 'darkgray', 'g', 'm', 'y', 'lime', 'peru']
         self.sites = {'raw_data': [], 'data': [], 'response': []}
         self.toggles = {'raw_data': True, 'data': True, 'response': True, '1d': False}
         self.site1D = []
@@ -133,7 +137,7 @@ class DataPlotManager(object):
         self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1], 'tipper': [-1, 1]}
         self.artist_ref = {'raw_data': [], 'data': [], 'response': [], '1d': []}
         self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
-                         't': 'Transfer Function', 'p': 'Phase', 'b': 'Apparent Resistivity'}
+                         't': 'Magnitude', 'p': 'Phase', 'b': 'Apparent Resistivity'}
         self.pt_units = 'degrees'
         if fig is None:
             self.new_figure()
@@ -535,7 +539,7 @@ class DataPlotManager(object):
                                          linestyle=linestyle, color=self.colour[ii],
                                          mec=self.mec, markersize=self.markersize,
                                          mew=edgewidth, picker=3)
-                if self.show_outliers:
+                if self.show_outliers and toplot.size != 0:
                     ma.append(max(toplot))
                     mi.append(min(toplot))
                 else:
@@ -582,7 +586,7 @@ class DataPlotManager(object):
 
 
 class MapView(object):
-    COORD_SYSTEMS = ('local', 'utm', 'latlong')
+    COORD_SYSTEMS = ('local', 'utm', 'latlong', 'lambert')
 
     def __init__(self, figure=None, **kwargs):
         self.window = {'figure': None, 'axes': None, 'canvas': None, 'colorbar': None}
@@ -600,12 +604,12 @@ class MapView(object):
                        'model': [], 'arrows': [], 'ellipses': []}
         self.site_marker = 'o'
         self.site_fill = True
-        self.site_colour = 'k'
+        self.site_interior = 'k'
         self.arrow_colours = {'raw_data': {'R': 'b', 'I': 'r'},
                               'data': {'R': 'b', 'I': 'r'},
                               'response': {'R': 'g', 'I': 'c'}}
         self.linestyle = '-'
-        self.mec = 'k'
+        self.site_exterior = 'k'
         self.markersize = 5
         self.edgewidth = 2
         self.image_opacity = 1
@@ -621,7 +625,10 @@ class MapView(object):
         self.rho_cax = [1, 5]
         self.phase_cax = [0, 90]
         self.diff_cax = [-10, 10]
+        self.tipper_cax = [0, 0.5]
+        self.skew_cax = [-10, 10]
         self.model_cax = [1, 5]
+        self.depth_cax = [0, 3.5]
         self.model = []
         self.padding_scale = 5
         self.plot_rms = False
@@ -637,7 +644,10 @@ class MapView(object):
         self.induction_error_tol = 0.5
         self.rho_error_tol = 1
         self.phase_error_tol = 30
+        self.include_outliers = True
+        self.allowed_std = 3
         self.units = 'm'
+        self.label_fontsize = 14
         self.mesh = False
         self.lut = 16
         self.linewidth = 0.005
@@ -650,7 +660,7 @@ class MapView(object):
     @property
     def facecolour(self):
         if self.site_fill:
-            return self.site_colour
+            return self.site_interior
         else:
             return 'none'
 
@@ -743,8 +753,8 @@ class MapView(object):
     def verify_coordinate_system(self, coordinate_system):
         if coordinate_system.lower() == 'local':
             return True
-        elif coordinate_system.lower() == 'utm' or coordinate_system.lower() == 'latlong':
-            if self.site_data['raw_data']:
+        elif coordinate_system.lower() in ('utm', 'latlong', 'lambert'):
+            if self.site_data['raw_data'].initialized:
                 return True
             else:
                 return False
@@ -782,6 +792,10 @@ class MapView(object):
             azi = self.site_data['raw_data'].azimuth
             check_azi = self.site_data['raw_data'].check_azi()
             locs = self.site_data['raw_data'].get_locs(sites=sites, mode='utm')
+        elif coordinate_system.lower() == 'lambert':
+            azi = self.site_data['raw_data'].azimuth
+            check_azi = self.site_data['raw_data'].check_azi()
+            locs = self.site_data['raw_data'].get_locs(sites=sites, mode='lambert')
         elif coordinate_system.lower() == 'latlong':
             azi = self.site_data['raw_data'].azimuth
             check_azi = self.site_data['raw_data'].check_azi()
@@ -790,6 +804,22 @@ class MapView(object):
             print('Rotating')
             locs = utils.rotate_locs(locs, azi)
         return locs
+
+    def set_axis_labels(self, xlabel=None, ylabel=None):
+        if xlabel:
+            self.window['axes'][0].set_xlabel(xlabel, fontsize=self.label_fontsize)
+        else:
+            if self.coordinate_system.lower() in ('utm', 'local'):
+                self.window['axes'][0].set_xlabel('Easting (km)', fontsize=self.label_fontsize)
+            else:
+                self.window['axes'][0].set_xlabel(r'Longitude ($^{\circ}$)', fontsize=self.label_fontsize)
+        if ylabel:
+            self.window['axes'][0].set_ylabel(ylabel, fontsize=self.label_fontsize)
+        else:
+            if self.coordinate_system.lower() in ('utm', 'local'):
+                self.window['axes'][0].set_ylabel('Northing (km)', fontsize=self.label_fontsize)
+            else:
+                self.window['axes'][0].set_ylabel(r'Latitude ($^{\circ}$)', fontsize=self.label_fontsize)
 
     def set_axis_limits(self, bounds=None, ax=None):
         if ax is None:
@@ -856,7 +886,7 @@ class MapView(object):
                                                self.site_locations['generic'][:, 0],
                                                marker=marker,
                                                s=marker_size['generic'],
-                                               edgecolors=self.site_colour,
+                                               edgecolors=self.site_exterior,
                                                linewidths=self.edgewidth,
                                                facecolors=facecolour,
                                                zorder=9)
@@ -868,10 +898,11 @@ class MapView(object):
                                            self.site_locations['active'][:, 0],
                                            marker=marker,
                                            s=marker_size['active'],
-                                           edgecolors=self.site_colour,
+                                           edgecolors=self.site_exterior,
                                            linewidths=self.edgewidth,
                                            facecolors=facecolour,
                                            zorder=9)
+        self.set_axis_labels()
 
     def plot_annotate(self):    
         if self.annotate_sites == 'active':
@@ -906,13 +937,16 @@ class MapView(object):
                 #     colour = 'r'
                 idx = []
                 for ii, site in enumerate(self.site_names):
+                    site = self.site_data[dType].sites[site]
+                    if np.all(np.array([site.used_error[comp][period_idx] for comp in site.TIPPER_COMPONENTS]) == site.REMOVE_FLAG):
+                        continue
                     idx.append(ii)
-                    if 'TZX' + R_or_L in self.site_data[dType].sites[site].components:
-                        X.append(-self.site_data[dType].sites[site].data['TZX' + R_or_L][period_idx])
+                    if 'TZX' + R_or_L in site.components:
+                        X.append(-site.data['TZX' + R_or_L][period_idx])
                     else:
                         X.append(0)
-                    if 'TZY' + R_or_L in self.site_data[dType].sites[site].components:
-                        Y.append(-self.site_data[dType].sites[site].data['TZY' + R_or_L][period_idx])
+                    if 'TZY' + R_or_L in site.components:
+                        Y.append(-site.data['TZY' + R_or_L][period_idx])
                     else:
                         Y.append(0)
                 if idx:
@@ -977,26 +1011,32 @@ class MapView(object):
 
     def pt_fill_limits(self, fill_param, pt_type):
         if fill_param in ['Lambda']:
-            lower, upper = (0, 1)
+            lower, upper = (0, 0.5)
         elif fill_param == 'beta':
-            lower, upper = (-10, 10)
+            lower, upper = self.skew_cax
+        elif fill_param == 'absbeta':
+            lower, upper = [0, self.skew_cax[1]]
         elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
             # lower, upper = (0, 180)
         elif fill_param in ('delta'):
             lower, upper = (0, 100)
+        elif fill_param in ('phi_split'):
+            lower, upper = self.diff_cax
+        elif fill_param.lower() == 'dimensionality':
+            lower, upper = (1, 3)
         else:
             if pt_type.lower() == 'phi':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
                     lower, upper = self.phase_cax
             elif pt_type.lower() == 'phi_a':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
                     lower, upper = [-1*self.phase_cax[1], self.phase_cax[1]]
             elif pt_type.lower() == 'ua':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
                     lower, upper = self.rho_cax
             elif pt_type.lower() == 'va':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
                     lower, upper = [-10 ** self.rho_cax[1], 10 ** self.rho_cax[1]]
         return lower, upper
 
@@ -1059,8 +1099,8 @@ class MapView(object):
             phi_x[kk], phi_y[kk] = phi_new
         return phi_x, phi_y
 
-    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str)
-    def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None):
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str, bostick_depth=float)
+    def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None, bostick_depth=0):
         ellipses = []
         fill_vals = []
         if not pt_type:
@@ -1076,6 +1116,9 @@ class MapView(object):
         for ii, site_name in enumerate(self.site_names):
             site = self.site_data[data_type[0]].sites[site_name]
             if len(data_type) == 1:
+                if bostick_depth:
+                    depths = utils.compute_bost1D(site=site, method='phase', comp='aav', filter_width=1)[1]
+                    period_idx = np.argmin(abs(bostick_depth - depths))
                 tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
                                                                                           fill_param,
                                                                                           site=site,
@@ -1092,11 +1135,14 @@ class MapView(object):
                     radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
                     if np.min(radii) < np.max(radii) * self.pt_ratio_cutoff:
                         cont = 0
+
+                    if np.all(np.array([site.used_error[comp][period_idx] for comp in site.components]) == site.REMOVE_FLAG):
+                        cont = 0
                     if np.min(radii) < np.max(radii) * self.min_pt_ratio:
                         phi_x, phi_y = self.resize_ellipse(azimuth, phi_max)
 
                     norm_x, norm_y = (phi_x, phi_y)
-                    good_idx.append(ii)
+                    # good_idx.append(ii)
                     # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phaseyx_error, rhoyx_error))
                 else:
                     cont = 0
@@ -1122,12 +1168,15 @@ class MapView(object):
                     radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
                     if np.min(radii) < np.max(radii) * self.pt_ratio_cutoff:
                         cont = 0
+                    else:
+                        cont = 1
                     if np.min(radii) < np.max(radii) * self.min_pt_ratio:
                         phi_x, phi_y = self.resize_ellipse(phi_max, azimuth)
-                    good_idx.append(ii)                   
+                                       
                     # norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
-                    cont = 1
+                    
             if cont:
+                good_idx.append(ii)
                 X, Y = X_all[ii], Y_all[ii]
                 phi_x, phi_y = (1000 * phi_x / np.abs(phi_max),
                                 1000 * phi_y / np.abs(phi_max))
@@ -1140,7 +1189,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
@@ -1157,9 +1206,10 @@ class MapView(object):
                                         color=self.cmap(norm_vals[ii]),
                                         zorder=3,
                                         edgecolor='k',
-                                        linewidth=2)
-            self.window['axes'][0].plot(ellipse[0], ellipse[1],
-                                        'k-', linewidth=1, zorder=3)
+                                        linewidth=0)
+            if self.ellipse_linewidth:
+                self.window['axes'][0].plot(ellipse[0], ellipse[1],
+                                            'k-', linewidth=self.ellipse_linewidth, zorder=3)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
         self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
                                                       self.site_locations['all'][good_idx, 0],
@@ -1190,7 +1240,10 @@ class MapView(object):
                         (np.max(Y_all) - np.min(Y_all)) ** 2)
         good_idx = []
         for ii, site_name in enumerate(self.site_names):
+
             site = self.site_data[data_type[0]].sites[site_name]
+            if np.all(np.array([site.used_error[comp][period_idx] for comp in site.components]) == site.REMOVE_FLAG):
+                continue
             tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
                                                                                       fill_param,
                                                                                       site=site,
@@ -1214,7 +1267,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
@@ -1248,28 +1301,71 @@ class MapView(object):
             if 'rho' in fill_param.lower():
                 data_label = 'Resistivity'
                 use_log = True
-                vals.append([np.log10(utils.compute_rho(site=data.sites[site],
-                                                        calc_comp=fill_param,
-                                                        errtype='none')[0][period_idx]) for site in data.site_names])
+                if '-' in fill_param:
+                    vals.append([np.log10(utils.compute_rho(site=data.sites[site], calc_comp='xy', errtype='none')[0][period_idx] - 
+                                          utils.compute_rho(site=data.sites[site], calc_comp='yx', errtype='none')[0][period_idx]) for site in data.site_names])
+                else:
+                    vals.append([np.log10(utils.compute_rho(site=data.sites[site],
+                                                            calc_comp=fill_param,
+                                                            errtype='none')[0][period_idx]) for site in data.site_names])
                 # vals.append(temp_vals)
             elif 'pha' in fill_param.lower():
                 data_label = 'Phase'
                 use_log = False
-                vals.append([utils.compute_phase(site=data.sites[site],
-                                                 calc_comp=fill_param,
-                                                 errtype='none',
-                                                 wrap=1)[0][period_idx] for site in data.site_names])
+                if '-' in fill_param:
+                    vals.append([utils.compute_phase(data.sites[site], calc_comp='xy', errtype='none', wrap=1)[0][period_idx] -
+                                 utils.compute_phase(data.sites[site], calc_comp='yx', errtype='none', wrap=1)[0][period_idx] for site in data.site_names])
+                else:
+                    vals.append([utils.compute_phase(site=data.sites[site],
+                                                     calc_comp=fill_param,
+                                                     errtype='none',
+                                                     wrap=1)[0][period_idx] for site in data.site_names])
+            elif 'tip' in fill_param.lower():
+                data_label = 'Tipper Amplitude'
+                use_log = False
+                vals.append([np.sqrt((data.sites[site].data['TZXR'][period_idx] ** 2 +
+                                     data.sites[site].data['TZYR'][period_idx] ** 2)) for site in data.site_names])
+            elif 'absbeta' in fill_param.lower():
+                data_label = 'Skew'
+                use_log = False
+                vals.append([abs(np.rad2deg(data.sites[site].phase_tensors[period_idx].beta)) for site in data.site_names])
+            elif 'beta' in fill_param.lower():
+                data_label = 'Skew'
+                use_log = False
+                vals.append([np.rad2deg(data.sites[site].phase_tensors[period_idx].beta) for site in data.site_names])
+            elif 'azimuth' in fill_param.lower():
+                data_label = 'Azimuth'
+                use_log = False
+                vals.append([np.rad2deg(data.sites[site].phase_tensors[period_idx].azimuth) for site in data.site_names])
+            elif 'bost' in fill_param.lower():
+                data_label = 'Depth'
+                use_log = True
+                # vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='phase', comp=fill_param, filter_width=1)[1][period_idx]) for site in data.site_names])
+                if '-' in fill_param:
+                    vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='bostick', comp='xy', filter_width=1)[1][period_idx] -
+                                          utils.compute_bost1D(data.sites[site], method='bostick', comp='yx', filter_width=1)[1][period_idx]) for site in data.site_names])
+                else:
+                    vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='bostick', comp=fill_param, filter_width=1)[1][period_idx]) for site in data.site_names])
         if len(vals) == 1:
             vals = np.array(vals[0])
             diff = False
         else:
             diff = True
             #  Should be response - data so a larger response gives a +ve percent difference
-            if 'rho' in fill_param.lower():
+            if 'rho' in fill_param.lower() or 'bost' in fill_param.lower():
                 vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
-            elif 'pha' in fill_param.lower():
+            elif 'pha' in fill_param.lower() or 'tip' in fill_param.lower():
                 vals = (np.array(vals[1]) - np.array(vals[0]))  # / np.array(vals[0])
-        loc_x, loc_y = self.site_locations['all'][:, 1], self.site_locations['all'][:, 0]
+        if not self.include_outliers:
+            val_mean = np.mean(vals)
+            val_std = np.std(vals)
+            good_idx = ((vals < (val_mean + self.allowed_std * val_std)) &
+                        (vals > (val_mean - self.allowed_std * val_std)))
+        elif 'tip' in fill_param.lower():
+            good_idx = vals < self.induction_cutoff
+        else:
+            good_idx = abs(vals) < 1e10
+        loc_x, loc_y = self.site_locations['all'][good_idx, 1], self.site_locations['all'][good_idx, 0]
         loc_z = np.zeros(loc_x.shape)
         points = np.transpose(np.array((loc_x, loc_y, loc_z)))
         min_x, max_x = (min(loc_x), max(loc_x))
@@ -1280,28 +1376,42 @@ class MapView(object):
         min_y, max_y = (min_y - y_pad, max_y + y_pad)
         X = np.linspace(min_x, max_x, n_interp)
         Y = np.linspace(min_y, max_y, n_interp)
-        grid_vals, grid_x, grid_y = self.interpolate(points, vals, n_interp)
+        grid_vals, grid_x, grid_y = self.interpolate(points, vals[good_idx], n_interp)
         if diff and 'rho' in fill_param.lower():
             cax = self.diff_cax
             fill_param = '% Difference'
-        elif diff and 'pha' in fill_param.lower():
+        elif (diff and 'pha' in fill_param.lower() or fill_param.lower() == ('phaxy-yx')):
             cax = self.diff_cax
             fill_param = r'Difference ($^{\circ}$)'
+        elif diff and 'tip' in fill_param.lower():
+            cax = self.diff_cax
+            fill_param = r'Difference'
         elif 'rho' in fill_param.lower():
             cax = self.rho_cax
-        else:
+        elif 'pha' in fill_param.lower():
             cax = self.phase_cax
+        elif 'tip' in fill_param.lower():
+            cax = self.tipper_cax
+        elif 'absbeta' in fill_param.lower():
+            cax = [0, self.skew_cax[1]]
+        elif 'beta' in fill_param.lower():
+            cax = self.skew_cax
+        elif 'azimuth' in fill_param.lower():
+            cax = [-90, 90]
+        elif 'bost' in fill_param.lower():
+            cax = self.depth_cax
+        
         im = self.window['axes'][0].pcolor(grid_x, grid_y, grid_vals.T,
                                            cmap=self.cmap,
                                            vmin=cax[0], vmax=cax[1],
                                            zorder=0)
-        if self.window['colorbar']:
+        if self.window['colorbar'] and self.use_colourbar:
             self.window['colorbar'].remove()
-        self.window['colorbar'] = self.window['figure'].colorbar(mappable=im)
-        self.window['colorbar'].set_label(fill_param,
-                                          rotation=270,
-                                          labelpad=20,
-                                          fontsize=18)
+            self.window['colorbar'] = self.window['figure'].colorbar(mappable=im)
+            self.window['colorbar'].set_label(fill_param,
+                                              rotation=270,
+                                              labelpad=20,
+                                              fontsize=18)
         self.set_axis_limits()
         self.window['axes'][0].format_coord = format_model_coords(im,
                                               X=X, Y=Y,
@@ -1349,8 +1459,9 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        ax.set_ylabel('Northing (km)')
-        ax.set_xlabel('Easting (km)')
+        self.set_axis_labels()
+        # ax.set_ylabel('Northing (km)')
+        # ax.set_xlabel('Easting (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
                                               x_label='Easting', y_label='Northing')
@@ -1372,8 +1483,9 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        ax.set_xlabel('Easting (km)')
-        ax.set_ylabel('Depth (km)')
+        self.set_axis_labels()
+        # ax.set_xlabel('Easting (km)')
+        # ax.set_ylabel('Depth (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
                                               x_label='Easting', y_label='Depth')
@@ -1403,8 +1515,9 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        ax.set_xlabel(x_label)
-        ax.set_ylabel(y_label)
+        self.set_axis_labels(xlabel=x_label, ylabel=y_label)
+        # ax.set_xlabel(x_label)
+        # ax.set_ylabel(y_label)
         ax.format_coord = format_model_coords(im, X=X, Y=Y,
                                               x_label=x_label.split()[0],
                                               y_label=y_label.split()[0])
@@ -1477,7 +1590,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
@@ -1509,7 +1622,7 @@ class MapView(object):
                                               rotation=270,
                                               labelpad=20,
                                               fontsize=18)
-        xlim = [min(X_all) - 5, max(X_all) + 5]
+        xlim = [min(X_all) - 1, max(X_all) + 1]
         ylim = [min(Y_all) - 0.2, max(Y_all) + 0.2]
         aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])
         self.set_axis_limits(bounds=xlim + ylim)
@@ -1582,7 +1695,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)

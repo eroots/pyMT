@@ -3,37 +3,39 @@ import pyMT.utils as utils
 from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
 import numpy as np
-import e_colours.colourmaps as cm
+from pyMT.e_colours import colourmaps as cm
 
 
-cmap = cm.jet(64)
+cmap = cm.get_cmap('turbo_r', 16)
 # cmap = cm.bgy(32)
-local_path = 'C:/Users/eroots'
+local_path = 'E:/'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\2018-517\allsites.lst'
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\515-520.lst')
 # listfile = r'C:\Users\eric\phd\Kilauea\ConvertedEDIs\all\allsites.lst'
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Test_Models\dimensionality\synthLayer.data'
 # listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
-listfile = local_path + '/phd/ownCloud/data/Regions/afton/j2/l0.lst'
+listfile = local_path + 'phd/Nextcloud/data/Regions/snorcle/j2/2020-collation-ian/line1.lst'
 dataset = WSDS.Dataset(listfile=listfile)
 # dataset.remove_sites(sites='MAL062A')
 dataset.sort_sites('south-north')
-data = dataset.data
+data = dataset.raw_data
 # data = WSDS.Data(datafile='C:/Users/eric/phd/Kilauea/stitched/1_day/Z/Kilauea_may_daily.data')
 # days = (501, 530)
 hour_or_day = 1  # sets the interval in labels, so choose appropriately
 n_interp = 300
-cax_rho = [0, 4]
+interp_method = 'linear'
+cax_rho = [0, 3.5]
+component = 'xy'
 # data = WSDS.Data(datafile=datafile)
 # rmsites = [site for site in data.site_names if site[0] == 'e' or site[0] == 'd']
 # data.remove_sites(rmsites)
 # data.sort_sites(order='west-east')
-rho = {site.name: utils.compute_rho(site)[0] for site in data.sites.values()}
-pha = {site.name: utils.geotools_filter(np.log10(site.periods), utils.compute_phase(site, 'det')[0], 0.8, 1) for site in data.sites.values()}
-# pha = {site.name: utils.compute_phase(site)[0] for site in data.sites.values()}
-bost = {site.name: utils.compute_bost1D(site)[0] for site in data.sites.values()}
-depths = {site.name: utils.compute_bost1D(site)[1] for site in data.sites.values()}
+rho = {site: utils.compute_rho(data.sites[site], calc_comp=component)[0] for site in data.site_names}
+# pha = {site.name: utils.geotools_filter(np.log10(site.periods), utils.compute_phase(site, calc_comp=component)[0], 0.8, 1) for site in data.site_names}
+pha = {site: utils.compute_phase(data.sites[site], calc_comp=component, wrap=1)[0] for site in data.site_names}
+bost = {site: utils.compute_bost1D(data.sites[site], comp=component)[0] for site in data.site_names}
+depths = {site: utils.compute_bost1D(data.sites[site], comp=component)[1] for site in data.site_names}
 periods = []
 loc = []
 rhovals = []
@@ -68,18 +70,18 @@ grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp),
                              np.log10(np.logspace(min_p, max_p, n_interp)))
 
 
-grid_rho = griddata(points, rhovals, (grid_x, grid_y), method='linear')
+grid_rho = griddata(points, rhovals, (grid_x, grid_y), method=interp_method)
 
 grid_xd, grid_d = np.meshgrid(np.linspace(min_x, max_x, n_interp),
                               np.log10(np.logspace(min_d, max_d, n_interp)))
-grid_bost = griddata(points_d, bostvals, (grid_xd, grid_d), method='cubic')
-grid_pha = griddata(points, phavals, (grid_x, grid_y), method='cubic')
+grid_bost = griddata(points_d, bostvals, (grid_xd, grid_d), method=interp_method)
+grid_pha = griddata(points, phavals, (grid_x, grid_y), method=interp_method)
 # grid_pha = griddata(points_d, phavals, (grid_xd, grid_d), method='cubic')
 
 
 def plot_pha():
     plt.figure()
-    plt.pcolor(grid_x, grid_y, grid_pha, cmap=cmap)
+    plt.pcolor(grid_x, grid_y, grid_pha, cmap=cm.get_cmap('turbo', 16))
     # plt.pcolor(grid_xd, grid_d, grid_pha, cmap=cmap)
     # plt.xticks(xticks, xtick_labels)
     plt.clim([0, 90])
@@ -116,7 +118,7 @@ def plot_rho():
                      labelpad=20,
                      fontsize=18)
     plt.gca().invert_yaxis()
-    plt.xlabel('Hour')
+    plt.xlabel('Station Location')
     plt.ylabel(r'$\log_{10}$ Period (s)')
 
 
@@ -137,7 +139,7 @@ def plot_bost():
     plt.ylabel(r'Depths (m)')
 
 
-# plot_rho()
+plot_rho()
 plot_pha()
-plot_bost()
+# plot_bost()
 plt.show()

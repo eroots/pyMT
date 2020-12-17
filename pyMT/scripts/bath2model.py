@@ -138,15 +138,74 @@ if __name__ == '__main__':
     model_out = ''
     cov_out = ''
     data_out = ''
+    # LANAI
+    # model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
+    # list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
+    # data_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_test_Z.dat'
+    # bath_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/bathy.p'
+    # bath_out = []
+    # model_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test_wTopoAndOcean.model'
+    # cov_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean.cov'
+    # data_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean_Z.dat'
+    #################################
+    # COREDILLA
+    # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/test_topo.model'
+    # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/j2/select.lst'
+    # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/modem.dat'
+    # # bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.xyz'
+    # bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.p'
+    # # bath_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.p'
+    # model_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/test_wTopo.model'
+    # cov_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai_topo.cov'
+    # data_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai__topoTest_Z.dat'
+    ################################
+    # WESTERN SUPERIOR
+    # size = 'nest'
+    # model_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_hs500_{}.model'.format(size)
+    # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_mantle_fullrun_ffmt.lst'
+    # data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_LAMBERT_all_flagged.dat'
+    # data_out = []
+    # # bath_file = []
+    # bath_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
+    # bath_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
+    # model_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.model'.format(size)
+    # cov_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.cov'.format(size)
+    ################################
+    #  Ciomadual
+    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D-smooth.model'
+    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D_nest.model'
+    # list_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/originals/rotated/fixed/ffmt_sorted.lst'
+    # data_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio4_halfPers.dat'
+    # # bath_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/bathy_nest.p'
+    # bath_file = 'E:/phd/NextCloud/data/ArcMap/Ciomadul/cioDEM3.tif'
+    # # bath_file = []
+    # bath_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/tifDEM/bathy-tif_nest.p'
+    # model_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioHS_wTopoAndOcean_nest.model'
+    # cov_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioHS_wTopoAndOceanFlipX_nest.cov'
+    # data_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioHS_wTopoAndOcean_nest.dat'
     ###############################
+    #################################
+    # Rae Craton
+    mod_type = 'large'
+    list_file = 'E:/phd/NextCloud/data/Regions/rae/j2/rae_allnew1.lst'
+    data_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae_Z_flagged.dat'
+    model_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_{}.model'.format(mod_type)
+    # bath_file = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy.p'
+    bath_file = []
+    bath_out = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy_large.p'
+    model_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_bath_{}.model'.format(mod_type)
+    cov_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_large_bath.cov'
+    # data_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_topo_Z_flagged.dat'
+    data_out = []
+
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
     model = DS.Model(model_file)
     model.origin = raw_data.origin
     lat_pad = 5
     lon_pad = 5
-    data_collect_stride = 4
-    with_topography = True
+    data_collect_stride = 8
+    with_topography = False
     cmap = cmocean.cm.haline
     ####################################
     # If you want to modify the vertical meshing, do it now (see examples below)
@@ -156,7 +215,10 @@ if __name__ == '__main__':
     # model.vals[:,:,:] = 10
     # model.zCS = [50] * 12 + [20] + model.zCS
     # model.dz = list(np.arange(0, 620, 20)) + list(np.logspace(np.log10(620), 4.5, 80)) + list(np.logspace(4.5, 6, 20))[1:]
+    # model.background_resistivity = 100
+    # model.generate_half_space()
     # model.zCS = [20] * 31 + list(np.logspace(np.log10(20), 3, 80)) + list(np.logspace(3.1, 5, 20))
+    # model.zCS = [50] * 10 + model.zCS[13:]
     # for ii in range(20):
         # model.dz_insert(0, 50)
     # Another testing mesh, this time with 100 m layers from 0-10 km, then 1 km layers from 10-100 km depth
@@ -168,6 +230,8 @@ if __name__ == '__main__':
     # This one is needed to make sure the projection to lat/long is correct.
     # model.UTM_zone = '4Q'
     model.UTM_zone = '35N'
+    # model.UTM_zone = '35N'
+    model.UTM_zone = '15N'
     # model.UTM_zone = '16N'
     # model.UTM_zone = '16U'
     model.to_latlong()
@@ -223,11 +287,13 @@ if __name__ == '__main__':
                 lat, lon, topo = bathy[:, 1], bathy[:, 0], bathy[:, 2]
     else:
         lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=data_collect_stride)
-        bathy = np.array((lat, lon, topo))
-        pickle.dump(bathy, open(bath_out, 'wb'))
+        with open(bath_out, 'wb') as f:
+            pickle.dump(np.array((lat, lon, topo)), f, protocol=pickle.HIGHEST_PROTOCOL)
     
     grid_x, grid_y, grid_z = bathymetry_to_model(model, lat, lon, topo)
     insert_topography(model, grid_x, grid_y, grid_z)
+    if with_topography:
+        insert_topography(model, grid_x, grid_y, grid_z)
     insert_oceans(model, grid_x, grid_y, grid_z, with_topography=with_topography)
     model.to_local()
     reposition_data(data, model)

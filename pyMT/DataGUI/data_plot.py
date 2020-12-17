@@ -36,15 +36,15 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
-from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog
+from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser, MyPopupDialog
 from pyMT.IO import debug_print
 from copy import deepcopy
+
 
 
 path = os.path.dirname(os.path.realpath(__file__))
 
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
-UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
 UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
 UI_ModelingWindow, QModelingMain = loadUiType(os.path.join(path, '1D_modeling.ui'))
 
@@ -327,11 +327,14 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.Bar_fill.setEnabled(False)
             self.phaseTensorType.setEnabled(False)
         #  Connect pseudo-section plotting toggles
-        self.toggle_rhoPseudo.clicked.connect(self.update_map)
-        self.toggle_phasePseudo.clicked.connect(self.update_map)
+        # self.toggle_rhoPseudo.clicked.connect(self.update_map)
+        # self.toggle_phasePseudo.clicked.connect(self.update_map)
+        # self.toggle_tipPseudo.clicked.connect(self.update_map)
+        # self.toggle_depthPseudo.clicked.connect(self.update_map)
         self.toggle_dataPseudo.clicked.connect(self.update_map)
         self.toggle_responsePseudo.clicked.connect(self.update_map)
         self.Pseudosection_fill.currentIndexChanged.connect(self.update_map)
+        self.pseudoFillType.currentIndexChanged.connect(self.update_map)
         self.nInterp.editingFinished.connect(self.update_map)
         self.Interpolant.insertItems(0, ['Linear', 'Cubic', 'Nearest'])
         if self.map.has_nn:
@@ -351,13 +354,16 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.rho_limits = self.colourMenu.limits.addAction('Rho')
         self.colourMenu.phase_limits = self.colourMenu.limits.addAction('Phase')
         self.colourMenu.difference_limits = self.colourMenu.limits.addAction('Difference')
+        self.colourMenu.skew_limits = self.colourMenu.limits.addAction('Skew')
+        self.colourMenu.tipper_limits = self.colourMenu.limits.addAction('Tipper')
         # self.colourMenu.limits.triggered.connect(self.set_rho_cax)
         self.colourMenu.lut.triggered.connect(self.set_lut)
         self.groupColourmaps = QtWidgets.QActionGroup(self)
         self.colourMenu.rho_limits.triggered.connect(self.set_rho_cax)
         self.colourMenu.phase_limits.triggered.connect(self.set_phase_cax)
         self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
-
+        self.colourMenu.tipper_limits.triggered.connect(self.set_tipper_cax)
+        self.colourMenu.skew_limits.triggered.connect(self.set_skew_cax)
         self.PTRotGroup = QtWidgets.QActionGroup(self)
         self.actionPTRotAxisX.setActionGroup(self.PTRotGroup)
         self.actionPTRotAxisY.setActionGroup(self.PTRotGroup)
@@ -416,7 +422,11 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.action_coordUTM.setActionGroup(self.groupCoords)
         self.action_coordLocal.setActionGroup(self.groupCoords)
         self.action_coordLatlong.setActionGroup(self.groupCoords)
+        self.action_coordLambert.setActionGroup(self.groupCoords)
         self.groupCoords.triggered.connect(self.coord_system)
+        # Pseudosection options
+        self.actionIncludeOutliers.triggered.connect(self.set_pseudosection_options)
+        self.actionStandardDeviation.triggered.connect(self.set_pseudosection_std)
 
     @property
     def PT_type(self):
@@ -430,6 +440,24 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             return 'Va'
         else:
             return 'phi'
+
+    def set_pseudosection_options(self):
+        self.map.include_outliers = self.actionIncludeOutliers.isChecked()
+        if self.toggle_dataPseudo.checkState() or self.toggle_responsePseudo.checkState():
+            self.update_map()
+        # if self.actionIncludeOutliers.isChecked():
+        #     self.map.include_outliers = True
+        # else:
+        #     self.map.include_outliers = False
+
+    def set_pseudosection_std(self):
+        val, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                           '# Standard Deviations',
+                                                           'Value: ',
+                                                           self.map.allowed_std, 0, 100, 2)
+        if ok_pressed:
+            self.map.allowed_std = val
+            self.set_pseudosection_options()
 
     def set_pt_rot_axis(self):
         if self.actionPTRotAxisX.isChecked():
@@ -458,10 +486,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                 self.map.coordinate_system = 'latlong'
             else:
                 can_do = 0
+        elif self.action_coordLambert.isChecked():
+            if self.map.verify_coordinate_system('lambert'):
+                self.map.coordinate_system = 'lambert'
+            else:
+                can_do = 0
         if can_do:
             self.update_map()
         else:
-            QtWidgets.QMessageBox.warning(self, 'Unable to change coordinate system.')
+            QtWidgets.QMessageBox.warning(self, '...', 'Unable to change coordinate system.')
             self.action_coordLocal.setChecked(True)
 
     def set_image_opacity(self):
@@ -645,7 +678,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                                        0, False)
         if ok_pressed:
             code = codes[d]
-            self.map.site_colour = code
+            self.map.site_interior = code
             self.update_map()
 
     def set_marker_shape(self):
@@ -747,25 +780,18 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if limits is not None and limits != self.map.phase_cax:
             self.map.phase_cax = limits
             self.update_map()
-        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-        #                                                  'Lower limit',
-        #                                                  'Value:',
-        #                                                  self.map.phase_cax[0],
-        #                                                  -180, 180, 2)
-        # if ok_pressed:
-        #     lower = d
-        # d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
-        #                                                  'Upper limit',
-        #                                                  'Value:',
-        #                                                  self.map.phase_cax[1],
-        #                                                  -180, 180, 2)
-        # if ok_pressed:
-        #     upper = d
-        # if lower < upper and [lower, upper] != self.map.phase_cax:
-        #     self.map.phase_cax = [lower, upper]
-        #     self.update_map()
-        # else:
-        #     print('Invalid colour limits')
+        
+    def set_tipper_cax(self):
+        limits = self.set_cax(self.map.tipper_cax[0], self.map.tipper_cax[1])
+        if limits is not None and limits != self.map.tipper_cax:
+            self.map.tipper_cax = limits
+            self.update_map()
+
+    def set_skew_cax(self):
+        limits = self.set_cax(self.map.skew_cax[0], self.map.skew_cax[1])
+        if limits is not None and limits != self.map.skew_cax:
+            self.map.skew_cax = limits
+            self.update_map()
 
     def set_colourmap(self):
         self.map.colourmap = self.colourMenu.action_group.checkedAction().text()
@@ -877,16 +903,18 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                         period_idx=self.active_period,
                                         n_interp=self.nInterp.value())
         self.map.plot_rms = self.plotRMS.checkState()
-        self.map.plot_locations()
+        # self.map.plot_locations()
         self.map.plot_annotate()
         PT_toggles = self.get_PT_toggles()
         bar_fill = self.Bar_fill.itemText(self.Bar_fill.currentIndex())
-        self.set_pt_rot_axis()
+        
         if 'None' not in PT_toggles['data']:
+            self.set_pt_rot_axis()
             self.map.plot_phase_tensor(data_type=PT_toggles['data'],
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period,
-                                       pt_type=self.PT_type)
+                                       pt_type=self.PT_type,
+                                       bostick_depth=0)
             if bar_fill != PT_toggles['fill'] and len(PT_toggles['data']) == 1:
                 self.map.plot_phase_bar(data_type=PT_toggles['data'],
                                         fill_param=bar_fill,
@@ -904,6 +932,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                            normalize=induction_toggles['normalize'],
                                            period_idx=self.active_period,
                                            arrow_type=arrowType)
+        if 'None' in PT_toggles['data'] and not induction_toggles['data']:
+            self.map.plot_locations()
         self.set_axis_settings()
         self.canvas.draw()
 
@@ -924,16 +954,35 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
     def get_pseudosection_toggles(self):
         toggles = {'data': [], 'fill': None, 'component': None}
         if self.toggle_dataPseudo.checkState() and self.map.dataset.data.sites:
-
             toggles['data'].append('data')
         if self.toggle_responsePseudo.checkState() and self.map.dataset.response.sites:
             toggles['data'].append('response')
         else:
             self.toggle_responsePseudo.setCheckState(0)
-        if self.toggle_rhoPseudo.isChecked():
+        index = self.pseudoFillType.currentIndex()
+        item = self.pseudoFillType.itemText(index).lower()
+        if item == 'apparent resistivity':
             toggles['fill'] = 'Rho'
-        elif self.toggle_phasePseudo.isChecked():
+        elif item == 'phase':
             toggles['fill'] = 'Pha'
+        elif item == 'tipper amplitude':
+            toggles['fill'] = 'tip'
+        elif item == 'bostick depth':
+            toggles['fill'] = 'bost'
+        elif item == 'beta':
+            toggles['fill'] = 'beta'
+        elif item == 'abs. beta':
+            toggles['fill'] = 'absbeta'
+        elif item == 'pt azimuth':
+            toggles['fill'] = 'azimuth'
+        # if self.toggle_rhoPseudo.isChecked():
+        #     toggles['fill'] = 'Rho'
+        # elif self.toggle_phasePseudo.isChecked():
+        #     toggles['fill'] = 'Pha'
+        # elif self.toggle_tipPseudo.isChecked():
+        #     toggles['fill'] = 'Tip'
+        # elif self.toggle_depthPseudo.isChecked():
+        #     toggles['fill'] = 'Bost'
         index = self.Pseudosection_fill.currentIndex()
         toggles['component'] = self.Pseudosection_fill.itemText(index)
         return toggles
@@ -2205,7 +2254,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def update_error_tree(self):
         try:
             self.error_tree.itemChanged.disconnect()
-            print('Disconnecting tree')
+            # print('Disconnecting tree')
         except TypeError:
             tree_connected = False
         else:
@@ -2235,12 +2284,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 pnode.setText(0, '')
                 pnode.setText(1, str(p))
-                for jj, comp in enumerate(ordered_comps):
-                    pnode.setText(2 + jj, str(int(self.dataset.data.sites[site].errmap[comp][ii])))
+                try:
+                    for jj, comp in enumerate(ordered_comps):
+                        pnode.setText(2 + jj, str(int(self.dataset.data.sites[site].errmap[comp][ii])))
+                except OverflowError as e:
+                    debug_print([site, p], 'inferr.log')
 
         if tree_connected:
             self.error_tree.itemChanged.connect(self.post_edit_error)
-            print('Reconnecting tree')
+            # print('Reconnecting tree')
 
     def expand_tree_nodes(self, to_expand, expand=True):
         # idx = [self.dataset.data.site_names.index(site) for site in to_expand]
@@ -2490,152 +2542,9 @@ class MyTableModel(QtCore.QAbstractTableModel):
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
 
-class FileInputParser(object):
-    # If I add functionality to add datasets after you've already opened a GUI,
-    # I may want to make it so I can create an instance of this with a list
-    # of accepted file types, and then use that instance to check every time something
-    # is added.
-
-    def __init__(self, files=''):
-        pass
-
-    @staticmethod
-    def get_files_dialog():
-        keep_going = True
-        start_dict = {}
-        while keep_going:
-            startup, ret = MyPopupDialog.get_file(default='pystart', label='Startup:')
-            if not ret or not startup:
-                print('OK Fine, don''t use me...')
-                return '', ret
-            if ret and startup:
-                try:
-                    start_dict = FileInputParser.read_pystart(startup)
-                except FileNotFoundError as e:
-                    print('File {} not found. Try again.'.format(startup))
-                else:
-                    keep_going = False
-        return start_dict, ret
-
-    @staticmethod
-    def verify_files(files):
-        if files:
-            for dataset_name, startup in files.items():
-                for Type, file in startup.items():
-                    if Type != 'raw_path':
-                        if not utils.check_file(file):
-                            print('File {} not found.'.format(file))
-                            return False
-                        # try:
-                        #     with open(file, 'r'):
-                        #         pass
-                        # except FileNotFoundError as e:
-                        #     print('File {} not found.'.format(file))
-                        #     return False
-            else:
-                return True
-        else:
-            return False
-
-    @staticmethod
-    def read_pystart(startup):
-        dset = ''
-        acceptable = ('data', 'list', 'response', 'raw_path', 'model', 'path')
-        abbreviations = {'raw': 'raw_path', 'resp': 'response', 'mod': 'model', 'lst': 'list'}
-        try:
-            with open(startup, 'r') as f:
-                lines = f.readlines()
-                for line in lines:
-                    if line[0] == '#' or line[0].strip() == '':
-                        continue
-                    elif line[0] == '%':
-                        dname = [x.strip() for x in line.split('%') if x]
-                        if dset == '':
-                            dset = dname[0]
-                            retval = {dset: {}}
-                        else:
-                            dset = dname[0]
-                            retval.update({dset: {}})
-                        continue
-                    elif line[0] in '!@$^&*':
-                        print('Unrecognized character {} in {}.'
-                              ' Are you sure you don\'t mean %?'.format(line[0], startup))
-                        return False
-                    elif dset == '':
-                        dset = 'dataset1'
-                        retval = {dset: {}}
-                    parts = line.split()
-                    # Only check for abbreviations if the keyword isn't already present in the list
-                    dType = parts[0].lower()
-                    dType_abr = re.sub(r'\b' + '|'.join(abbreviations.keys()) + r'\b',
-                                       lambda m: abbreviations[m.group(0)], parts[0])
-                    # If there are spaces in a path, make sure they are joined back up
-                    if len(parts) > 2:
-                        parts[1] = ' '.join(parts[1:])
-                    if dType in acceptable:
-                        retval[dset].update({dType: parts[1]})
-                    elif dType_abr in acceptable:
-                        retval[dset].update({dType_abr: parts[1]})
-                    else:
-                        print('Unrecognized keyword: {}'.format(dType))
-            # If a dataset 'COMMON' is present, fill in any blanks in the other datasets
-            # with its values
-            # if 'common' in [dname.lower() for dname in r'etval.keys()]:
-            # for dataset_files in
-            for dataset_files in retval.values():
-                if 'path' in dataset_files.keys():
-                    path = dataset_files['path']
-                    del dataset_files['path']
-                    for file_type in dataset_files.keys():
-                        if not os.path.dirname(dataset_files[file_type]):
-                            dataset_files[file_type] = os.path.join(path, dataset_files[file_type])
-        except FileNotFoundError:
-            print('File not found: {}'.format(startup))
-            return False
-        if 'raw' in retval.keys():
-            if 'list' not in retval.keys():
-                print('Cannot read raw data with a list file!')
-                return False
-        return retval
-
 
 # Should just modify this to allow for multiple lines of input, as well as a browse button.
 # The returned files can then be parsed by FileInputParser.
-class MyPopupDialog(UiPopupMain, QPopupWindow):
-    """
-    Creates a pop-up window belonging to parent
-
-    Args:
-        parent (obj): The parent window the created pop-up will be attached to
-    """
-
-    def __init__(self, parent=None):
-        super(MyPopupDialog, self).__init__(parent)
-        self.setupUi(self)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-
-    @staticmethod
-    def get_file(parent=None, message='', default='', label='Output'):
-        """Summary
-
-        Args:
-            parent (None, optional): Description
-            message (str, optional): Description
-            default (str, optional): Description
-            label (str, optional): Description
-
-        Returns:
-            TYPE: Description
-        """
-        dialog = MyPopupDialog(parent)
-        dialog.message.setText(message)
-        dialog.lineEdit.setText(default)
-        dialog.label.setText(label)
-        ret = dialog.exec_()
-        file = dialog.lineEdit.text()
-        return file, ret
-
 
 def parse_commandline(args):
     start_file = None
