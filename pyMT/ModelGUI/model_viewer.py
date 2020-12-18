@@ -38,6 +38,7 @@ from matplotlib.backends.backend_qt5agg import (
 
 
 path = ospath.dirname(ospath.realpath(__file__))
+model_viewer_jpg = path + '/../resources/images/data_plot.jpg'
 # Ui_MainWindow, QMainWindow = loadUiType(ospath.join(path, 'data_plot.ui'))
 # UiPopupMain, QPopupWindow = loadUiType(ospath.join(path, 'saveFile.ui'))
 UI_ModelWindow, QModelWindow = loadUiType(ospath.join(path, 'model_viewer.ui'))
@@ -1128,6 +1129,7 @@ def main():
         return
     app = QtWidgets.QApplication(sys.argv)
     viewer = ModelWindow(files)
+    view.setWindowIcon(QtGUI.QIcon(model_viewer_jpg))
     viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
 
     viewer.show()

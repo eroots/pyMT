@@ -8,8 +8,8 @@ import os
 
 
 path = os.path.dirname(os.path.realpath(__file__))
-model_viewer_jpg = path + '/model_viewer.jpg'
-data_plot_jpg = path + '/data_plot.jpg'
+model_viewer_jpg = path + '/../resources/images/model_viewer.jpg'
+data_plot_jpg = path + '/../resources/images/data_plot.jpg'
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'gateway_main.ui'))
 Ui_NewProject, QNewProject = loadUiType(os.path.join(path, 'new_project.ui'))
 
@@ -268,16 +268,19 @@ class NewProject(QNewProject, Ui_NewProject):
             QtWidgets.QMessageBox.warning(self, '', 'You must select (highlight) a single dataset to add to!')
 
     def launch_data_plot(self):
-        if len(self.dataset_index) < 0:
+        if len(self.dataset_index) == 0:
             QtWidgets.QMessageBox.warning(self, '', 'Select (highlight) the desired dataset(s) first.')
             return
         active_ds = self.active_datasets()
-        self.dp_windows.append(DataMain(dataset_dict=active_ds))
+        dp_main = DataMain(dataset_dict=active_ds)
+        dp_main.setWindowIcon(QtGui.QIcon(data_plot_jpg))
+        self.dp_windows.append(dp_main)
+        # self.dp_windows.append(DataMain(dataset_dict=active_ds))
         self.dp_windows[-1].show()
         # print({key: ds_dict[key] for key in self.dataset_index})
 
     def launch_model_viewer(self):
-        if len(self.dataset_index) < 0:
+        if len(self.dataset_index) == 0:
             QtWidgets.QMessageBox.warning(self, '', 'Select (highlight) the desired dataset(s) first.')
             return
         elif len(self.dataset_index) > 1:
@@ -288,7 +291,9 @@ class NewProject(QNewProject, Ui_NewProject):
         ds = list(active_ds.values())[0]
         model = ds.get('model', None)
         if model:
-            self.model_windows.append(ModelWindow(files=ds))
+            mv_main = ModelWindow(files=ds)
+            mv_main.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
+            self.model_windows.append(mv_main)
             self.model_windows[-1].show()
         else:
             QtWidgets.QMessageBox.warning(self, '', 'A model must be available in the selected data set to use Model Viewer!')
