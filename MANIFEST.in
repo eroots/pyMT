@@ -2,3 +2,4 @@ include pyMT/DataGUI/*.ui
 include pyMT/ModelGUI/*.ui
 include pyMT/GatewayGUI/*.ui
 include pyMT/GateGUI/*.jpg
+include pyMT/GUI_common/*.ui
