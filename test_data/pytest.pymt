@@ -4,4 +4,4 @@ raw j2
 #data allsites_EW.dat
 data allsites_EW_flagged.dat
 resp allsites_EW_resp.dat
-model ../demo_files/ag_test_final.model
+model ag_test_final.model
