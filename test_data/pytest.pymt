@@ -1,7 +1,9 @@
 % test
-list allsites_EW.lst
-raw j2
+list j2/allsites_EW.lst
 #data allsites_EW.dat
 data allsites_EW_flagged.dat
 resp allsites_EW_resp.dat
 model ag_test_final.model
+% test2
+data testfile_ModEM.dat
+model testfile_ModEM.model

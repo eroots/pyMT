@@ -30,7 +30,7 @@ from scipy.interpolate import RegularGridInterpolator as RGI
 # from PyQt5 import QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 # from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -1129,7 +1129,7 @@ def main():
         return
     app = QtWidgets.QApplication(sys.argv)
     viewer = ModelWindow(files)
-    view.setWindowIcon(QtGUI.QIcon(model_viewer_jpg))
+    viewer.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
     viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
 
     viewer.show()

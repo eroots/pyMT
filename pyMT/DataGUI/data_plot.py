@@ -25,7 +25,7 @@
 import numpy as np
 import re
 from PyQt5.uic import loadUiType
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from matplotlib.figure import Figure
 from matplotlib.pyplot import imread
 # from PIL import UnidentifiedImageError  # This will require a new dependency?
@@ -2618,7 +2618,7 @@ def main():
         # Because files is a dictionary, the plotter may not load the same dataset first every time.
         # The dataset that gets loaded first should be the same given the same start file.
         mainGUI = DataMain(files)  # Instantiate a GUI window
-        mainGUI.setWindowIcon(QtGUI.QIcon(data_plot_jpg))
+        mainGUI.setWindowIcon(QtGui.QIcon(data_plot_jpg))
         mainGUI.show()  # Show it.
         ret = app.exec_()
         sys.exit(ret)  # Properly close the loop when the window is closed.

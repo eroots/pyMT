@@ -473,7 +473,7 @@ def main():
             return
     files = utils.sort_files(files=files)
     try:
-        data = WSDS.Data(datafile=files['dat'])
+        data = WSDS.Data(datafile=files['data'])
     except KeyError:
         print('No data file given. Site locations will not be available.')
         data = None
