@@ -5,11 +5,17 @@ from pyMT.DataGUI.data_plot import DataMain
 from pyMT.ModelGUI.model_viewer import ModelWindow
 import sys
 import os
-
+try:
+    import importlib.resources as pkg_resources
+except ImpotError:
+    import importlib_resources as pkg_resources
+from pyMT import resources
 
 path = os.path.dirname(os.path.realpath(__file__))
-model_viewer_jpg = path + '/../resources/images/model_viewer.jpg'
-data_plot_jpg = path + '/../resources/images/data_plot.jpg'
+model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
+data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
+# model_viewer_jpg = path + '/../resources/images/model_viewer.jpg'
+# data_plot_jpg = path + '/../resources/images/data_plot.jpg'
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'gateway_main.ui'))
 Ui_NewProject, QNewProject = loadUiType(os.path.join(path, 'new_project.ui'))
 

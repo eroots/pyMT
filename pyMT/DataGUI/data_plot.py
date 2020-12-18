@@ -43,6 +43,7 @@ from copy import deepcopy
 
 
 path = os.path.dirname(os.path.realpath(__file__))
+data_plot_jpg = path + '/../resources/images/data_plot.jpg'
 
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
 UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
@@ -2617,6 +2618,7 @@ def main():
         # Because files is a dictionary, the plotter may not load the same dataset first every time.
         # The dataset that gets loaded first should be the same given the same start file.
         mainGUI = DataMain(files)  # Instantiate a GUI window
+        mainGUI.setWindowIcon(QtGUI.QIcon(data_plot_jpg))
         mainGUI.show()  # Show it.
         ret = app.exec_()
         sys.exit(ret)  # Properly close the loop when the window is closed.
