@@ -40,10 +40,10 @@ local_path = 'E:/phd/NextCloud/'
 #          'SUDBB.lst',
 #          'COBBB.lst',
 #          'BB.lst')
-transects = ['ttz']
-list_path = local_path + 'data/Regions/TTZ/j2/'
+transects = ['snorcle']
+list_path = local_path + 'data/Regions/snorcle/j2/snorcle_edi/sn/'
 lists = ['allsites.lst']
-shp_save_path = local_path + 'data/ArcMap/MT-locations/TTZ/'
+shp_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
 # transects = ['swayze']
 # lists = ['SWZAMT.lst']
 # transects = ['BB-legacy', 'bb-legacy', 'lmt-legacy']
@@ -57,8 +57,8 @@ data_type = 'all_'
 # list_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/'
 # csv_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/CSV/'
 # shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/SHPs/Jan2019/SHP/'
-kml_save_path = local_path + 'data/ArcMap/MT-locations/rae/'
-csv_save_path = local_path + 'data/ArcMap/MT-locations/rae/'
+kml_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
+csv_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
 write_kml = False
 write_csv = False
 write_shp = True

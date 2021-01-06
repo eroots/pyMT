@@ -1,6 +1,46 @@
 Change Log
 ==========
 
+* 30/09/20
+
+  * Changed the way missing period fill-in is handled
+
+    * Previously would just grab the closest period - now the data point is 'corrected' for mismatch in period
+
+    * This correction means that the impedance value is different, but the apparent resistivity and phase values are the same
+
+    * Note that this correction is only applied for impedance data - all other data is in-filled as before
+
+  * :ref:`Map Viewer` can now plot tipper amplitude pseudosections
+
+    * Should behave identically to Rho and Phase pseudosections, except that the 'XY / YX/ Det' menu does nothing (only real tipper amplitudes are plotted)
+
+  * Induction arrows and phase tensors now override station location plotting in :ref:`Map Viewer` - no more giant dots hiding PT info!
+
+* 14/08/20
+
+  * Added some logic to 'regulate_errors' so that it would ignore extreme outliers.
+
+  * ModEM has an upper limit on floating point values - exceeding these values causes a crash. Therefore, data and error values are now capped when written to file (and a message is printed).
+
+    * Note that things could still go wrong with this fix (e.g., if data at the cap is inverted, the nRMS is likely to be off the charts). I hesistate to flat out zero such data, and prefer to let the user fix things.
+
+  * Error bars are now shown for average (AAV, GAV, DET) apparent resistivities and phases. The errors are calculated following GEOTOOLS, where the maximum error between XY and YX is taken.
+
+  * Fixed a bug where :ref:`Map Viewer` would let you try to change the coordinate system even if no raw data was loaded, and promptly crash. 
+
+  * Fixed a few issues with isosurface plotting in :ref:`Model Viewer`
+
+    * Isosurface will now automatically refresh when recalculated
+
+    * Added opacity toggles so that you can actually see multiple isosurfaces if plotted
+
+    * Added try/except block to make sure you can't plot a contour that has no values (e.g., if your desired contour line is lower than all the values in the model)
+
+  * Added toggle to plot station locations at their inverted elevation.
+
+  * Added some canned background colours for the 3D view in :ref:`Model Viewer`:. Mostly cosmetic, but also useful if you are plotting transparency based on resolution.
+
 * 04/08/20
 
   * The :ref:`Map Viewer` 'Lock Axis' option should now properly hold the axis limits when site annotations change (i.e., when using the forward and back buttons in :ref:`Data Plot`)

@@ -40,10 +40,12 @@ if __name__ == '__main__':
         suffix = ['']
         data_types = ['']
     else:
-        suffix = ['DRY', 'ATT', 'RRV', 'STU',
-                  'CHI', 'COB', 'GER', 'LAR',
-                  'MAL', 'MAT', 'ROU', 'SUD', 'SWZ', '']
-        data_types = ['amt', 'bb', 'all']
+        suffix = [sys.argv[1]]
+        data_types = ['']
+        # suffix = ['DRY', 'ATT', 'RRV', 'STU',
+        #           'CHI', 'COB', 'GER', 'LAR',
+        #           'MAL', 'MAT', 'ROU', 'SUD', 'SWZ', '']
+        # data_types = ['amt', 'bb', 'all']
     for suff in suffix:
         lst = search_dir(suff)
         for data_type in data_types:

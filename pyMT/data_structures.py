@@ -176,7 +176,10 @@ class Dataset(object):
             self.data.sites[site].detect_outliers(self.data.OUTLIER_MAP)
         self.data._runErrors = []
         self.data.periods = np.array([p for p in self.data.sites[self.data.site_names[0]].periods])
-        self.data.components = RawData.ACCEPTED_COMPONENTS
+        try:
+            self.data.components = [comp for comp in components if comp in RawData.ACCEPTED_COMPONENTS]
+        except TypeError:
+            self.data.components = RawData.ACCEPTED_COMPONENTS
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
         self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
@@ -437,10 +440,10 @@ class Dataset(object):
                     try:
                         if comp[0].lower() == 'z':
                             scale = np.sqrt(raw_site.periods)
-                            to_smooth = raw_site.data[comp]
+                            to_smooth = deepcopy(raw_site.data[comp])
                             data_comp = data_site.data[comp]
                         elif comp[0].lower() == 't':
-                            to_smooth = raw_site.data[comp]
+                            to_smooth = deepcopy(raw_site.data[comp])
                             data_comp = data_site.data[comp]
                         elif comp[0].lower() == 'p':
                             to_smooth = [getattr(raw_site.phase_tensors[ii], comp) for ii, p in enumerate(raw_site.periods)]
@@ -456,6 +459,18 @@ class Dataset(object):
                         print('Component {} not found'.format(comp))
                         return
                     # error_map = np.zeros(data_site.data[comp].shape)
+                    # Replace insane values with the nearest non-insane value
+                    idx = np.abs(to_smooth) <= 100000 * np.median(np.abs(to_smooth) + 0.000001)
+
+                    if not np.all(idx):
+                        print([site, comp])
+                        for ii in range(len(idx)):
+                            if not idx[ii]:
+                                if ii == 0:
+                                    to_smooth[0] = to_smooth[np.argmax(idx)]
+                                else:
+                                    to_smooth[ii] = to_smooth[np.argmin(np.abs(ii - np.argwhere(idx)))]
+
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
                                                           scale * to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
@@ -578,6 +593,7 @@ class Data(object):
                            'ModEM': '.dat'}
     INVERSION_TYPES = WS_io.INVERSION_TYPES
     REMOVE_FLAG = 1234567
+    FLOAT_CAP = 1e10
     # INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
     #                        'ZXYR', 'ZXYI',
     #                        'ZYXR', 'ZYXI',
@@ -667,6 +683,7 @@ class Data(object):
         self.origin = None
         self.UTM_zone = None
         self._spatial_units = 'm'
+        self.dimensionality = '3d'
         self.error_floors = {'Off-Diagonal Impedance': 0.05,
                              'Diagonal Impedance': 0.075,
                              'Tipper': 0.05,
@@ -755,7 +772,8 @@ class Data(object):
                                         errfloorZ=site.get('errFloorZ', 0),
                                         errfloorT=site.get('errFloorT', 0),
                                         solve_static=site.get('SolveStatic', 0),
-                                        file_format=self.file_format
+                                        file_format=self.file_format,
+                                        fields=site.get('fields', None)
                                         )})
             # if not self.site_names:
             #     self.site_names = [site for site in self.sites.keys()]
@@ -1253,6 +1271,13 @@ class Model(object):
     def spatial_units(self):
         return self._spatial_units
 
+    @property
+    def elevation(self):
+        for iz in range(self.nz):
+            if not np.any(self.vals[:, :, iz] > 1e8):
+                break
+        return self._dz - self._dz[iz]
+
     @spatial_units.setter
     def spatial_units(self, units):
         try:
@@ -1692,10 +1717,11 @@ class Site(object):
     NO_PERIOD_FLAG = -9999
     NO_COMP_FLAG = -99999
     REMOVE_FLAG = 1234567
+    FLOAT_CAP = 1e10
 
     def __init__(self, data={}, name='', periods=None, locations={},
                  errors={}, errmap=None, azimuth=None, flags=None,
-                 errfloorZ=None, errfloorT=None, solve_static=0, file_format=None):
+                 errfloorZ=None, errfloorT=None, solve_static=0, file_format=None, fields=None):
         """Initialize a Site object.
         Data must a dictionary where the keys are acceptable tensor components,
         and the length matches the number of periods.
@@ -1713,6 +1739,8 @@ class Site(object):
         self._spatial_units = 'm'
         self.periods = utils.truncate(periods)
         self.locations = locations
+        if not ('elev' in self.locations.keys()):
+            self.locations.update({'elev': 0})
         self.errors = errors
         self.components = [key for key in data.keys()]
         self.orig_azimuth = azimuth
@@ -1727,6 +1755,7 @@ class Site(object):
                              'Rho': 0.05,
                              'Phase': 0.03}
         self.file_format = file_format
+        self.fields = fields
         self.phase_tensors = []
         if errfloorZ is None:
             self.errfloorZ = 0.075
@@ -1825,6 +1854,12 @@ class Site(object):
     def errorfloorT(self, val):
         self.error_floors['Tipper'] = val
 
+    @property
+    def swift_skew(self):
+        skew = np.abs(((self.data['ZXXR'] + 1j * self.data['ZXXI'] + self.data['ZYYR'] + 1j * self.data['ZYYI'])) / 
+                        (self.data['ZXYR'] + 1j * self.data['ZXYI'] - self.data['ZYXR'] + 1j * self.data['ZYXI']))
+        return skew
+
     def validate_data(self):
         for component in self.components:
             if np.any(np.isnan(self.data[component])):
@@ -1897,7 +1932,7 @@ class Site(object):
         for component in components:
             if 'log10' in component:
                 new_errors = np.log10(1 + error_floors['Rho']) * np.ones(self.data[component].shape)
-            elif 'phase' in component.lower():
+            elif 'phase' in component.lower() or 'phs' in component.lower():
                 new_errors = error_floors['Phase'] * 100 * np.ones(self.data[component].shape)
             elif 'pt' in component.lower():
                 new_errors = (np.tan(np.deg2rad((error_floors['Phase'] * 100))) *
@@ -1909,8 +1944,15 @@ class Site(object):
                     else:
                         zxy = self.data['ZXYR'] + 1j * self.data['ZXYI']
                         zyx = self.data['ZYXR'] + 1j * self.data['ZYXI']
-                        offdiag_errors = error_floors['Off-Diagonal Impedance'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
-                                                                                                 zyx * zyx.conjugate())) / 2
+                        # zxyr = abs(self.data['ZXYR'])
+                        # zxyi = abs(self.data['ZXYI'])
+                        # zyxr = abs(self.data['ZYXR'])
+                        # zyxi = abs(self.data['ZYXI'])
+                        # offdiag_errors = error_floors['Off-Diagonal Impedance'] * np.sqrt(np.abs(zxy * zxy.conjugate() +
+                        #                                                                          zyx * zyx.conjugate()) / 2)
+                        # offdiag_errors = error_floors['Off-Diagonal Impedance'] * (np.mean([np.abs(zxy), np.abs(zyx)]))
+                        offdiag_errors = error_floors['Off-Diagonal Impedance'] * 0.5 * abs(zxy - zyx)
+                        # offdiag_errors = error_floors['Off-Diagonal Impedance'] * ((zxyr + zxyi + zyxr + zyxi) / 4)
                         diag_errors = np.abs(self.data[component] * error_floors['Diagonal Impedance'])
                         new_errors = np.maximum(offdiag_errors, diag_errors)
                 else:
@@ -2308,13 +2350,21 @@ class Site(object):
             f = []
             for p in periods:
                 ind = np.argmin(abs(self.periods - p))
-                if (p <= 1 and utils.percdiff(self.periods[ind], p) > lTol) or \
-                   (p > 1 and utils.percdiff(self.periods[ind], p) > hTol):
+                percdiff = utils.percdiff(self.periods[ind], p)
+                # if (p <= 1 and utils.percdiff(self.periods[ind], p) > lTol) or \
+                #    (p > 1 and utils.percdiff(self.periods[ind], p) > hTol):
+                if (p <= 1 and percdiff > lTol) or \
+                   (p > 1 and percdiff > hTol):
                     mult = self.NO_PERIOD_FLAG  # Flag for missing period
                 else:
                     mult = 1
                 try:
-                    d.append(self.data[comp][ind])
+                    if percdiff > 0.01 and comp.startswith('Z'):
+                        interp_data = (self.data[comp][ind] * np.sqrt(self.periods[ind] / p))
+                    else:
+                        interp_data = self.data[comp][ind]
+                    # d.append(self.data[comp][ind])
+                    d.append(interp_data)
                     e.append(self.errors[comp][ind])
                     em.append(self.errmap[comp][ind] * mult)
                     f.append(mult)
@@ -2357,8 +2407,8 @@ class Site(object):
         if set(self.IMPEDANCE_COMPONENTS).issubset(set(self.components)):
             rhoxy, rhoxy_err, rhoxy_log10err = utils.compute_rho(self, calc_comp='xy', errtype='used_error')
             rhoyx, rhoyx_err, rhoyx_log10err = utils.compute_rho(self, calc_comp='yx', errtype='used_error')
-            phaxy, phaxy_err = utils.compute_phase(self, calc_comp='xy', errtype='used_error')
-            phayx, phayx_err = utils.compute_phase(self, calc_comp='yx', errtype='used_error')
+            phaxy, phaxy_err = utils.compute_phase(self, calc_comp='xy', errtype='used_error', wrap=True)
+            phayx, phayx_err = utils.compute_phase(self, calc_comp='yx', errtype='used_error', wrap=True)
 
             for ii, period in enumerate(self.periods):
                 Z = {impedance: self.data[impedance][ii] for impedance in self.IMPEDANCE_COMPONENTS}
@@ -2584,14 +2634,20 @@ class RawData(object):
         if mode.lower() == 'utm' or mode.lower() == 'centered':
             X = 'X'
             Y = 'Y'
-        elif mode.lower() == 'latlong':
+        elif mode.lower() in ('latlong', 'lambert'):
             X = 'Lat'
             Y = 'Long'
         if sites is None:
             sites = self.site_names
+        # WS_io.debug_print(sites, 'tester.txt')
+        # WS_io.debug_print(self.site_names, 'tester.txt')
         locs = np.array([[self.sites[name].locations[X],
                           self.sites[name].locations[Y]]
                          for name in sites])
+        if mode.lower() == 'lambert':
+            # debug_print(locs, 'lambtest.txt')
+            locs = np.fliplr(np.array(utils.to_lambert(locs[:, 0], locs[:, 1])).T)
+            # debug_print(locs, 'lambtest.txt')
         if azi != 0:
             locs = utils.rotate_locs(locs, azi)
         if mode.lower() == 'centered':
@@ -2756,6 +2812,8 @@ class PhaseTensor(object):
         self.beta = 0
         self.Lambda = 0
         self.azimuth = 0
+        self.skew_threshold = 3
+        self.lambda_threshold = 0.1
         if not rho:
             rho = (0, 0, 0, 0)
         if not phase:
@@ -2791,6 +2849,20 @@ class PhaseTensor(object):
             self.calculate_phase_parameters()
 
     @property
+    def absbeta(self):
+        return abs(self.beta)
+
+    @property
+    def dimensionality(self):
+        if np.rad2deg(self.beta) > self.skew_threshold:
+            return 3
+        else:
+            if self.Lambda > self.lambda_threshold:
+                return 2
+            else:
+                return 1
+
+    @property
     def rotation_axis(self):
         return self._rotation_axis
 
@@ -2799,6 +2871,7 @@ class PhaseTensor(object):
         if value in ('x', 'y'):
             self._rotation_axis = value
             self.alpha, self.beta = self.calculate_rotation_parameters()
+            # self.azimuth = -self.alpha + self.beta
         else:
             print('Rotation axis must be x or y')
 
@@ -2938,6 +3011,8 @@ class PhaseTensor(object):
         self.phi_3 = phi_3
         self.phi_max = phi_max
         self.phi_min = phi_min
+        # self.phi_split = np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min)))
+        self.phi_split = self.phasexy - self.phaseyx
         self.alpha = alpha
         self.Lambda = Lambda
         self.beta = beta
@@ -3196,6 +3271,7 @@ class CART(PhaseTensor):
                 self.phi_3 = phi_3
                 self.phi_max = phi_max
                 self.phi_min = phi_min
+                self.phi_split = np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min)))
                 self.alpha = alpha
                 self.Lambda = Lambda
                 self.beta = beta
@@ -3208,6 +3284,7 @@ class CART(PhaseTensor):
                 setattr(self, '_'.join([param, 'phi_2']), phi_2)
                 setattr(self, '_'.join([param, 'phi_3']), phi_3)
                 setattr(self, '_'.join([param, 'phi_max']), phi_max)
+                setattr(self, '_'.join([param, 'phi_split']), np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min))))
                 setattr(self, '_'.join([param, 'phi_min']), phi_min)
                 setattr(self, '_'.join([param, 'alpha']), alpha)
                 setattr(self, '_'.join([param, 'beta']), beta)
