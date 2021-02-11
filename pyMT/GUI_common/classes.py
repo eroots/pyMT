@@ -229,10 +229,16 @@ class TwoInputDialog(QtWidgets.QDialog):
         return self.line_edit1.text(), self.line_edit2.text()
 
     @staticmethod
-    def get_inputs(label_1, label_2, initial_1=None, initial_2=None, parent=None):
+    def get_inputs(label_1, label_2, initial_1=None, initial_2=None, parent=None, expected=None):
         dialog = TwoInputDialog(label_1, label_2, initial_1, initial_2, parent)
         result = dialog.exec_()
         inputs = dialog.inputs()
+        if expected:
+            try:
+                result = [expected(x) for x in inputs]
+            except ValueError:
+                QtWidgets.QMessageBox.warning(self, '...', 'Inputs not valid. Must be {}'.format(expected))
+                result = False
         return inputs, result
 
 

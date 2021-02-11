@@ -41,8 +41,8 @@ local_path = 'E:/phd/NextCloud/'
 #          'COBBB.lst',
 #          'BB.lst')
 transects = ['snorcle']
-list_path = local_path + 'data/Regions/snorcle/j2/snorcle_edi/sn/'
-lists = ['allsites.lst']
+list_path = local_path + 'data/Regions/snorcle/j2/jformat-0TN/'
+lists = ['all_sorted.lst']
 shp_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
 # transects = ['swayze']
 # lists = ['SWZAMT.lst']
@@ -59,10 +59,10 @@ data_type = 'all_'
 # shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/SHPs/Jan2019/SHP/'
 kml_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
 csv_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
-write_kml = False
+write_kml = True
 write_csv = False
-write_shp = True
-UTM = 10
+write_shp = False
+UTM = 9
 for ii, lst in enumerate(lists):
     try:
         list_file = ''.join([list_path, lst])

@@ -6,6 +6,7 @@ from copy import deepcopy
 from math import log10, floor
 import pyproj
 from scipy.interpolate import RegularGridInterpolator as RGI
+from scipy.ndimage import median_filter
 # from pyMT.IO import debug_print
 
 
@@ -52,6 +53,15 @@ def percdiff(val1, val2):
         TYPE: Description
     """
     return abs(val1 - val2) / (0.5 * (val1 + val2))
+
+
+def remove_outliers(data, size=7, threshold=1):
+    med = median_filter(data, size=size)
+    diff = percdiff(data, med)
+    idx = abs(diff) > threshold
+    output = np.array(data)
+    output[idx] = med[idx]
+    return output
 
 
 def skin_depth(resistivity, period):
@@ -723,7 +733,7 @@ def compute_rho(site, calc_comp=None, errtype='none'):
 
     COMPS = ('XX', 'XY',
              'YY', 'YX',
-             'DET', 'GAV', 'AAV')
+             'DET', 'GAV', 'AAV', 'SSQ')
     if not calc_comp:
         calc_comp = 'det'
     calc_comp = calc_comp.lower()
@@ -741,6 +751,8 @@ def compute_rho(site, calc_comp=None, errtype='none'):
             det, err = compute_gav(site)
         elif calc_comp == 'aav':
             det, err = compute_aav(site)
+        elif calc_comp == 'ssq':
+            det, err = compute_ssq(site)
         rho_data = det * np.conj(det) * site.periods / (MU * 2 * np.pi)
         # print(err)
         if errtype.lower() != 'none':
@@ -809,7 +821,7 @@ def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
 
     COMPS = ('XX', 'XY',
              'YY', 'YX',
-             'DET', 'GAV', 'AAV')
+             'DET', 'GAV', 'AAV', 'SSQ')
     if not errtype:
         errtype = 'none'
     if not calc_comp:
@@ -827,9 +839,11 @@ def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
             det, err = compute_gav(site)
         elif calc_comp == 'aav':
             det, err = compute_aav(site)
+        elif calc_comp == 'ssq':
+            det, err = compute_ssq(site)
         # pha_data = (np.angle(det, deg=True) + 90) % 90
         pha_data = np.rad2deg(np.arctan2(np.imag(det), np.real(det)))
-        if calc_comp == 'aav':
+        if calc_comp == 'aav' or calc_comp == 'ssq':
             pha_data = pha_data % 90
             # zR = np.real(det)
             # zI = 1j*np.imag(det)
@@ -917,6 +931,24 @@ def compute_MT_determinant(site):
         raise e
     else:
         return det, det_err
+
+
+def compute_ssq(site):
+    try:
+        zxy = (site.data['ZXYR'] - 1j * site.data['ZXYI'])
+        zyx = (site.data['ZYXR'] - 1j * site.data['ZYXI'])
+        zxx = (site.data['ZXXR'] - 1j * site.data['ZXXI'])
+        zyy = (site.data['ZYYR'] - 1j * site.data['ZYYI'])
+        ssq = np.sqrt((zxx * zxx + zxy * zxy + zyx * zyx + zyy * zyy) / 2)
+        det_err = (site.used_error['ZXXR'] * (abs(site.data['ZYYR'] + 1j*site.data['ZYYI'])) +
+                   site.used_error['ZYYR'] * (abs(site.data['ZXXR'] + 1j*site.data['ZXXI'])) +
+                   site.used_error['ZXYR'] * (abs(site.data['ZYXR'] + 1j*site.data['ZYXI'])) +
+                   site.used_error['ZYXR'] * (abs(site.data['ZXYR'] + 1j*site.data['ZXYI']))) / (2 * abs(ssq))
+    except KeyError as e:
+        print('SSQ cannot be computed unless all impedance components are available')
+        raise e
+    else:
+        return ssq, det_err
 
 
 def geotools_filter(x, y, fwidth=1, use_log=True):
@@ -1164,6 +1196,24 @@ def zone_convert(coordinates):
         return 37
     return int((coordinates[0] + 180) / 6) + 1
 
+def generic_projection(x, y, from_proj=None, to_proj=None, utm_zone=None):
+    if not (from_proj and to_proj):
+        print('Have to define your projections...')
+        return False
+    proj_dict = {'lambert': 'epsg:3979',
+                 'latlong': 'epsg:4326',
+                 'utm': 'epsg:4269'}
+    # if isinstance(utm_zone, str):
+        # proj_dict['utm'] += utm_zone
+    try:                 
+        transformer = pyproj.Transformer.from_crs(proj_dict[from_proj], proj_dict[to_proj])
+        out_x, out_y = np.zeros(len(x)), np.zeros(len(y))
+        for ii, (xx, yy) in enumerate(zip(x, y)):
+            out_x[ii], out_y[ii] = transformer.transform(xx, yy)
+    except KeyError:
+        print('Requested projection not recognized')
+        return x, y
+    return out_x, out_y
 
 def project(coordinates, zone=None, letter=None):
     def letter_convert(coordinates):

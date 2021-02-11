@@ -86,15 +86,19 @@ def normalize_resolution(model, resolution):
     return res_vals
 
 
-def pcolorimage(ax, x=None, y=None, A=None, **kwargs):
+def pcolorimage(ax, x=None, y=None, A=None, xlabel=None, ylabel=None, **kwargs):
     img = PcolorImage(ax, x, y, A, **kwargs)
     img.set_extent([x[0], x[-1], y[0], y[-1]])  # Have to add this or the fig won't save...
     ax.images.append(img)
     ax.set_xlim(left=x[0], right=x[-1])
     ax.set_ylim(bottom=y[0], top=y[-1])
     # ax.autoscale_view(tight=True)
-    ax.set_xlabel('Northing (km)', fontsize=14)
-    ax.set_ylabel('Depth (km)', fontsize=14)
+    if not xlabel:
+        xlabel = 'Northing (km)'
+    if not ylabel:
+        ylabel = 'Depth (km)'
+    ax.set_xlabel(xlabel, fontsize=14)
+    ax.set_ylabel(ylabel, fontsize=14)
     return img, ax
 
 
@@ -128,28 +132,41 @@ def project_locations(locations, zone, letter):
 # data = WSDS.RawData('filename')
 # backup_data = WSDS.RawData('filename')
 # mod = WSDS.Model('filename')
-main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb_NS.lst')
-data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+# main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb_NS.lst')
+# data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/test.lst')
+# backup_data = copy.deepcopy(data)
+# mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
+# data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
 # TTZ
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/TTZ/j2/ttz_south.lst')
 # data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/TTZ/j2/allsites.lst')
 # backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/TTZ/j2/allsites.lst')
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/TTZ/full_run/ZK/1D/ttz1D-all_lastIter.rho')
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/TTZ/full_run/ZK/hs2500/ttz_NLCG_072.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line5_2b.lst')
+main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line5_2b.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line3.lst')
+data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/all_sorted.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/all_sorted.lst')
+backup_data = copy.deepcopy(data)
+mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/snorcle/cull1/reErred/wTopo/flat/sno-5k_lastIter.rho')
+main_transect.remove_sites(sites=['sno_247', '2xx_258', 'sno_259'])
+main_transect.remove_sites(sites=['sno_200'])
 # Define a UTM zone to project to. Use None if you want to use the default, or if you are using a ModEM data file
-UTM_zone = None
-# UTM_zone = '16U'
+UTM_zone = '9N'
+# UTM_zone = '17U'
 # seismic = pd.read_table('file_name',
                         # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # How to define the slice. 1 is through MT stations, 2 is through points in a csv (previously 'seismic'), and 3 is through points given by 'slice_points_x' and 'slice_points_y'
 transect_types = {1: 'mt', 2: 'csv', 3: 'points'}
 transect_type = 3  # Set to 1, 2, or 3
+# main_transect.locations = main_transect.locations[main_transect.locations[:, 1].argsort()]
 slice_points_x = main_transect.locations[:, 1]
 slice_points_y = main_transect.locations[:, 0]
-slice_points_x = (653376, 653376)
-slice_points_y = (5332020, 5375000)
+# slice_points_x = (653376, 653376)
+# slice_points_y = (5332020, 5375000)
 # slice_points_x = (585170, 607599)
 # slice_points_y = (5323280, 5330550)
 points_in_latlong = 0 # Set to true if specifying slice_points in latlong
@@ -161,26 +178,27 @@ reso = []  # Include resolution file?
 ### This is the number per pair of stations points, so turn this up if you're only using a few points
 ninterp = 200
 nz_interp = 5
-padding = 25000  # Padding (in m) at the ends of the slice
+padding = 10000  # Padding (in m) at the ends of the slice
 ninterp_padding = 100  # Number of interpolation points in the padding
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}  # Image style. Use 3 if you're not sure.
 mode = 3
 
 # Figure save options
-file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/line14/'
+file_path = 'E:/phd/NextCloud/Documents/GoldenTriangle/RoughFigures/flat/5km/'
 # file_name = 'ttz-1D-ZK_south_line'
-file_name = 'AG_straighSN-L14_60kmDeep-Linear_turbo0-4.5'
+file_name = 'line5-2b'
 file_types = ['.png']#, '.svg']  # File save format(s)
 title_ = 'Standard Inversion'  # Title of plot
 rotate_back = 0  # If data is rotated, do you want to rotate it back to 0?
 linear_xaxis = 1  # Use a linear x-axis or keep in easting-northing? Recommended if using a irregular slice
-plot_direction = 'sn'
+plot_direction = 'we'
 save_fig = 1  # Save the figure?
 save_dat = 0  # Save the plotted slice as a csv?
 annotate_sites = 0  # Plot station names? 
-site_markers = 0  # Include site markers (from main_transect) on plot? This is turned off if you aren't using transect_type 1
+site_markers = 1  # Include site markers (from main_transect) on plot? This is turned off if you aren't using transect_type 1
 plot_map = 1  # Plot a map with all stations (black) and main_transect (red)?
 plot_contours = 0
+add_colourbar = 0
 contour_levels = [1, 2, 3, 4]
 dpi = 600  # DPI of saved image
 csv_name = 'E:/phd/NextCloud/Documents/ME_Transects/Malartic/RoughFigures/Mal_R1_slices/along_transect_turbo/w_contours/'
@@ -189,9 +207,9 @@ use_alpha = 0  # Apply alpha according to resolution file?
 saturation = 0.8  # Colour parameters. Leave as is, or play around
 lightness = 0.4
 xlim = []  # x-axis limits
-zlim = [0, 60]  # y-axis limits
+zlim = [0, 200]  # y-axis limits
 aspect_ratio = 1  # aspect ratio of plot
-lut = 64  # number of colour values
+lut = 32  # number of colour values
 cax = [0, 4.5]  # Colour axis limits
 isolum = 0  # Apply isoluminate normalization?
 
@@ -208,8 +226,8 @@ use_nudge = 0 # Do you want to use the nudges?
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
 # cmap_name = 'jet_r'
-# cmap_name = 'turbo_r'
-cmap_name = 'turbo_r_mod'
+cmap_name = 'turbo_r'
+# cmap_name = 'turbo_r_mod'
 # cmap_name = 'gray'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
@@ -219,7 +237,7 @@ cmap_name = 'turbo_r_mod'
 # cmap_name = 'Blues'
 # cmap_name = 'nipy_spectral_r'
 # cmap_name = 'jetplus'
-force_NS = 1  # Force the slice to plot south-to-north
+force_NS = 0  # Force the slice to plot south-to-north
 fig_num = 0
 if UTM_zone:
     try:
@@ -240,18 +258,20 @@ for nudge_dist in [0]:
     main_transect = copy.deepcopy(all_backups['main_transect'])
     backup_data = copy.deepcopy(all_backups['backup_data'])
     fig_num += 1
-    main_transect.locations = main_transect.locations[main_transect.locations[:, 0].argsort()]
+    # main_transect.locations = main_transect.locations[main_transect.locations[:, 1].argsort()]
     # Sort the site names so the same is true
-    main_transect.site_names = sorted(main_transect.site_names,
-                                      key=lambda x: main_transect.sites[x].locations['X'])
+    # main_transect.site_names = sorted(main_transect.site_names,
+    #                                   key=lambda x: main_transect.sites[x].locations['X'])
     if transect_types[transect_type] == 'points':
         nudge_locations = np.array((slice_points_y, slice_points_x)).T
         if points_in_latlong and UTM_zone:
             nudge_locations = project_locations(nudge_locations, letter=UTM_letter, zone=UTM_number)
-        if plot_direction.lower  == 'sn':
+        if plot_direction.lower  == 'sn' and force_NS:
             nudge_locations = nudge_locations[nudge_locations[:, 0].argsort()]
         elif plot_direction.lower  == 'we':
-            nudge_locations = nudge_locations[nudge_locations[:, 1].argsort()]
+            if force_NS:
+                nudge_locations = nudge_locations[nudge_locations[:, 1].argsort()]
+            nudge_locations = np.fliplr(nudge_locations)
         # site_markers = 1
     elif transect_types[transect_type] == 'mt':
         nudge_locations = copy.deepcopy(main_transect.locations)
@@ -312,7 +332,10 @@ for nudge_dist in [0]:
     data.locations = np.delete(data.locations, idx, axis=0)
     data.site_names = [site for site in data.site_names if site not in rm_sites]
     if force_NS:
-        data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
+        if plot_direction in ('ns', 'sn'):
+            data.locations = data.locations[data.locations[:, 0].argsort()]  # Make sure they go north-south
+        else:
+            data.locations = data.locations[data.locations[:, 1].argsort()]  # Make sure they go north-south
     # A little kludge to make sure the last few sites are in the right order (west-east)
     # data.locations[1:8, :] = data.locations[np.flip(data.locations[1:8, 1].argsort())]
     # nudge_locations = copy.deepcopy(data.locations)
@@ -369,6 +392,7 @@ for nudge_dist in [0]:
     x, y, z = [np.zeros((len(mod.dx) - 1)),
                np.zeros((len(mod.dy) - 1)),
                np.zeros((len(mod.dz) - 1))]
+
     for ii in range(len(mod.dx) - 1):
         x[ii] = (mod.dx[ii] + mod.dx[ii + 1]) / 2
     for ii in range(len(mod.dy) - 1):
@@ -554,10 +578,16 @@ for nudge_dist in [0]:
                                      y=np.array(qz),
                                      A=(to_plot), cmap=cmap)
             else:
+                if plot_direction.lower() in ('ns', 'sn'):
+                    xlabel = 'Northing (km)'
+                else:
+                    xlabel = 'Easting (km)'
                 im, ax = pcolorimage(ax,
                                      x=(np.array(x_axis)),
                                      y=np.array(qz),
-                                     A=(to_plot), cmap=cmap)
+                                     A=(to_plot), cmap=cmap,
+                                     xlabel=xlabel)
+                im.set_clim(cax[0], cax[1])
                 ax.set_aspect(aspect_ratio)
             # sites[0].set_clip_on(False)
                 if xlim:
@@ -573,6 +603,16 @@ for nudge_dist in [0]:
                 X, Y = np.meshgrid(x_axis, qz)
                 contours = ax.contour(X, Y, vals.T, levels=contour_levels, colors='k', vmin=cax[0], vmax=cax[1])
             ax.clabel(contours, inline=1, fmt='%1.0f')
+        if add_colourbar:
+            cb = fig.colorbar(im, orientation='horizontal')
+        # cb = fig.colorbar(im, cmap=cmap)
+            # cb.set_clim(cax[0], cax[1])
+            cb.ax.tick_params(labelsize=12)
+            cb.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
+                         # rotation=270,
+                         labelpad=20,
+                         fontsize=18)
+            cb.draw_all()
         fig.canvas.draw()
     if linear_xaxis:
         site_x = linear_site

@@ -7,6 +7,7 @@ import matplotlib.colorbar as colorbar
 import pyMT.utils as utils
 from pyMT.IO import debug_print
 from pyMT.e_colours import colourmaps as cm
+from copy import deepcopy
 try:
     import naturalneighbor as nn
     has_nn = True
@@ -76,11 +77,20 @@ class format_model_coords(object):
         # row = int(y + 0.5)
         # if col >=0 and col < numcols and row >=0 and row < numrows:
         # val = X[row, col]
-        x_idx = (np.abs(self.X - x + 0.05)).argmin() - 1
-        y_idx = (np.abs(self.Y - y + 0.05)).argmin() - 1
+        for ix, xx in enumerate(self.X):
+            if xx > x:
+                x_idx = min(ix, len(self.X) - 1) - 1
+                break
+            x_idx = len(self.X) - 2
+        for iy, yy in enumerate(self.Y):
+            if yy > y:
+                y_idx = min(iy, len(self.Y) - 1) - 1
+                break
+            y_idx = len(self.Y) - 2
+        # x_idx = (np.abs(self.X - x + 0.05)).argmin() - 1
+        # y_idx = (np.abs(self.Y - y + 0.05)).argmin() - 1
         # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
         vals = np.array(self.im.get_array())
-        # print((vals.shape, len(self.X), len(self.Y), len(self.X) * len(self.Y)))
         vals = np.reshape(vals, (len(self.Y) - 1, len(self.X) - 1))[y_idx, x_idx]
         if self.use_log:
             vals = 10 ** vals
@@ -93,13 +103,10 @@ class format_model_coords(object):
         else:
             self.data_units = ''
         # z = vals[x_idx, y_idx]
-        # print((x_idx, y_idx))
         # z = self.im.get_array()[x_idx * len(self.X) + y_idx]
         # z = self.im.get_array()[x_idx * len(self.Y) + y_idx]
         # z = self.im.get_array()[y_idx * len(self.X) + x_idx]
         # z = self.im.get_array()[y_idx * len(self.Y) + x_idx]
-        # print(dir(self.im))
-        # print(z)
         return '\t'.join(['{}: {:>4.4g} {}',
                           '{}: {:>4.4g} {}\n',
                           '{}: {} {}']).format(self.x_label, utils.truncate(self.X[x_idx]), 'km',
@@ -113,11 +120,23 @@ class DataPlotManager(object):
     def __init__(self, fig=None):
         self.link_axes_bounds = False
         self.axis_padding = 0.1
-        self.colour = ['royalblue', 'r', 'darkgray', 'g', 'm', 'y', 'lime', 'peru']
-        self.sites = {'raw_data': [], 'data': [], 'response': []}
-        self.toggles = {'raw_data': True, 'data': True, 'response': True, '1d': False}
+        self.use_designated_colours = True
+        self.colour = ['darkgray', 'r', 'royalblue', 'g', 'm', 'y', 'lime', 'peru']
+        self.designated_colours = {'xy': 'royalblue',
+                                   'yx': 'red',
+                                   'xx': 'lime',
+                                   'yy': 'peru',
+                                   'tzx': 'royalblue',
+                                   'tzy': 'red',
+                                   'aav': 'green',
+                                   'gav': 'magenta',
+                                   'det': 'darkgray',
+                                   'ssq': 'orange'}
+        self.sites = {'raw_data': [], 'data': [], 'response': [], 'smoothed_data': []}
+        self.toggles = {'raw_data': True, 'data': True, 'response': True, '1d': False, 'smoothed_data': False}
         self.site1D = []
-        self.marker = {'raw_data': 'o', 'data': 'oo', 'response': '-', '1d': '--'}
+        ## Modify so real and imaginary use different markers?
+        self.marker = {'raw_data': 'o', 'data': 'oo', 'response': '-', '1d': '--', 'smoothed_data': '--'}
         self.errors = 'mapped'
         self.which_errors = ['data', 'raw_data']
         self.components = ['ZXYR']
@@ -126,16 +145,16 @@ class DataPlotManager(object):
         self.mec = 'k'
         self.markersize = 5
         self.edgewidth = 2
-        self.sites = None
+        # self.sites = None
         self.tiling = [0, 0]
         self.show_outliers = True
         self.plot_flagged_data = True
-        self.wrap = 0
+        self.wrap_phase = 1
         self.outlier_thresh = 2
         self.min_ylim = None
         self.max_ylim = None
         self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1], 'tipper': [-1, 1]}
-        self.artist_ref = {'raw_data': [], 'data': [], 'response': [], '1d': []}
+        self.artist_ref = {'raw_data': [], 'data': [], 'response': [], '1d': [], 'smoothed_data': []}
         self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
                          't': 'Magnitude', 'p': 'Phase', 'b': 'Apparent Resistivity'}
         self.pt_units = 'degrees'
@@ -173,6 +192,15 @@ class DataPlotManager(object):
             units = ''.join([r'$\sqrt{s}$*', units])
         return units
 
+    def get_designated_colour(self, component, ii):
+        component = component.lower()
+        if self.use_designated_colours:
+            for key in self.designated_colours.keys():
+                if key in component:
+                    return self.designated_colours[key]
+            else:
+                return self.colour[ii]
+        
     def new_figure(self):
         # self.fig.canvas.mpl_connect('button_press_event', self.onclick)
         self.fig = Figure()
@@ -257,7 +285,7 @@ class DataPlotManager(object):
         site_name = self.site_names[axnum]
         Max = -99999
         Min = 99999
-        for ii, Type in enumerate(['raw_data', 'data', 'response', '1d']):
+        for ii, Type in enumerate(['raw_data', 'data', 'response', '1d', 'smoothed_data']):
             if self.sites[Type] != []:
                 # site = next(s for s in self.sites[Type] if s.name == self.site_names[axnum])
                 try:
@@ -286,7 +314,11 @@ class DataPlotManager(object):
 
     def set_legend(self):
         for ii, comp in enumerate(self.components):
-            self.axes[0].plot([], [], color=self.colour[ii], label=comp, marker='o')
+            if 'i' in comp.lower():
+                marker = 'v'
+            else:
+                marker = 'o'
+            self.axes[0].plot([], [], color=self.get_designated_colour(comp, ii), label=comp, marker=marker)
         leg = self.axes[0].legend()
         leg.get_frame().set_alpha(0.4)
 
@@ -320,7 +352,7 @@ class DataPlotManager(object):
         Min = np.zeros([tiling[1] * tiling[0]])
         if not self.components:
             self.components = ['ZXYR']
-        for jj, Type in enumerate(['raw_data', 'data', 'response', '1d']):  # plot raw first, if avail
+        for jj, Type in enumerate(['raw_data', 'data', 'response', '1d', 'smoothed_data']):  # plot raw first, if avail
             if Type == '1d':
                 pass
             else:
@@ -482,7 +514,7 @@ class DataPlotManager(object):
                     toplot, e = utils.compute_phase(site,
                                                     calc_comp=comp,
                                                     errtype=errtype,
-                                                    wrap=self.wrap)
+                                                    wrap=self.wrap_phase)
                     if Type.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e
                 elif 'pt' in comp.lower():
@@ -527,17 +559,31 @@ class DataPlotManager(object):
                 periods = site.periods
                 if not self.plot_flagged_data:
                     periods, toplot, toplotErr = pop_flagged_data(periods, toplot, toplotErr, site, comp)
+                if 'i' in comp.lower():
+                    if marker == 'o':
+                        use_marker = 'v'
+                        markersize = self.markersize * 1.25
+                    else:
+                        markersize = self.markersize
+                else:
+                    use_marker = marker
+                    markersize = self.markersize
+                    # marker = 'o'
                 if 'bost' in comp.lower():
                     artist = ax.errorbar(np.log10(depth), toplot, xerr=None,
-                                         yerr=None, marker=marker,
-                                         linestyle=linestyle, color=self.colour[ii],
-                                         mec=self.mec, markersize=self.markersize,
+                                         yerr=None, marker=use_marker,
+                                         linestyle=linestyle, color=self.get_designated_colour(comp, ii),
+                                         mec=self.mec, markersize=markersize,
                                          mew=edgewidth, picker=3)
                 else:
+                    # print(['Inside6', Type])
+                    # if Type == 'smoothed_data':
+                        # print(toplot)
+                        # print([marker, linestyle])
                     artist = ax.errorbar(np.log10(periods), toplot, xerr=None,
-                                         yerr=toplotErr, marker=marker,
-                                         linestyle=linestyle, color=self.colour[ii],
-                                         mec=self.mec, markersize=self.markersize,
+                                         yerr=toplotErr, marker=use_marker,
+                                         linestyle=linestyle, color=self.get_designated_colour(comp, ii),
+                                         mec=self.mec, markersize=markersize,
                                          mew=edgewidth, picker=3)
                 if self.show_outliers and toplot.size != 0:
                     ma.append(max(toplot))
@@ -545,7 +591,8 @@ class DataPlotManager(object):
                 else:
                     if (self.toggles['raw_data'] and Type.lower() == 'raw_data') or \
                        (not self.toggles['raw_data']):
-                        showdata = self.remove_outliers(site.periods, toplot)
+                        # showdata = self.remove_outliers(site.periods, toplot)
+                        showdata = utils.remove_outliers(toplot)
                         ma.append(max(showdata))
                         mi.append(min(showdata))
                     else:
@@ -609,7 +656,7 @@ class MapView(object):
                               'data': {'R': 'b', 'I': 'r'},
                               'response': {'R': 'g', 'I': 'c'}}
         self.linestyle = '-'
-        self.site_exterior = 'k'
+        self.site_exterior = {'generic': 'k', 'active': 'k'}
         self.markersize = 5
         self.edgewidth = 2
         self.image_opacity = 1
@@ -632,6 +679,7 @@ class MapView(object):
         self.model = []
         self.padding_scale = 5
         self.plot_rms = False
+        self.rms_plot_style = ['size']
         self.use_colourbar = True
         self.min_pt_ratio = 1 / 3
         self.pt_ratio_cutoff = 0
@@ -730,7 +778,7 @@ class MapView(object):
         coordinate_system = coordinate_system.lower()
         if coordinate_system in MapView.COORD_SYSTEMS and coordinate_system != self._coordinate_system:
             if self.verify_coordinate_system(coordinate_system):
-                if coordinate_system == 'utm' and self._coordinate_system == 'local':
+                if coordinate_system in ('utm', 'lambert') and self._coordinate_system == 'local':
                     correction = utils.center_locs(np.fliplr(self.site_locations['all']))[1]
                 else:
                     correction = np.array([0, 0])
@@ -741,13 +789,38 @@ class MapView(object):
                 self.site_locations['all'] = self.get_locations(sites=self.site_names)
                 if self.model != []:
                     print('Correction factor is: {}'.format(correction))
-                    if coordinate_system.lower() == 'utm':
-                        station_center = np.array(utils.center_locs(np.fliplr(self.site_locations['all']))[1])
-                        print('Station center at: {}'.format(station_center))
-                        self.model.to_UTM(origin=station_center-correction)
-                    else:
-                        self.model.to_local()
-                    print('Model center shifted to: {}'.format(self.model.center))
+                    
+                    # print('Station center at: {}'.format(station_center))
+                    station_center = np.array(utils.center_locs(np.fliplr(self.site_locations['all']))[1])
+                    # if coordinate_system.lower() in ('utm', 'lambert'):
+                        # self.model.project_model(system='local')
+                    if coordinate_system == 'latlong':
+                        print('Model to latlong not implemented')
+                        return
+                        # station_center = np.array(utils.center_locs((self.get_locations(sites=self.site_names,
+                                                                                                 # coordinate_system='lambert',
+                                                                                                 # inquire_only=True)))[1])
+                    self.model.project_model(system=coordinate_system, origin=station_center - correction)
+                    # elif coordinate_system.lower() == 'latlong':
+                        # self.model.to_latlong()
+                    # else:
+                        # self.model.to_local()
+                    # print('Model center shifted to: {}'.format(self.model.center))
+                # if self.model != []:
+                #     print('Correction factor is: {}'.format(correction))
+                #     if coordinate_system.lower() == 'utm':
+                #         station_center = np.array(utils.center_locs(np.fliplr(self.site_locations['all']))[1])
+                #         print('Station center at: {}'.format(station_center))
+                #         self.model.to_UTM(origin=station_center - correction)
+                #     elif coordinate_system.lower() == 'lambert':
+                #         station_center = np.array(utils.center_locs(np.fliplr(self.site_locations['all']))[1])
+                #         print('Station center at: {}'.format(station_center))
+                #         self.model.to_lambert(origin=station_center - correction)
+                #     elif coordinate_system.lower() == 'latlong':
+                #         self.model.to_latlong()
+                #     else:
+                #         self.model.to_local()
+                #     print('Model center shifted to: {}'.format(self.model.center))
                 # self.plot_locations()
 
     def verify_coordinate_system(self, coordinate_system):
@@ -779,11 +852,12 @@ class MapView(object):
         self.site_locations['generic'] = self.get_locations(sites=self.generic_sites)
         self.site_locations['active'] = self.get_locations(sites=self.active_sites)
 
-    def get_locations(self, sites=None, coordinate_system=None):
+    def get_locations(self, sites=None, coordinate_system=None, inquire_only=False):
         if not coordinate_system:
             coordinate_system = self.coordinate_system
         else:
-            self.coordinate_system = coordinate_system
+            if not inquire_only:
+                self.coordinate_system = coordinate_system
         if coordinate_system == 'local':
             azi = self.site_data['data'].azimuth
             check_azi = self.site_data['data'].check_azi()
@@ -809,14 +883,14 @@ class MapView(object):
         if xlabel:
             self.window['axes'][0].set_xlabel(xlabel, fontsize=self.label_fontsize)
         else:
-            if self.coordinate_system.lower() in ('utm', 'local'):
+            if self.coordinate_system.lower() in ('utm', 'local', 'lambert'):
                 self.window['axes'][0].set_xlabel('Easting (km)', fontsize=self.label_fontsize)
             else:
                 self.window['axes'][0].set_xlabel(r'Longitude ($^{\circ}$)', fontsize=self.label_fontsize)
         if ylabel:
             self.window['axes'][0].set_ylabel(ylabel, fontsize=self.label_fontsize)
         else:
-            if self.coordinate_system.lower() in ('utm', 'local'):
+            if self.coordinate_system.lower() in ('utm', 'local', 'lambert'):
                 self.window['axes'][0].set_ylabel('Northing (km)', fontsize=self.label_fontsize)
             else:
                 self.window['axes'][0].set_ylabel(r'Latitude ($^{\circ}$)', fontsize=self.label_fontsize)
@@ -864,32 +938,46 @@ class MapView(object):
         #     print('No figure to plot to...')
         #     return
         marker_size = {'generic': [self.markersize ** 2], 'active': [self.markersize ** 2]}
+        facecolour = {'generic': 'None', 'active': 'None'}
+        edgecolour = deepcopy(self.site_exterior)
+        edgewidth = deepcopy(self.edgewidth)
         if self.plot_rms:
             marker = 'o'
-            marker_size['generic'] = np.array([self.dataset.rms['Station'][site]['Total']
-                                               for site in self.generic_sites])
-            marker_size['active'] = np.array([self.dataset.rms['Station'][site]['Total']
-                                              for site in self.active_sites])
-            marker_size['generic'] = (utils.normalize(marker_size['generic'],
-                                                      lower=1, upper=2, explicit_bounds=True) *
-                                      self.markersize) ** 2
-            marker_size['active'] = (utils.normalize(marker_size['active'],
-                                                     lower=1, upper=2, explicit_bounds=True) *
-                                     self.markersize) ** 2
-            facecolour = 'None'
+            generic_rms = np.array([self.dataset.rms['Station'][site]['Total']
+                                    for site in self.generic_sites])
+            active_rms = np.array([self.dataset.rms['Station'][site]['Total']
+                                   for site in self.active_sites])
+            if 'size' in self.rms_plot_style:
+                marker_size['generic'] = generic_rms
+                marker_size['active'] = active_rms
+                marker_size['generic'] = (utils.normalize(marker_size['generic'],
+                                                          lower=1, upper=2, explicit_bounds=True) *
+                                          self.markersize) ** 2
+                marker_size['active'] = (utils.normalize(marker_size['active'],
+                                                         lower=1, upper=2, explicit_bounds=True) *
+                                         self.markersize) ** 2
+            if 'colour' in self.rms_plot_style:
+                facecolour['generic'] = generic_rms
+                facecolour['active'] = active_rms
+                edgecolour['generic'] = None
+                edgecolour['active'] = None
         else:
             marker = self.site_marker
-            facecolour = self.facecolour
+            facecolour['active'] = self.facecolour
+            facecolour['generic'] = self.facecolour
+            edgewidth = 0
         if len(self.site_locations['generic']) > 0:
             try:
                 self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
                                                self.site_locations['generic'][:, 0],
                                                marker=marker,
                                                s=marker_size['generic'],
-                                               edgecolors=self.site_exterior,
-                                               linewidths=self.edgewidth,
-                                               facecolors=facecolour,
-                                               zorder=9)
+                                               edgecolors=edgecolour['generic'],
+                                               linewidths=edgewidth,
+                                               # facecolors=facecolour,
+                                               c=facecolour['generic'],
+                                               zorder=9,
+                                               cmap=self.cmap)
             except IndexError:
                 pass
 
@@ -898,10 +986,12 @@ class MapView(object):
                                            self.site_locations['active'][:, 0],
                                            marker=marker,
                                            s=marker_size['active'],
-                                           edgecolors=self.site_exterior,
-                                           linewidths=self.edgewidth,
-                                           facecolors=facecolour,
-                                           zorder=9)
+                                           edgecolors=edgecolour['active'],
+                                           linewidths=edgewidth,
+                                           # facecolors=facecolour,
+                                           c=facecolour['active'],
+                                           zorder=9,
+                                           cmap=self.cmap)
         self.set_axis_labels()
 
     def plot_annotate(self):    
@@ -967,19 +1057,11 @@ class MapView(object):
 
                     if normalize:
                         arrows = 0.5 * arrows / np.transpose(np.tile(lengths, [2, 1]))
-                        # print('Normalizing...')
-                    # else:
-                        # arrows = max_length * arrows / (largest_arrow * 1000)
-                        # arrows = arrows / np.max(lengths)
-                        # arrows *= max_length / 50000
-                        # print('Shrinking arrows')
-                    #     print('Not normalizing')
                     arrows = arrows * self.induction_scale / (50) # * np.sqrt(lengths))
                     headwidth = max(3, 1)
                     # scale = self.induction_scale * max_length / 100
                     lengths = np.sqrt(arrows[:, 0] ** 2 + arrows[:, 1] ** 2)
                     largest_arrow = np.max(lengths)
-                    # print(largest_arrow)
                     width = 0.0025
                     quiv_handle = self.window['axes'][0].quiver(self.site_locations['all'][idx, 1],
                                                                 self.site_locations['all'][idx, 0],
@@ -1066,7 +1148,6 @@ class MapView(object):
             phi_min = tensor.phi_min
             azimuth = tensor.azimuth
             fill_val = getattr(tensor, fill_param)
-            # print('Plotting Conventional PT')
         elif pt_type == 'phi_a':
             if not tensor:
                 tensor = site.CART[period_idx]
@@ -1084,7 +1165,6 @@ class MapView(object):
             azimuth = getattr(tensor, '_'.join([pt_type, 'azimuth']))
             fill_val = getattr(tensor, '_'.join([pt_type, fill_param]))
             if fill_param in ('phi_1', 'phi_2', 'phi_3', 'phi_min', 'phi_max', 'det_phi') and pt_type.lower() == 'ua':
-                # print('Taking log10 of fill value: {}'.format(fill_val))
                 fill_val = np.log10(abs(fill_val))
         return tensor, phi, phi_max, phi_min, azimuth, fill_val
 
@@ -1123,8 +1203,7 @@ class MapView(object):
                                                                                           fill_param,
                                                                                           site=site,
                                                                                           period_idx=period_idx)
-                        # print('New fill val: {}'.format(fill_val))
-                    # print('Plotting RPT')
+
                 # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
                 #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
                 #     (phase_tensor.phasexy_error < self.phase_error_tol) and
@@ -1302,8 +1381,14 @@ class MapView(object):
                 data_label = 'Resistivity'
                 use_log = True
                 if '-' in fill_param:
-                    vals.append([np.log10(utils.compute_rho(site=data.sites[site], calc_comp='xy', errtype='none')[0][period_idx] - 
-                                          utils.compute_rho(site=data.sites[site], calc_comp='yx', errtype='none')[0][period_idx]) for site in data.site_names])
+                    val = []
+                    for site in data.site_names:
+                        val.append(utils.compute_rho(data.sites[site], calc_comp='xy', errtype='none')[0][period_idx] -
+                                   utils.compute_rho(data.sites[site], calc_comp='yx', errtype='none')[0][period_idx])
+                        val[-1] = np.sign(val[-1])*np.log10(np.abs(val[-1]))
+                    vals.append(val)
+                    # vals.append([np.log10(utils.compute_rho(site=data.sites[site], calc_comp='xy', errtype='none')[0][period_idx] - 
+                    #                       utils.compute_rho(site=data.sites[site], calc_comp='yx', errtype='none')[0][period_idx]) for site in data.site_names])
                 else:
                     vals.append([np.log10(utils.compute_rho(site=data.sites[site],
                                                             calc_comp=fill_param,
@@ -1342,8 +1427,15 @@ class MapView(object):
                 use_log = True
                 # vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='phase', comp=fill_param, filter_width=1)[1][period_idx]) for site in data.site_names])
                 if '-' in fill_param:
-                    vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='bostick', comp='xy', filter_width=1)[1][period_idx] -
-                                          utils.compute_bost1D(data.sites[site], method='bostick', comp='yx', filter_width=1)[1][period_idx]) for site in data.site_names])
+                    val = []
+                    for site in data.site_names:
+                        val.append(utils.compute_bost1D(data.sites[site], method='bostick', comp='xy', filter_width=1)[1][period_idx] -
+                                   utils.compute_bost1D(data.sites[site], method='bostick', comp='yx', filter_width=1)[1][period_idx])
+                        val[-1] = np.sign(val[-1])*np.log10(np.abs(val[-1]))
+                    vals.append(val)
+
+                    # vals.append([(utils.compute_bost1D(data.sites[site], method='bostick', comp='xy', filter_width=1)[1][period_idx] -
+                                  # utils.compute_bost1D(data.sites[site], method='bostick', comp='yx', filter_width=1)[1][period_idx]) for site in data.site_names])
                 else:
                     vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='bostick', comp=fill_param, filter_width=1)[1][period_idx]) for site in data.site_names])
         if len(vals) == 1:
@@ -1673,7 +1765,6 @@ class MapView(object):
                                                                                               site=site,
                                                                                               period_idx=ip)
                     xy = [X_all[-1], Y_all[-1]]
-                    # print(xy)
                     # width = np.abs(phi_max / 5)
                     if np.abs(phi_min / phi_max) < self.pt_ratio_cutoff:
                         X_all.pop()
@@ -1712,9 +1803,11 @@ class MapView(object):
                                         zorder=4,
                                         edgecolor=None)
         self.window['axes'][0].invert_yaxis()
-        xlim = [min(X_all) - 5, max(X_all) + 5]
+        xlim = [min(X_all) - 20, max(X_all) + 20]
         ylim = [min(Y_all) - 0.2, max(Y_all) + 0.2]
         aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])
         self.set_axis_limits(bounds=xlim + ylim)
+        
         self.window['axes'][0].set_aspect(aspect)
         self.window['axes'][0].invert_yaxis()
+        # self.set_axis_limits(bounds=xlim + ylim)

@@ -4,13 +4,14 @@ import codecs
 import numpy as np
 import scipy.interpolate
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+# from mpl_toolkits.basemap import Basemap
 import cmocean
 import pyMT.data_structures as DS
 import pyMT.utils as utils
 import pickle
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
+from skimage.transform import downscale_local_mean
 
 #####################################
 ########## INSTRUCTIONS #############
@@ -34,7 +35,8 @@ from rasterio.warp import calculate_default_transform, reproject, Resampling
 def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1):
     print('Retrieving topo data from latitude {:>6.3g} to {:>6.3g}, longitude {:>6.3g} to {:>6.3g}'.format(minlat, maxlat, minlon, maxlon))
     # Read data from: http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.html
-    response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.csv?topo[(' \
+    # Had to change to v1 since v6 stopped working for some reason...
+    response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v1.csv?topo[(' \
                                   +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
 
     r = csv.reader(codecs.iterdecode(response, 'utf-8'))
@@ -55,6 +57,7 @@ def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1):
 
 def bathymetry_to_model(model, lat, lon, topo):
     print('Gridding topo data...')
+
     grid_x, grid_y = np.meshgrid(model.dy, model.dx)
     grid_z = scipy.interpolate.griddata((lon, lat), topo, (grid_x, grid_y), method='nearest')
     return grid_x, grid_y, grid_z
@@ -186,17 +189,35 @@ if __name__ == '__main__':
     ###############################
     #################################
     # Rae Craton
-    mod_type = 'large'
-    list_file = 'E:/phd/NextCloud/data/Regions/rae/j2/rae_allnew1.lst'
-    data_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae_Z_flagged.dat'
-    model_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_{}.model'.format(mod_type)
-    # bath_file = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy.p'
-    bath_file = []
-    bath_out = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy_large.p'
-    model_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_bath_{}.model'.format(mod_type)
-    cov_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_large_bath.cov'
-    # data_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_topo_Z_flagged.dat'
+    # mod_type = 'large'
+    # list_file = 'E:/phd/NextCloud/data/Regions/rae/j2/rae_allnew1.lst'
+    # data_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae_Z_flagged.dat'
+    # model_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_{}.model'.format(mod_type)
+    # # bath_file = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy.p'
+    # bath_file = []
+    # bath_out = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy_large.p'
+    # model_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_bath_{}.model'.format(mod_type)
+    # cov_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_large_bath.cov'
+    # # data_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_topo_Z_flagged.dat'
+    # data_out = []
+    ###################################
+    # Snorcle Golden Triangle
+    mod_type = 'nest'
+    list_file = 'E:/phd/NextCloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/sorted_cull1b.lst'
+    data_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_hs100_bath_nest.dat'
+    model_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_wTransition_{}.model'.format(mod_type)
+    # model_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1/reErred/wTopo/test_{}.model'.format(mod_type)
+    # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/new1/bathy.p'
+    bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
+    # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_nest.p'.format(mod_type)
+    # bath_file = []
+    bath_out = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
+    model_out = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_wTrans_bath_{}.model'.format(mod_type)
+    cov_out = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull11b_wTrans_bath_{}.cov'.format(mod_type)
+    # data_out = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_hs100_wTopo_{}.dat'.format(mod_type)
     data_out = []
+    # resample_topo = (4, 4)
+    resample_topo = False
 
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
@@ -206,11 +227,13 @@ if __name__ == '__main__':
     lon_pad = 5
     data_collect_stride = 8
     with_topography = False
-    cmap = cmocean.cm.haline
+    with_oceans = True
+    # cmap = cmocean.cm.haline
+    cmap = None
     ####################################
     # If you want to modify the vertical meshing, do it now (see examples below)
     # Add 20 layers that are each 200 m thick, then append the existing mesh (I used this for testing purposes)
-    # Z = [50] * 20 + model.zCS
+    # Z = [100] * 25 + model.zCS[20:]
     # model.zCS = Z
     # model.vals[:,:,:] = 10
     # model.zCS = [50] * 12 + [20] + model.zCS
@@ -229,9 +252,9 @@ if __name__ == '__main__':
     # model.generate_half_space()
     # This one is needed to make sure the projection to lat/long is correct.
     # model.UTM_zone = '4Q'
-    model.UTM_zone = '35N'
     # model.UTM_zone = '35N'
-    model.UTM_zone = '15N'
+    # model.UTM_zone = '35N'
+    model.UTM_zone = '9N'
     # model.UTM_zone = '16N'
     # model.UTM_zone = '16U'
     model.to_latlong()
@@ -290,11 +313,22 @@ if __name__ == '__main__':
         with open(bath_out, 'wb') as f:
             pickle.dump(np.array((lat, lon, topo)), f, protocol=pickle.HIGHEST_PROTOCOL)
     
+    if resample_topo:
+        print('Resampling grid first...')
+        nx = len(np.unique(lat))
+        ny = len(np.unique(lon))
+        im = np.reshape(topo, [nx, ny])
+        lat = np.reshape(lat, [nx, ny])[::resample_topo[0], ::resample_topo[0]]
+        lon = np.reshape(lon, [nx, ny])[::resample_topo[0], ::resample_topo[0]]
+        lat, lon = lat.flatten(), lon.flatten()
+        im = downscale_local_mean(im, resample_topo)
+        topo = im.flatten()
+
     grid_x, grid_y, grid_z = bathymetry_to_model(model, lat, lon, topo)
-    insert_topography(model, grid_x, grid_y, grid_z)
     if with_topography:
         insert_topography(model, grid_x, grid_y, grid_z)
-    insert_oceans(model, grid_x, grid_y, grid_z, with_topography=with_topography)
+    if with_oceans:
+        insert_oceans(model, grid_x, grid_y, grid_z, with_topography=with_topography)
     model.to_local()
     reposition_data(data, model)
     # # Should be straightforward to assign model vals and covariances for AIR
@@ -307,5 +341,5 @@ if __name__ == '__main__':
         data.write(data_out, use_elevation=True)
     raw_data.locations = raw_data.get_locs(mode='latlong')
     plot_it(grid_x, grid_y, grid_z, raw_data.locations, cmap=cmap)
-    main()
+    # main()
 

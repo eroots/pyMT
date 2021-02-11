@@ -72,7 +72,7 @@
 
 
 \title{pyMT}
-\date{Dec 17, 2020}
+\date{Dec 19, 2020}
 \release{0.0.1}
 \author{Eric Roots}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -138,6 +138,13 @@ Clone the repository:
 \PYG{n}{git} \PYG{n}{clone} \PYG{n}{https}\PYG{p}{:}\PYG{o}{/}\PYG{o}{/}\PYG{n}{github}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{eroots}\PYG{o}{/}\PYG{n}{pyMT}\PYG{o}{.}\PYG{n}{git}
 \end{sphinxVerbatim}
 
+Install the more complicated prerequisites:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{conda} \PYG{n}{install} \PYG{n}{numpy}
+\PYG{n}{conda} \PYG{n}{install} \PYG{n}{vtk}
+\end{sphinxVerbatim}
+
 Install by navigating to the cloned pyMT directory and entering:
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
@@ -150,7 +157,9 @@ Or if you intend to modify the code:
 \PYG{n}{python} \PYG{n}{setup}\PYG{o}{.}\PYG{n}{py} \PYG{n}{develop}
 \end{sphinxVerbatim}
 
-All dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with potentially complicated dependencies.
+It is recommended you use the ‘develop’ option regardless at this time.
+
+Most dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with potentially complicated dependencies.
 These include:
 \begin{itemize}
 \item {} 
@@ -166,30 +175,28 @@ scipy
 matplotlib
 
 \item {} 
-pyqt
+colorcet
 
 \item {} 
-colorcet
+vtk
 
 \end{itemize}
 
-The tested method of installation involves installing each of these with Anaconda prior to installing pyMT.
+The tested method of installation involves installing each of these with Anaconda prior to installing pyMT. As of the last time I tested this (December 2020), the only ones that needed to be manually installed were vtk and numpy.
 
 Note, a previously required package ‘naturalneighbor’ has been removed from the dependency list. {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}} will now instead offer other interpolation schemes based on scipy. If naturalneighbor is installed (it can be installed through pip, or using the wheel at \sphinxurl{https://www.lfd.uci.edu/~gohlke/pythonlibs/\#naturalneighbor}), the natural neighbor scheme will still be available.
 
-As of the time of writing this (April 2020), there is an issue between versions of python and pyqt that may cause some GUIs to fail:
+Other dependency issues:
 \begin{itemize}
 \item {} 
 Python needs to be version 3.7.*
 
 \item {} 
-PyQT5 needs to be version 5.14.*
+PyQT5 needs to be version \textgreater{}5.14.*
 
 \end{itemize}
 
-Note that as of now, Anaconda only seems to have access to pyqt5 version 5.9.*. You will therefore have to install pyqt5 using pip, and ensure this version supercedes any other version of pyqt installed in your environment.
-
-An update to pyvista version 0.24.* has also caused an error in setting up the {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}, so pyvista version 0.23.* is required for now.
+An update to pyvista version 0.24.* has also caused an error in setting up the {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}, so pyvista version 0.23.* is required for now. This requirement is included in the setup.
 
 
 \chapter{Testing Installation}
@@ -1637,6 +1644,25 @@ The 2-D transect plot does not respond to changes in the model trim. The workaro
 \item {} 
 17/12/20
 \begin{itemize}
+\item {} 
+A standalone executable version of pyMT is now available.
+\begin{itemize}
+\item {} 
+This is just the GUIs, with the entry point being the new ‘Gateway’ GUI.
+
+\item {} 
+No python installation required - the executable contains everything needed.
+\begin{itemize}
+\item {} 
+Main drawback is it is only the GUIs - you won’t have access to the pyMT API or any of the scripts.
+
+\end{itemize}
+
+\end{itemize}
+
+\item {} 
+Fixed a minor bug where the data cursor (hovering over plots in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} or {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}) would give slightly incorrect values
+
 \item {} 
 New ‘Gateway’ GUI for creating, modifying, and loading your projects (.pymt files, previous ‘pystartup’ files)
 \begin{itemize}

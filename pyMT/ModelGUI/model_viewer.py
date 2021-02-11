@@ -24,6 +24,7 @@ from pyMT.utils import sort_files, check_file
 import pyMT.e_colours.colourmaps as cm
 from pyMT.GUI_common import classes
 from pyMT import gplot
+from pyMT import resources
 from PyQt5.uic import loadUiType
 from pyMT.IO import debug_print
 from scipy.interpolate import RegularGridInterpolator as RGI
@@ -35,10 +36,15 @@ from PyQt5 import QtWidgets, QtGui
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
+try:
+    import importlib.resources as pkg_resources
+except ImpotError:
+    import importlib_resources as pkg_resources
 
 
 path = ospath.dirname(ospath.realpath(__file__))
-model_viewer_jpg = path + '/../resources/images/data_plot.jpg'
+model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
+# model_viewer_jpg = path + '/../resources/images/data_plot.jpg'
 # Ui_MainWindow, QMainWindow = loadUiType(ospath.join(path, 'data_plot.ui'))
 # UiPopupMain, QPopupWindow = loadUiType(ospath.join(path, 'saveFile.ui'))
 UI_ModelWindow, QModelWindow = loadUiType(ospath.join(path, 'model_viewer.ui'))
@@ -74,6 +80,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.setupUi(self)
 
         # Add the model
+        self.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
         if files.get('data', None):
             self.dataset = WSDS.Dataset(modelfile=files['model'],
                                         datafile=files['data'])
@@ -91,12 +98,23 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         if self.dataset.model.dimensionality == '2d':
             # idx = np.argmin(abs(np.array(self.dataset.model.dy)))
             self.dataset.data.locations[:, 1] += self.dataset.model.dy[0] #sum(self.dataset.model.dy[:idx])
-        try:
-            self.resolution = WSDS.Model(files['reso'])
-            self.use_resolution = 'Resolution'
-        except KeyError:
-            self.resolution = None            
-            # self.resolution.vals = np.ones(self.dataset.model.vals.shape)
+        if files.get('resolution', None):
+            try:
+                self.resolution = WSDS.Model(files['resolution'])
+                self.use_resolution = 'Resolution'
+            except ValueError:
+                with open(files['resolution'], 'r') as f:
+                    r = [float(x.strip()) for x in f.readlines()]
+                    self.resolution = deepcopy(self.dataset.model)
+                    self.resolution.vals = np.transpose(np.reshape(r, [self.resolution.nz,
+                                                                       self.resolution.ny,
+                                                                       self.resolution.nx]), [2, 1, 0])
+                    self.use_resolution = 'Resolution'
+            except KeyError:
+                self.resolution = None            
+                # self.resolution.vals = np.ones(self.dataset.model.vals.shape)
+        else:
+            self.resolution = None
         self.use_resolution = 1
         self.use_scalar = 'Resistivity'
         self.model = self.dataset.model
@@ -128,7 +146,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.mesh_group.setExclusive(True)
 
         self.plot_data = {'stations': []}
-        if 'data' in files.keys() or 'response' in files.keys():
+        has_data = files.get('data', None)
+        has_response = files.get('response', None)
+        if has_data or has_response:
             self.plot_locations = True
             self.locs_3D = np.zeros((len(self.dataset.data.locations), 3))
             self.plot_data['stations'] = pv.PolyData(self.locs_3D)
@@ -1130,7 +1150,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     viewer = ModelWindow(files)
     viewer.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
-    viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
+    # viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
 
     viewer.show()
     ret = app.exec_()

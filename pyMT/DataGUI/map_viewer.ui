@@ -579,11 +579,19 @@
      <addaction name="action_coordLatlong"/>
      <addaction name="action_coordLambert"/>
     </widget>
+    <widget class="QMenu" name="menuRMS_Plotting">
+     <property name="title">
+      <string>RMS Plotting</string>
+     </property>
+     <addaction name="action_rmsSize"/>
+     <addaction name="action_rmsColour"/>
+    </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
     <addaction name="menuPhase_Tensors"/>
     <addaction name="menuInduction_Arrows"/>
     <addaction name="menuCoordinate_System"/>
+    <addaction name="menuRMS_Plotting"/>
    </widget>
    <widget class="QMenu" name="menuAxis_Options">
     <property name="title">
@@ -890,6 +898,25 @@
   <action name="actionStandardDeviation">
    <property name="text">
     <string># Standard Deviation</string>
+   </property>
+  </action>
+  <action name="action_rmsSize">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Size</string>
+   </property>
+  </action>
+  <action name="action_rmsColour">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Colours</string>
    </property>
   </action>
  </widget>

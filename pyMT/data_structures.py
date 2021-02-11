@@ -89,6 +89,7 @@ class Dataset(object):
         self.model = Model(modelfile=modelfile)
         self.raw_data = RawData(listfile=listfile, datpath=datpath)
         self.response = Data(listfile=listfile, datafile=responsefile)
+        self.smoothed_data = deepcopy(self.raw_data)
         self.rms = self.calculate_RMS()
         self._spatial_units = 'm'
         if not self.data.site_names and self.raw_data.initialized:
@@ -102,6 +103,7 @@ class Dataset(object):
         if len(set(azi)) == 1 and len(azi) == num_dTypes:
             self.azimuth = azi[0]
         else:
+            # print('Not all data azimuths are equal. Defaulting to that set in the data file (no actual rotation is applied).')
             print('Not all data azimuths are equal. Defaulting to that set in the data file.')
             print('data: {}, raw_data: {}, response: {}'.format(self.data.azimuth,
                                                                 self.raw_data.azimuth,
@@ -182,7 +184,7 @@ class Dataset(object):
             self.data.components = RawData.ACCEPTED_COMPONENTS
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
-        self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
+        self.data.azimuth = self.raw_data.azimuth
         self.data.auto_set_inv_type()
 
     def reset_dummy_periods(self):
@@ -336,10 +338,10 @@ class Dataset(object):
 
     @utils.enforce_input(site_names=list, dTypes=list)
     def get_sites(self, site_names, dTypes='all'):
-        site_list = {'raw_data': [], 'data': [], 'response': []}
+        site_list = {'raw_data': [], 'data': [], 'response': [], 'smoothed_data': []}
         if len(dTypes) == 1:  # or isinstance(dTypes, str):
             if dTypes[0].lower() == 'all':
-                dTypes = ['raw_data', 'response', 'data']
+                dTypes = ['raw_data', 'response', 'data', 'smoothed_data']
             # else:
                 # dTypes = utils.to_list(dTypes)
         for site in site_names:
@@ -349,6 +351,7 @@ class Dataset(object):
         return site_list
 
     def rotate_sites(self, azi=0):
+        print('Rotating Data')
         self.azimuth = azi
         if self.has_dType('data'):
             self.data.rotate_sites(azi=azi)
@@ -428,8 +431,9 @@ class Dataset(object):
                 return
             self.response.locations = self.response.get_locs()
 
-    def regulate_errors(self, multiplier=2.5, fwidth=1):
+    def regulate_errors(self, multiplier=2.5, fwidth=1, median_window=11, threshold=1):
         use_log = False
+        # self.smoothed_data = deepcopy(self.raw_data)
         for site in self.raw_data.site_names:
             raw_site = self.raw_data.sites[site]
             data_site = self.data.sites[site]
@@ -457,23 +461,29 @@ class Dataset(object):
                             return
                     except KeyError:
                         print('Component {} not found'.format(comp))
-                        return
+                        continue
                     # error_map = np.zeros(data_site.data[comp].shape)
                     # Replace insane values with the nearest non-insane value
-                    idx = np.abs(to_smooth) <= 100000 * np.median(np.abs(to_smooth) + 0.000001)
-
-                    if not np.all(idx):
-                        print([site, comp])
-                        for ii in range(len(idx)):
-                            if not idx[ii]:
-                                if ii == 0:
-                                    to_smooth[0] = to_smooth[np.argmax(idx)]
-                                else:
-                                    to_smooth[ii] = to_smooth[np.argmin(np.abs(ii - np.argwhere(idx)))]
-
+                    to_smooth *= scale
+                    # Old method of outlier detection, based on just removing huge values
+                    # idx = np.abs(to_smooth) <= 10 * np.median(np.abs(to_smooth) + 0.000001)
+                    # if not np.all(idx):
+                    #     # print([site, comp])
+                    #     where = np.argwhere(idx)
+                    #     for ii in range(len(idx)):
+                    #         if not idx[ii]:
+                    #             if ii == 0:
+                    #                 to_smooth[0] = to_smooth[np.argmax(idx)]
+                    #             else:
+                    #                 to_smooth[ii] = to_smooth[where[np.argmin(np.abs(ii - where))]]
+                    to_smooth = utils.remove_outliers(to_smooth, size=median_window, threshold=threshold)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
-                                                          scale * to_smooth,
+                                                          to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
+                    smoothed_data2 = smoothed_data / scale
+                    # smoothed_site = deepcopy(raw_site)
+                    # smoothed_site.data[comp] = smoothed_data
+                    
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))
                         if comp[0].lower() == 'z':
@@ -495,9 +505,11 @@ class Dataset(object):
                             self.data.sites[site].errmap[comp][ii] = 1
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
-            self.data.apply_no_data_map()
-            self.data.sites[site].apply_error_floor()
-            self.data.equalize_complex_errors()
+                    self.smoothed_data.sites[site].data.update({comp: smoothed_data2})
+                    # print(np.all(self.smoothed_data.sites[site].data[comp] == self.raw_data.sites[site].data[comp]))
+        self.data.apply_error_floor() 
+        self.data.equalize_complex_errors()
+        self.data.apply_no_data_map()
 
     def equalize_complex_errors(self):
         for site in self.data.site.names:
@@ -731,7 +743,6 @@ class Data(object):
             TYPE: Description
         """
         # path, filename, ext = fileparts(datafile)
-
         if listfile and datafile:
             self.site_names = WS_io.read_sites(listfile)
         if datafile:
@@ -1375,6 +1386,114 @@ class Model(object):
         self._dy = list(self._dy - self._dy[-1] / 2)
         self.coord_system = 'local'
 
+    def project_model(self, system='local', origin=None, utm_zone=None):
+        # Note this doesn't work very well.
+        # To and from latlong is hard because rectangles, plus we'd need to make the UTM zone 
+        # is passed along
+        def calculate_projection(dx, dy, from_proj, to_proj):
+
+                x_ref = dx[round(len(dx)/2)]
+                y_ref = dy[round(len(dy)/2)]
+                x, tmp = utils.generic_projection(x=dx, y=y_ref * np.ones(len(dx)),
+                                                  from_proj=from_proj,
+                                                  to_proj=to_proj)
+                tmp, y = utils.generic_projection(x=x_ref * np.ones(len(dy)), y=dy,
+                                                  from_proj=from_proj,
+                                                  to_proj=to_proj)
+                    # lons.append(lon)
+                return x, y
+
+        system = system.lower()
+        if self.coord_system == system:
+            print('Already in {}'.format(system))
+            return True, ''
+        elif system == 'latlong':
+            print('Latlong model transformation not implemented')
+            return
+        if system.lower() not in ('local', 'utm', 'lambert', 'latlong'):
+            msg = 'Coordinate system {} not recognized'.format(system)
+            print(msg)
+            return False, msg
+        if self.coord_system == 'local':
+            if origin is None:
+                msg = 'An origin must be provided when projecting from local coordinates'
+                print(msg)
+                return False, msg
+            if system in ('utm', 'lambert'):
+                if utm_zone:
+                    self.UTM_zone = utm_zone
+                self.origin = origin
+                self._dx = [x + self.origin[1] for x in self._dx]
+                self._dy = [y + self.origin[0] for y in self._dy]
+
+            elif system == 'latlong':
+                self.project_model(system='lambert', origin=origin)
+                self._dy, self._dx = calculate_projection(dx=self._dy, dy=self._dx,
+                                                          from_proj=self.coord_system,
+                                                          to_proj=system)
+                # lon, lat = utils.generic_projection(x=self._dy, y=self._dx,
+                #                                     from_proj=self.coord_system,
+                #                                     to_proj=system,
+                #                                     utm_zone=utm_zone)
+                # x_ref = self.dx[round(self.nx)]
+                # y_ref = self.dy[round(self.ny)]
+                # # lats, lons = [], []
+                # # for xx in self._dx:
+                # lat, tmp = utils.generic_projection(x=self._dx, y=y_ref * np.ones(len(self._dx)),
+                #                                     from_proj=self.coord_system,
+                #                                     to_proj=system)
+                #     # lats.append(lat)
+                # # for yy in self._dy:
+                # tmp, lon = utils.generic_projection(x=x_ref * np.ones(len(self._dy)), y=self._dy,
+                #                                     from_proj=self.coord_system,
+                #                                     to_proj=system)
+                #     # lons.append(lon)
+                # self._dx = list(lat)
+                # self._dy = list(lon)
+                # lon = utils.unproject(number, letter,
+                #               self._dy,
+                #               [self.dx[round(len(self.dx) / 2)] for iy in self.dy])[0]
+                # lat = utils.unproject(number, letter,
+                #               [self.dy[round(len(self.dy) / 2)] for ix in self.dx],
+                #               self._dx)[1]
+        else:
+            if system == 'local':
+                origin = (np.mean(self.dy), np.mean(self.dx))
+                print('Origin is {}'.format(origin))
+                self._dx = [x - origin[1] for x in self._dx]
+                self._dy = [y - origin[0] for y in self._dy]
+            # elif system == 'latlong':
+                # self.project_model(system='lambert', origin=origin)
+                # self._dy, self._dx = calculate_projection(dx=self._dy, dy=self._dx,
+                                                          # from_proj=self.coord_system,
+                                                          # to_proj=system)
+            else:
+                self.project_model(system='local')
+                self.project_model(system='lambert', origin=origin)
+                # self._dy, self._dx = calculate_projection(dx=self._dy, dy=self._dx,
+                                                          # from_proj=self.coord_system,
+                                                          # to_proj=system)
+        self.coord_system = system
+        # elif self.coord_system == 'utm':
+        #     if system == 'local':
+        #         origin = (np.mean(self.dy), np.mean(self.dx))
+        #         self._dx = [x + origin[1] for x in self._dx]
+        #         self._dy = [y + origin[1] for y in self._dy]
+        #     elif system == 'latlong':
+
+        #         lon = utils.unproject(number, letter,
+        #                       self._dy,
+        #                       [self.dx[round(len(self.dx) / 2)] for iy in self.dy])[0]
+        #         lat = utils.unproject(number, letter,
+        #                       [self.dy[round(len(self.dy) / 2)] for ix in self.dx],
+        #                       self._dx)[1]
+        #         self._dx, self._dy = (lat, lon)
+        #     elif system == 'lambert':
+        #         self.origin = origin
+        #         self._dx = [x + self.origin[1] for x in self._dx]
+        #         self._dy = [y + self.origin[0] for y in self._dy]
+        # elif self.coord_system == 'lambert':
+        # self.coord_sytem = system
     def to_UTM(self, origin=None):
         '''
             Convert model coordinates to UTM
@@ -1398,6 +1517,33 @@ class Model(object):
             print('Already in UTM')
             return False
         self.coord_system = 'UTM'
+        return True
+
+    def to_lambert(self, origin=None):
+        print('in to_lambert')
+        if self.coord_system == 'local':
+            if origin is not None:
+                # print('in if origin')
+                self.origin = origin
+            elif self.origin is None:
+                print('Must specify origin if model.origin is not set')
+                return False
+            # print('should be doing stuff')
+            self._dx = [x + self.origin[1] for x in self._dx]
+            self._dy = [y + self.origin[0] for y in self._dy]
+        elif self.coord_system == 'latlong':
+            # self._dy, self._dx = utils.project((self._dx, self._dy))
+            self._dy, self._dx = utils.to_lambert(self._dx, self._dy)
+        elif self.coord_system == 'UTM':
+            if origin is not None:
+                self.origin == origin
+                self._dx = [x + self.origin[1] for x in self._dx]
+                self._dy = [y + self.origin[0] for y in self._dy]
+            else:
+                print('Need to specify origin for lambert conversion')
+                return False
+            return False
+        self.coord_system = 'lambert'
         return True
 
     def to_latlong(self, zone=None):
@@ -2483,7 +2629,12 @@ class RawData(object):
         self.master_periods = self.master_period_list()
         self.narrow_periods = self.narrow_period_list()
         self._spatial_units = 'm'
-        self.azimuth = 0  # Note this may not be true if the EDI files have been rotated.
+        azi = self.check_azi()
+        if azi:
+            # Note this may not be true if the EDI files have been rotated.
+            self.azimuth = azi
+        else:
+            self.azimuth = 0
         # for site_name in self.site_names:
         #     self.sites[site_name].rotate_data(azi=0)
 
@@ -2499,9 +2650,11 @@ class RawData(object):
         azi = []
         for site in self.sites.values():
             azi.append(site.azimuth)
-        if len(set(azi)) != 1:
+        if len(set(azi)) > 1:
             print('Inconsistent set of azimuths in raw data files')
             return False
+        elif len(set(azi)) == 0:
+            return 0
         else:
             return azi[0]
 

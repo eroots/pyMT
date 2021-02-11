@@ -7,7 +7,6 @@ import re
 import shapefile
 import datetime
 
-
 REMOVE_FLAG = 1234567
 
 
@@ -661,6 +660,7 @@ def read_raw_data(site_names, datpath=''):
     # all_edi = [file for file in os.listdir(path) if file.endswith('.edi')]
     for site in site_names:
         # Look for J-format files first
+        # print(site)
         if ''.join([site, '.dat']) in all_dats:
             if site.endswith('.dat'):
                 file = ''.join([path, site])

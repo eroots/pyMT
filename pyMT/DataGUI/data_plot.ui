@@ -151,7 +151,7 @@
    <property name="minimumSize">
     <size>
      <width>836</width>
-     <height>357</height>
+     <height>395</height>
     </size>
    </property>
    <property name="features">
@@ -600,6 +600,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="toggleSmoothedData">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Smoothed Data</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QCheckBox" name="showOutliers">
               <property name="text">
                <string>Show Outliers</string>
@@ -808,14 +818,31 @@
           <rect>
            <x>10</x>
            <y>10</y>
-           <width>171</width>
-           <height>201</height>
+           <width>211</width>
+           <height>261</height>
           </rect>
          </property>
          <property name="title">
-          <string>Group Manipulations</string>
+          <string>Error Manipulations</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Median Window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QPushButton" name="regErrors">
+            <property name="toolTip">
+             <string>Automatically assign errors based on deviation from smoothed raw data</string>
+            </property>
+            <property name="text">
+             <string>Regulate Errors</string>
+            </property>
+           </widget>
+          </item>
           <item row="5" column="0">
            <widget class="QLabel" name="label_5">
             <property name="text">
@@ -823,16 +850,10 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
-           <widget class="QDoubleSpinBox" name="width">
-            <property name="toolTip">
-             <string>Filter width for calculating smoothed data. Smaller values allow for more erratic data.</string>
-            </property>
-            <property name="minimum">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.000000000000000</double>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Multiplier</string>
             </property>
            </widget>
           </item>
@@ -849,20 +870,16 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Multiplier</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QPushButton" name="regErrors">
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="width">
             <property name="toolTip">
-             <string>Automatically assign errors based on deviation from smoothed raw data</string>
+             <string>Filter width for calculating smoothed data. Smaller values allow for more erratic data.</string>
             </property>
-            <property name="text">
-             <string>Regulate Errors</string>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -876,13 +893,43 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="0" colspan="2">
+          <item row="9" column="0" colspan="2">
            <widget class="QPushButton" name="resetErrors">
             <property name="toolTip">
              <string>Reset errors to assigned floor values</string>
             </property>
             <property name="text">
              <string>Reset to Error Floor</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>Threshold</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QSpinBox" name="medianSize">
+            <property name="toolTip">
+             <string>Median filter length, used in outlier detection.</string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="value">
+             <number>11</number>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QDoubleSpinBox" name="threshold">
+            <property name="toolTip">
+             <string>Threshold value for outlier detection, based on fractional difference between data and median filter.</string>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
             </property>
            </widget>
           </item>

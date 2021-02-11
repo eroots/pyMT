@@ -31,11 +31,13 @@ pyMT/DataGUI/model_map.ui
 pyMT/GUI_common/__init__.py
 pyMT/GUI_common/classes.py
 pyMT/GUI_common/common_functions.py
+pyMT/GUI_common/saveFile.ui
 pyMT/GatewayGUI/__init__.py
 pyMT/GatewayGUI/gateway_main.py
 pyMT/GatewayGUI/gateway_main.ui
 pyMT/GatewayGUI/new_project.ui
 pyMT/GatewayGUI/new_project_treeFormat.ui
+pyMT/ModelGUI/__init__.py
 pyMT/ModelGUI/mesh_designer.py
 pyMT/ModelGUI/mesh_designer.ui
 pyMT/ModelGUI/model_viewer.py
@@ -43,6 +45,7 @@ pyMT/ModelGUI/model_viewer.ui
 pyMT/e_colours/__init__.py
 pyMT/e_colours/colourmaps.py
 pyMT/e_colours/utils.py
+pyMT/resources/__init__.py
 pyMT/scripts/1D_response.py
 pyMT/scripts/DraggablePoint.py
 pyMT/scripts/__init__.py

@@ -36,14 +36,19 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
+from pyMT import resources
 from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser, MyPopupDialog
 from pyMT.IO import debug_print
 from copy import deepcopy
-
+try:
+    import importlib.resources as pkg_resources
+except ImpotError:
+    import importlib_resources as pkg_resources
 
 
 path = os.path.dirname(os.path.realpath(__file__))
-data_plot_jpg = path + '/../resources/images/data_plot.jpg'
+data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
+# data_plot_jpg = path + '/../resources/images/data_plot.jpg'
 
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
 UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
@@ -121,7 +126,8 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.rho_lim[0]),
                                      initial_2=str(self.rho_lim[1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.rho_lim = [float(x) for x in limits]
@@ -131,7 +137,8 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.depth_lim[0]),
                                      initial_2=str(self.depth_lim[1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.depth_lim = [float(x) for x in limits]
@@ -307,6 +314,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_dataInduction.setEnabled(False)
             self.toggle_responseInduction.setEnabled(False)
             self.toggle_normalizeInduction.setEnabled(False)
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('Tipper Amplitude'))
             self.arrowType.setEnabled(False)
         #  Connect phase tensor toggles
         if self.map.dataset.data.inv_type in (1, 5, 6):
@@ -327,6 +335,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.PhaseTensor_fill.setEnabled(False)
             self.Bar_fill.setEnabled(False)
             self.phaseTensorType.setEnabled(False)
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('Beta'))
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('Abs. Beta'))
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('PT Azimuth'))
         #  Connect pseudo-section plotting toggles
         # self.toggle_rhoPseudo.clicked.connect(self.update_map)
         # self.toggle_phasePseudo.clicked.connect(self.update_map)
@@ -405,6 +416,12 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.plotRMS.clicked.connect(self.update_map)
         else:
             self.plotRMS.setEnabled(False)
+        self.action_rmsColour.triggered.connect(self.set_rms_plot)
+        self.action_rmsSize.triggered.connect(self.set_rms_plot)
+        # self.rmsGroup = QtWidgets.QActionGroup(self)
+        # self.action_rmsColour.setActionGroup(self.rmsGroup)
+        # self.action_rmsSize.setActionGroup(self.rmsGroup)
+        # self.rmsGroup.triggered.connect(self.set_rms_plot)
         # Model plan view plotting
         if self.map.dataset.model.file:
             self.toggle_planView.clicked.connect(self.update_map)
@@ -441,6 +458,14 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             return 'Va'
         else:
             return 'phi'
+
+    def set_rms_plot(self):
+        self.map.rms_plot_style = []
+        if self.action_rmsColour.isChecked():
+            self.map.rms_plot_style += ['colour']
+        if self.action_rmsSize.isChecked():
+            self.map.rms_plot_style += ['size']
+        self.update_map()
 
     def set_pseudosection_options(self):
         self.map.include_outliers = self.actionIncludeOutliers.isChecked()
@@ -1047,6 +1072,21 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                               responsefile=files['response'],
                                               datpath=files['raw_path'],
                                               modelfile=files['model'])
+            azis = []
+            message = 'Inconsistent azimuths found in data set {}.\n'.format(dname)
+            if dataset.raw_data.sites:
+                azis.append(dataset.raw_data.azimuth)
+                message += 'Raw Data: {}, '.format(dataset.raw_data.azimuth)
+            if dataset.data.sites:
+                azis.append(dataset.data.azimuth)
+                message += 'Inversion Data: {}, '.format(dataset.data.azimuth)
+            if dataset.response.sites:
+                azis.append(dataset.response.azimuth)
+                message += 'Response: {}'.format(dataset.response.azimuth)
+            if dataset.raw_data.check_azi() is False:
+                message += '\nAzimuths not consistent in raw data (varies by EDI). Fix this before continuing! {}'.format(dataset.raw_data.check_azi())
+            if len(set(azis)) > 1 or dataset.raw_data.check_azi() is False:
+                QtWidgets.QMessageBox.warning(self, 'Failed azimuth check', message)            
             if ii == 0:
                 self.stored_datasets = {dname: dataset}
                 self.dataset = dataset
@@ -1093,6 +1133,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.update_dpm()
         else:
             self.toggle1DResponse.setCheckState(0)
+
+    def plot_smoothed_data(self, event):
+        print('triggered')
+        if self.dataset.smoothed_data:
+            print(['Setting toggle to {}'.format(event)])
+            self.dpm.toggles['smoothed_data'] = event
+            self.update_dpm()
 
     def init_rms_tables(self):
         self.dataset.rms = self.dataset.calculate_RMS()
@@ -1248,12 +1295,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
             all_comps['Rho'].append('RhoDet')
             all_comps['Rho'].append('RhoAAV')
             all_comps['Rho'].append('RhoGAV')
+            all_comps['Rho'].append('RhoSSQ')
             all_comps['Phase'].append('PhaDet')
             all_comps['Phase'].append('PhaAAV')
             all_comps['Phase'].append('PhaGAV')
+            all_comps['Phase'].append('PhaSSQ')
             all_comps['Bostick'].append('BostDet')
             all_comps['Bostick'].append('BostAAV')
             all_comps['Bostick'].append('BostGAV')
+            all_comps['Bostick'].append('BostSSQ')
             if not all_comps['PhsTensor']:  # If it hasn't already been added...
                 all_comps['PhsTensor'].append('PTXX')
                 all_comps['PhsTensor'].append('PTXY')
@@ -1374,13 +1424,15 @@ class DataMain(QMainWindow, Ui_MainWindow):
         return list(filter(None,
                            ['raw_data' * bool(self.toggleRaw.checkState()),
                             'data' * bool(self.toggleData.checkState()),
-                            'response' * bool(self.toggleResponse.checkState())]))
+                            'response' * bool(self.toggleResponse.checkState()),
+                            'smoothed_data' * bool(self.toggleSmoothedData.checkState())]))
 
     def init_dpm(self):
         self.dpm = gplot.DataPlotManager(fig=self.fig)
         self.dpm.sites = self.dataset.get_sites(site_names=self.site_names,
                                                 dTypes=self.dTypes)
         self.dpm.sites.update({'1d': []})
+        self.dpm.sites.update({'smoothed_data': []})
         self.dpm.scale = self.scalingBox.currentText()
 
     def setup_widgets(self):
@@ -1403,8 +1455,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.toggleRaw.setCheckState(bool(self.dataset.raw_data.sites) * 2)
         self.toggleData.setCheckState(bool(self.dataset.data.sites) * 2)
         self.toggleResponse.setCheckState(bool(self.dataset.response.sites) * 2)
+        self.azimuthEdit.setValue(self.dataset.azimuth % 360)
         self.azimuthEdit.valueChanged.connect(self.set_azimuth)
-        self.azimuthEdit.setValue(self.dataset.azimuth)
         self.removeSites.clicked.connect(self.remove_sites)
         self.addSites.clicked.connect(self.add_sites)
         self.recalculateRMS.clicked.connect(self.init_rms_tables)
@@ -1438,6 +1490,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.writeAllPlots.triggered.connect(self.write_all_plots)
         self.actionPhase_Wrap.triggered.connect(self.set_phase_wrap)
         self.regErrors.clicked.connect(self.regulate_errors)
+        if self.dataset.raw_data.initialized:
+            self.medianSize.setMaximum(min([site.NP for site in self.dataset.raw_data.sites.values()]))
+        else:
+            self.medianSize.setMaximum(min(self.dataset.data.NP))
         self.LockAxes.clicked.connect(self.link_axes)
         #  Set up Inversion Type action group
         self.InversionTypeGroup = QtWidgets.QActionGroup(self)
@@ -1505,7 +1561,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['rho'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['rho'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['rho'] = [float(x) for x in limits]
@@ -1515,7 +1572,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['phase'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['phase'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['phase'] = [float(x) for x in limits]
@@ -1525,7 +1583,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['impedance'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['impedance'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['impedance'] = [float(x) for x in limits]
@@ -1535,7 +1594,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['tipper'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['tipper'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['tipper'] = [float(x) for x in limits]
@@ -1570,9 +1630,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def set_phase_wrap(self):
         if self.actionPhase_Wrap.isChecked():
-            self.dpm.wrap = 1
+            self.dpm.wrap_phase = 1
         else:
-            self.dpm.wrap = 0
+            self.dpm.wrap_phase = 0
         if 'pha' in self.dpm.components[0].lower():
             self.dummy_update_dpm(toggled=True)
 
@@ -1636,12 +1696,18 @@ class DataMain(QMainWindow, Ui_MainWindow):
         print('Recalculating error maps...')
         fwidth = float(self.width.text())
         mult = float(self.mult.text())
-        print([fwidth, mult])
-        self.dataset.regulate_errors(multiplier=mult, fwidth=fwidth)
+        median_window = int(self.medianSize.text())
+        threshold = float(self.threshold.text())
+        # print([fwidth, mult])
+        self.dataset.regulate_errors(multiplier=mult, fwidth=fwidth, median_window=median_window, threshold=threshold)
         print('Updating error tree...')
         self.update_error_tree()
         print('Done!')
+        # self.dpm.sites['smoothed_data'] = self.dataset.raw_data.smoothed_data
         self.update_dpm()
+        # if not self.toggleSmoothedData.isEnabled():
+        self.toggleSmoothedData.setEnabled(True)
+        self.toggleSmoothedData.clicked.connect(self.plot_smoothed_data)
 
     def sort_sites(self, index=None):
         if index is None:

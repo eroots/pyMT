@@ -1,7 +1,23 @@
 Change Log
 ==========
 
+*01/01/21
+
+  * Added a median filter to 'Regulate Errors' that should help remove outliers so that the generated errors are more sensible
+
+    * Added corresponding spin boxes to :ref:`Data Plot` to control the median filter parameters
+
 * 17/12/20
+
+  * A standalone executable version of pyMT is now available.
+
+    * This is just the GUIs, with the entry point being the new 'Gateway' GUI.
+
+    * No python installation required - the executable contains everything needed.
+
+      * Main drawback is it is only the GUIs - you won't have access to the pyMT API or any of the scripts.
+
+  * Fixed a minor bug where the data cursor (hovering over plots in :ref:`Map Viewer` or :ref:`Model Viewer`) would give slightly incorrect values
 
   * New 'Gateway' GUI for creating, modifying, and loading your projects (.pymt files, previous 'pystartup' files)
 
