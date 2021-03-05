@@ -202,20 +202,20 @@ if __name__ == '__main__':
     # data_out = []
     ###################################
     # Snorcle Golden Triangle
-    mod_type = 'nest'
-    list_file = 'E:/phd/NextCloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/sorted_cull1b.lst'
-    data_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_hs100_bath_nest.dat'
-    model_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_wTransition_{}.model'.format(mod_type)
+    mod_type = 'large'
+    list_file = 'E:/phd/NextCloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line3_plus.lst'
+    data_file = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_Z_removed.dat'
+    model_file = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_{}.model'.format(mod_type)
     # model_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1/reErred/wTopo/test_{}.model'.format(mod_type)
     # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/new1/bathy.p'
     bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
     # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_nest.p'.format(mod_type)
     # bath_file = []
     bath_out = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
-    model_out = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_wTrans_bath_{}.model'.format(mod_type)
-    cov_out = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull11b_wTrans_bath_{}.cov'.format(mod_type)
-    # data_out = 'E:/phd/NextCloud/data/Regions/snorcle/cull1b/hs100/sno_cull1b_hs100_wTopo_{}.dat'.format(mod_type)
-    data_out = []
+    model_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_bath_{}.model'.format(mod_type)
+    cov_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_bath_{}.cov'.format(mod_type)
+    data_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_wTopo_{}.dat'.format(mod_type)
+    # data_out = []
     # resample_topo = (4, 4)
     resample_topo = False
 
@@ -225,16 +225,16 @@ if __name__ == '__main__':
     model.origin = raw_data.origin
     lat_pad = 5
     lon_pad = 5
-    data_collect_stride = 8
-    with_topography = False
+    data_collect_stride = 4
+    with_topography = True
     with_oceans = True
     # cmap = cmocean.cm.haline
     cmap = None
     ####################################
     # If you want to modify the vertical meshing, do it now (see examples below)
     # Add 20 layers that are each 200 m thick, then append the existing mesh (I used this for testing purposes)
-    # Z = [100] * 25 + model.zCS[20:]
-    # model.zCS = Z
+    Z = [100] * 25 + model.zCS[20:]
+    model.zCS = Z
     # model.vals[:,:,:] = 10
     # model.zCS = [50] * 12 + [20] + model.zCS
     # model.dz = list(np.arange(0, 620, 20)) + list(np.logspace(np.log10(620), 4.5, 80)) + list(np.logspace(4.5, 6, 20))[1:]
