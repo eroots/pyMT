@@ -2728,15 +2728,15 @@ class RawData(object):
                 self.site_names.remove(site_name)
         # Back-check site list to remove those that didn't get read
         self.site_names = [site for site in self.site_names if site in self.sites.keys()]
-        dummy_sites = self.check_dummy_data(threshold=0.00001)
-        if dummy_sites:
-            self.remove_components(sites=dummy_sites,
-                                   components=['TZXR', 'TZXI', 'TZYR', 'TZYI'])
-        #  Check this. It looks like more periods are being removed than should be?
-        #  Take out the call to 'remove_periods' and manually check what it wants to take out.
-        dummy_periods = self.check_dummy_periods()
-        if dummy_periods:
-            self.remove_periods(site_dict=dummy_periods)
+        # dummy_sites = self.check_dummy_data(threshold=0.00001)
+        # if dummy_sites:
+        #     self.remove_components(sites=dummy_sites,
+        #                            components=['TZXR', 'TZXI', 'TZYR', 'TZYI'])
+        # #  Check this. It looks like more periods are being removed than should be?
+        # #  Take out the call to 'remove_periods' and manually check what it wants to take out.
+        # dummy_periods = self.check_dummy_periods()
+        # if dummy_periods:
+        #     self.remove_periods(site_dict=dummy_periods)
         self.locations = Data.get_locs(self)
         self.datpath = datpath
         self.listfile = listfile
@@ -2764,9 +2764,13 @@ class RawData(object):
         for site in self.sites.values():
             periods = []
             for ii, p in enumerate(site.periods):
+                # First check the impedances
                 vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'Z']
                 if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
-                    periods.append(p)
+                    # Then check the tippers
+                    vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'T']
+                    if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
+                        periods.append(p)
             if periods:
                 sites.update({site.name: periods})
         return sites
@@ -2945,6 +2949,15 @@ class RawData(object):
             origin = self.origin
         Data.to_vtk(self, outfile=outfile, origin=origin,
                     UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
+
+    def write_waldim(self):
+        locs = self.get_locs(mode='latlong')
+        with open('list.dat', 'w') as f:
+            f.write('INFO\n')
+            f.write('{}\n'.format(self.NS))
+            for ii, s in enumerate(self.site_names):
+                f.write('{} {:>7.5f} {:>7.5f}\n'.format(s, locs[ii, 0], locs[ii, 1]))
+
 
 
 class PhaseTensor(object):

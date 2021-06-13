@@ -892,6 +892,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.site_locations['active'] = self.map.get_locations(
             sites=self.map.active_sites)
         self.map.site_locations['all'] = self.map.get_locations(self.map.site_names)
+        if self.map.model:
+            self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
 
     def update_map(self):
         # Currently redraws the whole map every time
@@ -1434,6 +1436,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.dpm.sites.update({'1d': []})
         self.dpm.sites.update({'smoothed_data': []})
         self.dpm.scale = self.scalingBox.currentText()
+        if 'ZXYR' not in self.dataset.data.components:
+            self.dpm.components = [self.dataset.data.components[0]]
 
     def setup_widgets(self):
         self.select_points_button.clicked.connect(self.select_points)
@@ -1493,7 +1497,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if self.dataset.raw_data.initialized:
             self.medianSize.setMaximum(min([site.NP for site in self.dataset.raw_data.sites.values()]))
         else:
-            self.medianSize.setMaximum(min(self.dataset.data.NP))
+            self.medianSize.setMaximum(self.dataset.data.NP)
         self.LockAxes.clicked.connect(self.link_axes)
         #  Set up Inversion Type action group
         self.InversionTypeGroup = QtWidgets.QActionGroup(self)

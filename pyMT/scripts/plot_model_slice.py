@@ -1,4 +1,5 @@
 import pyMT.data_structures as WSDS
+from pyMT.utils import edge2center
 import matplotlib.pyplot as plt
 from matplotlib import cm, colors
 from matplotlib.image import PcolorImage
@@ -86,6 +87,33 @@ def interpolate_slice(x, y, Z, NP):
     return interp_vals
 
 
+def save_geotiff(img, vals, x, y, epsg, file_name, z):
+    nx = vals.shape[0]
+    ny = vals.shape[1]
+    xmin, ymin, xmax, ymax = [x.min(), y.min(), x.max(), y.max()]
+    xres = (xmax - xmin) / float(ny)
+    yres = (ymax - ymin) / float(nx)
+    geotransform = (xmin, xres, 0, ymax, 0, -yres)
+    try:
+        num_bands = vals.shape[2]
+    except IndexError:
+        num_bands = 1
+        vals = vals[:,:,np.newaxis]
+    dst_ds = gdal.GetDriverByName('GTiff').Create(file_name, ny, nx, num_bands, gdal.GDT_Float32)
+    dst_ds.SetGeoTransform(geotransform)    # specify coords
+    srs = osr.SpatialReference()            # establish encoding
+    srs.ImportFromEPSG(int(epsg))                # WGS84 lat/long
+    dst_ds.SetProjection(srs.ExportToWkt()) # export coords to file
+    for ii in range(num_bands):
+        raster_band = dst_ds.GetRasterBand(ii+1)
+        raster_band.SetDescription('{}m'.format(z[ii]))
+        dst_ds.GetRasterBand(ii+1).WriteArray(np.flipud(vals[:,:,ii]))   # write r-band to the raster
+    # dst_ds.GetRasterBand(2).WriteArray(g)   # write g-band to the raster
+    # dst_ds.GetRasterBand(3).WriteArray(b)   # write b-band to the raster
+    dst_ds.FlushCache()                     # write to disk
+    dst_ds = None                           # save, close
+
+
 # mod = WSDS.Model(r'C:\Users\eric\Documents' +
 #                  r'\MATLAB\MATLAB\Inversion\Regions' +
 #                  r'\abi-gren\New\abi0_sens\outSens_model.00')
@@ -164,9 +192,10 @@ def interpolate_slice(x, y, Z, NP):
 
 ######################################################################
 # Upper Abitibi
-# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
-# data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
 ######################################################################
 # GERALDTON
@@ -183,11 +212,13 @@ def interpolate_slice(x, y, Z, NP):
 # data = WSDS.RawData(local_path + 'data/Regions/TTZ/j2/allsites.lst')
 ######################################################################
 # SNORCLE
-site_data = WSDS.RawData(local_path + 'data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/all_sorted.lst')
-data = WSDS.RawData(local_path + 'data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/all_sorted.lst')
-# data = WSDS.Data(local_path + 'data/Regions/snorcle/cull1/reErred/wTopo/flat/sno_cull1_reErr_Z_removed.dat')
-mod = WSDS.Model(local_path + 'data/Regions/snorcle/cull1/reErred/wTopo/flat/sno-5k_lastIter.rho')
-
+# site_data = WSDS.RawData(local_path + 'data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/sorted_cull1b.lst')
+# data = WSDS.RawData(local_path + 'data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/sorted_cull1b.lst')
+# site_data = WSDS.RawData(local_path + 'data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line2b_plus.lst')
+# data = WSDS.RawData(local_path + 'data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line2b_plus.lst')
+# # data = WSDS.Data(local_path + 'data/Regions/snorcle/cull1/reErred/wTopo/flat/sno_cull1_reErr_Z_removed.dat')
+# mod = WSDS.Model(local_path + 'data/Regions/snorcle/line2b_plus/line2b_lastIter.rho')
+data.to_utm(zone=17, letter='N')
 kimberlines = []
 # data.locations = data.get_locs(mode='centered')
 locations = np.zeros(site_data.locations.shape)
@@ -196,7 +227,7 @@ for ii, site in enumerate(data.site_names):
     if site in site_data.site_names:
         locations[cc, :] = data.locations[ii, :]
         cc += 1
-mod.origin = site_data.origin
+mod.origin = data.origin
 # data.locations = np.array([[0 for ii in range(17)],
 #                            [0.000000000E+00, 0.501143799E+04, 0.104698379E+05,
 #                             0.136017852E+05, 0.178389980E+05, 0.208527168E+05,
@@ -217,32 +248,39 @@ modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # title_ = 'Standard Inversion'
 save_fig = 1
+geotiff = 0
+vals_multiband = []
+multiband = True
+epsg = '26909'
+tag = 'inv14-Z'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 annotate_sites = False
 site_markers = True
 site_marker_tol = 25000
-add_map = True
-add_colourbar = True
-marker = 'kv'
+add_map = False
+add_colourbar = False
+marker = 'ko'
 padding = 50000
 reverse_xaxis = False
 # zlim = [0, 4.5]
 lut = 64
-cax = [0, 4.5]
+cax = [0, 5]
+# cax = [0, 4.5]
 isolum = False
 tick_label_size = 10
 axis_label_size = 12
-markersize = 3
+markersize = 5
 # slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
 # lines = ['l0', 'l3', 'l6', 'l9', 'l12']
-slices = list(range(11, 40, 2))
+# slices = list(range(11, 40, 2))
 # slices = [5, 13, 16, 20, 22, 24, 26, 28, 30, 32, 33, 35, 37]
-# slices = list(range(mod.ny))
+slices = list(range(0, mod.nz - 15))
+# slices = [10]
 # slices = list(range(19, 43))
-# slices = [54]
+# slices = [20, 34]
 lines = ['l0']
 # xlim = [-50, 50]
 # zlim = [-100, 100]
@@ -254,12 +292,14 @@ VE = 1 # Vertical exaggeration
 # xlim = [463139.0099493311 / 1000, 790673.8220597332 / 1000]
 # zlim = [5246370.107073599 / 1000, 5468333.540126671 / 1000]
 xlim = []
-xy_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
-xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
-xz_xlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
-xz_zlim = [0, 200]
-yz_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
-yz_zlim = [0, 200]
+# xy_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
+xy_xlim = [609.885, 659.423]
+xy_zlim = [5315.767, 5380.109]
+# xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+# xz_xlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+# xz_zlim = [0, 200]
+# yz_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
+# yz_zlim = [0, 200]
 # zlim = [mod.elevation[0]/1000, 60]
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
@@ -290,24 +330,24 @@ if cmap_name in ('jetplus', 'turbo', 'turbo_r', 'turbo_r_mod'):
     cmap = colourmaps.get_cmap(cmap_name, N=lut)
 else:
     cmap = cm.get_cmap(cmap_name, lut)
-# file_path = local_path + 'Documents/ME_Transects/Geraldton/RoughFigures/model_slices/'
-file_path = local_path + 'Documents/GoldenTriangle/RoughFigures/flat/5km/'
+file_path = local_path + 'Documents/ME_Transects/Rouyn/w_static/depth_slices/'
+# file_path = local_path + 'Documents/GoldenTriangle/RoughFigures/geotiffs/'
 # file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbomod0-4p5/'
 # for line, slice_num in zip(lines, slices):
-for plane in ['xz', 'yz']:
-# for plane in ['xy']:
-    if plane == 'xy':
-        slices = list(range(11, 43))
-        add_map = False
-        add_colourbar = False
-    elif plane == 'xz':
-        slices = list(range(5, mod.ny - 5))
-        add_map = True
-        add_colourbar = True
-    elif plane == 'yz':
-        slices = list(range(5, mod.nx - 5))
-        add_map = True
-        add_colourbar = True
+# for plane in ['xz', 'yz']:
+for plane in ['xy']:
+    # if plane == 'xy':
+    #     slices = list(range(11, 43))
+    #     add_map = False
+    #     add_colourbar = False
+    # elif plane == 'xz':
+    #     slices = list(range(5, mod.ny - 5))
+    #     add_map = True
+    #     add_colourbar = True
+    # elif plane == 'yz':
+    #     slices = list(range(5, mod.nx - 5))
+    #     add_map = True
+    #     add_colourbar = True
     for slice_num in slices:
         # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
         if plane.lower() == 'xy':
@@ -325,14 +365,15 @@ for plane in ['xz', 'yz']:
 
         title_ = '{} Slice {}, {}: {:4.2f} km'.format(plane.upper(), slice_num, direction, slice_loc/1000)
         # file_name = ''.join(['afton3_turbo1-4_', str(int(mod.dz[slice_num])), 'm'])
-        file_types = ['.pdf']
+        file_types = ['.png']
         # file_path = 'E:/phd/NextCloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/Report/'
         # file_name = 'cio_xzSlice{}_{:4.2f}km'.format(slice_num, mod.dy[slice_num]/1000)
-        file_name = 'snorcle-hs100_{}Slices'.format(plane)
+        # file_name = 'snorcle-hs100_{}Slices'.format(plane)
+        # file_name = '{}_ZSlices'.format(tag)
         # locations = data.get_locs(site_list=[site for site in data.site_names if site.startswith(line)])
         # locations = site_data.get_locs()
         # file_name = ''.join(['LL_All_jet1-5_NS_', str(slice_num), 'm.png'])
-        # file_name = 'depth-slice_{}m'.format(int(mod.dx[int(slice_num)]))
+        file_name = 'RN_planView_{}m'.format(int(mod.dz[int(slice_num)]))
         # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
         #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
         # xlim = [5390, 5412]
@@ -509,12 +550,15 @@ for plane in ['xz', 'yz']:
                     if plane == 'xz':
                         idx = abs(locations[:, 1] - slice_loc) < site_marker_tol
                         locs = plot_ax.plot(locations[idx, 0] / 1000, np.zeros((locations[idx, 0].shape)) - 0.025, marker, markersize=markersize)
+                        locs[0].set_clip_on(False)
                     elif plane == 'yz':
                         idx = abs(locations[:, 0] - slice_loc) < site_marker_tol
                         locs = plot_ax.plot(locations[idx, 1] / 1000, np.zeros((locations[idx, 1].shape)) - 0.05, marker, markersize=markersize)
+                        locs[0].set_clip_on(False)
                     elif plane == 'xy':
                         locs = plot_ax.plot(locations[:, 1] / 1000, locations[:, 0] / 1000, marker, markersize=markersize)
-                    locs[0].set_clip_on(False)
+
+                    
                 if annotate_sites:
                     for jj, site in enumerate(data.site_names):
                         plt.text(s=site,
@@ -609,10 +653,34 @@ for plane in ['xz', 'yz']:
                     fig.savefig(pp, format='pdf', dpi=300, orientation='landscape')#, bbox_inches='tight')
                     fig.clear()
                 else:
-                    fig.savefig(file_path + file_name + ext, dpi=300,
-                                transparent=True)
+                    if geotiff:
+                        from osgeo import gdal
+                        from osgeo import osr
+                        from scipy.interpolate import RegularGridInterpolator as RGI
+                        x_center, y_center = edge2center(x_ax), edge2center(y_ax)
+                        dx = np.min(np.diff(x_center))
+                        dy = np.min(np.diff(y_center))
+                        qx = np.linspace(np.min(x_center), np.max(x_center) + dx, int((np.max(x_center) - np.min(x_center))/dx))
+                        qy = np.linspace(np.min(y_center), np.max(y_center) + dy, int((np.max(y_center) - np.min(y_center))/dy))
+                        X, Y = np.meshgrid(qx, qy)
+                        query_points = np.array((Y.flatten(), X.flatten())).T
+                        interpolator = RGI((y_center, x_center), vals, bounds_error=False, fill_value=5)
+                        vals = interpolator(query_points)
+                        vals = np.reshape(vals, [len(qy), len(qx)])
+                        if multiband:
+                            vals_multiband.append(vals)
+                        # Need to interpolate onto a uniform grid.
+                        else:
+                            save_geotiff(im, vals, qx, qy, epsg, ''.join([file_path, file_name, '.tif']))
+                    else:
+                        fig.savefig(file_path + file_name + ext, dpi=300,
+                                    transparent=True)
                     plt.close()
         else:
             plt.show()
     if save_fig and '.pdf' in file_types:
         pp.close()
+if save_fig and multiband and geotiff:
+    slice_locs = [int(mod.dz[ii]) for ii in slices]
+    save_geotiff(im, np.transpose(np.array(vals_multiband),[1,2,0]),
+                 qx, qy, epsg, ''.join([file_path, file_name, '.tif']), slice_locs)

@@ -15,7 +15,8 @@ local_path = 'E:/'
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Test_Models\dimensionality\synthLayer.data'
 # listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst'
 # listfile = local_path + '/phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
-listfile = local_path + 'phd/Nextcloud/data/Regions/snorcle/j2/2020-collation-ian/line1.lst'
+# listfile = local_path + 'phd/Nextcloud/data/Regions/snorcle/j2/2020-collation-ian/line1.lst'
+listfile = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst'
 dataset = WSDS.Dataset(listfile=listfile)
 # dataset.remove_sites(sites='MAL062A')
 dataset.sort_sites('south-north')
@@ -25,8 +26,8 @@ data = dataset.raw_data
 hour_or_day = 1  # sets the interval in labels, so choose appropriately
 n_interp = 300
 interp_method = 'linear'
-cax_rho = [0, 3.5]
-component = 'xy'
+cax_rho = [0, 5]
+component = 'det'
 # data = WSDS.Data(datafile=datafile)
 # rmsites = [site for site in data.site_names if site[0] == 'e' or site[0] == 'd']
 # data.remove_sites(rmsites)
@@ -87,7 +88,7 @@ def plot_pha():
     plt.clim([0, 90])
     plt.gca().invert_yaxis()
     cb_pha = plt.colorbar()
-    cb_pha.set_clim(0, 90)
+    # cb_pha.set_clim(0, 90)
     cb_pha.ax.tick_params(labelsize=12)
     cb_pha.set_label(r'Phase ($^{\circ}$)',
                      rotation=270,
@@ -111,7 +112,7 @@ def plot_rho():
     # plt.xticks(xticks, xtick_labels)
     plt.clim(cax_rho)
     cb_rho = plt.colorbar()
-    cb_rho.set_clim(cax_rho[0], cax_rho[1])
+    # cb_rho.set_clim(cax_rho[0], cax_rho[1])
     cb_rho.ax.tick_params(labelsize=12)
     cb_rho.set_label(r'$\log_{10}$ Resistivity ($\Omega \cdot m$)',
                      rotation=270,

@@ -20,7 +20,7 @@ def gen_tiling(num_plots):
 # data = WSDS.RawData(listfile='C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/matheson/j2/mat_westLine.lst')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/afton/sorted_lines.dat')
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/R2southeast_1/2d/R2SE_2d_0deg.dat')
-data = WSDS.Data('E:/phd/Nextcloud/data/Regions/MetalEarth/rouyn/rou_north_all.dat')
+data = WSDS.Data('E:/phd/NextCloud/data/Regions/thot/line_L-plotset.dat')
 # NP = len(data.master_period_list().keys())
 NP = data.NP
 # NP = 36

@@ -565,6 +565,7 @@ class DataPlotManager(object):
                         markersize = self.markersize * 1.25
                     else:
                         markersize = self.markersize
+                        use_marker = marker
                 else:
                     use_marker = marker
                     markersize = self.markersize
@@ -589,8 +590,8 @@ class DataPlotManager(object):
                     ma.append(max(toplot))
                     mi.append(min(toplot))
                 else:
-                    if (self.toggles['raw_data'] and Type.lower() == 'raw_data') or \
-                       (not self.toggles['raw_data']):
+                    if ((self.toggles['raw_data'] and Type.lower() == 'raw_data') or \
+                       (not self.toggles['raw_data'])) and toplot:
                         # showdata = self.remove_outliers(site.periods, toplot)
                         showdata = utils.remove_outliers(toplot)
                         ma.append(max(showdata))
@@ -965,7 +966,7 @@ class MapView(object):
             marker = self.site_marker
             facecolour['active'] = self.facecolour
             facecolour['generic'] = self.facecolour
-            edgewidth = 0
+            # edgewidth = 1
         if len(self.site_locations['generic']) > 0:
             try:
                 self.window['axes'][0].scatter(self.site_locations['generic'][:, 1],
@@ -1074,7 +1075,12 @@ class MapView(object):
                                                                 scale=1,
                                                                 scale_units=None)
                     self.set_axis_limits()
-            key_length_idx = np.argmin(np.abs(preserved_lengths - 0.5))
+                else:
+                    preserved_lengths = 0
+            # If no arrows are drawn
+            if not idx:
+                return
+            # key_length_idx = np.argmin(np.abs(preserved_lengths - 0.5))
             key_length = 0.5 * self.induction_scale / 50
             horz_scale = (y_max - y_min) / 10
             vert_scale = (x_max - x_min) / 10
@@ -1119,7 +1125,7 @@ class MapView(object):
                     lower, upper = self.rho_cax
             elif pt_type.lower() == 'va':
                 if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
-                    lower, upper = [-10 ** self.rho_cax[1], 10 ** self.rho_cax[1]]
+                    lower, upper = [-1 * self.rho_cax[1], self.rho_cax[1]]
         return lower, upper
 
     def generate_rectangle(self, width, height, angle):
@@ -1164,8 +1170,11 @@ class MapView(object):
             phi_min = getattr(tensor, '_'.join([pt_type, 'phi_min']))
             azimuth = getattr(tensor, '_'.join([pt_type, 'azimuth']))
             fill_val = getattr(tensor, '_'.join([pt_type, fill_param]))
-            if fill_param in ('phi_1', 'phi_2', 'phi_3', 'phi_min', 'phi_max', 'det_phi') and pt_type.lower() == 'ua':
-                fill_val = np.log10(abs(fill_val))
+            if fill_param in ('phi_1', 'phi_2', 'phi_3', 'phi_min', 'phi_max', 'det_phi'):
+                if pt_type.lower() == 'ua':
+                    fill_val = np.log10(abs(fill_val))
+                elif pt_type.lower() == 'va':
+                    fill_val = np.sign(fill_val)*np.log10(abs(fill_val))
         return tensor, phi, phi_max, phi_min, azimuth, fill_val
 
     def resize_ellipse(self, azimuth, phi_max):
@@ -1619,8 +1628,8 @@ class MapView(object):
             ax = self.window['axes'][0]
         ax.imshow(image, extent=extents, alpha=self.image_opacity, zorder=2)
 
-    @utils.enforce_input(sites=list, data_type=str, fill_param=str, periods=tuple, pt_type=str, x_axis=str)
-    def tensor_ellipse_pseudosection(self, sites=None, data_type='data', fill_param='beta', periods=(), pt_type=None, x_axis='linear'):
+    @utils.enforce_input(sites=list, data_type=str, fill_param=str, periods=tuple, pt_type=str, x_axis=str, annotate_sites=bool)
+    def tensor_ellipse_pseudosection(self, sites=None, data_type='data', fill_param='beta', periods=(), pt_type=None, x_axis='linear', annotate_sites=False):
         # Here periods is defined by the tuple (lower, upper, skip). Done this way to ensure we can treat both raw and used data
         ellipses = []
         fill_vals = []
@@ -1641,6 +1650,18 @@ class MapView(object):
             X = X[idx]
             sites = [sites[c] for c in idx]
             label = 'Easting ({})'.format(self.site_data[data_type].spatial_units)
+        elif x_axis.lower() in ('lat', 'latitude'):
+            X = np.array([self.site_data[data_type].sites[site_name].locations['Lat'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = r'Latitude ($^{\circ}$)'
+        elif x_axis.lower() in ('lon', 'long', 'longitude'):
+            X = np.array([self.site_data[data_type].sites[site_name].locations['Long'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = r'Longitude ($^{\circ}$)'
         elif x_axis.lower() == 'linear':
             # If linear distance is used, assume the user has the sites in the desired order
             x = np.array([self.site_data[data_type].sites[site_name].locations['X'] for site_name in sites])
@@ -1651,6 +1672,7 @@ class MapView(object):
                         # (np.max(np.log10(periods[0])) - np.log10(np.min(periods[1]))) ** 2)
         x_scale = (np.max(X) - np.min(X))
         y_scale = (np.log10(periods[1]) - np.log10(periods[0]))
+        # print([x_scale, y_scale])
         X_all, Y_all = [], []
         for ii, site_name in enumerate(sites):
             site = self.site_data[data_type].sites[site_name]
@@ -1714,8 +1736,14 @@ class MapView(object):
                                               rotation=270,
                                               labelpad=20,
                                               fontsize=18)
-        xlim = [min(X_all) - 1, max(X_all) + 1]
-        ylim = [min(Y_all) - 0.2, max(Y_all) + 0.2]
+        x_diff = abs(max(X_all) - min(X_all))
+        y_diff = abs(max(Y_all) - min(Y_all))
+        x_min, x_max = min(X_all), max(X_all)
+        y_min, y_max = min(Y_all), max(Y_all)
+        xlim = [x_min - x_diff/10, x_max + x_diff/10]
+        ylim = [y_min - y_diff/10, y_max + y_diff/10]
+        # print([x_min, x_max, x_diff])
+        # print([y_min, y_max, y_diff])        
         aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])
         self.set_axis_limits(bounds=xlim + ylim)
         self.window['axes'][0].set_aspect(aspect)
@@ -1743,6 +1771,18 @@ class MapView(object):
             X = X[idx]
             sites = [sites[c] for c in idx]
             label = 'Easting ({})'.format(self.site_data[data_type].spatial_units)
+        elif x_axis.lower() in ('lat', 'latitude'):
+            X = np.array([self.site_data[data_type].sites[site_name].locations['Lat'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = r'Latitude ($^{\circ}$)'
+        elif x_axis.lower() in ('lon', 'long', 'longitude'):
+            X = np.array([self.site_data[data_type].sites[site_name].locations['Long'] for site_name in sites])
+            idx = np.argsort(X)
+            X = X[idx]
+            sites = [sites[c] for c in idx]
+            label = r'Longitude ($^{\circ}$)'
         elif x_axis.lower() == 'linear':
             # If linear distance is used, assume the user has the sites in the desired order
             x = np.array([self.site_data[data_type].sites[site_name].locations['X'] for site_name in sites])
@@ -1779,6 +1819,7 @@ class MapView(object):
                     x, y = self.generate_rectangle(width, height, azimuth)
                     # # x *= (self.pt_scale * x_scale / (100))
                     # # y *= (self.pt_scale * y_scale / (100))
+                    # phi_x = [self.ellipse_VE * (self.pt_scale * x_scale / (radius * 100)) * x for x in phi_x]
                     x = self.ellipse_VE * (self.pt_scale * x_scale / (100)) * x
                     y = (self.pt_scale * y_scale / (100)) * y
                     rectangles.append([xy[0] - x, xy[1] - y])
@@ -1803,8 +1844,14 @@ class MapView(object):
                                         zorder=4,
                                         edgecolor=None)
         self.window['axes'][0].invert_yaxis()
-        xlim = [min(X_all) - 20, max(X_all) + 20]
-        ylim = [min(Y_all) - 0.2, max(Y_all) + 0.2]
+        x_diff = abs(max(X_all) - min(X_all))
+        y_diff = abs(max(Y_all) - min(Y_all))
+        x_min, x_max = min(X_all), max(X_all)
+        y_min, y_max = min(Y_all), max(Y_all)
+        # print([x_min, x_max, x_diff])
+        # print([y_min, y_max, y_diff])
+        xlim = [x_min - x_diff/10, x_max + x_diff/10]
+        ylim = [y_min - y_diff/10, y_max + y_diff/10]
         aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])
         self.set_axis_limits(bounds=xlim + ylim)
         
