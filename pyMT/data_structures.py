@@ -2323,7 +2323,8 @@ class Site(object):
             # if ind is None
             # self.periods.delete(ind)
             self.periods = np.delete(self.periods, ind)
-            del self.phase_tensors[int(ind)]
+            if self.phase_tensors:
+                del self.phase_tensors[int(ind)]
             for comp in self.data.keys():
                 self.data[comp] = np.delete(self.data[comp], ind)
                 self.errors[comp] = np.delete(self.errors[comp], ind)
@@ -2728,18 +2729,30 @@ class RawData(object):
                 self.site_names.remove(site_name)
         # Back-check site list to remove those that didn't get read
         self.site_names = [site for site in self.site_names if site in self.sites.keys()]
-        # dummy_sites = self.check_dummy_data(threshold=0.00001)
-        # if dummy_sites:
-        #     self.remove_components(sites=dummy_sites,
-        #                            components=['TZXR', 'TZXI', 'TZYR', 'TZYI'])
-        # #  Check this. It looks like more periods are being removed than should be?
-        # #  Take out the call to 'remove_periods' and manually check what it wants to take out.
-        # dummy_periods = self.check_dummy_periods()
-        # if dummy_periods:
-        #     self.remove_periods(site_dict=dummy_periods)
+        dummy_sites = self.check_dummy_data(threshold=0.00001)
+        if dummy_sites:
+            self.remove_components(sites=dummy_sites,
+                                   components=['TZXR', 'TZXI', 'TZYR', 'TZYI'])
+         # Check this. It looks like more periods are being removed than should be?
+         # Take out the call to 'remove_periods' and manually check what it wants to take out.
+        dummy_periods = self.check_dummy_periods()
+        if dummy_periods:
+            self.remove_periods(site_dict=dummy_periods)
+        self.set_remove_flags()
         self.locations = Data.get_locs(self)
         self.datpath = datpath
         self.listfile = listfile
+
+    def set_remove_flags(self):
+        # Likely some other conditions here for flagging, but this is the one I need to handle now.
+        for site in self.site_names:
+            for comp in self.sites[site].components:
+                for ii in range(self.sites[site].NP):
+                    if self.sites[site].data[comp][ii] == -9999:
+                        self.sites[site].errors[comp][ii] = self.sites[site].REMOVE_FLAG
+                        self.sites[site].used_error[comp][ii] = self.sites[site].REMOVE_FLAG
+
+
 
     def average_rho(self, fwidth=1):
         avg = []
@@ -2765,12 +2778,14 @@ class RawData(object):
             periods = []
             for ii, p in enumerate(site.periods):
                 # First check the impedances
-                vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'Z']
+                # vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'Z']
+                vals = [site.data[comp][ii] for comp in site.components]
                 if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
+                    # print(site.name)
                     # Then check the tippers
-                    vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'T']
-                    if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
-                        periods.append(p)
+                    # vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'T']
+                    # if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
+                    periods.append(p)
             if periods:
                 sites.update({site.name: periods})
         return sites
