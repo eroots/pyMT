@@ -47,7 +47,9 @@ except ImpotError:
 
 
 path = os.path.dirname(os.path.realpath(__file__))
-data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
+with pkg_resources.path(resources, 'data_plot.jpg') as p:
+    data_plot_jpg = str(p)
+# data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
 # data_plot_jpg = path + '/../resources/images/data_plot.jpg'
 
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))

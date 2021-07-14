@@ -6,7 +6,7 @@ import pyMT.data_structures as WSDS
 import numpy as np
 import copy
 from PyQt5.uic import loadUiType
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from pyMT.GUI_common.common_functions import check_key_presses
 from pyMT.GUI_common.classes import FileDialog
 from scipy.ndimage import gaussian_filter
@@ -17,8 +17,16 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 import sys
 import os
+try:
+    import importlib.resources as pkg_resources
+except ImpotError:
+    import importlib_resources as pkg_resources
+from pyMT import resources
+
 
 path = os.path.dirname(os.path.realpath(__file__))
+with pkg_resources.path(resources, 'mesh_designer.jpg') as p:
+    mesh_designer_jpg = str(p)
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'mesh_designer.ui'))
 plt.rcParams['font.size'] = 8
 
@@ -578,6 +586,7 @@ def main():
 
     app = QtWidgets.QApplication(sys.argv)
     viewer = model_viewer_2d(model=model, data=data)
+    viewer.setWindowIcon(QtGui.QIcon(mesh_designer_jpg))
     viewer.show()
     ret = app.exec_()
     sys.exit(ret)

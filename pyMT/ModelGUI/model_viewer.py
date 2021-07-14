@@ -43,7 +43,9 @@ except ImpotError:
 
 
 path = ospath.dirname(ospath.realpath(__file__))
-model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
+with pkg_resources.path(resources, 'model_viewer.jpg') as p:
+    model_viewer_jpg = str(p)
+# model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
 # model_viewer_jpg = path + '/../resources/images/data_plot.jpg'
 # Ui_MainWindow, QMainWindow = loadUiType(ospath.join(path, 'data_plot.ui'))
 # UiPopupMain, QPopupWindow = loadUiType(ospath.join(path, 'saveFile.ui'))

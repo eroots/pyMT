@@ -15,9 +15,15 @@ from pyMT.WSExceptions import WSFileError
 
 
 path = os.path.dirname(os.path.realpath(__file__))
-model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
-data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
-mesh_designer_jpg = str(next(pkg_resources.path(resources, 'mesh_designer.jpg').func(resources, 'mesh_designer.jpg')))
+with pkg_resources.path(resources, 'model_viewer.jpg') as p:
+    model_viewer_jpg = str(p)
+with pkg_resources.path(resources, 'data_plot.jpg') as p:
+    data_plot_jpg = str(p)
+with pkg_resources.path(resources, 'mesh_designer.jpg') as p:
+    mesh_designer_jpg = str(p)
+# model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
+# data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
+# mesh_designer_jpg = str(next(pkg_resources.path(resources, 'mesh_designer.jpg').func(resources, 'mesh_designer.jpg')))
 # model_viewer_jpg = path + '/../resources/images/model_viewer.jpg'
 # data_plot_jpg = path + '/../resources/images/data_plot.jpg'
 # Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'gateway_main.ui'))
