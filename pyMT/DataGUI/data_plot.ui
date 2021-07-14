@@ -67,13 +67,6 @@
     <property name="title">
      <string>Display Options</string>
     </property>
-    <widget class="QMenu" name="menuError_Bars">
-     <property name="title">
-      <string>Error Bars</string>
-     </property>
-     <addaction name="actionDataErrors"/>
-     <addaction name="actionRawErrors"/>
-    </widget>
     <widget class="QMenu" name="menuPhase_Tensor_Units">
      <property name="title">
       <string>Phase Tensor Units</string>
@@ -91,7 +84,6 @@
      <addaction name="actionTipperLimits"/>
     </widget>
     <addaction name="actionPhase_Wrap"/>
-    <addaction name="menuError_Bars"/>
     <addaction name="menuPhase_Tensor_Units"/>
     <addaction name="menuAxis_Limits"/>
    </widget>
@@ -133,7 +125,6 @@
      <string>1D Modeling</string>
     </property>
     <addaction name="actionLaunchModeler"/>
-    <addaction name="actionPlot1DResponse"/>
    </widget>
    <addaction name="menuDisplay_Options"/>
    <addaction name="menuWrite"/>
@@ -151,7 +142,7 @@
    <property name="minimumSize">
     <size>
      <width>836</width>
-     <height>395</height>
+     <height>419</height>
     </size>
    </property>
    <property name="features">
@@ -168,40 +159,6 @@
      </sizepolicy>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="3">
-      <widget class="QPushButton" name="ReadDataButton">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Read Data</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QPushButton" name="ForwardButton">
-       <property name="text">
-        <string>Forward</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QPushButton" name="BackButton">
-       <property name="text">
-        <string>Back</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="WriteDataButton">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Write Data</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="sizePolicy">
@@ -225,6 +182,9 @@
            <width>141</width>
            <height>20</height>
           </rect>
+         </property>
+         <property name="toolTip">
+          <string>Activate period selection. When activated, left click on points to add a period, right click to remove.</string>
          </property>
          <property name="text">
           <string>Add Periods to Data</string>
@@ -332,6 +292,9 @@
            <height>28</height>
           </rect>
          </property>
+         <property name="toolTip">
+          <string>Remove highlighted stations (from box on the left)</string>
+         </property>
          <property name="text">
           <string>----&gt;</string>
          </property>
@@ -345,6 +308,9 @@
            <height>28</height>
           </rect>
          </property>
+         <property name="toolTip">
+          <string>Add highlighted stations (from the box on the right)</string>
+         </property>
          <property name="text">
           <string>&lt;----</string>
          </property>
@@ -357,6 +323,9 @@
            <width>111</width>
            <height>22</height>
           </rect>
+         </property>
+         <property name="toolTip">
+          <string>Change the current data set. Note that some options are disabled when viewing multiple data sets.</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_8">
@@ -380,6 +349,9 @@
            <width>93</width>
            <height>28</height>
           </rect>
+         </property>
+         <property name="toolTip">
+          <string>Print some diagnostic info about the data periods (will be printed in the box on the right of this tab)</string>
          </property>
          <property name="text">
           <string>Print Periods</string>
@@ -406,6 +378,9 @@
            <width>111</width>
            <height>22</height>
           </rect>
+         </property>
+         <property name="toolTip">
+          <string>Sort the list of stations according to location</string>
          </property>
         </widget>
         <widget class="QGroupBox" name="groupBox_6">
@@ -465,27 +440,14 @@
            <height>22</height>
           </rect>
          </property>
+         <property name="toolTip">
+          <string>Rotate data / station locations. Rotates according to 3D rules - i.e., Z/K data are rotated in the opposite direction to station locations. Always sanity check the results of this.</string>
+         </property>
          <property name="wrapping">
           <bool>true</bool>
          </property>
          <property name="maximum">
           <number>359</number>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="recalculateRMS">
-         <property name="geometry">
-          <rect>
-           <x>590</x>
-           <y>100</y>
-           <width>111</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <property name="toolTip">
-          <string>Recalculate RMS in the Misfit Table. Required after changing data sets.</string>
-         </property>
-         <property name="text">
-          <string>Recalculate RMS</string>
          </property>
         </widget>
        </widget>
@@ -501,16 +463,12 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
-             <widget class="QRadioButton" name="dataErrRadio">
-              <property name="text">
-               <string>Data Errors</string>
+             <widget class="QCheckBox" name="rawErrorCheck">
+              <property name="toolTip">
+               <string>Plot errors from raw data (i.e., those read from EDI/j-format files)</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="usedErrRadio">
               <property name="text">
-               <string>Used Errors</string>
+               <string>Raw Data Errors</string>
               </property>
               <property name="checked">
                <bool>true</bool>
@@ -518,9 +476,18 @@
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="noErrRadio">
+             <widget class="QCheckBox" name="invErrorCheck">
+              <property name="toolTip">
+               <string>Plot inversion data errors (i.e., those that will be included in the input/output data file). Includes any modified error multipliers.</string>
+              </property>
+              <property name="toolTipDuration">
+               <number>-1</number>
+              </property>
               <property name="text">
-               <string>No Errors</string>
+               <string>Inversion Data Errors</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -561,6 +528,9 @@
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
              <widget class="QCheckBox" name="toggleRaw">
+              <property name="toolTip">
+               <string>Plot raw data (i.e., that read from EDI/j-format files)</string>
+              </property>
               <property name="text">
                <string>Raw Data</string>
               </property>
@@ -571,6 +541,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="toggleData">
+              <property name="toolTip">
+               <string>Plot inversion data (i.e., the input/output data for your inversion)</string>
+              </property>
               <property name="text">
                <string>Data</string>
               </property>
@@ -581,6 +554,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="toggleResponse">
+              <property name="toolTip">
+               <string>Plot the model response (i.e., the output response from your inversion)</string>
+              </property>
               <property name="text">
                <string>Response</string>
               </property>
@@ -594,6 +570,9 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="toolTip">
+               <string>Plot the 1D response from the '1D modelling' module</string>
+              </property>
               <property name="text">
                <string>1D Response</string>
               </property>
@@ -604,6 +583,9 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="toolTip">
+               <string>Plot the smoothed data generated when using the 'Regulate Errors' option</string>
+              </property>
               <property name="text">
                <string>Smoothed Data</string>
               </property>
@@ -611,6 +593,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="showOutliers">
+              <property name="toolTip">
+               <string>Show / Hide data outliers. A bit finicky.</string>
+              </property>
               <property name="text">
                <string>Show Outliers</string>
               </property>
@@ -621,6 +606,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="plotFlaggedData">
+              <property name="toolTip">
+               <string>Show / Hide flagged (i.e., dummy) data</string>
+              </property>
               <property name="text">
                <string>Flagged Data</string>
               </property>
@@ -631,6 +619,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="LockAxes">
+              <property name="toolTip">
+               <string>Lock all axes to the same bounds. Can change bounds in the Display Options -&gt; Axis Limits menu</string>
+              </property>
               <property name="text">
                <string>Lock Axes</string>
               </property>
@@ -648,6 +639,9 @@
          </item>
          <item row="5" column="3">
           <widget class="QComboBox" name="scalingBox">
+           <property name="toolTip">
+            <string>Scale the Y-axis of the subplots. Useful when plotting impedances.</string>
+           </property>
            <item>
             <property name="text">
              <string>None</string>
@@ -703,13 +697,6 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="4">
-          <widget class="QPushButton" name="showMap">
-           <property name="text">
-            <string>Show Map</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="4">
           <widget class="QLineEdit" name="numSubplots">
            <property name="maximumSize">
@@ -718,10 +705,16 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Change the number of subplots in the canvas</string>
+           </property>
           </widget>
          </item>
          <item row="4" column="4">
           <widget class="QDoubleSpinBox" name="outlierThreshold">
+           <property name="toolTip">
+            <string>Change the threshold value used to determine what is an outlier (when 'Show Outliers' is unchecked)</string>
+           </property>
            <property name="maximum">
             <double>10.000000000000000</double>
            </property>
@@ -1130,6 +1123,40 @@
        </widget>
       </widget>
      </item>
+     <item row="0" column="2">
+      <widget class="QPushButton" name="recalculateRMS">
+       <property name="toolTip">
+        <string>Recalculate RMS in the Misfit Table. Required after changing data sets.</string>
+       </property>
+       <property name="text">
+        <string>Recalculate RMS</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QPushButton" name="BackButton">
+       <property name="text">
+        <string>Back</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="ForwardButton">
+       <property name="text">
+        <string>Forward</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QPushButton" name="showMap">
+       <property name="toolTip">
+        <string>Launch the 'Map Viewer'</string>
+       </property>
+       <property name="text">
+        <string>Show Map</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -1264,6 +1291,9 @@
     <bool>true</bool>
    </property>
    <property name="text">
+    <string>Phase Wrap</string>
+   </property>
+   <property name="toolTip">
     <string>Phase Wrap</string>
    </property>
   </action>

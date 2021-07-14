@@ -36,6 +36,6 @@ setup(name='pyMT',
                         'pyproj',
                         'pyshp',
                         'pyvista==0.23',
-                        'pyqt5',
+                        'pyqt',
                         'vtk'],
       include_package_data=True)

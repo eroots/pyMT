@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from pyMT.GUI_common.classes import FileInputParser
 from pyMT.DataGUI.data_plot import DataMain
 from pyMT.ModelGUI.model_viewer import ModelWindow
+from pyMT.ModelGUI.mesh_designer import model_viewer_2d as MeshDesigner
 import sys
 import os
 try:
@@ -16,9 +17,10 @@ from pyMT.WSExceptions import WSFileError
 path = os.path.dirname(os.path.realpath(__file__))
 model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
 data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
+mesh_designer_jpg = str(next(pkg_resources.path(resources, 'mesh_designer.jpg').func(resources, 'mesh_designer.jpg')))
 # model_viewer_jpg = path + '/../resources/images/model_viewer.jpg'
 # data_plot_jpg = path + '/../resources/images/data_plot.jpg'
-Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'gateway_main.ui'))
+# Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'gateway_main.ui'))
 Ui_NewProject, QNewProject = loadUiType(os.path.join(path, 'new_project.ui'))
 
 
@@ -32,6 +34,7 @@ class NewProject(QNewProject, Ui_NewProject):
         self.project_path = ''
         self.dp_windows = []
         self.model_windows = []
+        self.md_windows = []
         # self.dataset_index = 0
         self.file_to_index = {'dataset': 0, 'list': 1, 'data': 2, 'response': 3, 'model': 4, 'resolution': 5}
         self.index_to_file = {0: 'dataset', 1: 'list', 2: 'data', 3: 'response', 4: 'model', 5:'resolution'}
@@ -103,6 +106,9 @@ class NewProject(QNewProject, Ui_NewProject):
         self.launchModelViewer.clicked.connect(self.launch_model_viewer)
         self.launchModelViewer.setIcon(QtGui.QIcon(model_viewer_jpg))
         self.launchModelViewer.setIconSize(QtCore.QSize(128,128))
+        self.launchMeshDesigner.clicked.connect(self.launch_mesh_designer)
+        self.launchMeshDesigner.setIcon(QtGui.QIcon(mesh_designer_jpg))
+        self.launchMeshDesigner.setIconSize(QtCore.QSize(128,128))
 
         # self.addDataset.clicked.connect(self.add_dataset)
         # self.addList.clicked.connect(self.add_list)
@@ -312,6 +318,7 @@ class NewProject(QNewProject, Ui_NewProject):
             # print({key: ds_dict[key] for key in self.dataset_index})
         except WSFileError as e:
             QtWidgets.QMessageBox.warning(self, 'File Not Found', e.message)
+
     def launch_model_viewer(self):
         if len(self.dataset_index()) == 0:
             QtWidgets.QMessageBox.warning(self, '', 'Select (highlight) the desired dataset(s) first.')
@@ -337,28 +344,53 @@ class NewProject(QNewProject, Ui_NewProject):
         else:
             QtWidgets.QMessageBox.warning(self, '', 'A model must be available in the selected data set to use Model Viewer!')
 
+    def launch_mesh_designer(self):
+        if len(self.dataset_index()) == 0:
+            QtWidgets.QMessageBox.warning(self, '', 'Select (highlight) the desired dataset(s) first.')
+            return
+        elif len(self.dataset_index()) > 1:
+            QtWidgets.QMessageBox.warning(self, '', 'Mesh Designer can only load one data set at a time (for now)...')
+            return
+        active_ds = self.active_datasets()
+        # try:
+        ds = list(active_ds.values())[0]
+        model = ds.get('model', None)
+        data = ds.get('data', None)
+        if model or data:
+            for key in ds.keys():
+                if ds[key] and not os.path.isabs(ds[key]):
+                    ds[key] = self.project_path + '/' + ds[key]
+            try:
+                md_main = MeshDesigner(model=model, data=data, path=self.project_path)
+                md_main.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
+                self.md_windows.append(md_main)
+                self.md_windows[-1].show()
+            except WSFileError as e:
+                QtWidgets.QMessageBox.warning(self, 'File Not Found', e.message)
+        else:
+            QtWidgets.QMessageBox.warning(self, '', 'Either a model or data file (or both) must be available to use Mesh Designer!')
 
-class GatewayMain(QMainWindow, Ui_MainWindow):
+# class GatewayMain(QMainWindow, Ui_MainWindow):
 
-    def __init__(self):
-        super(GatewayMain, self).__init__()
-        self.setupUi(self)
-        self.setup_widgets()
+#     def __init__(self):
+#         super(GatewayMain, self).__init__()
+#         self.setupUi(self)
+#         self.setup_widgets()
 
-    def setup_widgets(self):
-        self.newProject.clicked.connect(self.new_project)
-        self.loadProject.clicked.connect(self.load_project)
-        self.modifyProject.clicked.connect(self.modify_project)
+#     def setup_widgets(self):
+#         self.newProject.clicked.connect(self.new_project)
+#         self.loadProject.clicked.connect(self.load_project)
+#         self.modifyProject.clicked.connect(self.modify_project)
 
-    def new_project(self):
-        self.new_project_window = NewProject(parent=self)
-        self.new_project_window.show()
+#     def new_project(self):
+#         self.new_project_window = NewProject(parent=self)
+#         self.new_project_window.show()
 
-    def load_project(self):
-        pass
+#     def load_project(self):
+#         pass
 
-    def modify_project(self):
-        pass
+#     def modify_project(self):
+#         pass
 
 
 # If this is run directly, launch the GUI

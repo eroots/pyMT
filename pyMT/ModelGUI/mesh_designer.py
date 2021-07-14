@@ -29,7 +29,7 @@ class CustomToolbar(NavigationToolbar):
 
 
 class model_viewer_2d(QMainWindow, Ui_MainWindow):
-    def __init__(self, model, data=None):
+    def __init__(self, model, data=None, path='./'):
         super(model_viewer_2d, self).__init__()
         """
         Shows a given array in a 2d-viewer.
@@ -38,23 +38,35 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         """
         self.setupUi(self)
         if data:
+            if type(data) is str:
+                data = WSDS.Data(data)
             self.site_locations = data.locations
+            self.data = data
         else:
             self.site_locations = []
             self.regenMesh_2.setEnabled(False)
+        self.path = path
         self.orientation = 'xy'
-        self.site_marker = 'w+'
         self.mesh_color = 'w'
         self.x_slice = 0
         self.y_slice = 0
         self.z_slice = 0
         self.rho_cax = [1, 5]
+        self.site_marker = '+'
+        self.markersize = 5
+        self.site_interior = 'w'
         self.colourmap = 'jet_plus'
         self.mesh_changable = True
         self.fig = Figure()
         self.key_presses = {'Control': False, 'Alt': False, 'Shift': False}
         # self.fig = plt.figure()
         self.cid = {'Mesh': []}
+        if model:
+            if type(model) is str:
+                model = WSDS.Model(model)
+        else:
+            print('Generating initial model...')
+            model = WSDS.Model(data=data)
         self.model = copy.deepcopy(model)
         self.file_dialog = FileDialog(self)
         self.revert_model = copy.deepcopy(model)
@@ -121,10 +133,71 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.actionRho_cax.triggered.connect(self.set_rho_cax)
         # Smoothing
         self.smoothModel.clicked.connect(self.smooth_model)
-
+        # Display Options
+        self.actionLock_Aspect_Ratio.triggered.connect(self.redraw_workaround)
+        self.actionAnnotate_Sites.triggered.connect(self.redraw_workaround)
+        self.actionMarker_Shape.triggered.connect(self.set_marker_shape)
+        self.actionMarker_Size.triggered.connect(self.set_marker_size)
+        self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
+        
     @property
     def cmap(self):
         return cm.get_cmap(self.colourmap)
+
+    @property
+    def annotate_sites(self):
+        return self.actionAnnotate_Sites.isChecked()
+            
+    @property
+    def lock_aspect_ratio(self):
+        return self.actionLock_Aspect_Ratio.isChecked()
+
+    def redraw_workaround(self):
+        self.initialized = False
+        self.redraw_pcolor()
+        self.initialized = True
+
+    def set_marker_size(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Marker Size',
+                                                         'Value:',
+                                                         self.map.markersize,
+                                                         0.1, 20, 2)
+        if ok_pressed and d != self.map.markersize:
+            self.markersize = d
+            self.redraw_pcolor()
+
+    def set_marker_colour(self):
+        colours = ['White', 'Black', 'Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
+        codes = {'White': 'w',
+                 'Black': 'k',
+                 'Blue': 'b',
+                 'Red': 'r',
+                 'Green': 'g',
+                 'Cyan': 'c',
+                 'Yellow': 'y',
+                 'Magenta': 'm'}
+        d, ok_pressed = QtWidgets.QInputDialog.getItem(self,
+                                                       'Marker Colour',
+                                                       'Colour:',
+                                                       colours,
+                                                       0, False)
+        if ok_pressed:
+            code = codes[d]
+            self.site_interior = code
+            self.redraw_pcolor()
+
+    def set_marker_shape(self):
+        shapes = ['+', '.', 'o', '*', 'x', '^', 'v']
+        d, ok_pressed = QtWidgets.QInputDialog.getItem(self,
+                                                       'Marker Shape',
+                                                       'Shape:',
+                                                       shapes,
+                                                       0, False)
+
+        if ok_pressed:
+            self.site_marker = d
+            self.redraw_pcolor()
 
     def set_colourmap(self):
         if self.actionJet.isChecked():
@@ -212,11 +285,13 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
     def set_background_rho(self):
         if self.model.is_half_space():
             self.model.vals[:, :, :] = self.background_resistivity
+            self.model.background_resistivity = self.background_resistivity
         else:
             reply = QtWidgets.QMessageBox.question(self,
                                                    'Set background',
                                                    'Model is not currently a half-space. Reset it?')
             if reply == QtWidgets.QMessageBox.Yes:
+                self.model.background_resistivity = self.background_resistivity
                 self.model.vals[:, :, :] = self.background_resistivity
             else:
                 return
@@ -307,7 +382,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         # print(ddz)
 
     def add_pads(self):
-        print('Adding pads')
+        # print('Adding pads')
         xmesh = self.model.xCS
         ymesh = self.model.yCS
         if self.padLeft.checkState():
@@ -326,7 +401,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                            y_lim=[self.model.dx[0], self.model.dx[-1]])
 
     def remove_pads(self):
-        print('Removing pads')
+        # print('Removing pads')
         if self.padLeft.checkState():
             self.model.dy_delete(0)
         if self.padRight.checkState():
@@ -356,16 +431,20 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.revert_model = copy.deepcopy(self.model)
 
     def write_model(self):
-        model_file, ret = self.file_dialog.write_file(ext='.model', label='Output Model')
+        # model_file, ret = self.file_dialog.write_file(ext='.model', label='Output Model')
+        model_file, ret = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Model', self.path,
+                                                             'Model Files (*.model *.rho);; All Files (*)')[:2]
         if ret:
-            cov_file, ret = self.file_dialog.write_file(ext='.cov', label='Output Covariance')
+            cov_file, ret = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Covariance', self.path,
+                                                             'Covariance Files (*.cov);; All Files (*)')[:2]
+            # cov_file, ret = self.file_dialog.write_file(ext='.cov', label='Output Covariance')
             self.model.write(model_file)
             if ret:
                 self.model.write_covariance(cov_file)
 
     def connect_mpl_events(self):
         if self.mesh_changable:
-            print('Trying to connect')
+            # print('Trying to connect')
             self.cid['Mesh'] = self.canvas.mpl_connect('button_release_event', self.click)
             # self.cid['Mesh'] = self.canvas.mpl_connect('button_press_event', self.click)
 
@@ -411,7 +490,15 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         if np.any(self.site_locations):
             self.location_plot = self.plan_view.plot(self.site_locations[:, 1],
                                                      self.site_locations[:, 0],
-                                                     self.site_marker)
+                                                     self.site_marker+self.site_interior,
+                                                     markersize=self.markersize)
+            if self.annotate_sites:
+                for ii, (xx, yy) in enumerate(self.site_locations):
+                    self.plan_view.annotate(self.data.site_names[ii], (yy, xx))
+        if self.lock_aspect_ratio:
+            self.plan_view.set_aspect('equal')
+        else:
+            self.plan_view.set_aspect('auto')
         if self.initialized:
             self.plan_view.set_xlim(x_lim)
             self.plan_view.set_ylim(y_lim)
@@ -427,7 +514,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             4. Update Figure
         """
         #  Don't activate if a toolbar button is being used, or if the click is outside the region
-        if self.toolbar._active:
+        # if self.toolbar._active:
+        if self.toolbar.mode != '':
             return
         if not event.inaxes:
             return

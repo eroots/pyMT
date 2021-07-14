@@ -46,7 +46,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>150</width>
+     <width>175</width>
      <height>1038</height>
     </size>
    </property>
@@ -535,6 +535,9 @@
      <property name="enabled">
       <bool>true</bool>
      </property>
+     <property name="toolTip">
+      <string>Annotate the station locations with their names. 'Active' annotates only those that are currently plotted in the Data Plot window.</string>
+     </property>
      <property name="title">
       <string>Annotate</string>
      </property>
@@ -601,6 +604,9 @@
     <addaction name="actionLockAxis"/>
    </widget>
    <widget class="QMenu" name="menuJPEG">
+    <property name="toolTip">
+     <string>Load and control plotting of a georeferenced JPEG. Selected .jpg file must have a corresponding .jgw file</string>
+    </property>
     <property name="title">
      <string>JPEG</string>
     </property>

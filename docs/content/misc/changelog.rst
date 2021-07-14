@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+*13/07/21
+
+  * Removed some of the unused buttons / options from :ref:`Data Plot` and slightly reorganized the layout
+
+  * Added more hover tooltips to the GUIs
+
+  * Added a :ref:`Mesh Designer` button into the Gateway GUI
+
 *01/01/21
 
   * Added a median filter to 'Regulate Errors' that should help remove outliers so that the generated errors are more sensible

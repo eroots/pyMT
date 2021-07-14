@@ -496,8 +496,6 @@ class Dataset(object):
                         #     max_error = np.tan(np.deg2rad(max_error))
                         # error_map[ii] = min([data_site.errmap[comp][ii],
                         # np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
-                        # print(abs(scale * data_site.data[comp][ii] -
-                                                     # smoothed_data[ind]))
                         if not (self.data.sites[site].errors[comp][ii] == self.data.REMOVE_FLAG or \
                                 self.data.sites[site].used_error[comp][ii] == self.data.REMOVE_FLAG):
                             self.data.sites[site].errors[comp][ii] = max_error
@@ -506,7 +504,6 @@ class Dataset(object):
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
                     self.smoothed_data.sites[site].data.update({comp: smoothed_data2})
-                    # print(np.all(self.smoothed_data.sites[site].data[comp] == self.raw_data.sites[site].data[comp]))
         self.data.apply_error_floor() 
         self.data.equalize_complex_errors()
         self.data.apply_no_data_map()
@@ -1502,12 +1499,10 @@ class Model(object):
         print('in to_UTM')
         if self.coord_system == 'local':
             if origin is not None:
-                # print('in if origin')
                 self.origin = origin
             elif self.origin is None:
                 print('Must specify origin if model.origin is not set')
                 return False
-            # print('should be doing stuff')
             self._dx = [x + self.origin[1] for x in self._dx]
             self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':
@@ -1523,12 +1518,10 @@ class Model(object):
         print('in to_lambert')
         if self.coord_system == 'local':
             if origin is not None:
-                # print('in if origin')
                 self.origin = origin
             elif self.origin is None:
                 print('Must specify origin if model.origin is not set')
                 return False
-            # print('should be doing stuff')
             self._dx = [x + self.origin[1] for x in self._dx]
             self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':
@@ -1579,13 +1572,11 @@ class Model(object):
         return (lat, lon)
 
     def is_half_space(self):
-        # print(self.vals.shape)
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
 
     def update_vals(self, new_vals=None, axis=None, index=None, mode=None):
         if self.is_half_space():
             bg = self.vals[0, 0, 0]
-            print('Changing values')
             self.vals = np.ones([self.nx, self.ny, self.nz]) * bg
         else:
             if index is not None and axis is not None:
@@ -1620,8 +1611,6 @@ class Model(object):
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
         else:
             self.vals = utils.regrid_model(self, x_mesh, y_mesh, self.dz)
-        # print(x_mesh)
-        # print(y_mesh)
         self.dx = x_mesh
         self.dy = y_mesh
         # self.dy = ymesh

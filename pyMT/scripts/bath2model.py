@@ -11,7 +11,7 @@ import pyMT.utils as utils
 import pickle
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
-from skimage.transform import downscale_local_mean
+# from skimage.transform import downscale_local_mean
 
 #####################################
 ########## INSTRUCTIONS #############
@@ -26,19 +26,28 @@ from skimage.transform import downscale_local_mean
 #   - list_file: The list file (as used by pyMT) containing the EDI or j-format files to read in.
 #   - data_file: The ModEM data file to modify. As with the model file, this should already be set up as you want it for the inversion - this script will only modify the elevations.
 #   - bath_file: The file containing the bathymetry / topography data. If this is the first time running this script, set bath_file = []. The script will generate the bathymetry and save it to bath_out
+#                If your bathymetry is in a Geotiff file, set this to the path. Note that you have to have rasterio installed for this to work.
 #   - bath_out: File to save bathymetry data to. The script goes online and downloads the required data, so you can use this and bath_file to make sure you're only downloading it once.
 #   - model_out: File to save the modified model to. The only difference between this and 'model_file' is that the relevant model cells will have air resistivities.
 #   - cov_out: File to save the covariance file to. This file is required by ModEM when using topography / bathymetry.
 #   - data_out: File to save the modified data to. The only difference between this and 'data_file' is that the data here will have non-zero elevation values.
 # There are a few other things you can change if you want below these lines. Comment in / out as needed.
-
-def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1):
+# Lines you'll need to change start at line #138
+def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1, resource=30):
     print('Retrieving topo data from latitude {:>6.3g} to {:>6.3g}, longitude {:>6.3g} to {:>6.3g}'.format(minlat, maxlat, minlon, maxlon))
     # Read data from: http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.html
     # Had to change to v1 since v6 stopped working for some reason...
-    response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v1.csv?topo[(' \
-                                  +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
-
+    # 'https://coastwatch.pfeg.noaa.gov/erddap/griddap/srtm15plus.csv?z%5B(59):1:(63)%5D%5B(-141):1:(-137)%5D'
+    if resource == 15:
+        response = urllib.request.urlopen('https://coastwatch.pfeg.noaa.gov/erddap/griddap/srtm15plus.csv?z%5B(' \
+                                      +str(minlat)+'):'+str(stride)+':('+str(maxlat)+')%5D%5B('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')%5D')
+    elif resource == 30:
+        response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v1.csv?topo[(' \
+                                      +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
+    else:
+        print('Resource should be 15 or 30. Using 30.')
+        response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v1.csv?topo[(' \
+                                      +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
     r = csv.reader(codecs.iterdecode(response, 'utf-8'))
     # Initialize variables
     lat, lon, topo = [], [], []
@@ -133,14 +142,15 @@ def plot_it(grid_x, grid_y, grid_z, locations=None, cmap=None):
 if __name__ == '__main__':
     # Define the domain of interest
     #################################
-    model_file = ''
-    list_file = ''
-    data_file = ''
-    bath_file = ''
-    bath_out = ''
-    model_out = ''
-    cov_out = ''
-    data_out = ''
+    model_file = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v2.model'
+    list_file = 'E:/phd/NextCloud/data/Regions/elf/j2/burwash-elf.lst'
+    data_file = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v2.dat'
+    bath_file = 'E:/phd/NextCloud/data/Regions/elf/test1/ArcticDEM_25m-filled_resolution.tiff'
+    # bath_file = 'E:/phd/NextCloud/data/Regions/elf/test1/bath_test.p'
+    bath_out = 'E:/phd/NextCloud/data/Regions/elf/test1/bath_test_geotif.p'
+    model_out = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v3_topo_geotif.model'
+    cov_out = 'E:/phd/NextCloud/data/Regions/elf/test1/std_topo_geotif2.cov'
+    data_out = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v3_topo_geotif_removed.dat'
     # LANAI
     # model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
     # list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
@@ -202,39 +212,42 @@ if __name__ == '__main__':
     # data_out = []
     ###################################
     # Snorcle Golden Triangle
-    mod_type = 'large'
-    list_file = 'E:/phd/NextCloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line3_plus.lst'
-    data_file = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_Z_removed.dat'
-    model_file = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_{}.model'.format(mod_type)
-    # model_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1/reErred/wTopo/test_{}.model'.format(mod_type)
-    # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/new1/bathy.p'
-    bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
-    # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_nest.p'.format(mod_type)
-    # bath_file = []
-    bath_out = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
-    model_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_bath_{}.model'.format(mod_type)
-    cov_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_bath_{}.cov'.format(mod_type)
-    data_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_wTopo_{}.dat'.format(mod_type)
+    # mod_type = 'large'
+    # list_file = 'E:/phd/NextCloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line3_plus.lst'
+    # data_file = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_Z_removed.dat'
+    # model_file = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_{}.model'.format(mod_type)
+    # # model_file = 'E:/phd/NextCloud/data/Regions/snorcle/cull1/reErred/wTopo/test_{}.model'.format(mod_type)
+    # # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/new1/bathy.p'
+    # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
+    # # bath_file = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_nest.p'.format(mod_type)
+    # # bath_file = []
+    # bath_out = 'E:/phd/NextCloud/data/Regions/snorcle/bathy_{}.p'.format(mod_type)
+    # model_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_bath_{}.model'.format(mod_type)
+    # cov_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_bath_{}.cov'.format(mod_type)
+    # data_out = 'E:/phd/NextCloud/data/Regions/snorcle/line3_plus/line3_plus_wTopo_{}.dat'.format(mod_type)
     # data_out = []
     # resample_topo = (4, 4)
     resample_topo = False
-
+    lat_pad = 2  # Extend the download of topo/bathy data by this many degrees in latitude
+    lon_pad = 2  # Extend the download of topo/bathy data by this many degrees in longitude
+    data_collect_stride = 1 # Integer multiple of the resolution desired (base resolution is 30 arc seconds) - change this if you have a big model or you'll download way more data than is needed!
+    with_topography = True  # Include topography?
+    with_oceans = True      # Include oceans?
+    resource = 30           # Which resource to use (15 or 30 arc seconds)
+    # cmap = cmocean.cm.haline
+    cmap = None
+    ####################################
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
     model = DS.Model(model_file)
     model.origin = raw_data.origin
-    lat_pad = 5
-    lon_pad = 5
-    data_collect_stride = 4
-    with_topography = True
-    with_oceans = True
-    # cmap = cmocean.cm.haline
-    cmap = None
-    ####################################
+    model.UTM_zone = '7N'  # Set your UTM zone
     # If you want to modify the vertical meshing, do it now (see examples below)
-    # Add 20 layers that are each 200 m thick, then append the existing mesh (I used this for testing purposes)
-    Z = [100] * 25 + model.zCS[20:]
+    # I find its best to have constant layer thickness inside the topography
+    # Example below we use 25*50 m layers (1250 m total), then append the original model thicknesses starting at the 24th layer (i.e., where the thickness is ~50 m)
+    Z = [50] * 25 + model.zCS[24:]
     model.zCS = Z
+ 
     # model.vals[:,:,:] = 10
     # model.zCS = [50] * 12 + [20] + model.zCS
     # model.dz = list(np.arange(0, 620, 20)) + list(np.logspace(np.log10(620), 4.5, 80)) + list(np.logspace(4.5, 6, 20))[1:]
@@ -254,12 +267,11 @@ if __name__ == '__main__':
     # model.UTM_zone = '4Q'
     # model.UTM_zone = '35N'
     # model.UTM_zone = '35N'
-    model.UTM_zone = '9N'
     # model.UTM_zone = '16N'
     # model.UTM_zone = '16U'
     model.to_latlong()
-    minlat, maxlat = model.dx[0] - lat_pad, model.dx[-1] + lat_pad
-    minlon, maxlon = model.dy[0] - lon_pad, model.dy[-1] + lon_pad
+    minlat, maxlat = np.round(model.dx[0] - lat_pad, decimals=2), np.round(model.dx[-1] + lat_pad, decimals=2)
+    minlon, maxlon = np.round(model.dy[0] - lon_pad, decimals=2), np.round(model.dy[-1] + lon_pad, decimals=2)
     # minlat = 18
     # maxlat = 22
     # minlon = -157
@@ -309,7 +321,7 @@ if __name__ == '__main__':
                 bathy = np.genfromtxt(bath_file)
                 lat, lon, topo = bathy[:, 1], bathy[:, 0], bathy[:, 2]
     else:
-        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=data_collect_stride)
+        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=data_collect_stride, resource=resource)
         with open(bath_out, 'wb') as f:
             pickle.dump(np.array((lat, lon, topo)), f, protocol=pickle.HIGHEST_PROTOCOL)
     

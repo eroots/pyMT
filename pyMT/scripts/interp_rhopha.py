@@ -15,15 +15,26 @@ import naturalneighbor as nn
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/lcc_test/shallower/swz_LCC_shallower100ohm_resp.dat'
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzFinish_lastIter.dat'
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swz_cull1M_all.dat'
-listfile = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/edi/all_sorted.lst'
+# listfile = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/edi/all_sorted.lst'
+out_path = 'E:/phd/Nextcloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/feature_tests/'
+base_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/ROU-MAL_BB.lst'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
+list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/LAR-ROU_BB.lst'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/lar_bb.lst'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/rouyn/j2/ROUall.lst'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/malartic/j2/MALBB.lst'
+data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/AG_depthTest_baseCase_resp.dat'
+base_data = WSDS.Data(data_file)
 # data = WSDS.Data(datafile=datafile)
 # data = WSDS.RawData(listfile)
-raw_data = WSDS.RawData(listfile)
+raw_data = WSDS.RawData(list_file)
 
-n_interp = 35
+
+n_interp = raw_data.NS *2
 save_fig = 1
-# file_name = 'swzFinish_resp'
-# file_name = 'swz_1000ohm_resp'
+pad = 0.5
 dpi = 300
 x_axis = 'station'
 # interp_type = ('nn', 'linear', 'cubic')
@@ -33,7 +44,7 @@ to_plot = ['phasediff']
 # to_plot = ['phase', 'phasediff']
 
 # to_plot = ['phase']
-component = ['xy', 'yx', 'det']
+component = ['xy', 'yx']
 # component = ('xy', 'yx', 'det')
 # rmsites = [site for site in data.site_names if site[0] == 'e' or site[0] == 'd']
 # rmsites = [site for site in data.site_names if site not in raw_data.site_names]
@@ -50,32 +61,22 @@ component = ['xy', 'yx', 'det']
 # depths = ['5.0', '10.0', '14.0', '23.0']
 # rhos = [10, 50, 100, 300, 500]
 # depths = [500]
-depths = [500, 1000, 1500, 2500, 3500, 5000, 7000, 10000, 15000, 20000, 25000, 35000]
-rhos = [500]
-for d in depths:
-    for r in rhos:
-        # base_data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/swzPT_lastIter_resp.dat'
-        # base_data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/swz_cull1M_all.dat'
-        # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/swz_cull1M_all.dat'
-        # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/north_conduit_test/swzFT2_resp.dat'
-        # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/swzPT_northConduitTest_resp.dat'
-        # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/swzPT_lastIter_resp.dat'
-        # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/{}ohm/swz_lccTest_{}ohm_{}kmDepth_resp.dat'.format(r, r, d)
-        base_data_file = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/all_inv18.dat'
-        # base_data_file = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/plc18_NLCG_116.dat'
-        datafile = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/tests/plc_rotatedTest-{}m_resp.dat'.format(d)
-        data = WSDS.Data(datafile=datafile)
-        base_data = []
-        base_data = WSDS.Data(datafile=base_data_file)
+# depths = [500, 1000, 1500, 2500, 3500, 5000, 7000, 10000, 15000, 20000, 25000, 35000]
+# rhos = [500]
+# for d in depths:
+    # for r in rhos:
+for num in [2]:
+    if True:
+        tag = 'R{}'.format(num)
+        resp_file = base_path + '{}/{}-300ohm_resp.dat'.format(tag, tag)
+        # resp_file = base_path + '{}/{}-1000ohm-refined_resp.dat'.format(tag, tag)
+        data = WSDS.Data(datafile=resp_file)
+        # base_data = []
+        # base_data = WSDS.Data(datafile=base_data_file)
         # Reorder based on list file
         # base_data.site_names = raw_data.site_names
         # data.site_names = raw_data.site_names
-        # file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/featureTests/conduits/'.format(r)
-        # file_name = 'swzSouthConduit_nndet'.format(r, d)
-        # file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/featureTests/'
         
-        # file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/featureTests/{}ohm/'.format(r)
-        # file_name = 'swz_nndet_{}ohm_{}kmDepth'.format(r, d)
         rmsites = [site for site in data.site_names if site not in raw_data.site_names]
         data.remove_sites(sites=rmsites)
         if base_data:
@@ -83,16 +84,15 @@ for d in depths:
         phase_cax = [30, 80]
         rho_cax = [0, 5]
         rhodiff_cax = [-1, 1]
-        phasediff_cax = [-25, 25]
+        phasediff_cax = [-15, 15]
         # data.sort_sites(order='south-north')
         idx = data.locations[:, 1].argsort()
         data.locations = data.locations[idx]  # Make sure they go north-south
         data.site_names = [data.site_names[ii] for ii in idx]
         print('data loaded')
         for comp in component:
-            file_path = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/tests/data_phase_diffs/{}/'.format(comp)
-            file_name = 'plc_phasedet_test-{}m'.format(d)
-            print(comp)
+            out_file = '{}_pha{}'.format(tag, comp)
+            # print(comp)
             rho = {site: utils.compute_rho(data.sites[site], calc_comp=comp)[0] for site in data.site_names}
             pha = {site: utils.compute_phase(data.sites[site], calc_comp=comp, wrap=1)[0] for site in data.site_names}
             
@@ -112,7 +112,6 @@ for d in depths:
             dist = utils.linear_distance(data.locations[:, 1], data.locations[:,0]) / 1000
             for interp in interp_type:
                 print('Performing interp {}'.format(interp))
-                # file_name = 'swzFT2_{}'.format(interp)
                 base_periods, periods = [], []
                 base_loc, loc = [], []
                 rho2 = []
@@ -178,7 +177,7 @@ for d in depths:
                     points = np.transpose(np.array((locs, periods)))
                     if base_data:
                         base_points = np.transpose(np.array((base_locs, base_periods)))
-                min_x, max_x = (min(loc), max(loc))
+                min_x, max_x = (min(loc) - pad, max(loc) + pad)
                 min_p, max_p = (min(periods), max(periods))
 
                 grid_ranges = [[min_x, max_x, n_interp * 1j],
@@ -197,7 +196,7 @@ for d in depths:
                         cmap = cm.get_cmap('bwr', 32)
                     elif dtype == 'phasediff':
                         use_cax = phasediff_cax
-                        cmap = cm.get_cmap('bwr', 64)
+                        cmap = cm.get_cmap('twilight_shifted', 32)
                     grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp), np.log10(np.logspace(min_p, max_p, n_interp)))
                     if dtype == 'rho':
                         vals = rhovals
@@ -221,14 +220,14 @@ for d in depths:
                             base_vals = griddata(base_points, base_phase_vals, (grid_x, grid_y), method=interp)
                         grid_vals = grid_vals - base_vals
                     print('Plotting Figure')
-                    plt.figure(figsize=(12, 8))
+                    plt.figure(figsize=(16, 12))
                     plt.pcolor(grid_x, grid_y, grid_vals, cmap=cmap, vmin=use_cax[0], vmax=use_cax[1])
                     
                     # plt.scatter(locs, periods, c=vals, cmap=cmap, vmin=0, vmax=5)
                     plt.gca().invert_yaxis()
                     plt.gca().set_xlabel('Distance (km)')
                     plt.gca().set_ylabel('Period (s)')
-                    plt.gca().set_title('{} {}, {}m'.format(comp, dtype, d))
+                    # plt.gca().set_title('{} {}, {}m'.format(comp, dtype, d))
                     if x_axis == 'station':
                         plt.xticks(range(data.NS), data.site_names, rotation='vertical')
                         plt.gca().set_xlabel('Station')
@@ -237,9 +236,9 @@ for d in depths:
                     # plt.contour(grid_x, grid_y, grid_vals, levels=[-3.5, 3.5], colors='k')
                     print('Done Plotting')
                     if save_fig:
-                        tag = '_{}'.format(dtype)
+                        # tag = '_{}'.format(dtype)
                         ext = '.png'
-                        plt.gcf().savefig(file_path + file_name + tag + ext, dpi=dpi)
+                        plt.gcf().savefig(out_path + out_file + ext, dpi=dpi, transparent=True)
                         plt.close()
                     else:          
                         print('Showing Figure')      

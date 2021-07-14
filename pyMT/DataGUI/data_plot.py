@@ -1194,14 +1194,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.label_NP_2.setText('Periods: ' + str(self.dataset.data.NP))
         self.label_NS_2.setText('Sites: ' + str(self.dataset.data.NS))
 
-    @property
-    def error_type(self):
-        if self.dataErrRadio.isChecked():
-            return 'raw'
-        elif self.usedErrRadio.isChecked():
-            return 'mapped'
-        elif self.noErrRadio.isChecked():
-            return 'none'
+    # @property
+    # def error_type(self):
+    #     if self.dataErrRadio.isChecked():
+    #         return 'raw'
+    #     elif self.usedErrRadio.isChecked():
+    #         return 'mapped'
+    #     elif self.noErrRadio.isChecked():
+    #         return 'none'
 
     @property
     def site_names(self):
@@ -1446,7 +1446,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.error_tree.itemDoubleClicked.connect(self.edit_error_tree)
         self.BackButton.clicked.connect(self.Back)
         self.ForwardButton.clicked.connect(self.Forward)
-        self.WriteDataButton.clicked.connect(self.WriteData)
+        # self.WriteDataButton.clicked.connect(self.WriteData)
         # self.comp_list.itemSelectionChanged.connect(self.list_click)
         self.comp_table.itemSelectionChanged.connect(self.comp_table_click)
         self.errorFloorTable.cellChanged.connect(self.error_floor_changed)
@@ -1474,9 +1474,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.siteList.addItems(self.dataset.data.site_names)
         self.numSubplots.setText(str(len(self.site_names)))
         self.numSubplots.editingFinished.connect(self.num_subplots)
-        self.dataErrRadio.toggled.connect(self.dummy_update_dpm)
-        self.usedErrRadio.toggled.connect(self.dummy_update_dpm)
-        self.noErrRadio.toggled.connect(self.dummy_update_dpm)
+        # self.dataErrRadio.toggled.connect(self.dummy_update_dpm)
+        # self.usedErrRadio.toggled.connect(self.dummy_update_dpm)
+        # self.noErrRadio.toggled.connect(self.dummy_update_dpm)
         self.refreshErrorTree.clicked.connect(self.update_error_tree)
         self.resetErrors.clicked.connect(self.reset_errors)
         self.showMap.clicked.connect(self.show_map)
@@ -1511,8 +1511,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type10)
         # self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
         #  Set up connect to which errors are plotted
-        self.actionDataErrors.changed.connect(self.dummy_update_dpm)
-        self.actionRawErrors.changed.connect(self.dummy_update_dpm)
+        self.invErrorCheck.stateChanged.connect(self.set_plotted_errors)
+        self.rawErrorCheck.stateChanged.connect(self.set_plotted_errors)
         # Set up units for phase tensors
         self.ptActionGroup.addAction(self.actionDegrees)
         self.ptActionGroup.addAction(self.actionUnitless)
@@ -1544,6 +1544,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.plotFlaggedData.clicked.connect(self.plot_flagged_data)
 
         self.actionLaunchModeler.triggered.connect(self.launch_modeler)
+
+    def set_plotted_errors(self):
+        self.dpm.which_errors = []
+        if self.invErrorCheck.checkState():
+            self.dpm.which_errors.append('data')
+        if self.rawErrorCheck.checkState():
+            self.dpm.which_errors.append('raw_data')
+        self.update_dpm()
 
     def set_period_tolerance(self):
         self.dataset.raw_data.low_tol = self.lowPeriodToleranceFlag.value() / 100
@@ -2228,12 +2236,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         a site with another, you must first call the replace_site method of the DataPlotManager
         """
         # dpm_sites = [site.name for site in self.dpm.sites['data']]  # Sites currently plotted
-        self.dpm.errors = self.error_type
-        self.dpm.which_errors = []
-        if self.actionDataErrors.isChecked():
-            self.dpm.which_errors.append('data')
-        if self.actionRawErrors.isChecked():
-            self.dpm.which_errors.append('raw_data')
+        # self.dpm.errors = self.error_type
         if updated_sites is None:
             updated_sites = self.dpm.site_names
         if updated_comps is None:

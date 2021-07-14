@@ -97,8 +97,19 @@
     <addaction name="menuColour_Map"/>
     <addaction name="menuMesh_Lines"/>
    </widget>
+   <widget class="QMenu" name="menuDisplay_Options">
+    <property name="title">
+     <string>Display Options</string>
+    </property>
+    <addaction name="actionLock_Aspect_Ratio"/>
+    <addaction name="actionMarker_Shape"/>
+    <addaction name="actionMarker_Size"/>
+    <addaction name="actionMarker_Colour"/>
+    <addaction name="actionAnnotate_Sites"/>
+   </widget>
    <addaction name="menuWrite_Model"/>
    <addaction name="menuColours"/>
+   <addaction name="menuDisplay_Options"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
@@ -144,7 +155,7 @@
           <x>0</x>
           <y>0</y>
           <width>278</width>
-          <height>672</height>
+          <height>652</height>
          </rect>
         </property>
         <attribute name="label">
@@ -563,8 +574,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>278</width>
+          <height>652</height>
          </rect>
         </property>
         <attribute name="label">
@@ -647,7 +658,7 @@
           <x>0</x>
           <y>0</y>
           <width>278</width>
-          <height>672</height>
+          <height>652</height>
          </rect>
         </property>
         <attribute name="label">
@@ -941,6 +952,37 @@
    </property>
    <property name="text">
     <string>White</string>
+   </property>
+  </action>
+  <action name="actionLock_Aspect_Ratio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lock Aspect Ratio</string>
+   </property>
+  </action>
+  <action name="actionMarker_Shape">
+   <property name="text">
+    <string>Marker Shape</string>
+   </property>
+  </action>
+  <action name="actionMarker_Size">
+   <property name="text">
+    <string>Marker Size</string>
+   </property>
+  </action>
+  <action name="actionMarker_Colour">
+   <property name="text">
+    <string>Marker Colour</string>
+   </property>
+  </action>
+  <action name="actionAnnotate_Sites">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Annotate Sites</string>
    </property>
   </action>
  </widget>

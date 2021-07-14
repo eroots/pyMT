@@ -192,7 +192,8 @@ def save_geotiff(img, vals, x, y, epsg, file_name, z):
 
 ######################################################################
 # Upper Abitibi
-mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/UC-tests/AllUCs-10000ohm.model')
 data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
@@ -247,7 +248,7 @@ mod.to_UTM()
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # title_ = 'Standard Inversion'
-save_fig = 1
+save_fig = 0
 geotiff = 0
 vals_multiband = []
 multiband = True
@@ -256,7 +257,7 @@ tag = 'inv14-Z'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
-annotate_sites = False
+annotate_sites = True
 site_markers = True
 site_marker_tol = 25000
 add_map = False
@@ -266,19 +267,19 @@ padding = 50000
 reverse_xaxis = False
 # zlim = [0, 4.5]
 lut = 64
-cax = [0, 5]
-# cax = [0, 4.5]
+# cax = [0, 5]
+cax = [0, 4.5]
 isolum = False
 tick_label_size = 10
 axis_label_size = 12
-markersize = 5
+markersize = 1
 # slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
 # lines = ['l0', 'l3', 'l6', 'l9', 'l12']
 # slices = list(range(11, 40, 2))
 # slices = [5, 13, 16, 20, 22, 24, 26, 28, 30, 32, 33, 35, 37]
-slices = list(range(0, mod.nz - 15))
-# slices = [10]
+# slices = list(range(0, mod.nz - 15))
+slices = [15]
 # slices = list(range(19, 43))
 # slices = [20, 34]
 lines = ['l0']
@@ -292,10 +293,11 @@ VE = 1 # Vertical exaggeration
 # xlim = [463139.0099493311 / 1000, 790673.8220597332 / 1000]
 # zlim = [5246370.107073599 / 1000, 5468333.540126671 / 1000]
 xlim = []
-# xy_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
-xy_xlim = [609.885, 659.423]
-xy_zlim = [5315.767, 5380.109]
-# xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+xy_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
+xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+# xy_xlim = [609.885, 659.423]
+# xy_zlim = [5315.767, 5380.109]
+
 # xz_xlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
 # xz_zlim = [0, 200]
 # yz_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
@@ -305,7 +307,7 @@ xy_zlim = [5315.767, 5380.109]
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
 # cmap_name = 'jet_r'
-cmap_name = 'turbo_r'
+cmap_name = 'turbo_r_mod'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
@@ -561,11 +563,24 @@ for plane in ['xy']:
                     
                 if annotate_sites:
                     for jj, site in enumerate(data.site_names):
-                        plt.text(s=site,
-                                 x=data.locations[jj, 0] / 1000,
-                                 y=-zlim[1] / 6,
-                                 color='k',
-                                 rotation=90)
+                        if plane.lower() == 'xz':
+                            plt.text(s=site,
+                                     x=data.locations[jj, 0] / 1000,
+                                     y=-zlim[1] / 6,
+                                     color='k',
+                                     rotation=90)
+                        elif plane.lower() == 'yz':
+                            plt.text(s=site,
+                                     x=data.locations[jj, 1] / 1000,
+                                     y=-zlim[1] / 6,
+                                     color='k',
+                                     rotation=90)
+                        else:
+                            plt.text(s=site,
+                                     x=data.locations[jj, 1] / 1000,
+                                     y=data.locations[jj, 0] / 1000,
+                                     color='k',
+                                     rotation=0)
                     # plt.annotate(site,
                                  # xy=(data.locations[jj, 0] / 1000, 0),  #data.locations[jj, 0] / 1000),
                                  # color='k')

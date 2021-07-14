@@ -576,6 +576,7 @@ class DataPlotManager(object):
                                          linestyle=linestyle, color=self.get_designated_colour(comp, ii),
                                          mec=self.mec, markersize=markersize,
                                          mew=edgewidth, picker=3)
+                                         # capsize=5)
                 else:
                     # print(['Inside6', Type])
                     # if Type == 'smoothed_data':
@@ -586,12 +587,13 @@ class DataPlotManager(object):
                                          linestyle=linestyle, color=self.get_designated_colour(comp, ii),
                                          mec=self.mec, markersize=markersize,
                                          mew=edgewidth, picker=3)
+                                         # capsize=5)
                 if self.show_outliers and toplot.size != 0:
                     ma.append(max(toplot))
                     mi.append(min(toplot))
                 else:
                     if ((self.toggles['raw_data'] and Type.lower() == 'raw_data') or \
-                       (not self.toggles['raw_data'])) and toplot:
+                       (not self.toggles['raw_data'])) and (toplot != []):
                         # showdata = self.remove_outliers(site.periods, toplot)
                         showdata = utils.remove_outliers(toplot)
                         ma.append(max(showdata))
