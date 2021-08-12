@@ -34,3 +34,10 @@ Installation:
 	Each of these can be installed manually using, e.g., conda install pip (assuming an Anaconda installation)
 	
 	After installing these, pyMT may be installed using the command 'python setup.py install' or 'python setup.py develop'
+
+Getting Started:
+	All of the GUIs (data_plot, mesh_designer, model_viewer) can now be accessed through one main window, which is launched using the command::
+
+		gateway_mt
+
+	This GUI is essentially just a table containing all the files needed for a series of datasets (where a dataset is any permutation of a list file, and inversion data/response/model files). Highlight a dataset and click the 'Data Plot', 'Mesh Designer', or 'Model Viewer' buttons to launch the relevant GUI with the highlighted dataset.
