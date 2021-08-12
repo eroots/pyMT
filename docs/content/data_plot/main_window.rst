@@ -19,8 +19,6 @@ From here there are 5 main areas. From top to bottom:
 
 The Forward and Back Buttons as well as the Tabs Window are contained within a dock that can removed from the main window and moved to a different location if desired. 
 
-WARNING: Do not exit the docked window (i.e., do not click the 'x' contained in the gray bar of the dock), as there is no way to get it back and the Data Plot GUI will need to be closed and relaunched.
-
 .. _Menu Bar:
 
 Menu Bar
@@ -31,8 +29,6 @@ Menu Bar
     :scale: 50 %
 
 The menu bar offers a number of options from various drop down menus.
-
-The 'WS Data Plot' menu... does nothing. It is a legacy menu that was never used for anything other than testing.
 
 The 'Display Options' menu, as the name implies, gives a few options for changing the display behavior of the main plots.
 

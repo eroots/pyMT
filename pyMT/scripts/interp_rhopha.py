@@ -16,16 +16,19 @@ import naturalneighbor as nn
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzFinish_lastIter.dat'
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swz_cull1M_all.dat'
 # listfile = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/edi/all_sorted.lst'
-out_path = 'E:/phd/Nextcloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/feature_tests/'
-base_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/'
+# out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/'
+base_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/'
+list_file = 'E:/phd/NextCloud/data/Regions/plc18/j2/new/all.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/ROU-MAL_BB.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
-list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/LAR-ROU_BB.lst'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/LAR-ROU_BB.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/lar_bb.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/rouyn/j2/ROUall.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/malartic/j2/MALBB.lst'
-data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/AG_depthTest_baseCase_resp.dat'
+# data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/AG_depthTest_baseCase_resp.dat'
+# data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/all_inv27.dat'
+data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/plc31-2_NLCG_125.dat'
 base_data = WSDS.Data(data_file)
 # data = WSDS.Data(datafile=datafile)
 # data = WSDS.RawData(listfile)
@@ -39,6 +42,7 @@ dpi = 300
 x_axis = 'station'
 # interp_type = ('nn', 'linear', 'cubic')
 interp_type = ['nearest']
+# interp_type = ['nn']
 # to_plot = ['rho', 'phase', 'diff']
 to_plot = ['phasediff']
 # to_plot = ['phase', 'phasediff']
@@ -52,9 +56,9 @@ component = ['xy', 'yx']
 # phase_cax = [30, 75]
 # rho_cax = [0, 5]
 # # data.sort_sites(order='south-north')
-# idx = data.locations[:, 0].argsort()
-# data.locations = data.locations[idx]  # Make sure they go north-south
-# data.site_names = [data.site_names[ii] for ii in idx]
+idx = base_data.locations[:, 1].argsort()
+base_data.locations = base_data.locations[idx]  # Make sure they go north-south
+base_data.site_names = [base_data.site_names[ii] for ii in idx]
 # A little kludge to make sure the last few sites are in the right order (west-east)
 # data.locations[0:8, :] = data.locations[np.flip(data.locations[0:8, 1].argsort(), 0)]
 
@@ -62,13 +66,20 @@ component = ['xy', 'yx']
 # rhos = [10, 50, 100, 300, 500]
 # depths = [500]
 # depths = [500, 1000, 1500, 2500, 3500, 5000, 7000, 10000, 15000, 20000, 25000, 35000]
-# rhos = [500]
+# rhos = [500, 1000, 2500]
+rhos = [500]
 # for d in depths:
     # for r in rhos:
-for num in [2]:
-    if True:
-        tag = 'R{}'.format(num)
-        resp_file = base_path + '{}/{}-300ohm_resp.dat'.format(tag, tag)
+for num in [20, 31, 40]:
+    for r in rhos:
+        tag = 'depth-{}km'.format(num)
+        # out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/{}/'.format(tag)
+        out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/depth_tests/'
+        # tag = 'inversion'
+        # resp_file = base_path + '{}/{}-{}ohm_resp.dat'.format(tag, tag, r)
+        resp_file = base_path + 'depth_test/plc_{}km_resp.dat'.format(num)
+        # resp_file = base_path + '{}_500_resp.dat'.format(tag, tag)
+        # resp_file = base_path + '../plc31-2_NLCG_125.dat'
         # resp_file = base_path + '{}/{}-1000ohm-refined_resp.dat'.format(tag, tag)
         data = WSDS.Data(datafile=resp_file)
         # base_data = []
@@ -91,7 +102,7 @@ for num in [2]:
         data.site_names = [data.site_names[ii] for ii in idx]
         print('data loaded')
         for comp in component:
-            out_file = '{}_pha{}'.format(tag, comp)
+            out_file = '{}_{}ohm_phadiff-{}'.format(tag, r, comp)
             # print(comp)
             rho = {site: utils.compute_rho(data.sites[site], calc_comp=comp)[0] for site in data.site_names}
             pha = {site: utils.compute_phase(data.sites[site], calc_comp=comp, wrap=1)[0] for site in data.site_names}
@@ -99,7 +110,7 @@ for num in [2]:
             if base_data:
                 # if 'rho' in comp:
                 pha_errs = {site: (utils.compute_phase(base_data.sites[site], calc_comp='xy', wrap=1, errtype='used_error')[1] +
-                               utils.compute_phase(base_data.sites[site], calc_comp='yx', wrap=1, errtype='used_error')[1]) / 2 for site in data.site_names}
+                                   utils.compute_phase(base_data.sites[site], calc_comp='yx', wrap=1, errtype='used_error')[1]) / 2 for site in data.site_names}
                 base = {site: utils.compute_rho(base_data.sites[site], calc_comp=comp)[0] for site in base_data.site_names}
                 rhodiff = {site: (rho[site] - base[site]) for site in base_data.site_names}
                 # elif 'phase' in comp:
@@ -107,7 +118,7 @@ for num in [2]:
                 phadiff = {site: (pha[site] - base[site]) for site in base_data.site_names}
             else:
                 pha_errs = {site: np.zeros(data.NP) for site in data.site_names}
-            # bost = {site.name: utils.compute_bost1D(site, calc_comp=comp)[0] for site in data.sites.values()}
+                # bost = {site.name: utils.compute_bost1D(site, calc_comp=comp)[0] for site in data.sites.values()}
             # depths = {site.name: utils.compute_bost1D(site)[1] for site in data.sites.values()}
             dist = utils.linear_distance(data.locations[:, 1], data.locations[:,0]) / 1000
             for interp in interp_type:
@@ -142,16 +153,23 @@ for num in [2]:
                                 loc.append(ss)
                             z_loc.append(dim)
                             if base_data:
-                                # if pha_errs[site][ii] < 5:
                                 if x_axis == 'linear':
                                     base_loc.append(dist[ss])
                                 elif x_axis == 'station':
                                     base_loc.append(ss)
-                                base_periods.append(p)
-                                rho_diff_vals.append(rhodiff[site][ii])
-                                phase_diff_vals.append(phadiff[site][ii])
-                                base_phase_vals.append(base[site][ii])
-                                base_z_loc.append(dim)
+                                # if pha_errs[site][ii] < 15:
+                                if True:
+                                    base_periods.append(p)
+                                    rho_diff_vals.append(rhodiff[site][ii])
+                                    phase_diff_vals.append(phadiff[site][ii])
+                                    base_phase_vals.append(base[site][ii])
+                                    base_z_loc.append(dim)
+                                else:
+                                    base_periods.append(p)
+                                    rho_diff_vals.append(0)
+                                    phase_diff_vals.append(0)
+                                    base_phase_vals.append(0)
+                                    base_z_loc.append(dim)
                                 # diffvals.append(diff[site][ii])
                 phavals = np.array(phavals)
                 rho2 = np.array(rho2)
@@ -196,7 +214,7 @@ for num in [2]:
                         cmap = cm.get_cmap('bwr', 32)
                     elif dtype == 'phasediff':
                         use_cax = phasediff_cax
-                        cmap = cm.get_cmap('twilight_shifted', 32)
+                        cmap = cm.get_cmap('twilight_shifted', 64)
                     grid_x, grid_y = np.meshgrid(np.linspace(min_x, max_x, n_interp), np.log10(np.logspace(min_p, max_p, n_interp)))
                     if dtype == 'rho':
                         vals = rhovals
@@ -219,6 +237,8 @@ for num in [2]:
                         else:
                             base_vals = griddata(base_points, base_phase_vals, (grid_x, grid_y), method=interp)
                         grid_vals = grid_vals - base_vals
+                        zeros_idx = base_vals == 0
+                        grid_vals[zeros_idx] = np.nan
                     print('Plotting Figure')
                     plt.figure(figsize=(16, 12))
                     plt.pcolor(grid_x, grid_y, grid_vals, cmap=cmap, vmin=use_cax[0], vmax=use_cax[1])
@@ -231,7 +251,7 @@ for num in [2]:
                     if x_axis == 'station':
                         plt.xticks(range(data.NS), data.site_names, rotation='vertical')
                         plt.gca().set_xlabel('Station')
-                    plt.colorbar()
+                    cb = plt.colorbar()
                     plt.clim(use_cax)
                     # plt.contour(grid_x, grid_y, grid_vals, levels=[-3.5, 3.5], colors='k')
                     print('Done Plotting')

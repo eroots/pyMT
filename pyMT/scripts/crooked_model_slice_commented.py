@@ -138,10 +138,10 @@ def project_locations(locations, zone, letter):
 # mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
 ################
 # SWAYZE
-main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/north_conduit_test/swz_bothConduits-replaced_fTest.model')
+# main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/north_conduit_test/swz_bothConduits-replaced_fTest.model')
 ################
 # data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 # backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
@@ -164,24 +164,31 @@ mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/swz
 # mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/snorcle/line2b_plus/line2b_lastIter.rho')
 # main_transect.remove_sites(sites=['sno_247', '2xx_258', 'sno_259'])
 # main_transect.remove_sites(sites=['sno_200'])
+##################################################
+# PLC (Patterson Lake)
+main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/line1_ns.lst')
+data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
+backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
 # Define a UTM zone to project to. Use None if you want to use the default, or if you are using a ModEM data file
-# UTM_zone = []
+UTM_zone = []
 # UTM_zone = '9N'
-UTM_zone = '17U'
+# UTM_zone = '17U'
 # seismic = pd.read_table('file_name',
                         # header=0, names=('trace', 'x', 'y'), sep='\s+')
 # How to define the slice. 1 is through MT stations, 2 is through points in a csv (previously 'seismic'), and 3 is through points given by 'slice_points_x' and 'slice_points_y'
 transect_types = {1: 'mt', 2: 'csv', 3: 'points'}
-transect_type = 1  # Set to 1, 2, or 3
+transect_type = 3  # Set to 1, 2, or 3
 # main_transect.locations = main_transect.locations[main_transect.locations[:, 1].argsort()]
-# slice_points_x = main_transect.locations[:, 1]
-# slice_points_y = main_transect.locations[:, 0]
+slice_points_x = main_transect.locations[:, 1]
+slice_points_y = main_transect.locations[:, 0]
+# slice_points_x = (main_transect.locations[0, 1], main_transect.locations[-1, 1])
+# slice_points_y = (main_transect.locations[0, 0], main_transect.locations[-1, 0])
 # slice_points_x = (653376, 653376)
 # slice_points_y = (5332020, 5375000)
 # slice_points_x = (585170, 607599)
 # slice_points_y = (5323280, 5330550)
-slice_points_x = (640000, 663500)
-slice_points_y = (5344790, 5349280)
+# slice_points_x = (640000, 663500)
+# slice_points_y = (5344790, 5349280)
 points_in_latlong = 0 # Set to true if specifying slice_points in latlong
 xaxis_increasing = 1 # Force x-axis to be increasing (1) or decreasing (0)
 use_trace_ticks = 0  # If using seismic, do you want the x-axis to be CDP values?
@@ -189,7 +196,7 @@ azi = 0  # Rotation angle for model (not well tested)
 reso = []  # Include resolution file?
 ### Number of interpolation points between each station. 
 ### This is the number per pair of stations points, so turn this up if you're only using a few points
-ninterp = 100
+ninterp = 20
 nz_interp = 10
 padding = 10000  # Padding (in m) at the ends of the slice
 ninterp_padding = 100  # Number of interpolation points in the padding
@@ -204,10 +211,10 @@ file_types = ['.png']#, '.svg']  # File save format(s)
 title_ = 'Standard Inversion'  # Title of plot
 rotate_back = 0  # If data is rotated, do you want to rotate it back to 0?
 linear_xaxis = 1  # Use a linear x-axis or keep in easting-northing? Recommended if using a irregular slice
-plot_direction = 'sn'
-save_fig = 0  # Save the figure?
+plot_direction = 'ns'
+save_fig = 1  # Save the figure?
 save_dat = 0  # Save the plotted slice as a csv?
-annotate_sites = 1  # Plot station names? 
+annotate_sites = 0  # Plot station names? 
 site_markers = 1  # Include site markers (from main_transect) on plot? This is turned off if you aren't using transect_type 1
 plot_map = 1  # Plot a map with all stations (black) and main_transect (red)?
 plot_contours = 0
@@ -223,7 +230,7 @@ xlim = []  # x-axis limits
 zlim = [0, 60]  # y-axis limits
 aspect_ratio = 1  # aspect ratio of plot
 lut = 32  # number of colour values
-cax = [0, 5]  # Colour axis limits
+cax = [0, 4]  # Colour axis limits
 isolum = 0  # Apply isoluminate normalization?
 
 # For more complicated slicing
@@ -253,10 +260,6 @@ cmap_name = 'turbo_r'
 # cmap_name = 'jetplus'
 force_NS = 0  # Force the slice to plot south-to-north
 fig_num = 0
-# file_path = 'E:/phd/NextCloud/Documents/GoldenTriangle/RoughFigures/model_slices/7p5k/notopo/rot45/'
-# file_path = 'E:/phd/NextCloud/Documents/GoldenTriangle/RoughFigures/model_slices/line2b/Z/'
-file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/alternate_cmaps/bwr/'
-file_name = 'AG-line_StraightSN-{}_{}'.format(14, cmap_name)
 # if UTM_zone:
 #     try:
 #         UTM_number, UTM_letter = check_UTM(UTM_zone)
@@ -266,17 +269,27 @@ file_name = 'AG-line_StraightSN-{}_{}'.format(14, cmap_name)
 #     except AttributeError:
 #         print('All data must be RawData (read from EDIs or j-format) to project to a UTM zone. Please try again.')
 #         sys.exit()
-all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
+# all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
+#                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
+all_backups = {'main_transect': copy.deepcopy(main_transect),
                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
 # for nudge_dist in range(-30000, 32500, 2500):  # Modify this as needed. You could use this to do slices through your transect at offsets
 # lines = ['line5_2b.lst', 'line3.lst', 'line2a.lst']
 # plot_directions = ['we', 'sn', 'sn']
-lines = ['line5_2b.lst']
-# plot_directions = ['sn']
-path = '/phd/Nextcloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/'
+fig_save_path = 'E:/phd/Nextcloud/data/Regions/plc18/final/feature_test/figs/'
+
+path = 'E:/phd/Nextcloud/data/Regions/plc18/final/feature_test/'
+# models = ['C1-500ohm.model', 'C1-500ohm-deep.model', 'C1-1000ohm.model', 'C1-1000ohm-deep.model']
+# models = ['C2-500ohm.model', 'C2-1000ohm.model']
+models = ['R1-500ohm.model', 'R1-1000ohm.model', 'R1-2500ohm.model']
+lines = ['line1.lst'] * len(models)
+plot_directions = ['we']
+
 
 # nudge_dist = 0
 for il, line in enumerate(lines):
+    all_backups.update({'model': WSDS.Model(path+models[il])})
+    fig_save_name = models[il].replace('.model', '')
     # all_backups.update({'main_transect': WSDS.RawData(local_path + path + line)})
     # for nudge_dist in [-60000, -45000, -30000, -15000, 0, 15000, 30000, 45000, 60000]:
     # for nudge_dist in [-30000, -22500, -15000, -7500, 0, 7500, 15000, 22500, 30000]:
@@ -286,7 +299,7 @@ for il, line in enumerate(lines):
         # plot_direction = plot_directions[il]
         # file_name = '{}_{}mOffset'.format(line[:-4], nudge_dist)
         
-        main_transect = copy.deepcopy(all_backups['main_transect'])
+        # main_transect = copy.deepcopy(all_backups['main_transect'])
         # main_transect.remove_sites(sites=['sno_247', '2xx_258', 'sno_259'])
         # main_transect.remove_sites(sites=['sno_200'])
         # main_transect.remove_sites(sites=['sno_309', 'mt3_3312'])
@@ -303,23 +316,22 @@ for il, line in enumerate(lines):
         # slice_points_x = main_transect.locations[:, 1]
         # slice_points_y = main_transect.locations[:, 0]
         ################################################
-        # file_name = 'mal_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
         # main_transect = copy.deepcopy(all_backups['main_transect'])
         mod = copy.deepcopy(all_backups['model'])
         data = copy.deepcopy(all_backups['data'])
         backup_data = copy.deepcopy(all_backups['backup_data'])
         fig_num += 1
-        # main_transect.locations = main_transect.locations[main_transect.locations[:, 1].argsort()]
+        main_transect.locations = main_transect.locations[main_transect.locations[:, 1].argsort()]
         # Sort the site names so the same is true
-        # main_transect.site_names = sorted(main_transect.site_names,
-        #                                   key=lambda x: main_transect.sites[x].locations['X'])
+        main_transect.site_names = sorted(main_transect.site_names,
+                                          key=lambda x: main_transect.sites[x].locations['Y'])
         if transect_types[transect_type] == 'points':
             nudge_locations = np.array((slice_points_y, slice_points_x)).T
             if points_in_latlong and UTM_zone:
                 nudge_locations = project_locations(nudge_locations, letter=UTM_letter, zone=UTM_number)
-            if plot_direction.lower  == 'sn' and force_NS:
+            if plot_direction.lower()  == 'sn' and force_NS:
                 nudge_locations = nudge_locations[nudge_locations[:, 0].argsort()]
-            elif plot_direction.lower  == 'we':
+            elif plot_direction.lower()  == 'we':
                 if force_NS:
                     nudge_locations = nudge_locations[nudge_locations[:, 1].argsort()]
                 nudge_locations = np.fliplr(nudge_locations)
@@ -397,14 +409,14 @@ for il, line in enumerate(lines):
         #     if site in nudge_sites:
         #         nudge_locations[ii, 1] += nudge_dist
         if transect_types[transect_type] == 'seismic':
-                qx, qy = (np.array(seismic['x'] / 1000),
-                          np.array(seismic['y']) / 1000)
-                if azi:
-                    locs = utils.rotate_locs(np.array((qy, qx)).T, azi)
-                    qx, qy = locs[:, 1], locs[:, 0]
-                if plot_map:
-                    qx_map = copy.deepcopy(qx) * 1000
-                    qy_map = copy.deepcopy(qy) * 1000
+            qx, qy = (np.array(seismic['x'] / 1000),
+                      np.array(seismic['y']) / 1000)
+            if azi:
+                locs = utils.rotate_locs(np.array((qy, qx)).T, azi)
+                qx, qy = locs[:, 1], locs[:, 0]
+            if plot_map:
+                qx_map = copy.deepcopy(qx) * 1000
+                qy_map = copy.deepcopy(qy) * 1000
         elif transect_types[transect_type] == 'mt':
             X = np.linspace(nudge_locations[0, 0] - padding, nudge_locations[0, 0], ninterp_padding)
             Y = np.interp(X, nudge_locations[:, 0], nudge_locations[:, 1])
@@ -429,20 +441,54 @@ for il, line in enumerate(lines):
             qx = np.concatenate(qx).ravel() / 1000
             qy = np.concatenate(qy).ravel() / 1000
         else:
+            #######################################
+            # Taken from model_viewer
             qx = []
             qy = []
-            # for ii in range(len(data.locations[:, 0]) - 1):
-            if plot_direction == 'sn':
-                use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
-            else:
-                use_x, use_y = nudge_locations[:, 0], nudge_locations[:, 1]
-            for ii in range(len(slice_points_x) - 1):
-                X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
-                Y = np.interp(X, use_y[:], use_x[:])
-                qx.append(Y)
-                qy.append(X)
+            distance = []
+            E, N = nudge_locations[:, 1], nudge_locations[:, 0]
+            for ii in range(len(E) - 1):
+                distance.append(np.sqrt((E[ii] - E[ii + 1]) ** 2 +
+                                        (N[ii] - N[ii + 1]) ** 2))
+            distance = np.array(distance)
+            total_distance = np.sum(distance)
+            N_per_segment = ninterp
+            # N_per_segment = np.int64(np.ceil(self.n_interp * distance / total_distance))
+            for ii in range(len(E) - 1):
+                # E1, E2 = (min(E[ii], E[ii + 1]), max(E[ii], E[ii + 1]))
+                if E[ii] > E[ii + 1]:
+                    E0, E1 = E[ii + 1], E[ii]
+                    N0, N1 = N[ii + 1], N[ii]
+                else:
+                    E0, E1 = E[ii], E[ii + 1]
+                    N0, N1 = N[ii], N[ii + 1]
+                X = np.linspace(E0, E1, N_per_segment)
+                Y = np.interp(X, (E0, E1), (N0, N1))
+                if E[ii] > E[ii + 1]:
+                    X = np.flip(X, axis=0)
+                    Y = np.flip(Y, axis=0)
+                qx.append(X)
+                qy.append(Y)
             qx = np.concatenate(qx).ravel() / 1000
             qy = np.concatenate(qy).ravel() / 1000
+            #######################################
+            # Old way
+            # qx = []
+            # qy = []
+            # # for ii in range(len(data.locations[:, 0]) - 1):
+            # if plot_direction in ('sn', 'ns'):
+            #     # use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
+            #     use_y, use_x = nudge_locations.T
+            # else:
+            #     use_x, use_y = nudge_locations[:, 0], nudge_locations[:, 1]
+            # for ii in range(len(slice_points_x) - 1):
+            #     X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
+            #     Y = np.interp(X, use_y[:], use_x[:])
+            #     qx.append(Y)
+            #     qy.append(X)
+            # qx = np.concatenate(qx).ravel() / 1000
+            # qy = np.concatenate(qy).ravel() / 1000
+            #######################################
         x, y, z = [np.zeros((len(mod.dx) - 1)),
                    np.zeros((len(mod.dy) - 1)),
                    np.zeros((len(mod.dz) - 1))]
@@ -483,8 +529,8 @@ for il, line in enumerate(lines):
         query_points = np.zeros((len(qx) * len(qz), 3))
         #  Build Nx3 array of query points
         cc = 0
-        if plot_direction == 'we':
-                qx, qy = qy, qx
+        if plot_direction in ('we', 'ew'):
+            qx, qy = qy, qx
         print('Number of query points: {}'.format(query_points.size))
         for ix in range(len(qx)):
             for iz in qz:
@@ -705,7 +751,7 @@ for il, line in enumerate(lines):
         if save_fig:
             # plt.show()
             for ext in file_types:
-                fig.savefig(file_path + file_name + ext, dpi=dpi,
+                fig.savefig(fig_save_path + fig_save_name + ext, dpi=dpi,
                             transparent=True)
             fig.clear()
             ax.clear()

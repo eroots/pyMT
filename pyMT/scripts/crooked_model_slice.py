@@ -122,10 +122,10 @@ def project_locations(data, zone, letter):
 # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/swayze/R2South_new1/placed_TFPT/southTFPT_hsRef-2_lastIter.rho')
 # ##########################################################
 # # SWAYZE
-main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect_more.lst')
-data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
-mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swz_NConduit-replaced.model')
+# main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/main_transect_more.lst')
+# data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/j2/swz_cull1.lst')
+# mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swz_NConduit-replaced.model')
 # seismic = pd.read_table(r'E:\phd\Nextcloud\Metal Earth\Data\Seismic\Swayze\Plots\Shapefiles\SWAYZ_LN241_R1_KMIG_SUGETHW_UTM.txt',
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 # mod.vals = np.log10(mod.vals) - np.log10(mod2.vals)
@@ -283,7 +283,7 @@ mod = WSDS.Model(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/swayze/swz
 # seismic_data_path = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/AG/seismic/merge_lmig_curvelet.sgy'
 # seisline = ['12','14','15','16','16a','23','25','28']
 # seisline = ['12', '23', '25']
-seisline = ['14', '12', '23', '16a', 'lar']
+# seisline = ['14', '12', '23', '16a', 'lar']
 # seisline = ['12']
 # seisline = ['malartic']
 # seisline = ['18', '24', '17']
@@ -319,6 +319,12 @@ seisline = ['14', '12', '23', '16a', 'lar']
 # seismic = pd.read_table(local_path + '/phd/Nextcloud/Metal Earth/Data/Seismic/ME_Seismic_PostStack_Migrated_sections/' +
                         # r'LARD_LN321_R1_KMIG/LARD_LN321_R1_KMIG_SUGETHW_UTM.txt',
                         # header=0, names=('trace', 'x', 'y'), sep='\s')
+####################################################
+# PLC (Patterson Lake)
+main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/line1.lst')
+data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
+backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
+####################################################
 use_seismic = 0
 overlay_seismic = 0
 only_seismic = 0
@@ -327,57 +333,42 @@ normalize_seismic = 0
 clip_val = 0.15
 depth_conversion_velocity = 6.3
 use_trace_ticks = 0
-force_NS = 1
+force_NS = 0
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
-project_data = True
+project_data = False
 UTM_number = 17
 UTM_letter = 'U'
-# UTM_letter = 'U'
-# padding = 25000
 reso = []
-ninterp = 100
-nz_interp = 5
+ninterp = 50
+nz_interp = 2
 interp_method = 'linear'
-# padding = 1500
 padding = 10000
-ninterp_padding = 50
+ninterp_padding = 10
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
-
-# file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/line{}/'.format(seisline)
-
 file_types = ['.png']#, '.svg']
 title_ = 'Standard Inversion'
 rotate_back = 0
-plot_direction = 'sn'
-linear_xaxis = 1
+# plot_direction = 'ns'
+linear_xaxis = 0
 save_fig = 0
 save_dat = 0
 annotate_sites = 0
 site_markers = 1
 plot_contours = 0
-
-# site_markers = 0
-plot_map = 0
+plot_map = 1
 dpi = 300
-# csv_name = 'C:/Users/eroots/phd/Nextcloud/Metal Earth/Data/model_csvs/wst_wUSARRAY_alongLitho.dat'
 csv_name = local_path + '/phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_along2D.dat'
-# csv_name = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/rouyn/model_csvs/rouyn_alongMT.dat'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 xlim = []
-# zlim = [0, 100]
 zlim = [0, 60]
 aspect_ratio = 1
-# zlim = [0, 200]
 lut = 32
-# zlim = [0, 100]
-# lut = 64
 isolum = False
-# cax = [0, 4.5]
 cax = [0, 5]
 isolum = 0
 # cmap_name = 'gist_rainbow'
@@ -424,12 +415,12 @@ nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
 
 # nudge_dist = 500
 # nudge_dist = -750
-use_nudge = 1
+use_nudge = 0
 fig_num = 0
-all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
+# all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
+#                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
+all_backups = {'main_transect': copy.deepcopy(main_transect),
                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
-# all_backups = {'main_transect': copy.deepcopy(main_transect),
-                             # 'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
 # for nudge_dist in [-1200, -800, -400, 0, 400, 800, 1200]:
 # for nudge_dist in [-1200, -900, -600, -300, 300, 600, 900, 1200]:
 # for seisline in seismic_lines:
@@ -445,35 +436,31 @@ depth = ['5.0']
         # path = local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/'
         # mod = WSDS.Model(path + '{}ohm/swz_lccTest_{}ohm_{}kmDepth.model'.format(r, r, d))
 # seisline = ['line2a.lst', 'line3.lst', 'line5_2b.lst']
-# file_path = 'E:/phd/NextCloud/Documents/GoldenTriangle/RoughFigures/model_slices/7p5k_wTopo/'
-# file_name = 'line2a'
-# file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Geraldton/RoughFigures/model_slices/'
-# file_name = 'gerHS3000_alongSeisSouth-linear'
+# fig_save_path = 'E:/phd/NextCloud/Documents/GoldenTriangle/RoughFigures/model_slices/7p5k_wTopo/'
+# fig_save_name = 'line2a'
+# fig_save_path = 'E:/phd/NextCloud/Documents/ME_Transects/Geraldton/RoughFigures/model_slices/'
+# fig_save_name = 'gerHS3000_alongSeisSouth-linear'
 # plot_directions = ['']
-plot_direction = 'sn'
-nudge_distances = [0, 6000, 0, 0, 0]
+plot_direction = 'we'
+seisline = ['dummy'] * 4
+fig_save_path = 'E:/phd/Nextcloud/data/Regions/plc18/final/feature_test/figs/'
+path = 'E:/phd/Nextcloud/data/Regions/plc18/final/feature_test/C1/'
+models = ['C1-500ohm.model', 'C1-500ohm-deep.model', 'C1-1000ohm.model', 'C1-1000ohm-deep.model']
+nudge_distances = [0, 0, 0, 0]
 # nudge_distances = [6000]
 for r in rho:
         # for d in depth:
         for il, line in enumerate(seisline[:1]):
-            # file_name = line[:-4]
+            all_backups.update({'model': WSDS.Model(path+models[il])})
+            fig_save_name = models[il].replace('.model', '')
+            # fig_save_name = line[:-4]
             # path = local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/'
             # mod = WSDS.Model(path + '{}ohm/swz_lccTest_{}ohm_{}kmDepth.model'.format(r, r, d))
             # for nudge_dist in [nudge_distances[il]]:
-            for nudge_dist in [8000]:
+            for nudge_dist in [0]:
                     # line = seisline[0]
                     # for nudge_dist in [0]:
-                    # file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/line{}/'.format(line)
-                    # file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/{}/'.format(line)
-                    file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/alternate_cmaps/bwr/'
-                    # if only_seismic:
-                    #     # file_name = 'AG_SeisLithoprobe_northing_line{}'.format(line)
-                    #     file_name = 'AG_SeisLithoprobe_linear_clip{:2.0f}_line{}'.format(clip_val*100, line)
-                    # else:
-                    #     file_name = 'AG_MT-SeisOverlay_northing_line{}_{}_mOffset_turbo_mod{}-{}'.format(line, nudge_dist, (cax[0]), (cax[1]))
-                    file_name = 'AG-line_StraightSN-{}_{}'.format(line, cmap_name)
-                    # file_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/featureTests/{}ohm/'.format(r)
-                    # file_name = 'Swayze_{}ohm_{}kmDep'.format(r, d)
+                    # fig_save_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/alternate_cmaps/bwr/'
                     #############
                     # try:
                     #     # int(line)
@@ -507,9 +494,9 @@ for r in rho:
                     # main_transect = WSDS.RawData(datpath + line)
                     backup_data = copy.deepcopy(all_backups['backup_data'])
                     fig_num += 1
-                    # file_name = 'AG_alongLitho_linear_line{}_{}_mOffset'.format(line, nudge_dist)
-                    # file_name = 'AG_LithoprobeLine{}_depth'.format(line)
-                    # file_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
+                    # fig_save_name = 'AG_alongLitho_linear_line{}_{}_mOffset'.format(line, nudge_dist)
+                    # fig_save_name = 'AG_LithoprobeLine{}_depth'.format(line)
+                    # fig_save_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
                     if project_data:
                         data.to_utm(UTM_number, UTM_letter)
                         main_transect.to_utm(UTM_number, UTM_letter)
@@ -524,38 +511,38 @@ for r in rho:
                                                       # key=lambda x: main_transect.sites[x].locations['X'])
                     nudge_locations = copy.deepcopy(main_transect.locations)
                     if use_nudge:
-                            for ii, site in enumerate(main_transect.site_names):
-                                    if site in nudge_sites:
-                                            nudge_locations[ii, 1] += nudge_dist
-                                    elif site in reverse_nudge:
-                                            if site == 'MAL007M':
-                                                    nudge_locations[ii, 1] -= 3000
-                                            else:
-                                                    nudge_locations[ii, 1] -= nudge_dist
+                        for ii, site in enumerate(main_transect.site_names):
+                            if site in nudge_sites:
+                                    nudge_locations[ii, 1] += nudge_dist
+                            elif site in reverse_nudge:
+                                    if site == 'MAL007M':
+                                            nudge_locations[ii, 1] -= 3000
+                                    else:
+                                            nudge_locations[ii, 1] -= nudge_dist
                     if plot_map and not use_seismic:
-                            site_x, site_y = [main_transect.locations[:, 1],
-                                                                main_transect.locations[:, 0]]
-                            qx_map, qy_map = [], []
-                            X = np.linspace(nudge_locations[0, 0] - padding, nudge_locations[0, 0], ninterp_padding)
-                            Y = np.interp(X, site_y, site_x)
-                            qx_map.append(Y)
-                            qy_map.append(X)
-                            # for ii in range(len(site_x) - 1):
-                            for ii, site in enumerate(main_transect.site_names[:-1]):
-                                    # if use_nudge:
-                                    use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
-                                    # else:
-                                            # use_x, use_y = site_x, site_y
-                                    X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
-                                    Y = np.interp(X, use_y, use_x)
-                                    qx_map.append(Y)
-                                    qy_map.append(X)
-                            X = np.linspace(use_y[-1], use_y[-1] + padding, ninterp_padding)
+                        site_x, site_y = [main_transect.locations[:, 1],
+                                          main_transect.locations[:, 0]]
+                        qx_map, qy_map = [], []
+                        X = np.linspace(nudge_locations[0, 0] - padding, nudge_locations[0, 0], ninterp_padding)
+                        Y = np.interp(X, site_y, site_x)
+                        qx_map.append(Y)
+                        qy_map.append(X)
+                        # for ii in range(len(site_x) - 1):
+                        for ii, site in enumerate(main_transect.site_names[:-1]):
+                            # if use_nudge:
+                            use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
+                            # else:
+                                    # use_x, use_y = site_x, site_y
+                            X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
                             Y = np.interp(X, use_y, use_x)
                             qx_map.append(Y)
                             qy_map.append(X)
-                            qx_map = np.concatenate(qx_map).ravel()
-                            qy_map = np.concatenate(qy_map).ravel()
+                        X = np.linspace(use_y[-1], use_y[-1] + padding, ninterp_padding)
+                        Y = np.interp(X, use_y, use_x)
+                        qx_map.append(Y)
+                        qy_map.append(X)
+                        qx_map = np.concatenate(qx_map).ravel()
+                        qy_map = np.concatenate(qy_map).ravel()
 
                     data = copy.deepcopy(main_transect)
                     data.locations = utils.rotate_locs(data.locations, azi)
@@ -614,59 +601,63 @@ for r in rho:
                             # qx = np.hstack([np.ones(add.shape) * qx[0], qx, np.ones(add.shape) * qx[-1]])
                             # qy = np.hstack([qy[0] - np.flip(add), qy, add + qy[-1]])
                             if plot_map:
-                                    qx_map = copy.deepcopy(qx) * 1000
-                                    qy_map = copy.deepcopy(qy) * 1000
+                                qx_map = copy.deepcopy(qx) * 1000
+                                qy_map = copy.deepcopy(qy) * 1000
                             if use_nudge:
+                                if plot_direction in ('ns', 'sn'):
+                                    qx += nudge_dist / 1000
+                                else:
+                                    qy += nudge_dist / 1000
+                                if plot_map:
                                     if plot_direction in ('ns', 'sn'):
-                                            qx += nudge_dist / 1000
+                                        qx_map += nudge_dist / 1000
                                     else:
-                                            qy += nudge_dist / 1000
-                                    if plot_map:
-                                            if plot_direction in ('ns', 'sn'):
-                                                    qx_map += nudge_dist / 1000
-                                            else:
-                                                    qy += nudge_dist / 1000
+                                        qy += nudge_dist / 1000
 
-                    else:
-                            X = np.linspace(nudge_locations[0, 0] - padding, nudge_locations[0, 0], ninterp_padding)
-                            Y = np.interp(X, nudge_locations[:, 0], nudge_locations[:, 1])
-                            qx = []
-                            qy = []
-                            qx.append(Y)
-                            qy.append(X)
-                            # for ii in range(len(data.locations[:, 0]) - 1):
-                            for ii, site in enumerate(data.site_names[:-1]):
-                                    if use_nudge:
-                                            use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
-                                    else:
-                                            use_x, use_y = data.locations[:, 1], data.locations[:, 0]
-                                    X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
-                                    Y = np.interp(X, use_y[:], use_x[:])
-                                    qx.append(Y)
-                                    qy.append(X)
-                            X = np.linspace(use_y[-1], use_y[-1] + padding, ninterp_padding)
+                else:
+                        # if plot_direction in ('we', 'ew'):
+                        #     nudge_locations = np.fliplr(nudge_locations)
+                        X = np.linspace(nudge_locations[0, 0] - padding, nudge_locations[0, 0], ninterp_padding)
+                        Y = np.interp(X, nudge_locations[:, 0], nudge_locations[:, 1])
+                        qx = []
+                        qy = []
+                        qx.append(Y)
+                        qy.append(X)
+                        # for ii in range(len(data.locations[:, 0]) - 1):
+                        for ii, site in enumerate(data.site_names[:-1]):
+                            if use_nudge:
+                                use_x, use_y = nudge_locations[:, 1], nudge_locations[:, 0]
+                            else:
+                                use_x, use_y = data.locations[:, 1], data.locations[:, 0]
+                            X = np.linspace(use_y[ii], use_y[ii + 1], ninterp)
                             Y = np.interp(X, use_y[:], use_x[:])
                             qx.append(Y)
                             qy.append(X)
-                            qx = np.concatenate(qx).ravel() / 1000
-                            qy = np.concatenate(qy).ravel() / 1000
+                        X = np.linspace(use_y[-1], use_y[-1] + padding, ninterp_padding)
+                        Y = np.interp(X, use_y[:], use_x[:])
+                        qx.append(Y)
+                        qy.append(X)
+                        qx = np.concatenate(qx).ravel() / 1000
+                        qy = np.concatenate(qy).ravel() / 1000
+                        # if plot_direction in ('we', 'ew'):
+                        #     qx, qy = qy, qx
                     kimberlines = []
                     if force_NS:
-                            if plot_direction == 'sn':
-                                    if qy[0] > qy[-1]:
-                                            qx, qy = np.flip(qx), np.flip(qy)
-                            elif plot_direction == 'we':
-                                    if qx[0] > qx[-1]:
-                                            qx, qy = np.flip(qx), np.flip(qy)
-                            elif plot_direction == 'ns':
-                                    if qy[0] < qy[-1]:
-                                            qx, qy = np.flip(qx), np.flip(qy)
-                            elif plot_direction == 'ew':
-                                    if qx[0] < qx[-1]:
-                                            qx, qy = np.flip(qx), np.flip(qy)
+                        if plot_direction == 'sn':
+                            if qy[0] > qy[-1]:
+                                qx, qy = np.flip(qx), np.flip(qy)
+                        elif plot_direction == 'we':
+                            if qx[0] > qx[-1]:
+                                qx, qy = np.flip(qx), np.flip(qy)
+                        elif plot_direction == 'ns':
+                            if qy[0] < qy[-1]:
+                                qx, qy = np.flip(qx), np.flip(qy)
+                        elif plot_direction == 'ew':
+                            if qx[0] < qx[-1]:
+                                qx, qy = np.flip(qx), np.flip(qy)
                     x, y, z = [np.zeros((len(mod.dx) - 1)),
-                                         np.zeros((len(mod.dy) - 1)),
-                                         np.zeros((len(mod.dz) - 1))]
+                               np.zeros((len(mod.dy) - 1)),
+                               np.zeros((len(mod.dz) - 1))]
                     for ii in range(len(mod.dx) - 1):
                             x[ii] = (mod.dx[ii] + mod.dx[ii + 1]) / 2
                     for ii in range(len(mod.dy) - 1):
@@ -762,23 +753,23 @@ for r in rho:
                             qy_rot = qy
                             qx_rot = qx
                     if linear_xaxis:
-                            linear_x = np.zeros(qx_rot.shape)
-                            linear_x[1:] = np.sqrt((qx_rot[1:] - qx_rot[:-1]) ** 2 + (qy_rot[1:] - qy_rot[:-1]) ** 2)
-                            linear_x = np.cumsum(linear_x)
-                            nodes = np.array([qy_rot * 1000, qx_rot * 1000]).T
-                            linear_site = np.zeros((len(data.locations)))
-                            for ii, (x, y) in enumerate(data.locations):
-                                    if use_nudge and data.site_names[ii] in nudge_sites:
-                                            y += nudge_dist
-                                    dist = np.sum((nodes - np.array([x, y])) ** 2, axis=1)
-                                    idx = np.argmin(dist)
-                                    linear_site[ii] = linear_x[idx]
-                            x_axis = linear_x
+                        linear_x = np.zeros(qx_rot.shape)
+                        linear_x[1:] = np.sqrt((qx_rot[1:] - qx_rot[:-1]) ** 2 + (qy_rot[1:] - qy_rot[:-1]) ** 2)
+                        linear_x = np.cumsum(linear_x)
+                        nodes = np.array([qy_rot * 1000, qx_rot * 1000]).T
+                        linear_site = np.zeros((len(data.locations)))
+                        for ii, (x, y) in enumerate(data.locations):
+                                if use_nudge and data.site_names[ii] in nudge_sites:
+                                        y += nudge_dist
+                                dist = np.sum((nodes - np.array([x, y])) ** 2, axis=1)
+                                idx = np.argmin(dist)
+                                linear_site[ii] = linear_x[idx]
+                        x_axis = linear_x
                     else:
-                            if plot_direction in ('ns', 'sn'):
-                                    x_axis = qy_rot
-                            else:
-                                    x_axis = qx_rot
+                        if plot_direction in ('ns', 'sn'):
+                                x_axis = qy_rot
+                        else:
+                                x_axis = qx_rot
                     # cmap[..., -1] = reso.vals[:, 31, :]
 
                     # I had to change the way things plotted, so isolum is unusable right now.
@@ -944,8 +935,8 @@ for r in rho:
                                             alpha=alpha, interpolation='sinc')
                     ax.set_aspect(aspect_ratio)
                     if linear_xaxis:
-                            site_x = linear_site
-                            ax.set_xlabel('Distance (km)', fontsize=14)
+                        site_x = linear_site
+                        ax.set_xlabel('Distance (km)', fontsize=14)
                     else:
                             site_x = data.locations[:, 0] / 1000
                     ax.autoscale_view(tight=True)
@@ -997,10 +988,10 @@ for r in rho:
                     if save_fig:
                         # plt.show()
                         for ext in file_types:
-                                # fig.savefig(file_path + file_name + ext, dpi=dpi,
+                                # fig.savefig(fig_save_path + fig_save_name + ext, dpi=dpi,
                                                         # bbox_inches='tight', transparent=True)
                                 # fig.tight_layout()
-                                fig.savefig(file_path + file_name + ext, dpi=dpi,
+                                fig.savefig(fig_save_path + fig_save_name + ext, dpi=dpi,
                                                         transparent=True)
                         fig.clear()
                         ax.clear()

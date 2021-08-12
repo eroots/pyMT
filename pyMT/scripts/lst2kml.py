@@ -7,62 +7,28 @@ from pyproj import Proj
 import shapefile
 from pyMT.WSExceptions import WSFileError
 
-local_path = 'E:/phd/NextCloud/'
-# list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/wst/New/j2/all.lst'
-# list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/abi-gren/New/j2/allsites.lst'
-# list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/dryden/j2/allsites.lst'
-# list_file = r'C:/Users/eric/Documents/MATLAB/MATLAB/Inversion/Regions/MetalEarth/swayze/j2/SWZall.lst')
-# transects = ('attikokan',
-#              'chibougamau',
-#              'dryden',
-#              'geraldton',
-#              'larder',
-#              'malartic',
-#              'matheson',
-#              'rainy',
-#              'rouyn',
-#              'sturgeon',
-#              'swayze',
-#              'sudbury',
-#              'cobalt',
-#              'BB')
-# lists = ('ATTBB.lst',
-#          'CHIBB.lst',
-#          'DRYBB.lst',
-#          'GERBB.lst',
-#          'LARBB.lst',
-#          'MALBB.lst',
-#          'MATBB.lst',
-#          'RRVBB.lst',
-#          'ROUBB.lst',
-#          'STUBB.lst',
-#          'SWZBB.lst',
-#          'SUDBB.lst',
-#          'COBBB.lst',
-#          'BB.lst')
-transects = ['snorcle']
-list_path = local_path + 'data/Regions/snorcle/j2/jformat-0TN/'
-lists = ['all_sorted.lst']
-shp_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
-# transects = ['swayze']
-# lists = ['SWZAMT.lst']
-# transects = ['BB-legacy', 'bb-legacy', 'lmt-legacy']
-# lists = ['BB.lst', 'bb.lst', 'lmt.lst']
+# If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
+transects = ['NACP']
+# Path to the list file
+list_path = 'E:/phd/Nextcloud/data/Regions/NACP/j2/all_impedances/'
+# Name of the list file(s) - these would go with your list of transects above
+lists = ['allsites.lst']
+
+# Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
 data_type = 'all_'
-# data_type = ['BB_', 'BB_', 'LMT_']
-# list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
-# list_path = 'F:/ownCloud/Metal Earth/Data/ConvertedEDIs/FinalEDIs/'
-# list_path = 'F:/ownCloud/Metal Earth/Data/legacy_edi_export_all/'
-# list_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/WinGLinkEDIs_final/'
-# list_path = 'C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/swayze/j2/'
-# csv_save_path = 'C:/Users/eric/phd/ownCloud/Metal Earth/Data/MT-locations/Jan2019/CSV/'
-# shp_save_path = 'C:/Users/eric/phd/ownCloud/data/ArcMap/MT-locations/SHPs/Jan2019/SHP/'
-kml_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
-csv_save_path = local_path + 'data/ArcMap/MT-locations/snorcle/'
+
+# Set the paths you want things to be saved to
+shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/NACP/'
+kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/NACP/'
+csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/NACP/'
+
+# Set to true or false depending on what you want written
 write_kml = True
 write_csv = False
 write_shp = False
-UTM = 9
+# Whatever your UTM zone is
+UTM = 7
+
 for ii, lst in enumerate(lists):
     try:
         list_file = ''.join([list_path, lst])
@@ -70,9 +36,6 @@ for ii, lst in enumerate(lists):
         csv_save_file = ''.join([csv_save_path, transects[ii]])
         shp_save_file = ''.join([shp_save_path, data_type, transects[ii], '.shp'])
         data = WSDS.RawData(listfile=list_file)
-        # data = pd.read_table('C:/Users/eric/Desktop/andy/2b.cdp',
-        #                      header=None, names=('cdp', 'x', 'y'), sep='\s+')
-        # lon, lat = utils.unproject('15', 'N', np.array(data['x']), np.array(data['y']))
         if write_csv:
             with open(''.join([csv_save_file, data_type, '_latlong.csv']), 'w') as f:
                 print('Writing CSV for {}'.format(transects[ii]))

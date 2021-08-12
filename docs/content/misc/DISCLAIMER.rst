@@ -22,8 +22,6 @@ Data Plot GUI
 	* In this instance, the :ref:`Map Viewer` is not initialized properly, and no site locations are shown. 
 	* The workaround is to re-sort the station locations (e.g., sort by west-east then re-sort back to default) and click the forward or back button. These operations should get the stations plotting.
 
-* When multiple datasets are loaded, the misfit table may not be properly updated to reflect the currently selected dataset.
-
 * Rotating the data / stations using the 'Azimuth' box has a few associated bugs
 	* The station locations and annotations in the :ref:`Map Viewer` may not be accurate
         * Non-zero azimuths also do something with the ordering of the stations in :ref:`Map Viewer`, and cycling through stations with the :ref:`Forward and Back Buttons` changes the order on the map. Will try to fix this.
@@ -35,8 +33,6 @@ Data Plot GUI
 	* Occasionally, if the number of subplots in the final saved plot is different from that specified within the 'Plot Options' tab, the next action taken can result in a crash.
 
 * If more subplots are used than there are stations available, one station will be re-plotted in order to fill the unused subplots.
-
-* If more than one dataset is loaded into the GUI, switching between datasets may not update the misfit table.
 
 * Blank items in the :ref:`Data Component Table` are selectable. However, this results in the first available component being plotted instead, and so should not break the GUI.
 

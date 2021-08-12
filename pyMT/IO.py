@@ -577,7 +577,13 @@ def read_raw_data(site_names, datpath=''):
                         else:
                             data.update({new_key: data_block})
                 elif key == 'ZROT':
-                    data_block = read_data_block(blocks[key])
+                    try:
+                        data_block = read_data_block(blocks[key])
+                    except IndexError:
+                        print('Missing ZROT info, setting ZROT=0')
+                        azi = 0
+                        equal_rots = 1
+                        continue    
                     if not np.all(data_block == data_block[1]):
                         azi = data_block[0]
                         equal_rots = 0
@@ -2480,13 +2486,14 @@ def write_model(model, outfile, file_format='modem'):
         print('ModEM, WSINV3DMT, UBC-GIF, CSV')
         return
 
-def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
+def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50, period_idx=None):
+
     if not out_file.endswith('.csv'):
         out_file += '.csv'
     print('Writing phase tensor data to {}'.format(out_file))
     with open(out_file, 'w') as f:
         header = ['Site', 'Period', 'Latitude', 'Longitude', 'Azimuth',
-                  'Phi_min', 'Phi_max', 'Phi_min_scaled', 'Phi_max_scaled']
+                  'Phi_min', 'Phi_max', 'Phi_min_scaled', 'Phi_max_scaled', 'Phi_split']
         if verbose:
             header += ['Phi_1', 'Phi_2', 'Phi_3', 'Det_Phi', 'Alpha', 'Beta', 'Lambda']
         f.write(','.join(header))
@@ -2504,28 +2511,82 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
         for site_name in data.site_names:
             site = data.sites[site_name]
             X, Y = site.locations[X_key], site.locations[Y_key]
+            if period_idx is None:
+                # period_idx = list(range(site.NP))
+                period_idx = site.periods
             for ii, period in enumerate(site.periods):
-                phi_max = 1 * scale
-                phi_min = scale * site.phase_tensors[ii].phi_min / site.phase_tensors[ii].phi_max
-                f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}'.format(site_name,
-                                                        period,
-                                                        X,
-                                                        Y,
-                                                        -np.rad2deg((site.phase_tensors[ii].azimuth)) + 90,
-                                                        site.phase_tensors[ii].phi_min,
-                                                        site.phase_tensors[ii].phi_max,
-                                                        phi_min,
-                                                        phi_max))
-                if verbose:
-                    f.write(', {}, {}, {}, {}, {}, {}, {}\n'.format(np.rad2deg(np.arctan(site.phase_tensors[ii].phi_1)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].phi_3)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].det_phi)),
-                                                                    np.rad2deg((site.phase_tensors[ii].alpha)),
-                                                                    np.rad2deg((site.phase_tensors[ii].beta)),
-                                                                    site.phase_tensors[ii].Lambda))
-                else:
-                    f.write('\n')
+                if min(abs(period - period_idx)) < period * 0.1: # in period_idx:
+                    phi_max = 1 * scale
+                    phi_min = scale * site.phase_tensors[ii].phi_min / site.phase_tensors[ii].phi_max
+                    f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}'.format(site_name,
+                                                            period,
+                                                            X,
+                                                            Y,
+                                                            -np.rad2deg((site.phase_tensors[ii].azimuth)) + 90,
+                                                            site.phase_tensors[ii].phi_min,
+                                                            site.phase_tensors[ii].phi_max,
+                                                            phi_min,
+                                                            phi_max,
+                                                            site.phase_tensors[ii].phi_max - site.phase_tensors[ii].phi_min))
+                    if verbose:
+                        f.write(', {}, {}, {}, {}, {}, {}, {}\n'.format(np.rad2deg(np.arctan(site.phase_tensors[ii].phi_1)),
+                                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),
+                                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].phi_3)),
+                                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].det_phi)),
+                                                                        np.rad2deg((site.phase_tensors[ii].alpha)),
+                                                                        np.rad2deg((site.phase_tensors[ii].beta)),
+                                                                        site.phase_tensors[ii].Lambda))
+                    else:
+                        f.write('\n')
+
+
+def write_induction_arrows(data, out_file, period_idx=None, verbose=False, scale_factor=1):
+    if not out_file.endswith('.csv'):
+        out_file += '.csv'
+    with open(out_file, 'w') as f:
+        header = header = ['Site', 'Period', 'Latitude', 'Longitude',
+                           'TXR', 'TYR', 'TXI', 'TYI', 'Rev. TXR', 'Rev. TYR', 'Rev. TXI', 'Rev. TYI',
+                           'Azimuth_R', 'Azimuth_I', 'Magnitude_R', 'Magnitude_I']
+
+        try:
+            test = data.sites[data.site_names[0]].locations['Lat'], data.sites[data.site_names[0]].locations['Long']
+            X_key, Y_key = 'Lat', 'Long'
+        except KeyError:
+            X_key, Y_key = 'Y', 'X'
+        f.write(','.join(header))
+        f.write('\n')
+        for site_name in data.site_names:
+            site = data.sites[site_name]
+            X, Y = site.locations[X_key], site.locations[Y_key]
+            if period_idx is None:
+                period_idx = site.periods
+            if set(site.TIPPER_COMPONENTS).issubset(set(site.components)):
+                for ii, period in enumerate(site.periods):
+                    if min(abs(period - period_idx)) < period * 0.1:
+                        azi_R = np.rad2deg(np.arctan2(-site.data['TZYR'][ii], -site.data['TZXR'][ii]))
+                        azi_I = np.rad2deg(np.arctan2(-site.data['TZYI'][ii], -site.data['TZXI'][ii]))
+                        mag_R = np.sqrt(site.data['TZXR'][ii] ** 2 + site.data['TZYR'][ii] ** 2)
+                        mag_I = np.sqrt(site.data['TZXI'][ii] ** 2 + site.data['TZYI'][ii] ** 2)
+                        f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(site_name,
+                                                                                          period,
+                                                                                          X,
+                                                                                          Y,
+                                                                                          site.data['TZXR'][ii],
+                                                                                          site.data['TZYR'][ii],
+                                                                                          site.data['TZXI'][ii],
+                                                                                          site.data['TZYI'][ii],
+                                                                                          -site.data['TZXR'][ii],
+                                                                                          -site.data['TZYR'][ii],
+                                                                                          -site.data['TZXI'][ii],
+                                                                                          -site.data['TZYI'][ii],
+                                                                                          azi_R,
+                                                                                          azi_I,
+                                                                                          mag_R,
+                                                                                          mag_I))
+            else:
+                print('No tipper in {}'.format(site_name))
+
+
 
 
 

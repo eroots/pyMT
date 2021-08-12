@@ -38,6 +38,7 @@ class NewProject(QNewProject, Ui_NewProject):
         self.datasets = {}
         self.current_dir = ''
         self.project_path = ''
+        self.project_name = ''
         self.dp_windows = []
         self.model_windows = []
         self.md_windows = []

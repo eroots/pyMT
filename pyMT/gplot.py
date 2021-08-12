@@ -544,6 +544,7 @@ class DataPlotManager(object):
                 elif 'bost' in comp.lower():
                     toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
                     toplot = np.log10(toplot)
+                    toplotErr = None
                 else:
                     toplot = site.data[comp]
                     if Err is not None:
@@ -559,6 +560,7 @@ class DataPlotManager(object):
                 periods = site.periods
                 if not self.plot_flagged_data:
                     periods, toplot, toplotErr = pop_flagged_data(periods, toplot, toplotErr, site, comp)
+                    depth = periods
                 if 'i' in comp.lower():
                     if marker == 'o':
                         use_marker = 'v'

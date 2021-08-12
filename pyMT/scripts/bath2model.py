@@ -142,15 +142,25 @@ def plot_it(grid_x, grid_y, grid_z, locations=None, cmap=None):
 if __name__ == '__main__':
     # Define the domain of interest
     #################################
-    model_file = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v2.model'
-    list_file = 'E:/phd/NextCloud/data/Regions/elf/j2/burwash-elf.lst'
-    data_file = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v2.dat'
-    bath_file = 'E:/phd/NextCloud/data/Regions/elf/test1/ArcticDEM_25m-filled_resolution.tiff'
-    # bath_file = 'E:/phd/NextCloud/data/Regions/elf/test1/bath_test.p'
-    bath_out = 'E:/phd/NextCloud/data/Regions/elf/test1/bath_test_geotif.p'
-    model_out = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v3_topo_geotif.model'
-    cov_out = 'E:/phd/NextCloud/data/Regions/elf/test1/std_topo_geotif2.cov'
-    data_out = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v3_topo_geotif_removed.dat'
+    # model_file = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v2.model'
+    # list_file = 'E:/phd/NextCloud/data/Regions/elf/j2/burwash-elf.lst'
+    # data_file = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v2.dat'
+    # bath_file = 'E:/phd/NextCloud/data/Regions/elf/test1/ArcticDEM_25m-filled_resolution.tiff'
+    # # bath_file = 'E:/phd/NextCloud/data/Regions/elf/test1/bath_test.p'
+    # bath_out = 'E:/phd/NextCloud/data/Regions/elf/test1/bath_test_geotif.p'
+    # model_out = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v3_topo_geotif.model'
+    # cov_out = 'E:/phd/NextCloud/data/Regions/elf/test1/std_topo_geotif2.cov'
+    # data_out = 'E:/phd/NextCloud/data/Regions/elf/test1/test1v3_topo_geotif_removed.dat'
+    model_file = 'E:/phd/NextCloud/data/Regions/elf/rot_test/inv3.model'
+    # list_file = 'E:/phd/NextCloud/data/Regions/elf/j2/burwash-elf.lst'
+    list_file = 'E:/phd/NextCloud/data/Regions/elf/j2/vicki.lst'
+    data_file = 'E:/phd/NextCloud/data/Regions/elf/rot_test/inv3_removed.dat'
+    bath_file = 'E:/phd/NextCloud/data/Regions/elf/rot_test/DEM_rot40ccw.tiff'
+    # bath_file = 'E:/phd/NextCloud/data/Regions/elf/rot_test/bath_test.p'
+    bath_out = 'E:/phd/NextCloud/data/Regions/elf/rot_test/bath_test.p'
+    model_out = 'E:/phd/NextCloud/data/Regions/elf/rot_test/inv3_topo.model'
+    cov_out = 'E:/phd/NextCloud/data/Regions/elf/rot_test/std_topo.cov'
+    data_out = 'E:/phd/NextCloud/data/Regions/elf/rot_test/inv3_topo_removed.dat'
     # LANAI
     # model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
     # list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
@@ -245,7 +255,7 @@ if __name__ == '__main__':
     # If you want to modify the vertical meshing, do it now (see examples below)
     # I find its best to have constant layer thickness inside the topography
     # Example below we use 25*50 m layers (1250 m total), then append the original model thicknesses starting at the 24th layer (i.e., where the thickness is ~50 m)
-    Z = [50] * 25 + model.zCS[24:]
+    Z = [50] * 33 + model.zCS[24:]
     model.zCS = Z
  
     # model.vals[:,:,:] = 10
