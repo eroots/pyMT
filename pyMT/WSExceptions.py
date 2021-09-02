@@ -31,6 +31,9 @@ class WSFileError(Exception):
             self.message = 'Format not recognized: {}'.format(offender)
             if expected:
                 self.message += '\n Expected: {}'.format(expected)
+        elif ID == 'mis':
+            self.message = 'Incompatible files: {}, {}\n'.format(offender[0], offender[1])
+            self.message += 'Likely length mismatch between list and data file?'
         if extra:
             self.message += '\n {}'.format(extra)
 

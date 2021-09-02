@@ -52,7 +52,7 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>150</width>
+     <width>175</width>
      <height>524287</height>
     </size>
    </property>
@@ -253,6 +253,16 @@
             <string>Phi_split</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_Z</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_PT</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
@@ -323,6 +333,16 @@
           <item>
            <property name="text">
             <string>Phi_split</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_Z</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_PT</string>
            </property>
           </item>
          </widget>
@@ -923,6 +943,25 @@
    </property>
    <property name="text">
     <string>Colours</string>
+   </property>
+  </action>
+  <action name="actionPhiSplitPT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>phi_max - phi_min</string>
+   </property>
+  </action>
+  <action name="actionPhiSplitZ">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Zxy - Zyx</string>
    </property>
   </action>
  </widget>

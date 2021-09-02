@@ -396,23 +396,31 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # self.actionPhase_cax.triggered.connect(self.set_phase_cax)
         # self.actionDifference_cax.triggered.connect(self.set_difference_cax)
         # Set up point / marker options
+        # Annotate Options
         self.groupAnnotate = QtWidgets.QActionGroup(self)
         self.actionAnnotate_All.setActionGroup(self.groupAnnotate)
         self.actionAnnotate_None.setActionGroup(self.groupAnnotate)
         self.actionAnnotate_Active.setActionGroup(self.groupAnnotate)
         self.groupAnnotate.triggered.connect(self.set_annotations)
+        # Marker Options
         self.actionMarker_Size.triggered.connect(self.set_marker_size)
         self.actionMarker_Shape.triggered.connect(self.set_marker_shape)
         self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
         self.actionFilled.triggered.connect(self.set_marker_fill)
+        # Phase Tensor Options
         self.actionPhaseTensorScale.triggered.connect(self.set_pt_scale)
         self.actionMinimumAxisRatio.triggered.connect(self.set_pt_axis_ratio)
-        self.actionInductionScale.triggered.connect(self.set_induction_scale)
-        self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
-        self.actionInductionCutoff.triggered.connect(self.set_induction_cutoff)
+        # self.groupPhiSplit = QtWidgets.QActionGroup(self)
+        # self.actionPhiSplitPT.setActionGroup(self.groupPhiSplit)
+        # self.actionPhiSplitZ.setActionGroup(self.groupPhiSplit)
+        # self.groupPhiSplit.triggered.connect(self.set_phi_split)
         self.actionPTPhaseErrorTolerance.triggered.connect(self.set_pt_phase_error_tol)
         self.actionPTRhoErrorTolerance.triggered.connect(self.set_pt_rho_error_tol)
         self.actionEqualAspect.triggered.connect(self.update_map)
+        # Induction Arrow Options
+        self.actionInductionScale.triggered.connect(self.set_induction_scale)
+        self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
+        self.actionInductionCutoff.triggered.connect(self.set_induction_cutoff)
         # RMS plotting
         if self.map.dataset.response.sites:
             self.plotRMS.clicked.connect(self.update_map)
@@ -1139,7 +1147,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.toggle1DResponse.setCheckState(0)
 
     def plot_smoothed_data(self, event):
-        print('triggered')
+        # print('triggered')
         if self.dataset.smoothed_data:
             print(['Setting toggle to {}'.format(event)])
             self.dpm.toggles['smoothed_data'] = event

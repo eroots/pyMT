@@ -1113,22 +1113,25 @@ class MapView(object):
             # lower, upper = (0, 180)
         elif fill_param in ('delta'):
             lower, upper = (0, 100)
-        elif fill_param in ('phi_split'):
-            lower, upper = self.diff_cax
+        elif fill_param in ('phi_split', 'phi_split_z', 'phi_split_pt'):
+            if fill_param == 'phi_split_pt':
+                lower, upper = [0, self.diff_cax[1]]
+            else:
+                lower, upper = self.diff_cax
         elif fill_param.lower() == 'dimensionality':
             lower, upper = (1, 3)
         else:
             if pt_type.lower() == 'phi':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split', 'phi_split_z', 'phi_split_pt']:
                     lower, upper = self.phase_cax
             elif pt_type.lower() == 'phi_a':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split', 'phi_split_z', 'phi_split_pt']:
                     lower, upper = [-1*self.phase_cax[1], self.phase_cax[1]]
             elif pt_type.lower() == 'ua':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split', 'phi_split_z', 'phi_split_pt']:
                     lower, upper = self.rho_cax
             elif pt_type.lower() == 'va':
-                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split']:
+                if fill_param in ['phi_max', 'phi_min', 'det_phi', 'phi_1', 'phi_2', 'phi_3', 'phi_split', 'phi_split_z', 'phi_split_pt']:
                     lower, upper = [-1 * self.rho_cax[1], self.rho_cax[1]]
         return lower, upper
 
@@ -1281,7 +1284,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'phi_split_z', 'phi_split_pt', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
@@ -1359,7 +1362,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'phi_split_z', 'phi_split_pt', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
@@ -1708,7 +1711,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'phi_split_z', 'phi_split_pt', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
@@ -1831,7 +1834,7 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'dimensionality') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'phi_split_z', 'phi_split_pt', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
         if fill_param in ['alpha', 'azimuth', 'beta']:
             fill_vals = np.rad2deg(fill_vals)

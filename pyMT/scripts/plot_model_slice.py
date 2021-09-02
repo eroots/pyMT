@@ -174,10 +174,12 @@ def save_geotiff(img, vals, x, y, epsg, file_name, z):
 # data = WSDS.Data('C:/Users/eroots/phd/ownCloud/data/regions/Liberec/4site/hs/core/lib_NLCG_006.dat')
 #####################################################################
 # LARDER
-# data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
-# site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
-# # # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_all.model')
-# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_static.model')
+data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
+site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
+# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_only.model')
+# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_All.model')
+mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_Static.model')
+file_path = local_path + 'Documents/ME_Transects/Larder/RoughFigures/XZ-slices_ZStatic/'
 # reso = []
 # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # kimberlines = [5.341140e+006, 5.348097e+006,
@@ -192,12 +194,12 @@ def save_geotiff(img, vals, x, y, epsg, file_name, z):
 
 ######################################################################
 # Upper Abitibi
-# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
-mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/UC-tests/AllUCs-10000ohm.model')
-data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/HexAG_Z_static.model')
+# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/AG/Hex2Mod/UC-tests/AllUCs-10000ohm.model')
+# data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
+# # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
 # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst')
-# site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
+# # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/j2/ROUBB.lst')
 ######################################################################
 # GERALDTON
 # mod = WSDS.Model('E:/phd/NextCloud/data/Regions/MetalEarth/geraldton/ger_newSites/for_ade/hs3000/s2/gerS2-all_lastIter.rho')
@@ -248,7 +250,7 @@ mod.to_UTM()
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # title_ = 'Standard Inversion'
-save_fig = 0
+save_fig = 1
 geotiff = 0
 vals_multiband = []
 multiband = True
@@ -257,13 +259,13 @@ tag = 'inv14-Z'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
-annotate_sites = True
+annotate_sites = False
 site_markers = True
-site_marker_tol = 25000
-add_map = False
-add_colourbar = False
-marker = 'ko'
-padding = 50000
+site_marker_tol = 500
+add_map = True
+add_colourbar = True
+marker = 'kv'
+padding = 15000
 reverse_xaxis = False
 # zlim = [0, 4.5]
 lut = 64
@@ -272,14 +274,14 @@ cax = [0, 4.5]
 isolum = False
 tick_label_size = 10
 axis_label_size = 12
-markersize = 1
+markersize = 5
 # slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
 # lines = ['l0', 'l3', 'l6', 'l9', 'l12']
 # slices = list(range(11, 40, 2))
 # slices = [5, 13, 16, 20, 22, 24, 26, 28, 30, 32, 33, 35, 37]
-# slices = list(range(0, mod.nz - 15))
-slices = [15]
+slices = list(range(25, mod.ny - 25))
+# slices = [45]
 # slices = list(range(19, 43))
 # slices = [20, 34]
 lines = ['l0']
@@ -298,8 +300,8 @@ xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations
 # xy_xlim = [609.885, 659.423]
 # xy_zlim = [5315.767, 5380.109]
 
-# xz_xlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
-# xz_zlim = [0, 200]
+xz_xlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+xz_zlim = [0, 60]
 # yz_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
 # yz_zlim = [0, 200]
 # zlim = [mod.elevation[0]/1000, 60]
@@ -307,7 +309,7 @@ xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations
 # cmap_name = 'gist_rainbow'
 # cmap_name = 'cet_rainbow_r'
 # cmap_name = 'jet_r'
-cmap_name = 'turbo_r_mod'
+cmap_name = 'turbo_r'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'
 # cmap_name = 'cet_isolum_r'
@@ -332,12 +334,12 @@ if cmap_name in ('jetplus', 'turbo', 'turbo_r', 'turbo_r_mod'):
     cmap = colourmaps.get_cmap(cmap_name, N=lut)
 else:
     cmap = cm.get_cmap(cmap_name, lut)
-file_path = local_path + 'Documents/ME_Transects/Rouyn/w_static/depth_slices/'
+# file_path = local_path + 'Documents/ME_Transects/Larder/RoughFigures/XZ-slices_ZStatic/'
 # file_path = local_path + 'Documents/GoldenTriangle/RoughFigures/geotiffs/'
 # file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbomod0-4p5/'
 # for line, slice_num in zip(lines, slices):
 # for plane in ['xz', 'yz']:
-for plane in ['xy']:
+for plane in ['xz']:
     # if plane == 'xy':
     #     slices = list(range(11, 43))
     #     add_map = False
@@ -375,7 +377,8 @@ for plane in ['xy']:
         # locations = data.get_locs(site_list=[site for site in data.site_names if site.startswith(line)])
         # locations = site_data.get_locs()
         # file_name = ''.join(['LL_All_jet1-5_NS_', str(slice_num), 'm.png'])
-        file_name = 'RN_planView_{}m'.format(int(mod.dz[int(slice_num)]))
+        # file_name = 'RN_planView_{}m'.format(int(mod.dz[int(slice_num)]))
+        file_name = 'LAR_XZ_slice-{}'.format(slice_num)
         # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
         #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
         # xlim = [5390, 5412]

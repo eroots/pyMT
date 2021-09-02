@@ -8,9 +8,9 @@ import shapefile
 from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
-transects = ['NACP']
+transects = ['Ciomadul']
 # Path to the list file
-list_path = 'E:/phd/Nextcloud/data/Regions/NACP/j2/all_impedances/'
+list_path = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/'
 # Name of the list file(s) - these would go with your list of transects above
 lists = ['allsites.lst']
 
@@ -18,9 +18,9 @@ lists = ['allsites.lst']
 data_type = 'all_'
 
 # Set the paths you want things to be saved to
-shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/NACP/'
-kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/NACP/'
-csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/NACP/'
+shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 
 # Set to true or false depending on what you want written
 write_kml = True

@@ -71,9 +71,12 @@ if __name__ == '__main__':
     # filename = local_path + 'data/Regions/MetalEarth/AG/AG_plotset.dat'
     # listfile = local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
-    filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
-    listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
-    out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
+    filename = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/WS_edis_plotset.lst'
+    listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/WS_edis_plotset.lst'
+    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_depth/'
+    # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
+    # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
+    # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
     jpg_file_name = []
     out_file = 'AG_PT-beta_'
@@ -81,11 +84,11 @@ if __name__ == '__main__':
     dpi = 150
     padding = 20
     save_fig = 0
-    bostick_depth = 25.
+    bostick_depth = 100.
     cutoff_distance = 3500
     remove_close_sites = 0
     # fill_param = ['phi_2', 'beta']
-    fill_param = ['absbeta', None]
+    fill_param = ['phi_split_pt', None]
     # fill_param = ['phi_2', None]
     # data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
@@ -131,30 +134,32 @@ if __name__ == '__main__':
     MV = gplot.MapView(fig=fig)
     MV.window['figure'] = fig
     MV.window['axes'] = [ax]
-    MV.colourmap = 'turbo'
+    # MV.colourmap = 'turbo'
     MV.phase_cax = [0, 90]
     MV.skew_cax = [-15, 15]
+    MV.diff_cax = [-40, 40]
     # MV.interpolant = 'cubic'
     # MV.colourmap = 'bwr'
+    MV.colourmap = 'bgy'
     MV.site_data['data'] = data
     MV.site_data['raw_data'] = raw
     MV.site_names = data.site_names
     MV.padding_scale = 10
-    MV.pt_scale = 1.5
+    MV.pt_scale = .75
     MV.min_pt_ratio = 0.3
     MV.pt_ratio_cutoff = 0.01
     MV.phase_error_tol = 1000
     MV.rho_error_tol = 1000
     MV.include_outliers = True
     MV.allowed_std = 20
-    MV.lut = 8
+    MV.lut = 16
     # # MV.site_locations['generic'] = MV.get_locations(sites=MV.generic_sites)
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
     first_time = 0
     # for ii in range(len(data.periods)):
-    for ii in [3]:
+    for ii in [6]:
     # for ii in range(0, len(data.periods), freq_skip + 1):
     # for ii in [0]:
     # for ii in range(len(data.periods)):   

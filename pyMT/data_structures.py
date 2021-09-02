@@ -3187,7 +3187,8 @@ class PhaseTensor(object):
         self.phi_3 = phi_3
         self.phi_max = phi_max
         self.phi_min = phi_min
-        # self.phi_split = np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min)))
+        self.phi_split_pt = np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min)))
+        self.phi_split_z = self.phasexy - self.phaseyx
         self.phi_split = self.phasexy - self.phaseyx
         self.alpha = alpha
         self.Lambda = Lambda
@@ -3447,6 +3448,8 @@ class CART(PhaseTensor):
                 self.phi_3 = phi_3
                 self.phi_max = phi_max
                 self.phi_min = phi_min
+                self.phi_split_Z = self.phasexy - self.phaseyx
+                self.phi_split_PT = np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min)))
                 self.phi_split = np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min)))
                 self.alpha = alpha
                 self.Lambda = Lambda
@@ -3460,6 +3463,8 @@ class CART(PhaseTensor):
                 setattr(self, '_'.join([param, 'phi_2']), phi_2)
                 setattr(self, '_'.join([param, 'phi_3']), phi_3)
                 setattr(self, '_'.join([param, 'phi_max']), phi_max)
+                setattr(self, '_'.join([param, 'phi_split_pt']), np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min))))
+                setattr(self, '_'.join([param, 'phi_split_z']), self.phasexy - self.phaseyx)
                 setattr(self, '_'.join([param, 'phi_split']), np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min))))
                 setattr(self, '_'.join([param, 'phi_min']), phi_min)
                 setattr(self, '_'.join([param, 'alpha']), alpha)
