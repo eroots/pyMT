@@ -294,7 +294,7 @@ class NewProject(QNewProject, Ui_NewProject):
         if len(self.dataset_index()) == 1:
             fnames = QtWidgets.QFileDialog.getOpenFileNames(self, 'Browse Files',
                                                            self.current_dir,
-                                                           'ModEM Files (*.rho *.model *.dat *.lst *.reso);; All Files (*)')[0]
+                                                           'ModEM Files (*.rho *.model *.dat *.lst *.reso *.data);; All Files (*)')[0]
             if fnames:
                 self.current_dir = os.path.abspath(fnames[0])
                 # print(fnames)
