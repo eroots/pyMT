@@ -559,8 +559,11 @@ class DataPlotManager(object):
                             toplotErr = Err[comp] * site.periods
                 periods = site.periods
                 if not self.plot_flagged_data:
-                    periods, toplot, toplotErr = pop_flagged_data(periods, toplot, toplotErr, site, comp)
-                    depth = periods
+                    if 'bost' in comp.lower():
+                        depth, toplot, toplotErr = pop_flagged_data(depth, toplot, toplotErr, site, comp)
+                    else:
+                        periods, toplot, toplotErr = pop_flagged_data(periods, toplot, toplotErr, site, comp)
+                    # depth = periods
                 if 'i' in comp.lower():
                     if marker == 'o':
                         use_marker = 'v'

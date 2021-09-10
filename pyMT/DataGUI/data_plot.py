@@ -2151,6 +2151,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                             QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                     if reply == QtWidgets.QMessageBox.Yes:
                         write_removed = True
+                X, Y = self.dataset.data.locations[:, 0], self.dataset.data.locations[:, 1]
+                ox, oy = ((np.max(X) + np.min(X)) / 2, (np.max(Y) + np.min(Y)) / 2)
+                if (abs(ox) > 0.5) or (abs(oy) > 0.5):
+                    reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                                            'Data origin is ({:10.3g},{:10.3g}). Do you want to center the stations?'.format(ox, oy),
+                                                            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        self.dataset.data.center_locs()
                 retval = self.dataset.write_data(outfile=outfile, file_format=file_format, write_removed=write_removed)
             if retval:
                 break

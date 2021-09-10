@@ -2824,10 +2824,10 @@ class RawData(object):
                                  zone=zone, letter=letter)[2:]
             self.locations[ii, 1], self.locations[ii, 0] = E, N
 
-    def write_locations(self, out_file, file_format='csv'):
+    def write_locations(self, out_file, file_format='csv', verbose=0):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_locations(self, out_file=out_file, file_format=file_format)
+        WS_io.write_locations(self, out_file=out_file, file_format=file_format, verbose=verbose)
         self.spatial_units = units
 
     def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50, period_idx=None):

@@ -1633,7 +1633,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                                                                     'ModEM'))
 
 
-def write_locations(data, out_file=None, file_format='csv'):
+def write_locations(data, out_file=None, file_format='csv', verbose=0):
     def write_shapefile(data, outfile):
         if not outfile.endswith('.shp'):
             outfile += '.shp'
@@ -1654,12 +1654,24 @@ def write_locations(data, out_file=None, file_format='csv'):
 
     def write_csv(data, outfile):
         with open(outfile, 'w') as f:
-            f.write('Station, X, Y, Elevation\n')
+            if verbose:
+                f.write('Station, X, Y, Elevation, Latitude, Longitude\n')
+            else:
+                f.write('Station, X, Y, Elevation\n')
             for ii, site in enumerate(data.site_names):
-                f.write('{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}\n'.format(site,
-                                                                           data.locations[ii, 1],
-                                                                           data.locations[ii, 0],
-                                                                           data.sites[site].locations['elev']))
+                # f.write('{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}\n'.format(site,
+                #                                                            data.locations[ii, 1],
+                #                                                            data.locations[ii, 0],
+                #                                                            data.sites[site].locations['elev']))
+                string = '{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}'.format(site,
+                                                                          data.locations[ii, 1],
+                                                                          data.locations[ii, 0],
+                                                                          data.sites[site].locations['elev'])
+                if verbose:
+                    string += ', {:>8.5g}, {:>8.5g}'.format(data.sites[site].locations['Lat'],
+                                                            data.sites[site].locations['Long'])
+                string += '\n'
+                f.write(string)
 
     if file_format.lower() not in ('csv', 'shp', 'kml'):
         print('File format {} not supported'.format(file_format))

@@ -8,11 +8,11 @@ import shapefile
 from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
-transects = ['Ciomadul']
+transects = ['larder_all']
 # Path to the list file
-list_path = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/'
+list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/larder/j2/'
 # Name of the list file(s) - these would go with your list of transects above
-lists = ['allsites.lst']
+lists = ['LARall.lst']
 
 # Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
 data_type = 'all_'
@@ -27,7 +27,7 @@ write_kml = True
 write_csv = False
 write_shp = False
 # Whatever your UTM zone is
-UTM = 7
+UTM = 17
 
 for ii, lst in enumerate(lists):
     try:
