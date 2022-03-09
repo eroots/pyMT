@@ -17,18 +17,20 @@ import naturalneighbor as nn
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swz_cull1M_all.dat'
 # listfile = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/edi/all_sorted.lst'
 # out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/'
-base_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/'
-list_file = 'E:/phd/NextCloud/data/Regions/plc18/j2/new/all.lst'
+# base_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/'
+# list_file = 'E:/phd/NextCloud/data/Regions/plc18/j2/new/all.lst'
+# data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/plc31-2_NLCG_125.dat'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/ROU-MAL_BB.lst'
-# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
+list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/LAR-ROU_BB.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/lar_bb.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/rouyn/j2/ROUall.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/malartic/j2/MALBB.lst'
-# data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/AG_depthTest_baseCase_resp.dat'
+data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/AG_depthTest_baseCase_resp.dat'
+base_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/depth_tests/'
 # data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/all_inv27.dat'
-data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/plc31-2_NLCG_125.dat'
+
 base_data = WSDS.Data(data_file)
 # data = WSDS.Data(datafile=datafile)
 # data = WSDS.RawData(listfile)
@@ -56,7 +58,7 @@ component = ['xy', 'yx']
 # phase_cax = [30, 75]
 # rho_cax = [0, 5]
 # # data.sort_sites(order='south-north')
-idx = base_data.locations[:, 1].argsort()
+idx = base_data.locations[:, 0].argsort()
 base_data.locations = base_data.locations[idx]  # Make sure they go north-south
 base_data.site_names = [base_data.site_names[ii] for ii in idx]
 # A little kludge to make sure the last few sites are in the right order (west-east)
@@ -70,14 +72,16 @@ base_data.site_names = [base_data.site_names[ii] for ii in idx]
 rhos = [500]
 # for d in depths:
     # for r in rhos:
-for num in [20, 31, 40]:
+for num in [81, 111]:
     for r in rhos:
         tag = 'depth-{}km'.format(num)
         # out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/{}/'.format(tag)
-        out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/depth_tests/'
+        # out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/depth_tests/'
+        out_path = 'E:/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/feature_tests/depths/'
         # tag = 'inversion'
+        resp_file = base_path + 'AG_depthTest_{}km_resp.dat'.format(num)
         # resp_file = base_path + '{}/{}-{}ohm_resp.dat'.format(tag, tag, r)
-        resp_file = base_path + 'depth_test/plc_{}km_resp.dat'.format(num)
+        # resp_file = base_path + 'depth_test/plc_{}km_resp.dat'.format(num)
         # resp_file = base_path + '{}_500_resp.dat'.format(tag, tag)
         # resp_file = base_path + '../plc31-2_NLCG_125.dat'
         # resp_file = base_path + '{}/{}-1000ohm-refined_resp.dat'.format(tag, tag)
@@ -102,7 +106,7 @@ for num in [20, 31, 40]:
         data.site_names = [data.site_names[ii] for ii in idx]
         print('data loaded')
         for comp in component:
-            out_file = '{}_{}ohm_phadiff-{}'.format(tag, r, comp)
+            out_file = '{}km_phadiff-{}'.format(num, comp)
             # print(comp)
             rho = {site: utils.compute_rho(data.sites[site], calc_comp=comp)[0] for site in data.site_names}
             pha = {site: utils.compute_phase(data.sites[site], calc_comp=comp, wrap=1)[0] for site in data.site_names}

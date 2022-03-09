@@ -38,7 +38,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 try:
     import importlib.resources as pkg_resources
-except ImpotError:
+except ImportError:
     import importlib_resources as pkg_resources
 
 

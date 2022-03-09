@@ -177,7 +177,8 @@ class DataPlotManager(object):
     def units(self):
         # Might have to add a setter later if I want some way to plot RMS or something
         if self.components[0][0].upper() == 'Z':
-            units = 'mV/nT'
+            # units = 'mV/nT'
+            units = 'Ohm'
         elif self.components[0][0].upper() == 'T':
             units = 'Unitless'
         elif self.components[0][0].upper() == 'R' or self.components[0][0].upper() == 'B':
@@ -667,7 +668,7 @@ class MapView(object):
         self.site_exterior = {'generic': 'k', 'active': 'k'}
         self.markersize = 5
         self.edgewidth = 2
-        self.image_opacity = 1
+        self.image_opacity = 0.33
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = 'active'
@@ -679,7 +680,8 @@ class MapView(object):
             self.interpolant = 'nearest'
         self.rho_cax = [1, 5]
         self.phase_cax = [0, 90]
-        self.diff_cax = [-10, 10]
+        self.phase_split_cax = [-40, 40]
+        self.diff_cax = [-15, 15]
         self.tipper_cax = [0, 0.5]
         self.skew_cax = [-10, 10]
         self.model_cax = [1, 5]
@@ -691,7 +693,7 @@ class MapView(object):
         self.use_colourbar = True
         self.min_pt_ratio = 1 / 3
         self.pt_ratio_cutoff = 0
-        self.pt_scale = 2
+        self.pt_scale = 1
         self.ellipse_VE = 1
         self.ellipse_linewidth = 1
         self.pt_rotation_axis = 'x'
@@ -1118,9 +1120,9 @@ class MapView(object):
             lower, upper = (0, 100)
         elif fill_param in ('phi_split', 'phi_split_z', 'phi_split_pt'):
             if fill_param == 'phi_split_pt':
-                lower, upper = [0, self.diff_cax[1]]
+                lower, upper = [0, self.phase_split_cax[1]]
             else:
-                lower, upper = self.diff_cax
+                lower, upper = self.phase_split_cax
         elif fill_param.lower() == 'dimensionality':
             lower, upper = (1, 3)
         else:
@@ -1457,6 +1459,10 @@ class MapView(object):
                                   # utils.compute_bost1D(data.sites[site], method='bostick', comp='yx', filter_width=1)[1][period_idx]) for site in data.site_names])
                 else:
                     vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='bostick', comp=fill_param, filter_width=1)[1][period_idx]) for site in data.site_names])
+            elif 'pt_split' in fill_param.lower():
+                data_label = 'Phase Split'
+                use_log = False
+                vals.append([data.sites[site].phase_tensors[period_idx].phi_split_pt for site in data.site_names])
         if len(vals) == 1:
             vals = np.array(vals[0])
             diff = False
@@ -1464,8 +1470,11 @@ class MapView(object):
             diff = True
             #  Should be response - data so a larger response gives a +ve percent difference
             if 'rho' in fill_param.lower() or 'bost' in fill_param.lower():
-                vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
-            elif 'pha' in fill_param.lower() or 'tip' in fill_param.lower():
+                # vals = 100 * (np.array(vals[1]) - np.array(vals[0])) / np.array(vals[0])
+                vals = (np.array(vals[1])) - (np.array(vals[0]))
+                use_log = False
+            # elif 'pha' in fill_param.lower() or 'tip' in fill_param.lower():
+            else:
                 vals = (np.array(vals[1]) - np.array(vals[0]))  # / np.array(vals[0])
         if not self.include_outliers:
             val_mean = np.mean(vals)
@@ -1490,11 +1499,13 @@ class MapView(object):
         grid_vals, grid_x, grid_y = self.interpolate(points, vals[good_idx], n_interp)
         if diff and 'rho' in fill_param.lower():
             cax = self.diff_cax
-            fill_param = '% Difference'
-        elif (diff and 'pha' in fill_param.lower() or fill_param.lower() == ('phaxy-yx')):
+            fill_param = 'Log10 Difference'
+        elif (diff and 'pha' in fill_param.lower() or fill_param.lower() == ('phaxy-yx')) or \
+             (diff and 'pt_split' in fill_param.lower()):
             cax = self.diff_cax
             fill_param = r'Difference ($^{\circ}$)'
-        elif diff and 'tip' in fill_param.lower():
+        # Any other difference just use a generic label
+        elif diff: # and 'tip' in fill_param.lower(): 
             cax = self.diff_cax
             fill_param = r'Difference'
         elif 'rho' in fill_param.lower():
@@ -1511,6 +1522,8 @@ class MapView(object):
             cax = [-90, 90]
         elif 'bost' in fill_param.lower():
             cax = self.depth_cax
+        elif 'pt_split' in fill_param.lower():
+            cax = [0, self.phase_split_cax[1]]
         
         im = self.window['axes'][0].pcolor(grid_x, grid_y, grid_vals.T,
                                            cmap=self.cmap,
@@ -1553,18 +1566,20 @@ class MapView(object):
             label = ''
         return label
 
-    def plot_plan_view(self, ax=None, z_slice=0):
+    def plot_plan_view(self, ax=None, z_slice=0, rho_axis='rho_x'):
         if not ax:
             ax = self.window['axes'][0]
         if self.mesh:
             edgecolor = 'k'
         else:
             edgecolor = None
+        vals = getattr(self.model, rho_axis, 'vals')
+        # debug_print(vals, 'test.txt')
         X = np.array(self.model.dy)
         Y = np.array(self.model.dx)
         im = ax.pcolormesh(X,
                            Y,
-                           np.log10(self.model.vals[:, :, z_slice]),
+                           np.log10(vals[:, :, z_slice]),
                            cmap=self.cmap,
                            vmin=self.model_cax[0], vmax=self.model_cax[1],
                            zorder=0,

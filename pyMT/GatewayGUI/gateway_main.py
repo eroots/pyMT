@@ -8,7 +8,7 @@ import sys
 import os
 try:
     import importlib.resources as pkg_resources
-except ImpotError:
+except ImportError:
     import importlib_resources as pkg_resources
 from pyMT import resources
 from pyMT.WSExceptions import WSFileError
@@ -127,13 +127,13 @@ class NewProject(QNewProject, Ui_NewProject):
 
     def sort_files(self, files):
         ret_dict = {}
-        types = ('model', 'dat', 'resp', 'lst', 'reso')
+        types = ('model', 'dat', 'resp', 'lst', 'reso', 'resp')
 
         for file in files:
             name, ext = os.path.splitext(file)
-            if ext in ('.rho', '.model'):
+            if ext in ('.rho', '.model', '.mod'):
                 ret_dict.update({'model': file})
-            elif ext in ('.dat', '.data'):
+            elif ext in ('.dat', '.data', 'adat'):
                 with open(file, 'r') as f:
                     line = f.readline()
                 if 'response' in line:
@@ -144,6 +144,8 @@ class NewProject(QNewProject, Ui_NewProject):
                 ret_dict.update({'list': file})
             elif ext in ('.reso', '.resolution'):
                 ret_dict.update({'resolution': file})
+            elif ext in ('.resp'):
+                ret_dict.update({'response': file})
         return ret_dict
 
     def init_dataset_table(self, files_dict=None):
@@ -294,7 +296,8 @@ class NewProject(QNewProject, Ui_NewProject):
         if len(self.dataset_index()) == 1:
             fnames = QtWidgets.QFileDialog.getOpenFileNames(self, 'Browse Files',
                                                            self.current_dir,
-                                                           'ModEM Files (*.rho *.model *.dat *.lst *.reso *.data);; All Files (*)')[0]
+                                                           'ModEM Files (*.rho *.model *.dat *.lst *.reso *.data *.resp);;' +\
+                                                           'EM3DANI Files (*.mod *.dat *.adat *.resp *.lst);; All Files (*)')[0]
             if fnames:
                 self.current_dir = os.path.abspath(fnames[0])
                 # print(fnames)

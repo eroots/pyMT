@@ -42,7 +42,7 @@ from pyMT.IO import debug_print
 from copy import deepcopy
 try:
     import importlib.resources as pkg_resources
-except ImpotError:
+except ImportError:
     import importlib_resources as pkg_resources
 
 
@@ -367,6 +367,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.lut = self.colourMenu.addAction('# Colour Intervals')
         self.colourMenu.rho_limits = self.colourMenu.limits.addAction('Rho')
         self.colourMenu.phase_limits = self.colourMenu.limits.addAction('Phase')
+        self.colourMenu.phase_split_limits = self.colourMenu.limits.addAction('Phase Splits')
         self.colourMenu.difference_limits = self.colourMenu.limits.addAction('Difference')
         self.colourMenu.skew_limits = self.colourMenu.limits.addAction('Skew')
         self.colourMenu.tipper_limits = self.colourMenu.limits.addAction('Tipper')
@@ -375,6 +376,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.groupColourmaps = QtWidgets.QActionGroup(self)
         self.colourMenu.rho_limits.triggered.connect(self.set_rho_cax)
         self.colourMenu.phase_limits.triggered.connect(self.set_phase_cax)
+        self.colourMenu.phase_split_limits.triggered.connect(self.set_phase_split_cax)
         self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
         self.colourMenu.tipper_limits.triggered.connect(self.set_tipper_cax)
         self.colourMenu.skew_limits.triggered.connect(self.set_skew_cax)
@@ -436,11 +438,13 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.map.dataset.model.file:
             self.toggle_planView.clicked.connect(self.update_map)
             self.planSlice.valueChanged.connect(self.update_map)
+            self.rhoAxis.currentIndexChanged.connect(self.update_map)
             self.planSlice.setMinimum(0)
             self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
         else:
             self.toggle_planView.setEnabled(False)
             self.planSlice.setEnabled(False)
+            self.rhoAxis.setEnabled(False)
         # JPEG Loading
         self.actionLoad_JPEG.triggered.connect(self.load_jpeg)
         self.actionShow_JPEG.triggered.connect(self.show_jpeg)
@@ -816,7 +820,13 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if limits is not None and limits != self.map.phase_cax:
             self.map.phase_cax = limits
             self.update_map()
-        
+    
+    def set_phase_split_cax(self):
+        limits = self.set_cax(self.map.phase_split_cax[0], self.map.phase_split_cax[1])
+        if limits is not None and limits != self.map.phase_split_cax:
+            self.map.phase_split_cax = limits
+            self.update_map()
+
     def set_tipper_cax(self):
         limits = self.set_cax(self.map.tipper_cax[0], self.map.tipper_cax[1])
         if limits is not None and limits != self.map.tipper_cax:
@@ -922,7 +932,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.plot_image(image=self.background_image['image'],
                                extents=self.background_image['extent'])
         if self.toggle_planView.checkState():
-            self.map.plot_plan_view(z_slice=self.planSlice.value())
+            self.map.plot_plan_view(z_slice=self.planSlice.value(), rho_axis=self.rhoAxis.currentText())
             depth = self.map.model.dz[self.planSlice.value()]
             if depth < 1000:
                 depth = '{:0.6g} m'.format(depth)
@@ -1013,6 +1023,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             toggles['fill'] = 'absbeta'
         elif item == 'pt azimuth':
             toggles['fill'] = 'azimuth'
+        elif item == 'pt split':
+            toggles['fill'] = 'pt_split'
         # if self.toggle_rhoPseudo.isChecked():
         #     toggles['fill'] = 'Rho'
         # elif self.toggle_phasePseudo.isChecked():
@@ -1076,10 +1088,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.file_dialog = FileDialog(self)
         self.map = {'fig': None, 'canvas': None, 'axis': None,
                     'plots': {'all': None, 'highlight': None, 'mesh': None}}
+        list_files = {}
         for ii, (dname, files) in enumerate(dataset_dict.items()):
             files = {file_type: files.get(file_type, '')
                      for file_type in ('data', 'raw_path', 'response', 'list', 'model')}
-            dataset = data_structures.Dataset(listfile=files['list'],
+            # If a list has already been loaded, copy it instead of reloading.
+            load_raw = None
+            if files['list']:
+                if files['list'] in list_files.keys():
+                    load_raw = self.stored_datasets[list_files[files['list']]].raw_data
+                else:
+                    load_raw = files['list']
+                    list_files.update({files['list']: dname})
+            dataset = data_structures.Dataset(listfile=load_raw,
                                               datafile=files['data'],
                                               responsefile=files['response'],
                                               datpath=files['raw_path'],

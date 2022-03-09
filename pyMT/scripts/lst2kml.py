@@ -8,24 +8,26 @@ import shapefile
 from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
-transects = ['larder_all']
+transects = ['litho_bb', 'litho_lmt', 'metal_earth', 'usarray']
 # Path to the list file
-list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/larder/j2/'
+list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/cullmantle_separated/'
+dat_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/'
 # Name of the list file(s) - these would go with your list of transects above
-lists = ['LARall.lst']
+# lists = ['allsites.lst']
+lists = ['litho_bb.lst', 'litho_lmt.lst', 'metal_earth.lst', 'usarray.lst']
 
 # Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
 data_type = 'all_'
 
 # Set the paths you want things to be saved to
-shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/wst_cullmantle/'
 kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 
 # Set to true or false depending on what you want written
-write_kml = True
+write_kml = False
 write_csv = False
-write_shp = False
+write_shp = True
 # Whatever your UTM zone is
 UTM = 17
 
@@ -35,7 +37,7 @@ for ii, lst in enumerate(lists):
         kml_save_file = ''.join([kml_save_path, data_type, transects[ii], '.kml'])
         csv_save_file = ''.join([csv_save_path, transects[ii]])
         shp_save_file = ''.join([shp_save_path, data_type, transects[ii], '.shp'])
-        data = WSDS.RawData(listfile=list_file)
+        data = WSDS.RawData(listfile=list_file, datpath=dat_path)
         if write_csv:
             with open(''.join([csv_save_file, data_type, '_latlong.csv']), 'w') as f:
                 print('Writing CSV for {}'.format(transects[ii]))

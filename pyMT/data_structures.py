@@ -85,9 +85,14 @@ class Dataset(object):
             responsefile (str, optional): Description
             datpath (str, optional): Description
         """
+        # Check if the list file passed is just a RawData instance, and if so copy it
+        if isinstance(listfile, RawData):
+            self.raw_data = deepcopy(listfile)
+            listfile = self.raw_data.listfile
+        else:
+            self.raw_data = RawData(listfile=listfile, datpath=datpath)
         self.data = Data(listfile=listfile, datafile=datafile)
         self.model = Model(modelfile=modelfile)
-        self.raw_data = RawData(listfile=listfile, datpath=datpath)
         self.response = Data(listfile=listfile, datafile=responsefile)
         self.smoothed_data = deepcopy(self.raw_data)
         self.rms = self.calculate_RMS()
@@ -599,7 +604,8 @@ class Data(object):
                                'PTYX', 'PTYY')
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
                            'WSINV3DMT': ['.data', '.resp'],
-                           'ModEM': '.dat'}
+                           'ModEM': '.dat',
+                           'EM3DANI': ['.adat', '.resp']}
     INVERSION_TYPES = WS_io.INVERSION_TYPES
     REMOVE_FLAG = 1234567
     FLOAT_CAP = 1e10
@@ -699,7 +705,7 @@ class Data(object):
                              'Rho': 0.05,
                              'Phase': 0.03}
         self._spatial_units = 'm'
-        if not file_format or file_format in Data.IMPLEMENTED_FORMATS.keys():
+        if not file_format or (file_format.lower() in [val.lower() for val in Data.IMPLEMENTED_FORMATS.keys()]):
             self.file_format = file_format
         else:
             print('File format {} not recognized. ' +
@@ -751,6 +757,8 @@ class Data(object):
                     self.file_format = 'MARE2DEM'
                 elif ext == '.dat':
                     self.file_format = 'ModEM'
+                elif ext == '.adat' or ext == '.resp':
+                    self.file_format = 'em3dani'
                 elif ext == '.data' or 'resp' in datafile:
                     self.file_format = 'WSINV3DMT'
                 else:
@@ -1326,6 +1334,16 @@ class Model(object):
             z[ii] = (self.dz[ii] + self.dz[ii + 1]) / 2
         return x, y, z
 
+    def depth_weighted_rho(self, idx_0, idx_1):
+        conductance = self.conductance(idx_0, idx_1)
+        return (1 / conductance) * np.sum(self.dz[idx_0:idx_1])
+
+    def conductance(self, idx_0, idx_1):
+        conductance = np.zeros((self.nx, self.ny))
+        for ii in range(idx_0, idx_1):
+            conductance += self.zCS[ii] * (1 / self.vals[:, :, ii])
+        return conductance
+
     def set_exceptions(self):
         self.cov_exceptions = np.ones(self.vals.shape)
         self.cov_exceptions[self.vals == self.RHO_AIR] = self.AIR_EXCEPTION
@@ -1355,6 +1373,20 @@ class Model(object):
             self.xCS = mod['xCS']
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
+            if file_format.lower() == 'em3dani' or mod.get('rhoy', []) != []:
+                self.rho_x = mod['rhox']
+                self.rho_y = mod['rhoy']
+                self.rho_z = mod['rhoz']
+                self.strike = mod['strike']
+                self.dip = mod['dip']
+                self.slant = mod['slant']
+            else:
+                self.rho_x = mod['vals']
+                self.rho_y = []
+                self.rho_z = []
+                self.strike = []
+                self.dip = []
+                self.slant = []
             self.dimensionality = dim
 
     def read_covariance(self, covariance_file=''):
@@ -2752,7 +2784,7 @@ class RawData(object):
                                                   to_smooth,
                                                   fwidth=fwidth, use_log=True)
             avg.append(np.mean(smoothed_data))
-        return 10 ** np.mean(np.log10(avg)), avg
+        return 10 ** np.nanmean(np.log10(avg)), avg
 
     def remove_periods(self, site_dict):
         for site, periods in site_dict.items():
@@ -3449,7 +3481,7 @@ class CART(PhaseTensor):
                 self.phi_max = phi_max
                 self.phi_min = phi_min
                 self.phi_split_Z = self.phasexy - self.phaseyx
-                self.phi_split_PT = np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min)))
+                self.phi_split_pt = np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min)))
                 self.phi_split = np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min)))
                 self.alpha = alpha
                 self.Lambda = Lambda

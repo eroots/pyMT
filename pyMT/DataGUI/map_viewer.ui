@@ -393,6 +393,11 @@
             <string>PT Azimuth</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>PT Split</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
@@ -465,6 +470,30 @@
         <string>Plan View</string>
        </property>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Slice #</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QSpinBox" name="planSlice"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Depth:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLabel" name="planDepth">
+          <property name="text">
+           <string>0 km</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0" colspan="2">
          <widget class="QCheckBox" name="toggle_planView">
           <property name="text">
@@ -473,27 +502,22 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Slice #</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QSpinBox" name="planSlice"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Depth:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="planDepth">
-          <property name="text">
-           <string>0 km</string>
-          </property>
+         <widget class="QComboBox" name="rhoAxis">
+          <item>
+           <property name="text">
+            <string>rho_x</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>rho_y</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>rho_z</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>

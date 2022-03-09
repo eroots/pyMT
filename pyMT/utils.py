@@ -714,21 +714,21 @@ def compute_rho(site, calc_comp=None, errtype='none'):
         np.array: Associated errors. Note that the errors are set to 0 for the determinant apparent
                   resistivities (Proper calculatation not implemented yet)
     """
-    def compute_rho_error(sited, errtyped, compd):
+    def compute_rho_error(site, errtyped, compd):
         # compd = ''.join(['Z', compd.upper()])
-        zeR = getattr(sited, errtyped)[''.join([compd, 'R'])]
-        zeI = getattr(sited, errtyped)[''.join([compd, 'I'])]
+        zeR = getattr(site, errtyped)[''.join([compd, 'R'])]
+        zeI = getattr(site, errtyped)[''.join([compd, 'I'])]
         z = site.data[''.join([compd, 'R'])] - 1j * site.data[''.join([compd, 'I'])]
         if len(zeR) == 0:
             zeR = zeI = z * 0
-        C = 2 * sited.periods / (MU * 2 * np.pi)
+        C = 2 * site.periods / (MU * 2 * np.pi)
         rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
         rho_log10Err = (rho_error * np.sqrt(2) /
                         ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
-        idx = zeR == sited.REMOVE_FLAG
+        idx = zeR == site.REMOVE_FLAG
         # Preserve remove flags
-        rho_error[idx] = sited.REMOVE_FLAG
-        rho_log10Err[idx] = sited.REMOVE_FLAG
+        rho_error[idx] = site.REMOVE_FLAG
+        rho_log10Err[idx] = site.REMOVE_FLAG
         return rho_error, rho_log10Err
 
     COMPS = ('XX', 'XY',

@@ -19,7 +19,7 @@ import sys
 import os
 try:
     import importlib.resources as pkg_resources
-except ImpotError:
+except ImportError:
     import importlib_resources as pkg_resources
 from pyMT import resources
 
@@ -323,7 +323,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
 
     def max_depth(self):
         try:
-            max_depth = float(self.maxDepth.text())
+            max_depth = round(float(self.maxDepth.text()))
         except ValueError:
             max_depth = self.model.dz[-1]
             self.maxDepth.setText(str(max_depth))
