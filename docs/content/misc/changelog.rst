@@ -1,6 +1,20 @@
 Change Log
 ==========
 
+*01/03/22
+
+	* Forgot to log changes for a while... Not many big ones probably probably many minor ones.
+
+	* Major change is the implementation of site plotting by selection
+
+		* Choose 'Selection' from the 'Sort Sites' dropdown menu. Sites selected in the site list will now be plotted.
+
+		* Not yet thoroughly tested
+
+		* Will eventually want to implement selection by clicking on the map viewer
+
+  * Added plotting of phi_max, phi_min, and beta within the Data Plot window
+
 *13/07/21
 
   * Removed some of the unused buttons / options from :ref:`Data Plot` and slightly reorganized the layout

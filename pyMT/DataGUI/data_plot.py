@@ -245,8 +245,8 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         #         g = (g*k2+k1*np.tanh(k1*d[k]))/(k1+g*k2*np.tanh(k1*d[k]));
             Z[nfreq] = 1j * w * mu * C[0]
 
-        rhoa = 1/omega*np.abs(Z)**2;
-        phi = np.angle(Z, deg=True);
+        rhoa = 1/omega*np.abs(Z)**2
+        phi = np.angle(Z, deg=True)
 
         self.Z = Z
         self.site.periods = periods
@@ -1025,6 +1025,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             toggles['fill'] = 'azimuth'
         elif item == 'pt split':
             toggles['fill'] = 'pt_split'
+        elif item == 'phi_max':
+            toggles['fill'] = 'phi_max'
+        elif item == 'phi_min':
+            toggles['fill'] = 'phi_min'
         # if self.toggle_rhoPseudo.isChecked():
         #     toggles['fill'] = 'Rho'
         # elif self.toggle_phasePseudo.isChecked():
@@ -1190,7 +1194,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
             for jj, site in enumerate(self.dataset.data.site_names):
                 if ii == 0:
                     self.stationRMS.setVerticalHeaderItem(jj, QtWidgets.QTableWidgetItem(site))
-                node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Station'][site][label])[:4])
+                # node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Station'][site][label])[:4])
+                node = QtWidgets.QTableWidgetItem('{:5.2f}'.format(self.dataset.rms['Station'][site][label]))
                 node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 self.stationRMS.setItem(jj, ii, node)
             for jj, period in enumerate(periods):
@@ -1201,11 +1206,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 if ii == 0:
                     self.periodRMS.setVerticalHeaderItem(jj, QtWidgets.QTableWidgetItem(str(period)))
                 if jj == 0:
-                    node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Component'][label])[:4])
+                    node = QtWidgets.QTableWidgetItem('{:5.2f}'.format(self.dataset.rms['Component'][label]))
                     node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                     self.periodRMS.setItem(jj, ii, QtWidgets.QTableWidgetItem(node))
                 else:
-                    node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Period'][label][jj - 1])[:4])
+                    node = QtWidgets.QTableWidgetItem('{:5.2f}'.format(self.dataset.rms['Period'][label][jj - 1]))
                     node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                     self.periodRMS.setItem(jj, ii, QtWidgets.QTableWidgetItem(node))
         for ii in range(len(header)):
@@ -1292,9 +1297,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
             ordered_comps.remove('TZYI')
         if 'PTXX' in ordered_comps:
             all_comps.update({'PhsTensor': [comp for comp in ordered_comps if comp[0].upper() == 'P']})
+            all_comps['PhsTensor'] += ['Phi_max', 'Phi_min', 'Beta']
             ordered_comps.remove('PTXX')
             ordered_comps.remove('PTXY')
             ordered_comps.remove('PTYX')
+            ordered_comps.remove('PTYY')
             ordered_comps.remove('PTYY')
         if 'ZXXR' in ordered_comps:
             all_comps['Impedance'].append('ZXXR')
@@ -1342,6 +1349,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 all_comps['PhsTensor'].append('PTXY')
                 all_comps['PhsTensor'].append('PTYX')
                 all_comps['PhsTensor'].append('PTYY')
+                all_comps['PhsTensor'].append('Phi_max')
+                all_comps['PhsTensor'].append('Phi_min')
+                all_comps['PhsTensor'].append('Beta')
         # If none of the Impedance if's above triggered, remove all the associated headers
         # Will have to change this if we ever do Rho / Phase inversion
         # header = ['Impedance', 'Rho', 'Phase', 'Bostick', 'PhsTensor']
@@ -1512,7 +1522,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.resetErrors.clicked.connect(self.reset_errors)
         self.showMap.clicked.connect(self.show_map)
         self.sortSites.addItems(['Default', 'West-East',
-                                 'South-North', 'Clustering'])
+                                 'South-North', 'Clustering', 'Selection'])
         self.sortSites.currentIndexChanged.connect(self.sort_sites)
         self.showOutliers.clicked.connect(self.toggle_outliers)
         self.outlierThreshold.editingFinished.connect(self.set_outlier_threshold)
@@ -1755,10 +1765,75 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def sort_sites(self, index=None):
         if index is None:
             index = self.sortSites.currentIndex()
-        self.dataset.sort_sites(self.sortSites.itemText(index))
-        self.siteList.clear()
-        self.siteList.addItems(self.dataset.data.site_names)
-        self.update_map_data()
+        sort_type = self.sortSites.itemText(index)
+        # Skip if its already disconnected, but otherwise disconnect it before doing anything
+        try:
+            self.siteList.itemSelectionChanged.disconnect(self.plot_selected_sites)
+        except TypeError:
+            pass
+        if sort_type != 'Selection':
+            
+            self.dataset.sort_sites(self.sortSites.itemText(index))
+            self.siteList.clear()
+            self.siteList.addItems(self.dataset.data.site_names)
+            self.update_map_data()
+            self.ForwardButton.setEnabled(True)
+            self.BackButton.setEnabled(True)
+            self.numSubplots.setEnabled(True)
+        else:
+            self.ForwardButton.setEnabled(False)
+            self.BackButton.setEnabled(False)
+            self.removeSites.setEnabled(False)
+            self.addSites.setEnabled(False)
+            self.numSubplots.setEnabled(False)
+            self.siteList.itemSelectionChanged.connect(self.plot_selected_sites)
+
+    def plot_selected_sites(self):
+        sites_to_add = [site.text() for site in self.siteList.selectedItems()]
+        self.collapse_tree_nodes(to_collapse=self.dpm.site_names)
+        self.site_names = sites_to_add
+        # If the sites haven't changed
+        sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
+        # debug_print(sites, 'debug.log')
+        # self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
+        # self.dpm.fig.canvas.draw()
+
+        for dType in self.dpm.sites.keys():
+            self.dpm.sites[dType] = []
+            if self.dataset.has_dType(dType) or dType == '1d':
+                # tmp_sites = self.site_names
+                # sites_to_add = [site for site in self.dataset.data.site_names
+                #                 if site not in self.site_names][:num_to_add]
+                for site in sites_to_add:
+                    if dType == '1d':
+                        self.dpm.sites[dType].append(self.dpm.site1D)
+                    else:
+                        self.dpm.sites[dType].append(getattr(self.dataset, dType).sites[site])
+                # for ii in range(num_to_add):
+                #     site_name = next(site for site in self.dataset.data.site_names
+                #                      if site not in tmp_sites)
+                #     tmp_sites.append(site_name)
+                #     self.dpm.sites[dType].append(getattr(self.dataset, dType).sites[site_name])
+
+        # self.site_names = self.dpm.site_names
+        # self.dpm.draw_all()
+        self.dpm.plot_data()
+        self.dpm.fig.canvas.draw()
+        self.update_dpm()
+
+        self.expand_tree_nodes(to_expand=self.site_names, expand=True)
+        self.numSubplots.setText(str(len(sites_to_add)))
+        self.map_view.map.active_sites = self.site_names
+        for annotation in self.map_view.map.actors['annotation']:
+            annotation.remove()
+            del annotation
+        self.map_view.map.actors['annotation'] = []
+        # del self.map_view.map.actors['annotation']
+        self.map_view.x_lim = self.map_view.map.window['axes'][0].get_xlim()
+        self.map_view.y_lim = self.map_view.map.window['axes'][0].get_ylim()
+        self.map_view.map.plot_annotate()
+        self.map_view.set_axis_settings()
+        self.map_view.canvas.draw()
 
     def show_map(self):
         # print(self.map_view.map.site_locations['generic'])
@@ -1830,16 +1905,26 @@ class DataMain(QMainWindow, Ui_MainWindow):
         else:
             self.recalculateRMS.setEnabled(False)
             # self.select_points_button.setEnabled(True)
-        self.site_names = self.shift_site_names(shift=0)
+        # Try to keep the same selection if possible
+        if (self.sortSites.currentText() == 'Selection' and set(self.site_names).issubset(set(self.dataset.data.site_names))):
+            shift_sites = False
+        else:
+            self.site_names = self.shift_site_names(shift=0)
+            shift_sites = True
         self.map_view.init_map(dataset=self.dataset,
                                sites=self.dataset.data.site_names,
                                active_sites=self.site_names)
         self.set_data_toggles()
-        # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
-        # self.error_tree.itemChanged.disconnect()
         self.sort_sites()
         self.update_error_tree()
-        self.back_or_forward_button(shift=0)
+        # Call if using different sites, otherwise just plot the new data
+        if shift_sites:
+            self.back_or_forward_button(shift=0)
+        else:
+            # This will replace the site data with that from the new dataset (same site names though)
+            self.dpm.replace_sites(sites_in=self.dataset.get_sites(site_names=self.site_names, dTypes='all'),
+                                   sites_out=self.site_names)
+            self.update_dpm()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         self.map_view.update_map()
         self.set_nparam_labels()

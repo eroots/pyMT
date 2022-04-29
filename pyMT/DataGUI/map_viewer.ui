@@ -395,6 +395,16 @@
           </item>
           <item>
            <property name="text">
+            <string>Phi_max</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_min</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>PT Split</string>
            </property>
           </item>

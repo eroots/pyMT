@@ -16,19 +16,19 @@ import naturalneighbor as nn
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swzFinish_lastIter.dat'
 # datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/finish/swz_cull1M_all.dat'
 # listfile = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/edi/all_sorted.lst'
-# out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/'
-# base_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/'
-# list_file = 'E:/phd/NextCloud/data/Regions/plc18/j2/new/all.lst'
-# data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/plc31-2_NLCG_125.dat'
+out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/bwr/phase_diff/'
+base_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/'
+list_file = 'E:/phd/NextCloud/data/Regions/plc18/j2/new/all.lst'
+data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/plc31-2_NLCG_125.dat'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/ROU-MAL_BB.lst'
-list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
+# list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/j2/LAR-ROU_BB.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATBB.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/lar_bb.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/rouyn/j2/ROUall.lst'
 # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/malartic/j2/MALBB.lst'
-data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/AG_depthTest_baseCase_resp.dat'
-base_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/depth_tests/'
+# data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/MC-tests/AG_depthTest_baseCase_resp.dat'
+# base_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/AG/Hex2Mod/depth_tests/'
 # data_file = 'E:/phd/NextCloud/data/Regions/plc18/final/all_inv27.dat'
 
 base_data = WSDS.Data(data_file)
@@ -37,7 +37,7 @@ base_data = WSDS.Data(data_file)
 raw_data = WSDS.RawData(list_file)
 
 
-n_interp = raw_data.NS *2
+n_interp = raw_data.NS * 2
 save_fig = 1
 pad = 0.5
 dpi = 300
@@ -58,7 +58,10 @@ component = ['xy', 'yx']
 # phase_cax = [30, 75]
 # rho_cax = [0, 5]
 # # data.sort_sites(order='south-north')
-idx = base_data.locations[:, 0].argsort()
+sort_to = ['013','014','015','016','017','018','019','021','022','003','002','006','004','008','005','011','012','010','007','009',
+           '001','034','038','030','029','003','028','037','027','026','025','036','024','035']
+idx = [base_data.site_names.index('plc'+x) for x in sort_to]
+# idx = base_data.locations[:, 0].argsort()
 base_data.locations = base_data.locations[idx]  # Make sure they go north-south
 base_data.site_names = [base_data.site_names[ii] for ii in idx]
 # A little kludge to make sure the last few sites are in the right order (west-east)
@@ -68,20 +71,22 @@ base_data.site_names = [base_data.site_names[ii] for ii in idx]
 # rhos = [10, 50, 100, 300, 500]
 # depths = [500]
 # depths = [500, 1000, 1500, 2500, 3500, 5000, 7000, 10000, 15000, 20000, 25000, 35000]
-# rhos = [500, 1000, 2500]
-rhos = [500]
+# rhos = [500]
+rhos = [500, 1000]
 # for d in depths:
     # for r in rhos:
-for num in [81, 111]:
+# for num in [20, 31, 40]:
+for num in [1]:
     for r in rhos:
-        tag = 'depth-{}km'.format(num)
+        # tag = 'depth-{}km'.format(num)
         # out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/{}/'.format(tag)
         # out_path = 'E:/phd/NextCloud/data/Regions/plc18/final/feature_test/figs/phase_diff/depth_tests/'
-        out_path = 'E:/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/feature_tests/depths/'
+        # out_path = 'E:/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/feature_tests/depths/'
         # tag = 'inversion'
-        resp_file = base_path + 'AG_depthTest_{}km_resp.dat'.format(num)
+        # resp_file = base_path + 'AG_depthTest_{}km_resp.dat'.format(num)
         # resp_file = base_path + '{}/{}-{}ohm_resp.dat'.format(tag, tag, r)
         # resp_file = base_path + 'depth_test/plc_{}km_resp.dat'.format(num)
+        resp_file = base_path + 'C2/C2-{}ohm_resp.dat'.format(r)
         # resp_file = base_path + '{}_500_resp.dat'.format(tag, tag)
         # resp_file = base_path + '../plc31-2_NLCG_125.dat'
         # resp_file = base_path + '{}/{}-1000ohm-refined_resp.dat'.format(tag, tag)
@@ -101,12 +106,13 @@ for num in [81, 111]:
         rhodiff_cax = [-1, 1]
         phasediff_cax = [-15, 15]
         # data.sort_sites(order='south-north')
-        idx = data.locations[:, 1].argsort()
+        # idx = data.locations[:, 1].argsort()
         data.locations = data.locations[idx]  # Make sure they go north-south
         data.site_names = [data.site_names[ii] for ii in idx]
         print('data loaded')
         for comp in component:
-            out_file = '{}km_phadiff-{}'.format(num, comp)
+            # out_file = '{}km_phadiff-{}'.format(num, comp)
+            out_file = 'C4-{}ohm_phadiff-{}'.format(r, comp)
             # print(comp)
             rho = {site: utils.compute_rho(data.sites[site], calc_comp=comp)[0] for site in data.site_names}
             pha = {site: utils.compute_phase(data.sites[site], calc_comp=comp, wrap=1)[0] for site in data.site_names}
@@ -246,23 +252,27 @@ for num in [81, 111]:
                     print('Plotting Figure')
                     plt.figure(figsize=(16, 12))
                     plt.pcolor(grid_x, grid_y, grid_vals, cmap=cmap, vmin=use_cax[0], vmax=use_cax[1])
-                    
+                    # Dividing line where the plot shifts one line to the next (for plc dataset)
+                    plt.plot(np.ones(grid_x.shape[0])*(20-4/20), grid_y[:,1], 'k--')
                     # plt.scatter(locs, periods, c=vals, cmap=cmap, vmin=0, vmax=5)
                     plt.gca().invert_yaxis()
                     plt.gca().set_xlabel('Distance (km)')
-                    plt.gca().set_ylabel('Period (s)')
+                    plt.gca().set_ylabel('Period (s)', fontsize=16)
                     # plt.gca().set_title('{} {}, {}m'.format(comp, dtype, d))
                     if x_axis == 'station':
-                        plt.xticks(range(data.NS), data.site_names, rotation='vertical')
-                        plt.gca().set_xlabel('Station')
+                        plt.xticks(range(data.NS), data.site_names, rotation='vertical', fontsize=14)
+                        plt.gca().set_xlabel('Station', fontsize=16)
+                        for label in (plt.gca().get_yticklabels()):
+                            label.set_fontsize(14)
                     cb = plt.colorbar()
                     plt.clim(use_cax)
                     # plt.contour(grid_x, grid_y, grid_vals, levels=[-3.5, 3.5], colors='k')
                     print('Done Plotting')
                     if save_fig:
                         # tag = '_{}'.format(dtype)
-                        ext = '.png'
-                        plt.gcf().savefig(out_path + out_file + ext, dpi=dpi, transparent=True)
+                        exts = ['png','.pdf']
+                        for ext in exts:
+                            plt.gcf().savefig(out_path + out_file + ext, dpi=dpi, transparent=True)
                         plt.close()
                     else:          
                         print('Showing Figure')      

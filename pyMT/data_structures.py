@@ -4,7 +4,7 @@ import numpy as np
 import os
 from pyMT.WSExceptions import WSFileError
 import pyMT.utils as utils
-import pyMT.IO as WS_io
+import pyMT.IO as IO
 from copy import deepcopy
 
 
@@ -117,7 +117,7 @@ class Dataset(object):
             self.azimuth = self.data.azimuth
         if self.raw_data.initialized:
             try:
-                self.freqset = WS_io.read_freqset(self.raw_data.datpath)
+                self.freqset = IO.read_freqset(self.raw_data.datpath)
             except FileNotFoundError:
                 self.freqset = None
         else:
@@ -509,6 +509,8 @@ class Dataset(object):
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
                     self.smoothed_data.sites[site].data.update({comp: smoothed_data2})
+            self.smoothed_data.sites[site].calculate_phase_tensors()
+                    # self.smoothed_data.calculate_phase_parameters()
         self.data.apply_error_floor() 
         self.data.equalize_complex_errors()
         self.data.apply_no_data_map()
@@ -606,7 +608,7 @@ class Data(object):
                            'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat',
                            'EM3DANI': ['.adat', '.resp']}
-    INVERSION_TYPES = WS_io.INVERSION_TYPES
+    INVERSION_TYPES = IO.INVERSION_TYPES
     REMOVE_FLAG = 1234567
     FLOAT_CAP = 1e10
     # INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
@@ -747,7 +749,7 @@ class Data(object):
         """
         # path, filename, ext = fileparts(datafile)
         if listfile and datafile:
-            self.site_names = WS_io.read_sites(listfile)
+            self.site_names = IO.read_sites(listfile)
         if datafile:
             # Might have to watch that if site names are read after data, that
             # The data site names are updated appropriately.
@@ -766,7 +768,7 @@ class Data(object):
                     for code, ext in Data.IMPLEMENTED_FORMATS.items():
                         message += '{} => {}\n'.format(code, ext)
                     raise WSFileError(ID='fmt', offender=datafile, extra=message)
-            all_data, other_info = WS_io.read_data(datafile=datafile,
+            all_data, other_info = IO.read_data(datafile=datafile,
                                                    site_names=self.site_names,
                                                    file_format=self.file_format, invType=invType)
             self.site_names = other_info['site_names']
@@ -1018,7 +1020,7 @@ class Data(object):
             file_format = self.file_format
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_data(data=self, outfile=outfile,
+        IO.write_data(data=self, outfile=outfile,
                          to_write=to_write, file_format=file_format,
                          use_elevation=use_elevation)
         if write_removed:
@@ -1026,23 +1028,23 @@ class Data(object):
                 new_out = outfile.replace('.dat', '_removed.dat')
             else:
                 new_out = outfile + '_removed'
-            WS_io.write_data(data=self, outfile=new_out,
+            IO.write_data(data=self, outfile=new_out,
                              to_write=to_write, file_format=file_format,
                              use_elevation=use_elevation, include_flagged=False)
         self.spatial_units = units
 
     def write_list(self, outfile):
-        WS_io.write_list(data=self, outfile=outfile)
+        IO.write_list(data=self, outfile=outfile)
 
     def to_vtk(self, outfile, UTM, origin=None, sea_level=0, use_elevation=False):
         if not origin:
             print('Using origin = (0, 0)')
             origin = (0, 0)
-        WS_io.sites_to_vtk(self, outfile=outfile, origin=origin,
+        IO.sites_to_vtk(self, outfile=outfile, origin=origin,
                            UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
 
     def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50, period_idx=None):
-        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose,
+        IO.write_phase_tensors(self, out_file=out_file, verbose=verbose,
                                         scale_factor=scale_factor, period_idx=period_idx)
 
     def rotate_sites(self, azi):
@@ -1364,7 +1366,7 @@ class Model(object):
 
     def __read__(self, modelfile='', file_format='modem3d'):
         if modelfile:
-            mod, dim = WS_io.read_model(modelfile=modelfile, file_format=file_format)
+            mod, dim = IO.read_model(modelfile=modelfile, file_format=file_format)
             # Set up these first so update_vals isn't called
             self._xCS = mod['xCS']
             self._yCS = mod['yCS']
@@ -1373,7 +1375,7 @@ class Model(object):
             self.xCS = mod['xCS']
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
-            if file_format.lower() == 'em3dani' or mod.get('rhoy', []) != []:
+            if file_format.lower() in ('em3dani', 'mt3dani') or mod.get('rhoy', []) != []:
                 self.rho_x = mod['rhox']
                 self.rho_y = mod['rhoy']
                 self.rho_z = mod['rhoz']
@@ -1391,7 +1393,7 @@ class Model(object):
 
     def read_covariance(self, covariance_file=''):
         if covariance_file:
-            NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions = WS_io.read_covariance(covariance_file)
+            NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions = IO.read_covariance(covariance_file)
             if (NX == self.nx) and (NY == self.ny) and (NZ == self.nz):
                 self.sigma_x = sigma_x
                 self.sigma_y = sigma_y
@@ -1407,7 +1409,7 @@ class Model(object):
         if not outfile:
             print('Must specify output file name')
             return
-        WS_io.model_to_vtk(self, outfile=outfile, sea_level=sea_level)
+        IO.model_to_vtk(self, outfile=outfile, sea_level=sea_level)
 
     def to_local(self):
         self._dx = np.cumsum([0] + self.xCS)
@@ -1809,14 +1811,19 @@ class Model(object):
         self._dz = list(np.cumsum([0, *vals]))
         self.update_vals()
 
-    def write(self, outfile, file_format='modem'):
+    def write(self, outfile, file_format='modem', use_log=True, use_resistivity=True, use_anisotropy=False):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_model(self, outfile, file_format)
+        IO.debug_print([use_log, use_resistivity], 'E:/phd/NextCloud/data/synthetics/EM3DANI/wst/aniso8/debug.log')
+        IO.write_model(self, outfile,
+                       file_format=file_format,
+                       use_log=use_log,
+                       use_resistivity=use_resistivity,
+                       use_anisotropy=use_anisotropy)
         self.spatial_units = units
 
     def write_covariance(self, outfile):
-        WS_io.write_covariance(outfile,
+        IO.write_covariance(outfile,
                                NX=self.nx,
                                NY=self.ny,
                                NZ=self.nz,
@@ -1834,7 +1841,7 @@ class Response(Data):
     def write(self, outfile):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_response(self, outfile)
+        IO.write_response(self, outfile)
         self.spatial_units = units
 
 
@@ -2729,8 +2736,8 @@ class RawData(object):
         Returns:
             TYPE: Description
         """
-        self.site_names = WS_io.read_sites(listfile)
-        all_data = WS_io.read_raw_data(self.site_names, datpath)
+        self.site_names = IO.read_sites(listfile)
+        all_data = IO.read_raw_data(self.site_names, datpath)
         self.sites = {}
         for site_name, site in all_data.items():
             try:
@@ -2833,8 +2840,8 @@ class RawData(object):
             Y = 'Long'
         if sites is None:
             sites = self.site_names
-        # WS_io.debug_print(sites, 'tester.txt')
-        # WS_io.debug_print(self.site_names, 'tester.txt')
+        # IO.debug_print(sites, 'tester.txt')
+        # IO.debug_print(self.site_names, 'tester.txt')
         locs = np.array([[self.sites[name].locations[X],
                           self.sites[name].locations[Y]]
                          for name in sites])
@@ -2859,15 +2866,15 @@ class RawData(object):
     def write_locations(self, out_file, file_format='csv', verbose=0):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_locations(self, out_file=out_file, file_format=file_format, verbose=verbose)
+        IO.write_locations(self, out_file=out_file, file_format=file_format, verbose=verbose)
         self.spatial_units = units
 
     def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50, period_idx=None):
-        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose,
+        IO.write_phase_tensors(self, out_file=out_file, verbose=verbose,
                                         scale_factor=scale_factor, period_idx=period_idx)
 
     def write_induction_arrows(self, out_file, verbose=False, scale_factor=1/50, period_idx=None):
-        WS_io.write_induction_arrows(self, out_file=out_file, verbose=verbose,
+        IO.write_induction_arrows(self, out_file=out_file, verbose=verbose,
                                      scale_factor=scale_factor, period_idx=period_idx)
 
     def master_period_list(self):

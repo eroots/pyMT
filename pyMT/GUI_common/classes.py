@@ -246,13 +246,15 @@ class ColourMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
         super(QtWidgets.QMenu, self).__init__(parent)
         self.all_maps = {x: None for x in ('bgy', 'bgy_r',
+                                           'viridis', 'viridis_r',
                                            'jet', 'jet_r',
                                            'jet_plus', 'jet_plus_r',
                                            'bwr', 'bwr_r',
                                            'greys', 'greys_r',
                                            'turbo', 'turbo_r', 'turbo_capped', 'turbo_capped_r', 'turbo_r_mod',
                                            'twilight', 'twilight_shifted',
-                                           'colorwheel')}
+                                           'colorwheel',
+                                           'viridis', 'viridis_r')}
         self.action_group = QtWidgets.QActionGroup(self)
         self.setTitle('Colour Options')
         self.map = self.addMenu('Colour Map')

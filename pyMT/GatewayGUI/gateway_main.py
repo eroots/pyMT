@@ -131,7 +131,7 @@ class NewProject(QNewProject, Ui_NewProject):
 
         for file in files:
             name, ext = os.path.splitext(file)
-            if ext in ('.rho', '.model', '.mod'):
+            if ext in ('.rho', '.model', '.mod', 'zani', 'ani'):
                 ret_dict.update({'model': file})
             elif ext in ('.dat', '.data', 'adat'):
                 with open(file, 'r') as f:
@@ -297,7 +297,8 @@ class NewProject(QNewProject, Ui_NewProject):
             fnames = QtWidgets.QFileDialog.getOpenFileNames(self, 'Browse Files',
                                                            self.current_dir,
                                                            'ModEM Files (*.rho *.model *.dat *.lst *.reso *.data *.resp);;' +\
-                                                           'EM3DANI Files (*.mod *.dat *.adat *.resp *.lst);; All Files (*)')[0]
+                                                           'EM3DANI Files (*.mod *.dat *.adat *.resp *.lst);;' +\
+                                                           'MT3DANI Files (*.ani *.zani *.dat);; All Files (*)')[0]
             if fnames:
                 self.current_dir = os.path.abspath(fnames[0])
                 # print(fnames)

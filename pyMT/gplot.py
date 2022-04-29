@@ -247,12 +247,14 @@ class DataPlotManager(object):
             sites_in = sites_in[:len(sites_out)]
         elif len(sites_out) > ns_in:
             sites_out = sites_out[:len(sites_in)]
+        # debug_print([sites_out, sites_in], 'debug.log')
         for dType, site_list in sites_in.items():
             jj = 0
             if sites_in[dType]:
                 for ii, site in enumerate(snames):
                     if site in sites_out:
                         try:
+                            # debug_print([ii, jj, dType], 'debug.log')
                             self.sites[dType][ii] = sites_in[dType][jj]
                         except IndexError:
                             self.sites[dType].append(sites_in[dType][jj])
@@ -518,18 +520,25 @@ class DataPlotManager(object):
                                                     wrap=self.wrap_phase)
                     if Type.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e
-                elif 'pt' in comp.lower():
+                elif 'pt' in comp.lower() or 'phi' in comp.lower() or 'beta' in comp.lower():
                     # If PTs are actually the inverted data, take them directly from the site
                     if comp in site.components:
                         toplot = site.data[comp]
                         e = site.used_error[comp]
                     # Otherwise use the associated PT object
-                    else:
+                    elif 'pt' in comp.lower():
                         toplot = np.array([getattr(site.phase_tensors[ii],
                                                    comp.upper())
                                            for ii in range(site.NP)])
                         e = np.array([getattr(site.phase_tensors[ii],
                                               comp.upper() + '_error')
+                                      for ii in range(site.NP)])
+                    else:
+                        toplot = np.array([getattr(site.phase_tensors[ii],
+                                                   comp.lower())
+                                           for ii in range(site.NP)])
+                        e = np.array([getattr(site.phase_tensors[ii],
+                                              comp.lower() + '_error', 0) # Default error of 0 until I implement errors for invariants
                                       for ii in range(site.NP)])
                     # Convert to degrees
                     if Type.lower() not in response_types and self.errors.lower() != 'none':
@@ -1463,6 +1472,14 @@ class MapView(object):
                 data_label = 'Phase Split'
                 use_log = False
                 vals.append([data.sites[site].phase_tensors[period_idx].phi_split_pt for site in data.site_names])
+            elif 'phi_min' in fill_param.lower():
+                data_label = 'Phase'
+                use_log = False
+                vals.append([np.rad2deg(np.arctan(data.sites[site].phase_tensors[period_idx].phi_min)) for site in data.site_names])
+            elif 'phi_max' in fill_param.lower():
+                data_label = 'Phase'
+                use_log = False
+                vals.append([np.rad2deg(np.arctan(data.sites[site].phase_tensors[period_idx].phi_max)) for site in data.site_names])
         if len(vals) == 1:
             vals = np.array(vals[0])
             diff = False
@@ -1501,7 +1518,7 @@ class MapView(object):
             cax = self.diff_cax
             fill_param = 'Log10 Difference'
         elif (diff and 'pha' in fill_param.lower() or fill_param.lower() == ('phaxy-yx')) or \
-             (diff and 'pt_split' in fill_param.lower()):
+             (diff and 'pt_split' in fill_param.lower()) or (diff and 'phi' in fill_param.lower()):
             cax = self.diff_cax
             fill_param = r'Difference ($^{\circ}$)'
         # Any other difference just use a generic label
@@ -1510,7 +1527,7 @@ class MapView(object):
             fill_param = r'Difference'
         elif 'rho' in fill_param.lower():
             cax = self.rho_cax
-        elif 'pha' in fill_param.lower():
+        elif 'pha' in fill_param.lower() or 'phi' in fill_param.lower():
             cax = self.phase_cax
         elif 'tip' in fill_param.lower():
             cax = self.tipper_cax
