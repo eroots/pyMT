@@ -1584,13 +1584,20 @@ class MapView(object):
         return label
 
     def plot_plan_view(self, ax=None, z_slice=0, rho_axis='rho_x'):
+        rho_axis = rho_axis.lower()
         if not ax:
             ax = self.window['axes'][0]
         if self.mesh:
             edgecolor = 'k'
         else:
             edgecolor = None
-        vals = getattr(self.model, rho_axis, 'vals')
+        if '/' in rho_axis:
+            rho_axis = rho_axis.split('/')
+            v1 = getattr(self.model, rho_axis[0].strip())
+            v2 = getattr(self.model, rho_axis[1].strip())
+            vals = v1 / v2
+        else:
+            vals = getattr(self.model, rho_axis, 'vals')
         # debug_print(vals, 'test.txt')
         X = np.array(self.model.dy)
         Y = np.array(self.model.dx)

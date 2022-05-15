@@ -1814,7 +1814,7 @@ class Model(object):
     def write(self, outfile, file_format='modem', use_log=True, use_resistivity=True, use_anisotropy=False):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        IO.debug_print([use_log, use_resistivity], 'E:/phd/NextCloud/data/synthetics/EM3DANI/wst/aniso8/debug.log')
+        # IO.debug_print([use_log, use_resistivity], 'E:/phd/NextCloud/data/synthetics/EM3DANI/wst/aniso8/debug.log')
         IO.write_model(self, outfile,
                        file_format=file_format,
                        use_log=use_log,

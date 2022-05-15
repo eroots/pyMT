@@ -438,9 +438,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.map.dataset.model.file:
             self.toggle_planView.clicked.connect(self.update_map)
             self.planSlice.valueChanged.connect(self.update_map)
-            self.rhoAxis.currentIndexChanged.connect(self.update_map)
             self.planSlice.setMinimum(0)
             self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
+            if self.map.dataset.model.rho_y != []:
+                self.rhoAxis.addItem('rho_x / rho_y')
+                self.rhoAxis.addItem('rho_x / rho_z')
+                self.rhoAxis.addItem('rho_y / rho_z')
+                self.rhoAxis.currentIndexChanged.connect(self.update_map)
+            else:
+                self.rhoAxis.setEnabled(False)
         else:
             self.toggle_planView.setEnabled(False)
             self.planSlice.setEnabled(False)
