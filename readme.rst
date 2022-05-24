@@ -45,11 +45,20 @@ Getting Started:
 Installation basics (tested method for new users)
 
 1) Install anaconda (Skip this if you already have anaconda)
+
 2) Open anaconda prompt
+
 3) Create an empty pyMT environment: conda create -n pymt
+
 4a) Enter that environment: conda activate pymt
+
 4b) Add that command to your .bashrc (or whatever login script) so you don't have to enter it every time you open a new anaconda prompt
+
 5) Install / update some packages: conda install vtk pip ipykernel git
+
 6a) Install pyMT: pip install git+https://github.com/eroots/pyMT.git
+
 6b) Any time you want to update to the latest version, use: pip install --upgrade  git+https://github.com/eroots/pyMT.git
+
 7) Navigate to wherever your working folder is and launch: gateway_mt
+
