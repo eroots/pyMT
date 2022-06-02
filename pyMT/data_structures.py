@@ -1680,7 +1680,6 @@ class Model(object):
     def dy_delete(self, index):
         if index < 0:
             index = self.ny + index + 1
-            print(index)
         del self._dy[index]
         self._yCS = list(np.diff(self._dy))
         self.update_vals(axis=1, index=index, mode='delete')
