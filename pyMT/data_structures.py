@@ -1671,21 +1671,30 @@ class Model(object):
     #     else:
     #         getattr(self,)
     def dx_delete(self, index):
+        if index < 0:
+            index = self.nx + index + 1
         del self._dx[index]
         self._xCS = list(np.diff(self._dx))
         self.update_vals(axis=0, index=index, mode='delete')
 
     def dy_delete(self, index):
+        if index < 0:
+            index = self.ny + index + 1
+            print(index)
         del self._dy[index]
         self._yCS = list(np.diff(self._dy))
         self.update_vals(axis=1, index=index, mode='delete')
 
     def dz_delete(self, index):
+        if index < 0:
+            index = self.nz + index + 1
         del self._dz[index]
         self._zCS = list(np.diff(self._dz))
         self.update_vals(axis=2, index=index, mode='delete')
 
     def dx_insert(self, index, value):
+        if index < 0:
+            index = self.nx + index + 1
         if self.check_new_mesh('dx', index, value):
             mod_idx = max((min((index, self.nx - 1)), 0))
             new_vals = self.vals[max((mod_idx - 1, 0)), :, :]
@@ -1694,6 +1703,8 @@ class Model(object):
             self.update_vals(axis=0, index=mod_idx, new_vals=new_vals)
 
     def dy_insert(self, index, value):
+        if index < 0:
+            index = self.ny + index + 1
         if self.check_new_mesh('dy', index, value):
             mod_idx = max((min((index, self.ny - 1)), 0))
             new_vals = self.vals[:, max((mod_idx - 1, 0)), :]
@@ -1702,6 +1713,8 @@ class Model(object):
             self.update_vals(axis=1, index=mod_idx, new_vals=new_vals)
 
     def dz_insert(self, index, value):
+        if index < 0:
+            index = self.nz + index + 1
         if self.check_new_mesh('dz', index, value):
             mod_idx = max((min((index, self.nz - 1)), 0))
             new_vals = self.vals[:, :, max((mod_idx - 1, 0))]

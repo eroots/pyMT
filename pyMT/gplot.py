@@ -694,6 +694,7 @@ class MapView(object):
         self.tipper_cax = [0, 0.5]
         self.skew_cax = [-10, 10]
         self.model_cax = [1, 5]
+        self.aniso_cax = [-2, 2]
         self.depth_cax = [0, 3.5]
         self.model = []
         self.padding_scale = 5
@@ -1596,8 +1597,10 @@ class MapView(object):
             v1 = getattr(self.model, rho_axis[0].strip())
             v2 = getattr(self.model, rho_axis[1].strip())
             vals = v1 / v2
+            cax = self.aniso_cax
         else:
             vals = getattr(self.model, rho_axis, 'vals')
+            cax = self.model_cax
         # debug_print(vals, 'test.txt')
         X = np.array(self.model.dy)
         Y = np.array(self.model.dx)
@@ -1605,7 +1608,7 @@ class MapView(object):
                            Y,
                            np.log10(vals[:, :, z_slice]),
                            cmap=self.cmap,
-                           vmin=self.model_cax[0], vmax=self.model_cax[1],
+                           vmin=cax[0], vmax=cax[1],
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)

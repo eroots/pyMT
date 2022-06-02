@@ -553,7 +553,7 @@ def read_raw_data(site_names, datpath=''):
         except AssertionError:
             msg = 'Number of periods in {} is not equal for all components'.format(file)
             print('Fatal error in pyMT.IO.read_dat')
-            raise(WSFileError(id='int', offender=file, extra=msg))
+            raise(WSFileError(ID='int', offender=file, extra=msg))
         site_dict = {'data': siteData_dict,
                      'errors': siteError_dict,
                      'locations': siteLoc_dict,

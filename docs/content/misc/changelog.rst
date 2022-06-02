@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+*29/04/22
+
+  * Added function to read mt3dani models, and made corresponding changes to allow the anistropic modesl to be used in the GUIs
+
 *01/03/22
 
 	* Forgot to log changes for a while... Not many big ones probably probably many minor ones.

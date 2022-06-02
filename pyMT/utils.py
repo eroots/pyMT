@@ -1180,7 +1180,7 @@ _projections = {}
 
 
 def rms(data):
-    return np.sqrt(np.mean(data ** 2))
+    return np.sqrt(np.nanmean(data ** 2))
 
 
 def zone_convert(coordinates):

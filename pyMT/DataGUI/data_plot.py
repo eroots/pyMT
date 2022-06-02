@@ -366,6 +366,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.limits = self.colourMenu.addMenu('Colour Limits')
         self.colourMenu.lut = self.colourMenu.addAction('# Colour Intervals')
         self.colourMenu.rho_limits = self.colourMenu.limits.addAction('Rho')
+        self.colourMenu.aniso_limits = self.colourMenu.limits.addAction('Anisotropic Ratio')
         self.colourMenu.phase_limits = self.colourMenu.limits.addAction('Phase')
         self.colourMenu.phase_split_limits = self.colourMenu.limits.addAction('Phase Splits')
         self.colourMenu.difference_limits = self.colourMenu.limits.addAction('Difference')
@@ -375,6 +376,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.lut.triggered.connect(self.set_lut)
         self.groupColourmaps = QtWidgets.QActionGroup(self)
         self.colourMenu.rho_limits.triggered.connect(self.set_rho_cax)
+        self.colourMenu.aniso_limits.triggered.connect(self.set_aniso_cax)
         self.colourMenu.phase_limits.triggered.connect(self.set_phase_cax)
         self.colourMenu.phase_split_limits.triggered.connect(self.set_phase_split_cax)
         self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
@@ -795,6 +797,14 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         #     self.update_map()
         # else:
         #     print('Invalid colour limits')
+
+    def set_aniso_cax(self):
+        limits = self.set_cax(self.map.aniso_cax[0], self.map.aniso_cax[1])
+        if limits is not None and limits != self.map.aniso_cax:
+            self.map.aniso_cax = limits
+            self.map.aniso_cax = limits
+            self.update_map()
+
 
     def set_difference_cax(self):
         limits = self.set_cax(self.map.diff_cax[0], self.map.diff_cax[1])

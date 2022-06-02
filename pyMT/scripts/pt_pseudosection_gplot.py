@@ -29,8 +29,9 @@ def generate_ellipse(phi):
 # main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/malartic/j2/mal_amt.lst'
 ###########################################
 # LARDER
-# listfile = local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
-# main_list = local_path + 'phd/ownCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
+list_file = [local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst']
+main_list = local_path + '/phd/NextCloud/data/Regions/MetalEarth/larder/j2/main_transect_bb.lst'
+out_path = local_path + '/phd/NextCloud//Documents/ME_Transects/Larder/fault_rupture_paper/'
 ###########################################
 # NEW AFTON
 # for use_list in ['l0', 'l3', 'l6', 'l9', 'l12', 'l15', 'l18', 'l21']:
@@ -47,9 +48,9 @@ def generate_ellipse(phi):
 # list_file = [base_path + x for x in ('line2a.lst', 'line3.lst', 'line5_2b.lst')]
 ###########################################
 # PLC (Patterson Lake)
-out_path = local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/plots/'
-base_path = local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/'
-list_file = [base_path + x for x in ('line1.lst', 'line2.lst')]
+# out_path = local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/plots/'
+# base_path = local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/'
+# list_file = [base_path + x for x in ('line1.lst', 'line2.lst')]
 ###########################################
 # WST Anisotropy tests
 # out_path = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/wst/comsol/ellipse_plots/superior_dykes/'
@@ -110,10 +111,11 @@ for use_list_dummy in list_file[:1]:
     #             origin = (x[ind], y[ind])
     #             break
     # idx = np.argsort([np.norm(origin - p for p in main_transect.locations)])
-    idx = np.argsort(main_transect.locations[:, 1]) # Sort west-to-east
+    # idx = np.argsort(main_transect.locations[:, 1]) # Sort west-to-east
+    idx = np.argsort(main_transect.locations[:, 0]) # Sort south-to-north
     main_transect.site_names = [main_transect.site_names[ii] for ii in idx]
     # main_transect.locations = main_transect.get_locs(mode='latlong')
-    x_axis = 'linear'
+    x_axis = 'X'
     main_transect.locations = main_transect.locations[idx, :]
     data.site_names = deepcopy(main_transect.site_names)
     data.locations = deepcopy(main_transect.locations)
@@ -124,13 +126,14 @@ for use_list_dummy in list_file[:1]:
     # for tensor_type in ['phi', 'phi_a', 'Ua', 'Va']:
     for tensor_type in ['phi']:
         # fill_param = ['phi_max', 'phi_min']
-        fill_param = ['phi_split']
+        # fill_param = ['phi_split']
+        fill_param = ['phi_2']
         # fill_param = ['azimuth', 'beta']
         # tensor_type = 'phi'
         padding = 20.
         low_cut = 0.001
         high_cut = 600
-        save_fig = 0
+        save_fig = 1
         freq_skip = 1
         label_offset = -1.2
         xlim = [min(main_transect.locations[:,1])-padding, max(main_transect.locations[:,1])+padding]
@@ -149,7 +152,7 @@ for use_list_dummy in list_file[:1]:
         out_file = '{}_{}_pseudosection'.format(os.path.basename(use_list_dummy).replace('.lst', ''), tensor_type)
 
         # file_name = 'MAL_pseudosection_{}_northing'.format(fill_param.replace('_', ''))
-        file_exts = ['.png']
+        file_exts = ['.png', '.svg']
         dpi = 600
 
 
