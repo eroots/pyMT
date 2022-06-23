@@ -9,33 +9,34 @@ from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
 # transects = ['litho_bb', 'litho_lmt', 'metal_earth', 'usarray']
-transects = ['red_lake-ME']
+transects = ['larder_bb', 'larder_amt', 'larder_legacy']
 # Path to the list file
-list_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/red_lake/j2/bbmt/'
-dat_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/red_lake/j2/bbmt/'
+list_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/'
+dat_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/'
 # list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/cullmantle_separated/'
 # dat_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/'
 # Name of the list file(s) - these would go with your list of transects above
 # lists = ['allsites.lst']
 # lists = ['litho_bb.lst', 'litho_lmt.lst', 'metal_earth.lst', 'usarray.lst']
-lists = ['bbmt.lst']
+lists = ['lar_bb.lst', 'lar_amt.lst', 'lar_legacy.lst']
 # Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
-data_type = 'BB_'
+# data_type = 'BB_'
+data_type = ''
 
 # Set the paths you want things to be saved to
 # shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/wst_cullmantle/'
 # kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 # csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
-shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/SHPs/Jan2019/SHP/'
+shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/SHPs/Larder-for-Ras/'
 kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 
 # Set to true or false depending on what you want written
-write_kml = True
+write_kml = False
 write_csv = False
 write_shp = True
 # Whatever your UTM zone is
-UTM = 15
+UTM = 17
 
 for ii, lst in enumerate(lists):
     try:
@@ -83,7 +84,7 @@ for ii, lst in enumerate(lists):
             print('Writing SHP for {}'.format(transects[ii]))
             if data.site_names:
                 # w = shapefile.Writer(shp_save_file)
-                with shapefile.Writer(shp_save_file) as w:
+                with shapefile.Writer(target=shp_save_file) as w:
                     w.field('X', 'F', 10, 5)
                     w.field('Y', 'F', 10, 5)
                     # w.field('Z', 'F', 10, 5)
