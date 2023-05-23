@@ -296,7 +296,7 @@ def read_model(modelfile='', file_format='modem3d'):
         # Not fully written - probably won't work for general anisotropy yet.
         with open(modelfile, 'r') as f:
             mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': [], 
-                  'rhox': [], 'rhoy': [], 'rhoz': [], 'zAir': [],
+                  'rho_x': [], 'rho_y': [], 'rho_z': [], 'zAir': [],
                   'strike': [], 'dip': [], 'slant': []}
             counter = 0
             header = '#'
@@ -321,10 +321,10 @@ def read_model(modelfile='', file_format='modem3d'):
             NZ = len(mod['zCS'])
             line = next(f)
             if 'Anisotropy' in line:
-                rhos = ('rhox', 'rhoy', 'rhoz')
+                rhos = ('rho_x', 'rho_y', 'rho_z')
                 line = next(f)
             else:
-                rhos = ['rhox']
+                rhos = ['rho_x']
             for rho in rhos:
                 line = next(f)
                 vals = []
@@ -339,7 +339,7 @@ def read_model(modelfile='', file_format='modem3d'):
                 if model_type.lower() == 'log':
                     vals = 10 ** vals
                 mod[rho] = np.reshape(np.array(vals), [NX, NY, NZ], order='F') # flipud?
-            mod['vals'] = copy.deepcopy(mod['rhox'])
+            mod['vals'] = copy.deepcopy(mod['rho_x'])
 
             return mod, False
 
@@ -410,7 +410,7 @@ def read_model(modelfile='', file_format='modem3d'):
     def read_mt3dani(modelfile, n_param=3):
         with open(modelfile, 'r') as f:
             mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': [], 
-                  'rhox': [], 'rhoy': [], 'rhoz': [],
+                  'rho_x': [], 'rho_y': [], 'rho_z': [],
                   'strike': [], 'dip': [], 'slant': []}
             # Skip any comment lines at the top
             counter = 0
@@ -440,7 +440,7 @@ def read_model(modelfile='', file_format='modem3d'):
                 mod['vals'] = np.ones([NX, NY, NZ]) * lines[NX + NY + NZ]
             else:
                 # vals = lines[NX + NY + NZ: ]
-                param = ['rhox', 'rhoy', 'rhoz', 'strike', 'dip', 'slant']
+                param = ['rho_x', 'rho_y', 'rho_z', 'strike', 'dip', 'slant']
                 for pp in range(n_param):
                     idx1 = NX + NY + NZ + (NX*NY*NZ*pp)
                     idx2 = NX + NY + NZ + (NX*NY*NZ*(pp+1))
@@ -448,40 +448,43 @@ def read_model(modelfile='', file_format='modem3d'):
                     if loge_flag == True:
                         vals = np.exp(vals)
                     mod.update({param[pp]: vals})
-                mod['vals'] = copy.deepcopy(mod['rhox'])
+                mod['vals'] = copy.deepcopy(mod['rho_x'])
                 loge_flag = False
         return mod, loge_flag
 
-    if not modelfile:
-        print('No model to read')
-        return None
-    if modelfile[-4:] == 'zani':
-        print('Reading MT3DANI model')
-        file_format = 'mt3dani'
-    if file_format.lower() == 'modem3d':
-        try:
-            mod, loge_flag = read_3d(modelfile)
-            dimensionality = '3d'
-        except ValueError:
+    try:
+        if not modelfile:
+            print('No model to read')
+            return None
+        if modelfile[-4:] == 'zani':
+            print('Reading MT3DANI model')
+            file_format = 'mt3dani'
+        if file_format.lower() == 'modem3d':
             try:
-                print('Model not in ModEM3D format. Trying 2D')
-                mod, loge_flag = read_2d(modelfile)
-                dimensionality = '2d'
-            except ValueError:
-                print('Not in ModEM format. Trying EM3DANI.')
-                mod, loge_flag = read_em3dani(modelfile)
+                mod, loge_flag = read_3d(modelfile)
                 dimensionality = '3d'
-    elif file_format.lower() == 'modem2d':
-        mod, loge_flag = read_2d(modelfile)
-    elif file_format.lower() == 'em3dani':
-        mod, loge_flag = read_em3dani(modelfile)
-        dimensionality = '3d'
-    elif file_format.lower() == 'mt3dani':
-        mod, loge_flag = read_mt3dani(modelfile)
-        dimensionality = '3d'
-    if loge_flag:
-        mod['vals'] = np.exp(mod['vals'])
-    return mod, dimensionality
+            except ValueError:
+                try:
+                    print('Model not in ModEM3D format. Trying 2D')
+                    mod, loge_flag = read_2d(modelfile)
+                    dimensionality = '2d'
+                except ValueError:
+                    print('Not in ModEM format. Trying EM3DANI.')
+                    mod, loge_flag = read_em3dani(modelfile)
+                    dimensionality = '3d'
+        elif file_format.lower() == 'modem2d':
+            mod, loge_flag = read_2d(modelfile)
+        elif file_format.lower() == 'em3dani':
+            mod, loge_flag = read_em3dani(modelfile)
+            dimensionality = '3d'
+        elif file_format.lower() == 'mt3dani':
+            mod, loge_flag = read_mt3dani(modelfile)
+            dimensionality = '3d'
+        if loge_flag:
+            mod['vals'] = np.exp(mod['vals'])
+        return mod, dimensionality
+    except FileNotFoundError as e:
+        raise(WSFileError(ID='fnf', offender=modelfile))
 
 
 def read_raw_data(site_names, datpath=''):
@@ -2644,9 +2647,9 @@ def write_list(data, outfile):
         f.write('{}'.format(''.join([data.site_names[-1], '.dat'])))
 
 
-def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_log=True, use_resistivity=True):
+def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_log=True, use_resistivity=True, n_param=3):
     def to_em3dani(model, outfile, use_log, use_resistivity, use_anisotropy):
-        debug_print([use_log, use_resistivity], 'E:/phd/NextCloud/data/synthetics/EM3DANI/wst/aniso8/debug.log')
+        # debug_print([use_log, use_resistivity], 'E:/phd/NextCloud/data/synthetics/EM3DANI/wst/aniso8/debug.log')
         value_dict = {'sigma': 'vals',
                       'sigmax': 'rho_x', 'sigmay': 'rho_y', 'sigmaz': 'rho_z',
                       'slant': 'slant', 'dip': 'dip', 'strike': 'strike'}
@@ -2702,7 +2705,7 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                                     val = values[ix, iy, iz]
                                 else:
                                     val = 1 / values[ix, iy, iz]
-                                if use_log:
+                                if use_log and 'sigma' in name:
                                     val = np.log10(val)
                                 # f.write('{:<10.5f} '.format(np.log10(values[ix, iy, iz])))
                                 f.write('{:<10.5f} '.format(val))
@@ -2734,7 +2737,51 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                     for iz in range(model.nz):
                         f.write('{:<10.7f}\n'.format(model.vals[ix, iy, iz]))
 
-    def write_inv_model(model, outfile, file_format):
+    def to_mt3dani(model, outfile, use_log, use_resistivity, use_anisotropy, n_param):
+        if '.zani' not in outfile:
+            outfile = ''.join([outfile, '.zani'])
+        is_half_space = int(model.is_half_space())
+        if use_log:
+            header_four = 'LOGE'
+        else:
+            header_four = 'LINEAR'
+        with open(outfile, 'w') as f:
+            f.write('{}\n'.format('# ' + outfile))
+            f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, 0, header_four))
+            for x in model.xCS:
+                f.write('{:<10.7f}  '.format(x))
+            f.write('\n')
+            for y in model.yCS:
+                f.write('{:<10.7f}  '.format(y))
+            f.write('\n')
+            for z in model.zCS:
+                f.write('{:<10.7f}  '.format(z))
+            f.write('\n')
+
+            param = ['rho_x', 'rho_y', 'rho_z', 'strike', 'dip', 'slant']
+            for pp in range(n_param):
+                if header_four == 'LOGE':
+                    if np.any(model.vals < 0):
+                        print('Negative values detected in model.')
+                        print('I hope you know what you\'re doing.')
+                        vals = np.sign(getattr(model, param[pp], model.vals)) * np.log(np.abs(getattr(model, param[pp], model.vals)))
+                        vals = np.nan_to_num(vals)
+                    else:
+                        vals = getattr(model, param[pp], model.vals)
+                        if pp < 3:
+                            vals = np.log(vals)
+                else:
+                    vals = get(model, param[pp], model.vals)
+                for zz in range(model.nz):
+                    for yy in range(model.ny):
+                        for xx in range(model.nx):
+                            # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                            f.write('{:<14.5E}'.format(vals[model.nx - xx - 1, yy, zz]))
+                        f.write('\n')
+                    f.write('\n')
+                f.write('\n')
+
+    def write_modem(model, outfile, file_format):
         if '.model' not in outfile:
             outfile = ''.join([outfile, '.model'])
         is_half_space = int(model.is_half_space())
@@ -2774,7 +2821,7 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                             # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
                             f.write('{:<10.7f}\n'.format(vals[model.nx - xx - 1, yy, zz]))
 
-    def write_model_2d(model, outfile):
+    def write_modem_2d(model, outfile):
         if '.model' not in outfile:
             outfile = ''.join([outfile, '.model'])
         # is_half_space = int(model.is_half_space())
@@ -2828,9 +2875,9 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                                                                                    model.vals[ix, iy, iz]))
 
     if file_format.lower() in ('modem', 'wsinv', 'wsinv3dmt'):
-        write_inv_model(model=model, outfile=outfile, file_format=file_format)
+        write_modem(model=model, outfile=outfile, file_format=file_format)
     elif file_format.lower() in ('modem2d'):
-        write_model_2d(model=model, outfile=outfile)
+        write_modem_2d(model=model, outfile=outfile)
     elif file_format.lower() in ('ubc', 'ubc-gif'):
         to_ubc(model=model, outfile=outfile)
     elif file_format.lower() in ('csv'):
@@ -2841,10 +2888,17 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                    use_log=use_log, 
                    use_resistivity=use_resistivity,
                    use_anisotropy=use_anisotropy)
+    elif file_format.lower() in ('mt3dani'):
+        to_mt3dani(model=model,
+                   outfile=outfile,
+                   use_log=use_log,
+                   use_resistivity=use_resistivity,
+                   use_anisotropy=use_anisotropy,
+                   n_param=n_param)
     else:
         print('File format {} not supported'.format(file_format))
-        print('Supported formats are: ')
-        print('ModEM, WSINV3DMT, UBC-GIF, CSV', 'EM3DANI')
+        print('Supported formats are: butts')
+        print('ModEM, WSINV3DMT, UBC-GIF, CSV, EM3DANI, MT3DANI')
         return
 
 def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50, period_idx=None):

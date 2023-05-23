@@ -20,7 +20,8 @@ if __name__ == '__main__':
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_flagged.dat'
     listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
-    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/ind_only/'
+    respfile = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.dat'
+    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/ind_only/response/'
     # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
@@ -35,9 +36,11 @@ if __name__ == '__main__':
     cutoff_distance = 3500
     remove_close_sites = 0
     arrow_types = ['R']
+    data_type = ['response']
     normalize = False
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
+    response = WSDS.Response(respfile)
     # data = deepcopy(raw)
     # data.locations = rawdata.get_locs(mode='latlong')
     freq_skip = 0
@@ -56,8 +59,10 @@ if __name__ == '__main__':
         # rm_sites = [site for site in data.site_names[2:]]
         data.remove_sites(sites=rm_sites)
         raw.remove_sites(sites=rm_sites)
+        response.remove_sites(sites=rm_sites)
     raw.locations = raw.get_locs(mode='lambert')
     data.locations = raw.locations
+    response.locations = raw.locations
     data.reset_errors() # Just to unflag the BB stations so their induction arrows are included
     
     # for ii in range(len(raw.locations)):
@@ -86,6 +91,7 @@ if __name__ == '__main__':
     MV.colourmap = 'greys_r'
     MV.site_data['data'] = data
     MV.site_data['raw_data'] = raw
+    MV.site_data['response'] = response
     MV.site_names = data.site_names
     MV.padding_scale = 10
     MV.induction_scale = 5
@@ -115,7 +121,7 @@ if __name__ == '__main__':
         period = str(int(period))
         if jpg_file_name:
             MV.plot_image(im, extents)
-        MV.plot_induction_arrows(data_type='data', normalize=normalize, period_idx=ii, arrow_type=arrow_types)
+        MV.plot_induction_arrows(data_type=data_type, normalize=normalize, period_idx=ii, arrow_type=arrow_types)
         MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - padding,
                                    max(data.locations[:, 1]) + padding,
                                    min(data.locations[:, 0]) - padding,

@@ -78,7 +78,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         else:
             self.period_range = [-4, 4]
         self.site = deepcopy(dummy_site)
-        self.rho = []
+        self.rho_x, self.rho_y = [], []
         self.Z = []
         self.add_mpl(self.model_figure)
         self.setup_model_table()
@@ -91,14 +91,14 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         return float(self.layerTable.item(0, 1).text())
 
     def setup_model_table(self):
-        header = ['Layer Thickness\n(km)', 'Layer Rho\n(ohm-m)']
+        header = ['Layer Thickness\n(km)', 'Rho X\n(ohm-m)', 'Rho Y\n(ohm-m)']
         self.layerTable.setColumnCount(len(header))
         self.layerTable.setRowCount(25)
         for ii, label in enumerate(header):
             self.layerTable.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem(label))
         self.layerTable.setVerticalHeaderItem(0, QtWidgets.QTableWidgetItem('Half Space'))
-        for ii in range(1, self.layerTable.rowCount()):
-            self.layerTable.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem('Layer {}'.format(ii)))
+        # for ii in range(1, self.layerTable.rowCount()):
+        #     self.layerTable.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem('Layer {}'.format(ii)))
         self.layerTable.setItem(0, 1, QtWidgets.QTableWidgetItem(str(self.default_hs)))
         self.layerTable.setItem(0, 0, QtWidgets.QTableWidgetItem(str('')))
         self.layerTable.itemAt(0, 0).setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
@@ -178,6 +178,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
                 if self.layerTable.item(row, col + 1).text() == '':
         #             # self.layerTable.setItem(row, col + 1, QtWidgets.QTableWidgetItem(item.text()))
                     self.layerTable.setItem(row, col + 1, QtWidgets.QTableWidgetItem(str(self.default_rho)))
+                    self.layerTable.setItem(row, col + 2, QtWidgets.QTableWidgetItem(str(self.default_rho)))
             elif col == 1 and row != 0:
                 # print(self.layerTable.item(row, col - 1).text())
                 if self.layerTable.item(row, col - 1).text() == '':
@@ -187,17 +188,20 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.layerTable.itemChanged.connect(self.model_param_change)
 
     def update_model(self):
-        self.thickness, self.rho = [], []
+        self.thickness, self.rho_x, self.rho_y = [], [], []
         for layer in range(1, self.layerTable.rowCount()):
             thickness = self.layerTable.item(layer, 0).text()
-            rho = self.layerTable.item(layer, 1).text()
+            rho_x = self.layerTable.item(layer, 1).text()
+            rho_y = self.layerTable.item(layer, 2).text()
             if thickness:
                 if float(thickness) != 0:
                     self.thickness.append(float(thickness))
-                    if rho:
-                        self.rho.append(float(rho))
+                    if rho_x:
+                        self.rho_x.append(float(rho_x))
+                        self.rho_y.append(float(rho_y))
                     else:
-                        self.rho.append(self.default_rho)
+                        self.rho_x.append(self.default_rho)
+                        self.rho_y.append(self.default_rho)
         self.plot_model()
         self.calculate_response()
 
@@ -205,8 +209,10 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.model_figure.clear()
         self.axis = self.model_figure.add_subplot(111)
         depth = np.cumsum([0] + self.thickness + [100000])
-        rho = self.rho + [self.hs] * 2
-        self.image = self.axis.step(np.log10(rho), depth)
+        rho_x = self.rho_x + [self.hs] * 2
+        rho_y = self.rho_y + [self.hs] * 2
+        self.image = self.axis.step(np.log10(rho_x), depth, linestyle='-')
+        self.image = self.axis.step(np.log10(rho_y), depth, linestyle='--')
         # self.axis.set_ylim([0, self.max_plot_depth])
         self.axis.set_ylabel('Depth (km)')
         self.axis.set_xlabel('Rho (ohm-m)')
@@ -219,46 +225,51 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.canvas.draw()
 
     def calculate_response(self):
-        scale = 1 / (4 * np.pi / 10000000)
-        mu = 4 * np.pi * 1e-7
-        periods = np.logspace(self.period_range[0], self.period_range[1], 80)
-        omega = 2 * np.pi / periods
-        # d = np.cumsum(self.thickness + [100000])
-        d = np.array(self.thickness + [self.hs_thickness]) * 1000
-        r = self.rho + [self.hs]
-        cond = 1 / np.array(r)
-        # r = 1 / np.array(r)
-        Z = np.zeros(len(periods), dtype=complex)
-        rhoa = np.zeros(len(periods))
-        phi = np.zeros(len(periods))
-        for nfreq, w in enumerate(omega):
-            prop_const = np.sqrt(1j*mu*cond[-1] * w)
-            C = np.zeros(len(r), dtype=complex)
-            C[-1] = 1 / prop_const
-            if len(d) > 1:
-                for k in reversed(range(len(r) - 1)):
-                    prop_layer = np.sqrt(1j*w*mu*cond[k])
-                    k1 = (C[k+1] * prop_layer + np.tanh(prop_layer * d[k]))
-                    k2 = ((C[k+1] * prop_layer * np.tanh(prop_layer * d[k])) + 1)
-                    C[k] = (1 / prop_layer) * (k1 / k2)
-        # #         k2 = np.sqrt(1j*omega[nfreq]*C*mu0/r[k+1]);
-        #         g = (g*k2+k1*np.tanh(k1*d[k]))/(k1+g*k2*np.tanh(k1*d[k]));
-            Z[nfreq] = 1j * w * mu * C[0]
+        for ii, rho in enumerate([self.rho_x, self.rho_y]):
+            scale = 1 / (4 * np.pi / 10000000)
+            mu = 4 * np.pi * 1e-7
+            periods = np.logspace(self.period_range[0], self.period_range[1], 80)
+            omega = 2 * np.pi / periods
+            # d = np.cumsum(self.thickness + [100000])
+            d = np.array(self.thickness + [self.hs_thickness]) * 1000
+            r = rho + [self.hs]
+            cond = 1 / np.array(r)
+            # r = 1 / np.array(r)
+            Z = np.zeros(len(periods), dtype=complex)
+            rhoa = np.zeros(len(periods))
+            phi = np.zeros(len(periods))
+            for nfreq, w in enumerate(omega):
+                prop_const = np.sqrt(1j*mu*cond[-1] * w)
+                C = np.zeros(len(r), dtype=complex)
+                C[-1] = 1 / prop_const
+                if len(d) > 1:
+                    for k in reversed(range(len(r) - 1)):
+                        prop_layer = np.sqrt(1j*w*mu*cond[k])
+                        k1 = (C[k+1] * prop_layer + np.tanh(prop_layer * d[k]))
+                        k2 = ((C[k+1] * prop_layer * np.tanh(prop_layer * d[k])) + 1)
+                        C[k] = (1 / prop_layer) * (k1 / k2)
+            # #         k2 = np.sqrt(1j*omega[nfreq]*C*mu0/r[k+1]);
+            #         g = (g*k2+k1*np.tanh(k1*d[k]))/(k1+g*k2*np.tanh(k1*d[k]));
+                Z[nfreq] = 1j * w * mu * C[0]
 
-        rhoa = 1/omega*np.abs(Z)**2
-        phi = np.angle(Z, deg=True)
+            rhoa = 1/omega*np.abs(Z)**2
+            phi = np.angle(Z, deg=True)
 
-        self.Z = Z
-        self.site.periods = periods
-        # Update all the data
-        self.site.data['ZXYR'] = np.real(Z)
-        self.site.data['ZXYI'] = -np.imag(Z)
-        self.site.data['ZYXR'] = -np.real(Z)
-        self.site.data['ZYXI'] = np.imag(Z)
+            self.Z = Z
+            
+            # Update all the data
+            if ii == 0:
+                self.site.data['ZXYR'] = np.real(Z)
+                self.site.data['ZXYI'] = -np.imag(Z)
+            else:
+                self.site.data['ZYXR'] = -np.real(Z)
+                self.site.data['ZYXI'] = np.imag(Z)
+
         self.site.data['ZXXR'] = 0.00001 * np.real(Z)
         self.site.data['ZXXI'] = 0.00001 * np.imag(Z)
         self.site.data['ZYYR'] = 0.00001 * np.real(Z)
         self.site.data['ZYYI'] = 0.00001 * np.imag(Z)
+        self.site.periods = periods
         self.site.data.update({'TZXR': np.zeros(Z.shape)})
         self.site.data.update({'TZXI': np.zeros(Z.shape)})
         self.site.data.update({'TZYR': np.zeros(Z.shape)})
@@ -276,6 +287,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.site.used_error.update({'TZXI': np.ones(Z.shape)})
         self.site.used_error.update({'TZYR': np.ones(Z.shape)})
         self.site.used_error.update({'TZYI': np.ones(Z.shape)})
+
         self.site.calculate_phase_tensors()
         self.update_parent()
 
@@ -923,6 +935,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.model = dataset.model
         self.map.site_names = sites
         self.map._active_sites = active_sites
+        self.map._generic_sites = list(set(self.map.site_names) - set(self.map.active_sites))
         self.map.site_locations['generic'] = self.map.get_locations(
             sites=self.map.generic_sites)
         self.map.site_locations['active'] = self.map.get_locations(
@@ -1313,11 +1326,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
             ordered_comps.remove('TZYI')
         if 'PTXX' in ordered_comps:
             all_comps.update({'PhsTensor': [comp for comp in ordered_comps if comp[0].upper() == 'P']})
-            all_comps['PhsTensor'] += ['Phi_max', 'Phi_min', 'Beta']
+            all_comps['PhsTensor'] += ['Phi_max', 'Phi_min', 'Beta', 'Azimuth']
             ordered_comps.remove('PTXX')
             ordered_comps.remove('PTXY')
             ordered_comps.remove('PTYX')
-            ordered_comps.remove('PTYY')
             ordered_comps.remove('PTYY')
         if 'ZXXR' in ordered_comps:
             all_comps['Impedance'].append('ZXXR')
@@ -1368,6 +1380,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 all_comps['PhsTensor'].append('Phi_max')
                 all_comps['PhsTensor'].append('Phi_min')
                 all_comps['PhsTensor'].append('Beta')
+                all_comps['PhsTensor'].append('Azimuth')
+        if 'PTXX' in all_comps['PhsTensor']:
+            self.calculatePtErrors.clicked.connect(self.calculate_PT_errors)
+        else:
+            self.calculate_PT_errors.setEnabled(False)
         # If none of the Impedance if's above triggered, remove all the associated headers
         # Will have to change this if we ever do Rho / Phase inversion
         # header = ['Impedance', 'Rho', 'Phase', 'Bostick', 'PhsTensor']
@@ -1399,6 +1416,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.comp_table.resizeRowsToContents()
 
     def update_comp_list(self):
+        # Not used anymore
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
         c = 0
@@ -1477,6 +1495,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.dpm.components = comps
             self.update_dpm(updated_sites=self.dpm.site_names,
                             updated_comps=self.dpm.components)
+
+    def calculate_PT_errors(self):
+        n_realizations = self.nPtRealizations.value()
+        self.dataset.data.calculate_PT_errors(n_realizations)
+        self.update_dpm()
 
     @property
     def dTypes(self):
@@ -1584,6 +1607,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.actionPhaseLimits.triggered.connect(self.set_phase_limits)
         self.actionTipperLimits.triggered.connect(self.set_tipper_limits)
         self.actionImpedanceLimits.triggered.connect(self.set_impedance_limits)
+        self.actionSkewLimits.triggered.connect(self.set_skew_limits)
+        self.actionAzimuthLimits.triggered.connect(self.set_azimuth_limits)
         self.resetDummyErrors.clicked.connect(self.reset_dummy_errors)
         if self.dataset.raw_data.initialized:
             self.lowPeriodToleranceFlag.setValue(self.dataset.raw_data.low_tol * 100)
@@ -1668,6 +1693,28 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['tipper'] = [float(x) for x in limits]
+                self.update_dpm()
+
+    def set_skew_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['skew'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['skew'][1]),
+                                     parent=self,
+                                     expected=float)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['skew'] = [float(x) for x in limits]
+                self.update_dpm()
+
+    def set_azimuth_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['azimuth'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['azimuth'][1]),
+                                     parent=self,
+                                     expected=float)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['azimuth'] = [float(x) for x in limits]
                 self.update_dpm()
 
     def change_pt_units(self):
@@ -2406,8 +2453,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
             return 'tipper'
         elif self.dpm.components[0].lower().startswith('p'):
             return 'phase'
-        elif self.dpm.components[0].lower().startswith('r') or self.dpm.components[0].lower().startswith('b'):
+        elif self.dpm.components[0].lower().startswith('r'):
             return 'rho'
+        elif self.dpm.components[0].lower().startswith('bost'):
+            return 'rho'
+        elif self.dpm.components[0].lower() == 'beta':
+            return 'beta'
+        elif self.dpm.components[0].lower() == 'azimuth':
+            return 'azimuth'
 
     def edit_error_tree(self, column):
         """

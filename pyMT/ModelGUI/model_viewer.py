@@ -52,11 +52,18 @@ with pkg_resources.path(resources, 'model_viewer.jpg') as p:
 UI_ModelWindow, QModelWindow = loadUiType(ospath.join(path, 'model_viewer.ui'))
 
 
-def model_to_rectgrid(model, resolution=None):
+def model_to_rectgrid(model, resolution=None, rho_axis='rho_x'):
+    if '/' in rho_axis:
+        rho_axis = rho_axis.split('/')
+        v1 = getattr(model, rho_axis[0].strip())
+        v2 = getattr(model, rho_axis[1].strip())
+        vals = v1 / v2
+    else:
+        vals = getattr(model, rho_axis, 'vals')
     grid = pv.RectilinearGrid(np.array(model.dy),
                               np.array(model.dx),
                               -np.array(model.dz))
-    vals = np.log10(np.swapaxes(np.flip(model.vals, 2), 0, 1)).flatten(order='F')
+    vals = np.log10(np.swapaxes(np.flip(vals, 2), 0, 1)).flatten(order='F')
     grid.cell_arrays['Resistivity'] = vals
     if resolution:
         X, Y, Z = np.meshgrid(resolution.yCS, resolution.xCS, resolution.zCS)
@@ -119,6 +126,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.resolution = None
         self.use_resolution = 1
         self.use_scalar = 'Resistivity'
+        self.rho_axis = 'rho_x'
         self.model = self.dataset.model
         self.clip_model = deepcopy(self.model)
         self.clip_resolution = deepcopy(self.resolution)
@@ -159,11 +167,11 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         else:
             self.locs_3D = np.zeros((1, 3))
             self.plot_locations = False
-        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution)
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
         self.lut = 32
         self.colourmap = 'turbo_r'
         self.cmap = cm.get_cmap('turbo_r', 32)
-        self.cax, self.rho_cax, self.resolution_cax = [1, 5], [1, 5], [-6, -2]
+        self.cax, self.rho_cax, self.resolution_cax, self.aniso_cax = [1, 5], [1, 5], [-6, -2], [-2, 2]
         self.actors = {'X': [], 'Y': [], 'Z': [], 'transect': [], 'isosurface': []}
         self.contours = []
         self.slices = {'X': [], 'Y': [], 'Z': [], 'transect': []}
@@ -269,7 +277,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def update_2D_X(self):
         self.map.window['axes'][2].clear()
-        self.map.plot_x_slice(x_slice=self.x_slice, ax=self.map.window['axes'][2])
+        self.map.plot_x_slice(x_slice=self.x_slice,
+                              ax=self.map.window['axes'][2],
+                              rho_axis=self.rho_axis)
         bounds = np.array([self.clip_model.dy[0], self.clip_model.dy[-1],
                            self.clip_model.dz[0], self.clip_model.dz[-1]])
         self.map.set_axis_limits(ax=self.map.window['axes'][2], bounds=bounds)
@@ -281,7 +291,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.map.window['axes'][1].clear()
         self.map.plot_y_slice(y_slice=self.y_slice,
                               ax=self.map.window['axes'][1],
-                              orientation='zx')
+                              orientation='zx',
+                              rho_axis=self.rho_axis)
         bounds = np.array([self.clip_model.dz[0], self.clip_model.dz[-1],
                            self.clip_model.dx[0], self.clip_model.dx[-1]])
         self.map.set_axis_limits(ax=self.map.window['axes'][1], bounds=bounds)
@@ -326,7 +337,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.toolbar.push_current()
         bounds = np.array([self.clip_model.dy[0], self.clip_model.dy[-1],
                            self.clip_model.dx[0], self.clip_model.dx[-1]])
-        self.map.plot_plan_view(z_slice=self.z_slice, ax=self.map.window['axes'][0])
+        self.map.plot_plan_view(z_slice=self.z_slice, ax=self.map.window['axes'][0], rho_axis=self.rho_axis)
         self.update_slice_indicators('xy')
         if self.plot_locations:
             self.map.plot_locations()
@@ -453,8 +464,30 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.pv_background_group.addAction(self.actionBlue)
         self.pv_background_group.addAction(self.actionWhite)
         self.pv_background_group.setExclusive(True)
-
         self.pv_background_group.triggered.connect(self.change_background)
+        # Rho axis selection actions
+        self.rho_axis_group = QtWidgets.QActionGroup(self)
+        self.rho_axis_group.addAction(self.action_plot_rho_x)
+        self.rho_axis_group.addAction(self.action_plot_rho_y)
+        self.rho_axis_group.addAction(self.action_plot_rho_z)
+        self.rho_axis_group.addAction(self.action_plot_rho_xy)
+        self.rho_axis_group.addAction(self.action_plot_rho_xz)
+        self.rho_axis_group.addAction(self.action_plot_rho_yz)
+        self.rho_axis_group.setExclusive(True)
+        if self.dataset.model.isotropic:
+            self.rho_axis_group.setEnabled(False)
+        else:
+            self.rho_axis_group.triggered.connect(self.change_rho_axis)
+
+    def change_rho_axis(self):
+        self.rho_axis = self.rho_axis_group.checkedAction().text().lower()
+        if '/' in self.rho_axis:
+            self.cax = self.aniso_cax
+        else:
+            self.cax = self.rho_cax
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
+        self.update_all(reset_camera=False)
+
 
     def change_background(self):
         color = self.pv_background_group.checkedAction().text().lower()
@@ -592,7 +625,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text(), self.lut)
         self.map.colourmap = self.colourmap
         self.map.lut = self.lut
-        self.update_all()
+        self.update_all(reset_camera=False)
 
     def set_lut(self):
         inputs, ret = self.colourMenu.set_lut(initial=self.lut)
@@ -840,7 +873,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             if self.resolution:
                 self.clip_resolution.dz_delete(self.clip_model.nz)
         # self.map.model = self.clip_model
-        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution)
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
         self.validate_slice_locations()
         # debug_print([self.model.dy[self.y_slice], self.model.dy[self.y_clip[0]], self.model.dy[self.model.ny]], 'C:/Users/eric/Desktop/debug.log')
         self.xSliceSlider.setMinimum(self.x_clip[0] + 1)
@@ -959,11 +992,11 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.vtk_widget.view_xy()
         self.vtk_widget.update()
 
-    def update_all(self):
+    def update_all(self, reset_camera=True):
         self.update_2D_X()
         self.update_2D_Y()
         self.update_plan_view()
-        self.render_3D()
+        self.render_3D(reset_camera)
 
     def click_2D(self, event):
         if self.map.window['axes'][0] == event.inaxes:
@@ -1027,7 +1060,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                 cc += 1
 
         cell_N, cell_E, cell_z = self.clip_model.cell_centers()
-        vals = np.transpose(np.log10(self.clip_model.vals), [1, 0, 2])
+        rho = getattr(self.clip_model, self.rho_axis)
+        vals = np.transpose(np.log10(rho), [1, 0, 2])
         self.interpolator = RGI((cell_E, cell_N, cell_z),
                                 vals, bounds_error=False, fill_value=None)
         interp_vals = self.interpolator(query_points)

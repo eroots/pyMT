@@ -73,13 +73,14 @@ if __name__ == '__main__':
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
     listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
-    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/pt_only/'
+    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/pt_only/phi2/'
     # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
-    jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
-    out_file = 'wst_PT-split_'
+    # jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
+    jpg_file_name = ''
+    out_file = 'wst_PT-phi2_'
     ext = ['.png', '.svg']
     dpi = 150
     padding = 20
@@ -88,8 +89,8 @@ if __name__ == '__main__':
     cutoff_distance = 3500
     remove_close_sites = 0
     # fill_param = ['phi_2', 'beta']
-    fill_param = ['phi_split_pt', None]
-    # fill_param = ['phi_2', None]
+    # fill_param = ['phi_split_pt', None]
+    fill_param = ['phi_2', None]
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
     # data = deepcopy(raw)
@@ -135,13 +136,13 @@ if __name__ == '__main__':
     MV = gplot.MapView(fig=fig)
     MV.window['figure'] = fig
     MV.window['axes'] = [ax]
-    # MV.colourmap = 'turbo'
-    MV.phase_cax = [0, 90]
+    MV.colourmap = 'turbo'
+    MV.phase_cax = [30, 90]
     MV.skew_cax = [-15, 15]
     MV.diff_cax = [-40, 40]
     # MV.interpolant = 'cubic'
     # MV.colourmap = 'bwr'
-    MV.colourmap = 'greys_r'
+    # MV.colourmap = 'greys_r'
     MV.site_data['data'] = data
     MV.site_data['raw_data'] = raw
     MV.site_names = data.site_names

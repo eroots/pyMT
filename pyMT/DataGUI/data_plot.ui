@@ -82,6 +82,8 @@
      <addaction name="actionPhaseLimits"/>
      <addaction name="actionImpedanceLimits"/>
      <addaction name="actionTipperLimits"/>
+     <addaction name="actionSkewLimits"/>
+     <addaction name="actionAzimuthLimits"/>
     </widget>
     <addaction name="actionPhase_Wrap"/>
     <addaction name="menuPhase_Tensor_Units"/>
@@ -141,7 +143,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>836</width>
+     <width>879</width>
      <height>419</height>
     </size>
    </property>
@@ -159,6 +161,40 @@
      </sizepolicy>
     </property>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QPushButton" name="BackButton">
+       <property name="text">
+        <string>Back</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="ForwardButton">
+       <property name="text">
+        <string>Forward</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QPushButton" name="showMap">
+       <property name="toolTip">
+        <string>Launch the 'Map Viewer'</string>
+       </property>
+       <property name="text">
+        <string>Show Map</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QPushButton" name="recalculateRMS">
+       <property name="toolTip">
+        <string>Recalculate RMS in the Misfit Table. Required after changing data sets.</string>
+       </property>
+       <property name="text">
+        <string>Recalculate RMS</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0" colspan="4">
       <widget class="QTabWidget" name="tabs">
        <property name="sizePolicy">
@@ -819,10 +855,26 @@
           <string>Error Manipulations</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="7" column="0">
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>Median Window</string>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="width">
+            <property name="toolTip">
+             <string>Filter width for calculating smoothed data. Smaller values allow for more erratic data.</string>
+            </property>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QDoubleSpinBox" name="threshold">
+            <property name="toolTip">
+             <string>Threshold value for outlier detection, based on fractional difference between data and median filter.</string>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -836,10 +888,20 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_5">
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_17">
             <property name="text">
-             <string>Filter Length</string>
+             <string>Median Window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0" colspan="2">
+           <widget class="QPushButton" name="resetErrors">
+            <property name="toolTip">
+             <string>Reset errors to assigned floor values</string>
+            </property>
+            <property name="text">
+             <string>Reset to Error Floor</string>
             </property>
            </widget>
           </item>
@@ -847,6 +909,20 @@
            <widget class="QLabel" name="label_9">
             <property name="text">
              <string>Multiplier</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>Threshold</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Filter Length</string>
             </property>
            </widget>
           </item>
@@ -863,46 +939,6 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
-           <widget class="QDoubleSpinBox" name="width">
-            <property name="toolTip">
-             <string>Filter width for calculating smoothed data. Smaller values allow for more erratic data.</string>
-            </property>
-            <property name="minimum">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QPushButton" name="refreshErrorTree">
-            <property name="toolTip">
-             <string>Reset the Error Multiplier tree. May be necessary if the stations / periods have changed.</string>
-            </property>
-            <property name="text">
-             <string>Refresh Error Multipliers</string>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="0" colspan="2">
-           <widget class="QPushButton" name="resetErrors">
-            <property name="toolTip">
-             <string>Reset errors to assigned floor values</string>
-            </property>
-            <property name="text">
-             <string>Reset to Error Floor</string>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="0">
-           <widget class="QLabel" name="label_18">
-            <property name="text">
-             <string>Threshold</string>
-            </property>
-           </widget>
-          </item>
           <item row="7" column="1">
            <widget class="QSpinBox" name="medianSize">
             <property name="toolTip">
@@ -916,13 +952,13 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="1">
-           <widget class="QDoubleSpinBox" name="threshold">
+          <item row="0" column="0" colspan="2">
+           <widget class="QPushButton" name="refreshErrorTree">
             <property name="toolTip">
-             <string>Threshold value for outlier detection, based on fractional difference between data and median filter.</string>
+             <string>Reset the Error Multiplier tree. May be necessary if the stations / periods have changed.</string>
             </property>
-            <property name="value">
-             <double>1.000000000000000</double>
+            <property name="text">
+             <string>Refresh Error Multipliers</string>
             </property>
            </widget>
           </item>
@@ -1120,41 +1156,52 @@
           </item>
          </layout>
         </widget>
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="geometry">
+          <rect>
+           <x>750</x>
+           <y>10</y>
+           <width>219</width>
+           <height>124</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Phase Tensor Settings</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="0" column="0">
+           <widget class="QSpinBox" name="nPtRealizations">
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>1000000</number>
+            </property>
+            <property name="singleStep">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>10000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string># MC Realizations</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QPushButton" name="calculatePtErrors">
+            <property name="text">
+             <string>Calculate PT Errors</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="recalculateRMS">
-       <property name="toolTip">
-        <string>Recalculate RMS in the Misfit Table. Required after changing data sets.</string>
-       </property>
-       <property name="text">
-        <string>Recalculate RMS</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QPushButton" name="BackButton">
-       <property name="text">
-        <string>Back</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QPushButton" name="ForwardButton">
-       <property name="text">
-        <string>Forward</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="3">
-      <widget class="QPushButton" name="showMap">
-       <property name="toolTip">
-        <string>Launch the 'Map Viewer'</string>
-       </property>
-       <property name="text">
-        <string>Show Map</string>
-       </property>
       </widget>
      </item>
     </layout>
@@ -1426,6 +1473,16 @@
    </property>
    <property name="text">
     <string>Plot Response</string>
+   </property>
+  </action>
+  <action name="actionSkewLimits">
+   <property name="text">
+    <string>Skew</string>
+   </property>
+  </action>
+  <action name="actionAzimuthLimits">
+   <property name="text">
+    <string>Azimuth</string>
    </property>
   </action>
  </widget>

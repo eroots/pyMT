@@ -145,6 +145,7 @@ class DataPlotManager(object):
         self.mec = 'k'
         self.markersize = 5
         self.edgewidth = 2
+        self.label_fontsize = 14
         # self.sites = None
         self.tiling = [0, 0]
         self.show_outliers = True
@@ -153,10 +154,16 @@ class DataPlotManager(object):
         self.outlier_thresh = 2
         self.min_ylim = None
         self.max_ylim = None
-        self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1], 'tipper': [-1, 1]}
+        self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1],
+                            'tipper': [-1, 1], 'beta': [-10, 10], 'azimuth': [-90, 90]}
         self.artist_ref = {'raw_data': [], 'data': [], 'response': [], '1d': [], 'smoothed_data': []}
-        self.y_labels = {'r': 'Log10 App. Rho', 'z': 'Impedance',
-                         't': 'Magnitude', 'p': 'Phase', 'b': 'Apparent Resistivity'}
+        self.y_labels = {'rho': 'Log10 App. Rho',
+                         'zxx': 'Impedance', 'zxy': 'Impedance', 'zyx': 'Impedance', 'zyy': 'Impedance',
+                         'tzx': 'Magnitude', 'tzy': 'Magnitude',
+                         'bos': 'Apparent Resistivity',
+                         'ptx': 'Phase', 'pty': 'Phase', 'phi': 'Phase', 'pha': 'Phase',
+                         'bet': 'Skew',
+                         'azi': 'Azimuth'}
         self.pt_units = 'degrees'
         if fig is None:
             self.new_figure()
@@ -181,9 +188,9 @@ class DataPlotManager(object):
             units = 'Ohm'
         elif self.components[0][0].upper() == 'T':
             units = 'Unitless'
-        elif self.components[0][0].upper() == 'R' or self.components[0][0].upper() == 'B':
+        elif self.components[0][0].upper() == 'R' or self.components[0][0:4].upper() == 'BOST':
             units = r'${\Omega}$-m'
-        elif self.components[0][0].upper() == 'P':
+        elif self.components[0][0].upper() == 'P' or self.components[0][0:4].upper() in ('BETA', 'AZIM'):
             units = 'Degrees'
         if self.scale.lower() == 'periods' and not any(
                 sub in self.components[0].lower() for sub in ('rho', 'pha')):
@@ -331,12 +338,12 @@ class DataPlotManager(object):
         cols = self.tiling[1]
         if axnum % cols == 0:
             self.axes[axnum].set_ylabel('{} ({})'.format(
-                self.y_labels[self.components[0][0].lower()], self.units))
+                self.y_labels[self.components[0][0:3].lower()], self.units), fontsize=self.label_fontsize)
         if axnum + 1 > cols * (rows - 1):
             if 'bost' in self.components[0].lower():
-                self.axes[axnum].set_xlabel('log10 Depth (km)')
+                self.axes[axnum].set_xlabel('log10 Depth (km)', fontsize=self.label_fontsize)
             else:
-                self.axes[axnum].set_xlabel('log10 of Period (s)')
+                self.axes[axnum].set_xlabel('log10 of Period (s)', fontsize=self.label_fontsize)
 
     def plot_data(self, sites=None):
         # print('Don''t use this method anymore, use draw_all instead')
@@ -520,7 +527,7 @@ class DataPlotManager(object):
                                                     wrap=self.wrap_phase)
                     if Type.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e
-                elif 'pt' in comp.lower() or 'phi' in comp.lower() or 'beta' in comp.lower():
+                elif 'pt' in comp.lower() or 'phi' in comp.lower() or 'beta' in comp.lower() or 'azimuth' in comp.lower():
                     # If PTs are actually the inverted data, take them directly from the site
                     if comp in site.components:
                         toplot = site.data[comp]
@@ -1619,20 +1626,30 @@ class MapView(object):
                                               X=X, Y=Y,
                                               x_label='Easting', y_label='Northing')
 
-    def plot_x_slice(self, ax=None, x_slice=0):
+    def plot_x_slice(self, ax=None, x_slice=0, rho_axis='rho_x'):
+        rho_axis = rho_axis.lower()
         if not ax:
-            ax = ax
+            ax = self.window['axes'][0]
         if self.mesh:
             edgecolor = 'k'
         else:
             edgecolor = None
+        if '/' in rho_axis:
+            rho_axis = rho_axis.split('/')
+            v1 = getattr(self.model, rho_axis[0].strip())
+            v2 = getattr(self.model, rho_axis[1].strip())
+            vals = v1 / v2
+            cax = self.aniso_cax
+        else:
+            vals = getattr(self.model, rho_axis, 'vals')
+            cax = self.model_cax
         X = np.array(self.model.dy)
         Y = np.array(self.model.dz)
         im = ax.pcolormesh(X,
                            Y,
-                           np.squeeze(np.log10(self.model.vals[x_slice, :, :])).T,
+                           np.squeeze(np.log10(vals[x_slice, :, :])).T,
                            cmap=self.cmap,
-                           vmin=self.model_cax[0], vmax=self.model_cax[1],
+                           vmin=cax[0], vmax=cax[1],
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
@@ -1643,28 +1660,38 @@ class MapView(object):
                                               X=X, Y=Y,
                                               x_label='Easting', y_label='Depth')
 
-    def plot_y_slice(self, ax=None, y_slice=0, orientation='xz'):
+    def plot_y_slice(self, ax=None, y_slice=0, orientation='xz', rho_axis='rho_x'):
+        rho_axis = rho_axis.lower()
+        if not ax:
+            ax = self.window['axes'][0]
+        if self.mesh:
+            edgecolor = 'k'
+        else:
+            edgecolor = None
+        if '/' in rho_axis:
+            rho_axis = rho_axis.split('/')
+            v1 = getattr(self.model, rho_axis[0].strip())
+            v2 = getattr(self.model, rho_axis[1].strip())
+            vals = v1 / v2
+            cax = self.aniso_cax
+        else:
+            vals = getattr(self.model, rho_axis, 'vals')
+            cax = self.model_cax
         if orientation.lower() == 'xz':
             X = np.array(self.model.dx)
             Y = np.array(self.model.dz)
-            to_plot = np.squeeze(np.log10(self.model.vals[:, y_slice, :])).T
+            to_plot = np.squeeze(np.log10(vals[:, y_slice, :])).T
             x_label = 'Northing (km)'
             y_label = 'Depth (km)'
         else:
             Y = np.array(self.model.dx)
             X = np.array(self.model.dz)
-            to_plot = np.squeeze(np.log10(self.model.vals[:, y_slice, :]))
+            to_plot = np.squeeze(np.log10(vals[:, y_slice, :]))
             y_label = 'Northing (km)'
             x_label = 'Depth (km)'
-        if not ax:
-            ax = ax
-        if self.mesh:
-            edgecolor = 'k'
-        else:
-            edgecolor = None
         im = ax.pcolormesh(X, Y, to_plot,
                            cmap=self.cmap,
-                           vmin=self.model_cax[0], vmax=self.model_cax[1],
+                           vmin=cax[0], vmax=cax[1],
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)

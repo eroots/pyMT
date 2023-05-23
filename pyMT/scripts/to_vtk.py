@@ -8,7 +8,7 @@ import pyproj
 
 def transform_locations(dataset, UTM):
     dataset.raw_data.locations = dataset.raw_data.get_locs(mode='latlong')
-    if UTM.lower() == 'lam':
+    if 'lam' in UTM.lower():
         print("Reminder: Current Lambert Transformation is set to EPSG3978")
         transformer = pyproj.Transformer.from_crs('epsg:4326', 'epsg:3978')
         for ii, (lat, lon) in enumerate(dataset.raw_data.locations):

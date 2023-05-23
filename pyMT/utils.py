@@ -1095,7 +1095,7 @@ def sort_files(files):
 
         for file in files:
             name, ext = os.path.splitext(file)
-            if ext in ('.rho', '.model'):
+            if ext in ('.rho', '.model', '.zani'):
                 ret_dict.update({'model': file})
             elif ext in ('.dat', '.data'):
                 with open(file, 'r') as f:
@@ -1115,6 +1115,7 @@ def calculate_misfit(data_site, response_site):
     components = response_site.components
     NP = len(data_site.periods)
     NR = len(response_site.components)
+    # N_flagged = np.zeros(NP)
     misfit = {comp: np.zeros((NP)) for comp in components}
     # comp_misfit = {comp: 0 for comp in components}
     comp_misfit = {comp: np.zeros((NP)) for comp in components}
@@ -1129,8 +1130,11 @@ def calculate_misfit(data_site, response_site):
                                 data_site.used_error[comp]) ** 2
                 comp_misfit[comp] = ((misfit[comp]))
                 period_misfit += misfit[comp]
+                # Account for points that have been flagged for removal
+                # N_flagged += [int(x) for x in data_site.used_error[comp] == data_site.REMOVE_FLAG] 
             except ValueError:
                 a+=1
+    # period_misfit = (period_misfit / NR - np.array(N_flagged))
     period_misfit = (period_misfit / NR)
     comp_misfit.update({'Total': period_misfit})
     return misfit, comp_misfit

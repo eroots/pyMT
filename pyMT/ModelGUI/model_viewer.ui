@@ -124,7 +124,7 @@
         <enum>QTabWidget::Rounded</enum>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="Mesh">
         <attribute name="title">
@@ -659,7 +659,19 @@
     <addaction name="meshOn"/>
     <addaction name="meshOff"/>
    </widget>
+   <widget class="QMenu" name="menuPlot_Value">
+    <property name="title">
+     <string>Plot Value</string>
+    </property>
+    <addaction name="action_plot_rho_x"/>
+    <addaction name="action_plot_rho_y"/>
+    <addaction name="action_plot_rho_z"/>
+    <addaction name="action_plot_rho_xy"/>
+    <addaction name="action_plot_rho_xz"/>
+    <addaction name="action_plot_rho_yz"/>
+   </widget>
    <addaction name="menuView"/>
+   <addaction name="menuPlot_Value"/>
    <addaction name="menuMesh_Lines"/>
   </widget>
   <action name="viewXY">
@@ -745,6 +757,57 @@
    </property>
    <property name="text">
     <string>Default</string>
+   </property>
+  </action>
+  <action name="action_plot_rho_x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>rho_x</string>
+   </property>
+  </action>
+  <action name="action_plot_rho_y">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>rho_y</string>
+   </property>
+  </action>
+  <action name="action_plot_rho_z">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>rho_z</string>
+   </property>
+  </action>
+  <action name="action_plot_rho_xy">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>rho_x/rho_y</string>
+   </property>
+  </action>
+  <action name="action_plot_rho_xz">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>rho_x/rho_z</string>
+   </property>
+  </action>
+  <action name="action_plot_rho_yz">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>rho_y/rho_z</string>
    </property>
   </action>
  </widget>

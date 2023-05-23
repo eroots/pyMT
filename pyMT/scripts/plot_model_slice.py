@@ -158,10 +158,10 @@ def save_geotiff(img, vals, x, y, epsg, file_name, z):
 # site_data = WSDS.Data(local_path + '/data/Regions/MetalEarth/malartic/Hex2Mod/Hex_all.data')
 #####################################################################
 # MATHESON
-mod = WSDS.Model('E:/phd/NextCloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_Z.model')
-data = WSDS.RawData('E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-site_data = WSDS.RawData('E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
-file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Matheson/hex_slices/'
+# mod = WSDS.Model('E:/phd/NextCloud/data/Regions/MetalEarth/matheson/Hex2Mod/HexMat_Z.model')
+# data = WSDS.RawData('E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+# site_data = WSDS.RawData('E:/phd/NextCloud/data/Regions/MetalEarth/matheson/j2/MATall.lst')
+# file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Matheson/hex_slices/'
 #####################################################################
 # DRYDEN
 # mod = WSDS.Model(local path + '/data/Regions/MetalEarth/dryden/dry5/norot/dry5norot_lastIter.rho')
@@ -182,16 +182,23 @@ file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Matheson/hex_slices/'
 # LARDER
 # data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
 # site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/larder/j2/test.lst')
-# # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_only.model')
+# # # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_only.model')
 # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_All.model')
-# # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_Static.model')
-# # file_path = local_path + 'Documents/ME_Transects/Larder/RoughFigures/XZ-slices_ZStatic/'
+# # # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/larder/Hex2Mod/Hex2Mod_Z_Static.model')
+# # # file_path = local_path + 'Documents/ME_Transects/Larder/RoughFigures/XZ-slices_ZStatic/'
 # file_path = local_path + 'Documents/ME_Transects/Larder/fault_rupture_paper/'
 # # reso = []
 # # mod = WSDS.Model('C:/Users/eroots/phd/ownCloud/data/Regions/MetalEarth/dryden/dry5/dry53.rho')
 # # kimberlines = [5.341140e+006, 5.348097e+006,
 # #                5.330197e+006, 5.348247e+006,
 # #                5.369642e+006]
+######################################################################
+# WESTERN SUPERIOR
+data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst')
+site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst')
+mod = WSDS.Model(local_path + '/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.zani')
+# mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/tests/wst_wDikes-XY_hasterok37.zani')
+file_path = local_path + 'Documents/ME_Transects/wst/wstZK_s1_slices/'
 ######################################################################
 # CIOMADUL
 # mod = WSDS.Model('E:/phd/NextCloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioTifTopo1D_lastIter.rho')
@@ -228,7 +235,8 @@ file_path = 'E:/phd/NextCloud/Documents/ME_Transects/Matheson/hex_slices/'
 # data = WSDS.RawData(local_path + 'data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line2b_plus.lst')
 # # data = WSDS.Data(local_path + 'data/Regions/snorcle/cull1/reErred/wTopo/flat/sno_cull1_reErr_Z_removed.dat')
 # mod = WSDS.Model(local_path + 'data/Regions/snorcle/line2b_plus/line2b_lastIter.rho')
-data.to_utm(zone=17, letter='N')
+# data.to_utm(zone=17, letter='N')
+data.locations = data.get_locs(mode='lambert')
 kimberlines = []
 # data.locations = data.get_locs(mode='centered')
 locations = np.zeros(site_data.locations.shape)
@@ -257,20 +265,21 @@ mod.to_UTM()
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # title_ = 'Standard Inversion'
-save_fig = 1
+rho_direction = 'rho_x'
+save_fig = 0
 geotiff = 0
 vals_multiband = []
 multiband = True
 epsg = '26909'
-tag = 'inv14-Z'
+tag = 'wstZK_Y68'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 annotate_sites = False
-site_markers = True
+site_markers = False
 site_marker_tol = 5000
 add_map = False
-add_colourbar = True
+add_colourbar = False
 marker = 'kv'
 padding = 5000
 reverse_xaxis = False
@@ -279,8 +288,9 @@ lut = 64
 cax = [0, 5]
 # cax = [0, 4.5]
 isolum = False
-tick_label_size = 10
-axis_label_size = 12
+tick_label_size = 14
+axis_label_size = 16
+figure_size = (8, 6)
 markersize = 5
 # slices = [23, 27, 32, 35, 39, 43]  # plan slices afton
 # slices = [31, 38, 46, 53, 61]
@@ -307,10 +317,14 @@ xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations
 # xy_xlim = [609.885, 659.423]
 # xy_zlim = [5315.767, 5380.109]
 
-xz_xlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
-xz_zlim = [0, 40]
+# xz_xlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+# xz_xlim = [5310, 5360]
+# xz_zlim = [0, 20]
 # yz_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
-# yz_zlim = [0, 200]
+xz_xlim = [-250, 500]
+xz_zlim = [0, 400]
+yz_xlim = [-255, 780]
+yz_zlim = [0, 400]
 # zlim = [mod.elevation[0]/1000, 60]
 # zlim = [0, 5]
 # cmap_name = 'gist_rainbow'
@@ -346,7 +360,7 @@ else:
 # file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbomod0-4p5/'
 # for line, slice_num in zip(lines, slices):
 # for plane in ['xz', 'yz']:
-for plane in ['xy']:
+for plane in ['yz']:
     if plane == 'xy':
         slices = list(range(0, 45))
         add_map = False
@@ -354,13 +368,14 @@ for plane in ['xy']:
     elif plane == 'xz':
         # slices = list(range(5, mod.ny - 5))
         slices = list(range(30, 140))
-        add_map = True
-        add_colourbar = True
+        add_map = False
+        add_colourbar = False
     elif plane == 'yz':
         slices = list(range(5, mod.nx - 5))
-        add_map = True
-        add_colourbar = True
-    for slice_num in slices:
+        add_map = False
+        add_colourbar = False
+    # for slice_num in slices:
+    for slice_num in [90]:
         # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
         if plane.lower() == 'xy':
             direction = 'Depth'
@@ -377,8 +392,8 @@ for plane in ['xy']:
 
         title_ = '{} Slice {}, {}: {:4.2f} km'.format(plane.upper(), slice_num, direction, slice_loc/1000)
         # file_name = ''.join(['afton3_turbo1-4_', str(int(mod.dz[slice_num])), 'm'])
-        # file_types = ['.png', '.svg']
-        file_types = ['.pdf']
+        file_types = ['.png', '.svg']
+        # file_types = ['.pdf']
         # file_path = 'E:/phd/NextCloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/Report/'
         # file_name = 'cio_xzSlice{}_{:4.2f}km'.format(slice_num, mod.dy[slice_num]/1000)
         # file_name = 'snorcle-hs100_{}Slices'.format(plane)
@@ -387,7 +402,7 @@ for plane in ['xy']:
         # locations = site_data.get_locs()
         # file_name = ''.join(['LL_All_jet1-5_NS_', str(slice_num), 'm.png'])
         # file_name = 'RN_planView_{}m'.format(int(mod.dz[int(slice_num)]))
-        file_name = 'MAT-Z_XY_slices'
+        file_name = 'LAR-Z_XY_slice-{}'.format(int(slice_num))
         # xlim = [min([ix for ix in mod.dx if ix <= 5250000], key=lambda x: abs(mod.dx[x] - 5250000)),
         #         min([iy for iy in mod.dy if iy >= 5450000], key=lambda x: abs(mod.dx[x] - 5450000))]
         # xlim = [5390, 5412]
@@ -404,17 +419,20 @@ for plane in ['xy']:
         # zlim = [5610, 5620]
 
         if plane.lower() == 'xy':
-            vals = np.log10(mod.vals[:, :, slice_num])
+            vals = getattr(mod, rho_direction, 'rho_x')
+            vals = np.log10(vals[:, :, slice_num])
             x_ax = np.array(mod.dy)
             y_ax = np.array(mod.dx)
             location = mod.elevation[slice_num]
         elif plane.lower() == 'xz':
-            vals = np.log10(mod.vals[:, slice_num, :]).T
+            vals = getattr(mod, rho_direction, 'rho_x')
+            vals = np.log10(vals[:, slice_num, :]).T
             x_ax = np.array(mod.dx)
             y_ax = np.array(mod.elevation)
             location = mod.dy[slice_num]
         elif plane.lower() == 'yz':
-            vals = np.log10(mod.vals[slice_num, :, :]).T
+            vals = getattr(mod, rho_direction, 'rho_x')
+            vals = np.log10(vals[slice_num, :, :]).T
             x_ax = np.array(mod.dy)
             y_ax = np.array(mod.elevation)
             location = mod.dx[slice_num]
@@ -501,7 +519,7 @@ for plane in ['xy']:
 
             cmap = colors.ListedColormap(cmap, name='test1')
 
-        fig = plt.figure(1, figsize=(20, 12))
+        fig = plt.figure(1, figsize=figure_size)
         if add_map:
             # spec = gridspec.Gridspec(ncols=3, nrows=4)
             add_colourbar = True
@@ -609,6 +627,10 @@ for plane in ['xy']:
             # ax.set_xlabel('Distance (km)', fontsize=20)
             # ax.set_xlabel('Northing (km)', fontsize=20)
             # ax.set_ylabel('Depth (km)', fontsize=20)
+            # plt.xticks(fontsize=14)
+            # plt.yticks(fontsize=14)
+            # plt.xlabel(fontsize=16)
+            # plt.ylabel(fontsize=16)
             plot_ax.set_title(title_, y=1.02, fontsize=20)
             fig.canvas.draw()
             # if mod.coord_system == 'latlong':

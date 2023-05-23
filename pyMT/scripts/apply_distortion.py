@@ -1,101 +1,79 @@
-# import pyMT.data_structures as DS
-import mtpy.core.mt as mt
+import pyMT.data_structures as DS
 import numpy as np
+import matplotlib.pyplot as plt
 from copy import deepcopy
+import pyMT.utils as utils
 import os
-import pyMT.IO
 
 
-local_path = 'E:'
-base_path = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/CART_test/j2/'
-# data_file = 'study14_real-locs.dat'
-list_file = 'allsites.lst'
-# dummy_site_path = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/CART_test/j2/'
-# dummy_sites = pyMT.IO.read_sites(dummy_site_path+'wst_cullmantle.lst')
+data_UD = DS.Data(listfile='E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/LARall.lst',
+	              datafile='E:/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/Larder_HexMT_all_resp.data')
+C = np.load('E:/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/feature_tests/f-dependent_distortions.npy')
+plot_data = False
+write_data = True
+path = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/feature_tests/resps/shifted/'
+files = os.listdir('E:/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/feature_tests/resps/')
+files = [x for x in files if 'resp' in x]
+for file_out in files:
+	data_R = DS.Data(listfile='E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/LARall.lst',
+					 datafile='E:/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/feature_tests/resps/{}'.format(file_out))
+	# data_R = DS.Data(listfile='E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/LARall.lst',
+	# 				 datafile='E:/phd/NextCloud/data/Regions/MetalEarth/larder/Hex2Mod/feature_tests/Hex2Mod-LL_base_resp.dat')
+	data_D = deepcopy(data_R)
 
-# edi_path = 'E:/phd/NextCloud/data/Regions/snorcle/j2/2020-collation-ian/fixrot/'
-# save_path = 'E:/phd/NextCloud/data/Regions/snorcle/j2/2020-collation-ian/fixrot/Edi_RotationFix/'
+	for ii, site in enumerate(data_R.site_names):
+		zxxr = data_R.sites[site].data['ZXXR']-1j*data_R.sites[site].data['ZXXI']
+		zxyr = data_R.sites[site].data['ZXYR']-1j*data_R.sites[site].data['ZXYI']
+		zyxr = data_R.sites[site].data['ZYXR']-1j*data_R.sites[site].data['ZYXI']
+		zyyr = data_R.sites[site].data['ZYYR']-1j*data_R.sites[site].data['ZYYI']
+		Z_R = np.array([[zxxr, zxyr], [zyxr, zyyr]])
 
-edi_path = local_path + '/phd/Nextcloud/data/Regions/MetalEarth/CART_test/j2/'
-save_path1 = edi_path + 'distortion/'
-save_path2 = edi_path + 'distortion-staticOnly/'
-# Uncomment next line to run it over all EDIs in the folder
-edi_files = [x for x in os.listdir(edi_path) if x.endswith('edi')]
-write_fixed_edis = True
+		for ip in range(data_R.sites[site].NP):
+			Z_D = np.matmul(np.reshape(C[:,ii,ip], [2, 2]), Z_R[:,:,ip])
 
-for ii, file in enumerate(edi_files):
-	# mt_obj_dummy = mt.MT(fn=dummy_site_path+dummy_sites[ii]+'.edi')
-	mt_obj = mt.MT(fn=edi_path + file)
-	C_diag = np.random.uniform(size=2, low=0, high=2)
-	C_offdiag = np.random.uniform(size=2, low=0, high=0.5)
-	C = np.array([[C_diag[0], C_offdiag[0]], [C_offdiag[1], C_diag[1]]])
-	D = np.linalg.inv(C)
-	D_inv, new_Z, Z_err = mt_obj.Z.remove_distortion(distortion_tensor=D)
-	mt_obj.Z.z = new_Z
-	if write_fixed_edis:
-		mt_obj.write_mt_file(save_dir=save_path1,
-							 fn_basename=file,
-						 	 longitude_format='LONG')
-	mt_obj = mt.MT(fn=edi_path + file)
-	C = np.array([[C_diag[0], 0], [0, C_diag[1]]])
-	D = np.linalg.inv(C)
-	D_inv, new_Z, Z_err = mt_obj.Z.remove_distortion(distortion_tensor=D)
-	mt_obj.Z.z = new_Z
-	if write_fixed_edis:
-		mt_obj.write_mt_file(save_dir=save_path2,
-							 fn_basename=file,
-						 	 longitude_format='LONG')
+			data_D.sites[site].data['ZXXR'][ip] = np.real(Z_D[0,0])
+			data_D.sites[site].data['ZXYR'][ip] = np.real(Z_D[0,1])
+			data_D.sites[site].data['ZYXR'][ip] = np.real(Z_D[1,0])
+			data_D.sites[site].data['ZYYR'][ip] = np.real(Z_D[1,1])
 
-# plt.scatter(lons, lats, c=median_strike)
-# for ii in range(len(edi_files)):
-# 	plt.text(x=lons[ii], y=lats[ii], s='{:3.2f}'.format(median_strike[ii]))
-# plt.show()
+			data_D.sites[site].data['ZXXI'][ip] = -1*np.imag(Z_D[0,0])
+			data_D.sites[site].data['ZXYI'][ip] = -1*np.imag(Z_D[0,1])
+			data_D.sites[site].data['ZYXI'][ip] = -1*np.imag(Z_D[1,0])
+			data_D.sites[site].data['ZYYI'][ip] = -1*np.imag(Z_D[1,1])
 
+	if write_data:
+		data_D.write(path + file_out)
 
+if plot_data:
+	rhoxy_d = utils.compute_rho(data_D.sites[site], calc_comp='xy')[0]
+	phaxy_d = utils.compute_phase(data_D.sites[site], calc_comp='xy', wrap=1)[0]
+	rhoyx_d = utils.compute_rho(data_D.sites[site], calc_comp='yx')[0]
+	phayx_d = utils.compute_phase(data_D.sites[site], calc_comp='yx', wrap=1)[0]
 
+	rhoxy_r = utils.compute_rho(data_R.sites[site], calc_comp='xy')[0]
+	phaxy_r = utils.compute_phase(data_R.sites[site], calc_comp='xy', wrap=1)[0]
+	rhoyx_r = utils.compute_rho(data_R.sites[site], calc_comp='yx')[0]
+	phayx_r = utils.compute_phase(data_R.sites[site], calc_comp='yx', wrap=1)[0]
 
+	rhoxy_ud = utils.compute_rho(data_UD.sites[site], calc_comp='xy')[0]
+	phaxy_ud = utils.compute_phase(data_UD.sites[site], calc_comp='xy', wrap=1)[0]
+	rhoyx_ud = utils.compute_rho(data_UD.sites[site], calc_comp='yx')[0]
+	phayx_ud = utils.compute_phase(data_UD.sites[site], calc_comp='yx', wrap=1)[0]
 
+	plt.subplot(2,1,1)
+	plt.plot(np.log10(data_UD.periods), np.log10(rhoxy_d), 'b.')
+	plt.plot(np.log10(data_UD.periods), np.log10(rhoxy_r), 'bx')
+	plt.plot(np.log10(data_UD.periods), np.log10(rhoxy_ud), 'b--')
+	plt.plot(np.log10(data_UD.periods), np.log10(rhoyx_d), 'r.')
+	plt.plot(np.log10(data_UD.periods), np.log10(rhoyx_r), 'rx')
+	plt.plot(np.log10(data_UD.periods), np.log10(rhoyx_ud), 'r--')
 
-# Using pyMT
-# outfile = 'study14_real-locs_fulldistorted.dat'
-# outfile2 = 'study14_real-locs_staticdistorted.dat'
-# data = DS.Data(base_path + data_file)
-# data2 = deepcopy(data)
-# for site in data.site_names:
-# 	# Try to make sure at least the 'phase-mixing' term
-# 	C_diag = np.random.uniform(size=2, low=0, high=2)
-# 	C_offdiag = np.random.uniform(size=2, low=0, high=0.5)
-# 	C = np.array([[C_diag[0], C_offdiag[0]], [C_offdiag[1], C_diag[1]]])
-# 	# Assume static shifts only - no phase mixing (see Jones and Chave, page 235-236)
-# 	# C[0,1] = 0
-# 	# C[1,0] = 0
-# 	for ii in range(data.NP):
-# 		zxy = data.sites[site].data['ZXYR'][ii] + 1j*data.sites[site].data['ZXYI'][ii]
-# 		zyx = data.sites[site].data['ZYXR'][ii] + 1j*data.sites[site].data['ZYXI'][ii]
-# 		zxx = data.sites[site].data['ZXXR'][ii] + 1j*data.sites[site].data['ZXXI'][ii]
-# 		zyy = data.sites[site].data['ZYYR'][ii] + 1j*data.sites[site].data['ZYYI'][ii]
-# 		Z = np.array(([zxx,zxy],[zyx,zyy]))	
-# 		Zd = np.matmul(C,Z)	
-# 		data.sites[site].data['ZXXR'][ii] = np.real(Zd[0,0])
-# 		data.sites[site].data['ZXYR'][ii] = np.real(Zd[0,1])
-# 		data.sites[site].data['ZYXR'][ii] = np.real(Zd[1,0])
-# 		data.sites[site].data['ZYYR'][ii] = np.real(Zd[1,1])
-# 		data.sites[site].data['ZXXI'][ii] = np.imag(Zd[0,0])
-# 		data.sites[site].data['ZXYI'][ii] = np.imag(Zd[0,1])
-# 		data.sites[site].data['ZYXI'][ii] = np.imag(Zd[1,0])
-# 		data.sites[site].data['ZYYI'][ii] = np.imag(Zd[1,1])
+	plt.subplot(2,1,2)
+	plt.plot(np.log10(data_UD.periods), (phaxy_d), 'b.')
+	plt.plot(np.log10(data_UD.periods), (phaxy_r), 'bx')
+	plt.plot(np.log10(data_UD.periods), (phaxy_ud), 'b--')
+	plt.plot(np.log10(data_UD.periods), (phayx_d), 'r.')
+	plt.plot(np.log10(data_UD.periods), (phayx_r), 'rx')
+	plt.plot(np.log10(data_UD.periods), (phayx_ud), 'r--')
 
-# 		C_static = np.array([[C[0,0], 0], [0, C[1,1]]])
-# 		Zd = np.matmul(C_static, Z)	
-# 		data2.sites[site].data['ZXXR'][ii] = np.real(Zd[0,0])
-# 		data2.sites[site].data['ZXYR'][ii] = np.real(Zd[0,1])
-# 		data2.sites[site].data['ZYXR'][ii] = np.real(Zd[1,0])
-# 		data2.sites[site].data['ZYYR'][ii] = np.real(Zd[1,1])
-# 		data2.sites[site].data['ZXXI'][ii] = np.imag(Zd[0,0])
-# 		data2.sites[site].data['ZXYI'][ii] = np.imag(Zd[0,1])
-# 		data2.sites[site].data['ZYXI'][ii] = np.imag(Zd[1,0])
-# 		data2.sites[site].data['ZYYI'][ii] = np.imag(Zd[1,1])
-
-# data.write(base_path + outfile)
-# data2.write(base_path + outfile2)
-
+	plt.show()

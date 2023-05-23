@@ -389,6 +389,7 @@ def get_cmap(cmap, N=64):
         try:
             output = cm.get_cmap(cmap, lut=N)
         except ValueError:
-            output = colorcet.cm[cmap]
+            # output = colors.LinearSegmentedColormap(cmap, colorcet.cm[cmap], N)
+            output = cm.get_cmap('cet_' + cmap, lut=N)
         return output
 

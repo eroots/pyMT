@@ -3,16 +3,17 @@ import pyMT.data_structures as DS
 import matplotlib.pyplot as plt
 import pyMT.utils as utils
 
-listfile = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
+# listfile = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
 data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
-response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/feature_tests/wstZK-C2_resistor_resp.dat'
+# response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/feature_tests/wstZK-C2_resistor_resp.dat'
+# response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
 
 # response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/feature_tests/wstZK_resp.dat'
 # response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/feature_tests/wstZK_C5a-10000ohm_NLCG_000.dat'
 # response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/depth_test/wstZK_depthTest_NLCG_000.dat'
-# response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.dat'
-save_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/rms_plots'
-dataset = DS.Dataset(listfile=listfile, datafile=data_file, responsefile=response_file)
+response_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.dat'
+save_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots'
+dataset = DS.Dataset(datafile=data_file, responsefile=response_file)
 
 dataset.sort_sites(order='south-north')
 
@@ -21,6 +22,7 @@ off_diag = []
 impedance = []
 tipper = []
 
+# Need to fix this so that it works with the new system of masking flagged RMS values
 for site in dataset.data.site_names:
     diag.append(utils.rms(np.array([dataset.rms['Station'][site]['ZXXR'],
                         dataset.rms['Station'][site]['ZXXI'],
@@ -59,26 +61,26 @@ p_tipper = []
 
 for ii in range(dataset.data.NP):
     p_diag.append(utils.rms(np.array([dataset.rms['Period']['ZXXR'][ii],
-                          dataset.rms['Period']['ZXXI'][ii],
-                          dataset.rms['Period']['ZYYR'][ii],
-                          dataset.rms['Period']['ZYYI'][ii]])))
+                                      dataset.rms['Period']['ZXXI'][ii],
+                                      dataset.rms['Period']['ZYYR'][ii],
+                                      dataset.rms['Period']['ZYYI'][ii]])))
     p_off_diag.append(utils.rms(np.array([dataset.rms['Period']['ZXXR'][ii],
-                              dataset.rms['Period']['ZXYI'][ii],
-                              dataset.rms['Period']['ZYXR'][ii],
-                              dataset.rms['Period']['ZYXI'][ii]])))
+                                          dataset.rms['Period']['ZXYI'][ii],
+                                          dataset.rms['Period']['ZYXR'][ii],
+                                          dataset.rms['Period']['ZYXI'][ii]])))
     p_impedance.append(utils.rms(np.array([dataset.rms['Period']['ZXXR'][ii],
-                          dataset.rms['Period']['ZXXI'][ii],
-                          dataset.rms['Period']['ZYYR'][ii],
-                          dataset.rms['Period']['ZYYI'][ii],
-                          dataset.rms['Period']['ZXXR'][ii],
-                          dataset.rms['Period']['ZXYI'][ii],
-                          dataset.rms['Period']['ZYXR'][ii],
-                          dataset.rms['Period']['ZYXI'][ii]])))
+                                           dataset.rms['Period']['ZXXI'][ii],
+                                           dataset.rms['Period']['ZYYR'][ii],
+                                           dataset.rms['Period']['ZYYI'][ii],
+                                           dataset.rms['Period']['ZXXR'][ii],
+                                           dataset.rms['Period']['ZXYI'][ii],
+                                           dataset.rms['Period']['ZYXR'][ii],
+                                           dataset.rms['Period']['ZYXI'][ii]])))
 
     p_tipper.append(utils.rms(np.array([dataset.rms['Period']['TZXR'][ii],
-                            dataset.rms['Period']['TZXI'][ii],
-                            dataset.rms['Period']['TZYR'][ii],
-                            dataset.rms['Period']['TZYI'][ii]])))
+                                        dataset.rms['Period']['TZXI'][ii],
+                                        dataset.rms['Period']['TZYR'][ii],
+                                        dataset.rms['Period']['TZYI'][ii]])))
 
 p_tipper = np.array(p_tipper)
 p_tipper[p_tipper < 0.01] = np.nan
@@ -104,8 +106,8 @@ p_tipper_ang = np.sqrt(p_tipper_ang / dataset.data.NS / 5)
 plt.subplot(2,1,1)
 # plt.plot(diag, 'b-', label='Diagonal')
 # plt.plot(off_diag, 'r-', label='Off-Diagonal')
-plt.plot(impedance, 'b-', label='Impedance')
-plt.plot(tipper, 'g-', label='Tipper')
+plt.plot(impedance, 'b.', label='Impedance')
+plt.plot(tipper, 'g.', label='Tipper')
 plt.plot(range(len(impedance)), np.ones(len(impedance)) * utils.rms(impedance), 'b--')
 plt.plot(range(len(impedance)), np.ones(len(impedance)) * utils.rms(tipper), 'g--')
 plt.legend()

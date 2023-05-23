@@ -190,6 +190,8 @@ class Dataset(object):
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
         self.data.azimuth = self.raw_data.azimuth
+        if self.data.azimuth != 0:
+            self.data.locations = utils.rotate_locs(self.data.locations, self.data.azimuth)
         self.data.auto_set_inv_type()
 
     def reset_dummy_periods(self):
@@ -486,6 +488,7 @@ class Dataset(object):
                                                           to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
                     smoothed_data2 = smoothed_data / scale
+                    # print(smoothed_data2 - to_smooth)
                     # smoothed_site = deepcopy(raw_site)
                     # smoothed_site.data[comp] = smoothed_data
                     
@@ -509,7 +512,13 @@ class Dataset(object):
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
                     self.smoothed_data.sites[site].data.update({comp: smoothed_data2})
-            self.smoothed_data.sites[site].calculate_phase_tensors()
+                    self.smoothed_data.sites[site].used_error.update({comp: smoothed_data2 * 0.05})
+                if comp not in self.smoothed_data.sites[site].components:
+                    self.smoothed_data.sites[site].components.append(comp)
+            if comp[0].lower() == 'p':
+                self.smoothed_data.sites[site].define_phase_tensor()
+            else:
+                self.smoothed_data.sites[site].calculate_phase_tensors()
                     # self.smoothed_data.calculate_phase_parameters()
         self.data.apply_error_floor() 
         self.data.equalize_complex_errors()
@@ -527,6 +536,7 @@ class Dataset(object):
         NP = self.data.NP
         NS = self.data.NS
         NR = self.data.NR
+
         components = list(self.data.components)
         if NS == 0 or NR == 0 or NP == 0:
             return None
@@ -538,39 +548,94 @@ class Dataset(object):
             print('Number of sites in data and response not equal')
             return None
         sites = self.data.site_names
-        misfit = {site: {comp: np.zeros((NP)) for comp in components}
-                  for site in sites}
-        # period_misfit = {site: np.zeros(NP) for site in sites}
-        period_misfit = {comp: np.zeros((NP)) for comp in components + ['Total']}
-        comp_misfit = {comp: 0 for comp in components + ['Total']}
-        total_misfit = 0
-        for site in sites:
-            all_misfits = utils.calculate_misfit(self.data.sites[site],
-                                                 self.response.sites[site])
-            misfit[site] = all_misfits[0]
-            # period_misfit += all_misfits[1]
-            total_misfit += np.mean(all_misfits[1]['Total'])
-            for comp in comp_misfit.keys():
-                period_misfit[comp] += all_misfits[1][comp]
-                # comp_misfit[comp] += np.mean(period_misfit[comp])
-        period_RMS = {comp: np.sqrt(period_misfit[comp] / NS) for comp in period_misfit.keys()}
-        total_RMS = np.sqrt(total_misfit / NS)
-        comp_RMS = {comp: np.sqrt(np.mean(period_misfit[comp]) / NS) for comp in comp_misfit.keys()}
-        station_RMS = {site: {comp: np.sqrt(np.mean(misfit[site][comp])) for comp in components}
-                       for site in sites}
-        for site in sites:
-            station_RMS[site].update({'Total': 0})
-            for comp in components:
-                station_RMS[site]['Total'] += station_RMS[site][comp] ** 2
-            station_RMS[site]['Total'] = np.sqrt(station_RMS[site]['Total'] / NR)
+        comp_RMS = {comp: [] for comp in components + ['Total']}
+        period_RMS = {comp: [] for comp in components + ['Total']}
+        station_RMS = {site: {comp: [] for comp in components} for site in sites}
+        all_misfits = np.zeros((NS, NR, NP))
+        flagged = np.zeros((NS, NR, NP), dtype=int)
+        for isite, site in enumerate(sites):
+            data_site = self.data.sites[site]
+            response_site = self.response.sites[site]
+            for icomp, comp in enumerate(components):
+                flagged[isite, icomp, :] = data_site.used_error[comp] == data_site.REMOVE_FLAG
+                response = response_site.data[comp]
+                data = data_site.data[comp]
+                errors = data_site.used_error[comp]
+                all_misfits[isite, icomp, :] = (np.abs(response - data) / errors) ** 2
 
-        # return {'Total': total_RMS, 'Period': period_RMS,
-        #         'Component': comp_RMS, 'Station': station_RMS}
+        all_misfits = np.ma.masked_array(all_misfits, flagged)
+        total_RMS = np.sqrt(np.nanmean(all_misfits))
+        comp_RMS['Total'] = total_RMS
+        temp = np.sqrt(np.nanmean(np.nanmean(all_misfits, axis=0), axis=1))
+        for icomp, comp in enumerate(components):
+            comp_RMS[comp] = temp[icomp]
+
+        temp = np.sqrt(np.nanmean(all_misfits, axis=0))
+        period_RMS['Total'] = np.sqrt(np.nanmean(temp ** 2, axis=0))
+        for icomp, comp in enumerate(components):
+            period_RMS[comp] = temp[icomp, :]
+
+        temp = np.sqrt(np.nanmean(all_misfits, axis=2))
+        for isite, site in enumerate(sites):
+            for icomp, comp in enumerate(components):
+                station_RMS[site][comp] = temp[isite, icomp]
+            station_RMS[site]['Total'] = np.sqrt(np.nanmean(temp[isite, :] ** 2))
+        # 'Period' returns a dictionary with the nRMS for every period, with nested dictionaries for each comp + one for Total
+        # 'Station' has entries for every station (plus one for Total), within which there is an entry to the total nRMS for every component
+        # 'Component' has a entries with a single total nRMS for each component, plus one for total
+        # 'Total' is just the total nRMS of everything
         return {'Total': total_RMS, 'Component': comp_RMS,
                 'Station': station_RMS, 'Period': period_RMS}
+
+
+        # NP = self.data.NP
+        # NS = self.data.NS
+        # NR = self.data.NR
+
+        # components = list(self.data.components)
+        # if NS == 0 or NR == 0 or NP == 0:
+        #     return None
+        # if NP != self.response.NP:
+        #     print('Data and response periods do not match')
+        #     print('Data NP: {}, Response NP: {}'.format(self.data.NP, self.response.NP))
+        #     return None
+        # if NS != self.response.NS:
+        #     print('Number of sites in data and response not equal')
+        #     return None
+        # sites = self.data.site_names
+        # misfit = {site: {comp: np.zeros((NP)) for comp in components}
+        #   for site in sites}
+        # period_misfit = {site: np.zeros(NP) for site in sites}
+        # period_misfit = {comp: np.zeros((NP)) for comp in components + ['Total']}
+        # comp_misfit = {comp: 0 for comp in components + ['Total']}
+        # total_misfit = 0
         # for site in sites:
+        #     all_misfits = utils.calculate_misfit(self.data.sites[site],
+        #                                          self.response.sites[site])
+        #     misfit[site] = all_misfits[0]
+        #     # period_misfit += all_misfits[1]
+        #     total_misfit += np.mean(all_misfits[1]['Total'])
+        #     for comp in comp_misfit.keys():
+        #         period_misfit[comp] += all_misfits[1][comp]
+        #         # comp_misfit[comp] += np.mean(period_misfit[comp])
+        # period_RMS = {comp: np.sqrt(period_misfit[comp] / NS) for comp in period_misfit.keys()}
+        # total_RMS = np.sqrt(total_misfit / NS)
+        # comp_RMS = {comp: np.sqrt(np.mean(period_misfit[comp]) / NS) for comp in comp_misfit.keys()}
+        # station_RMS = {site: {comp: np.sqrt(np.mean(misfit[site][comp])) for comp in components}
+        #                for site in sites}
+        # for site in sites:
+        #     station_RMS[site].update({'Total': 0})
         #     for comp in components:
-        #         station_RMS[site][comp] = np.sqrt(np.mean(misfit[site][comp]))
+        #         station_RMS[site]['Total'] += station_RMS[site][comp] ** 2
+        #     station_RMS[site]['Total'] = np.sqrt(station_RMS[site]['Total'] / NR)
+
+        # # return {'Total': total_RMS, 'Period': period_RMS,
+        # #         'Component': comp_RMS, 'Station': station_RMS}
+        # return {'Total': total_RMS, 'Component': comp_RMS,
+        #         'Station': station_RMS, 'Period': period_RMS}
+        # # for site in sites:
+        # #     for comp in components:
+        # #         station_RMS[site][comp] = np.sqrt(np.mean(misfit[site][comp]))
 
 
 class Data(object):
@@ -1072,15 +1137,22 @@ class Data(object):
     def get_locs(self, site_list=None, azi=0):
         if site_list is None:
             site_list = self.site_names
+        # if azi % 360 != 0:
+            # idx = [ii for ii in range(self.NS) if self.site_names[ii] in site_list]
+            # locs = np.array([self.locations[ii, :] for ii in idx])
+        # else:
+        locs = np.array([[self.sites[name].locations['X'],
+                          self.sites[name].locations['Y']]
+                         for name in self.site_names])
+        # locs = np.array([[self.sites[name].locations['X'],
+        #                   self.sites[name].locations['Y']]
+        #                  for name in site_list])
         if azi % 360 != 0:
-            idx = [ii for ii in range(self.NS) if self.site_names[ii] in site_list]
-            locs = np.array([self.locations[ii, :] for ii in idx])
-        else:
-            locs = np.array([[self.sites[name].locations['X'],
-                              self.sites[name].locations['Y']]
-                             for name in site_list])
-            if azi % 360 != 0:
-                locs = utils.rotate_locs(locs, azi)
+            locs = utils.rotate_locs(locs, azi)
+        ret_locs = []
+        for site in site_list:
+            ret_locs.append(locs[self.site_names.index(site),:])
+        locs = np.array(ret_locs)
         return locs
 
     def set_locs(self):
@@ -1241,6 +1313,9 @@ class Data(object):
                 print('Inverted data at {}'.format(flagged_comps))
         return flagged_sites
 
+    def calculate_PT_errors(self, n_realizations):
+        for site in self.site_names:
+            self.sites[site].calculate_PT_errors(n_realizations)
 
 class Model(object):
     """Summary
@@ -1368,20 +1443,14 @@ class Model(object):
         if modelfile:
             mod, dim = IO.read_model(modelfile=modelfile, file_format=file_format)
             # Set up these first so update_vals isn't called
-            self._xCS = mod['xCS']
-            self._yCS = mod['yCS']
-            self._zCS = mod['zCS']
-            self.vals = mod['vals']
-            self.xCS = mod['xCS']
-            self.yCS = mod['yCS']
-            self.zCS = mod['zCS']
-            if file_format.lower() in ('em3dani', 'mt3dani') or mod.get('rhoy', []) != []:
-                self.rho_x = mod['rhox']
-                self.rho_y = mod['rhoy']
-                self.rho_z = mod['rhoz']
+            if file_format.lower() in ('em3dani', 'mt3dani') or mod.get('rho_y', []) != []:
+                self.rho_x = mod['rho_x']
+                self.rho_y = mod['rho_y']
+                self.rho_z = mod['rho_z']
                 self.strike = mod['strike']
                 self.dip = mod['dip']
                 self.slant = mod['slant']
+                self.isotropic = False
             else:
                 self.rho_x = mod['vals']
                 self.rho_y = []
@@ -1389,7 +1458,15 @@ class Model(object):
                 self.strike = []
                 self.dip = []
                 self.slant = []
+                self.isotropic = True
             self.dimensionality = dim
+            self._xCS = mod['xCS']
+            self._yCS = mod['yCS']
+            self._zCS = mod['zCS']
+            self.vals = mod['vals']
+            self.xCS = mod['xCS']
+            self.yCS = mod['yCS']
+            self.zCS = mod['zCS']
 
     def read_covariance(self, covariance_file=''):
         if covariance_file:
@@ -1610,19 +1687,24 @@ class Model(object):
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
 
     def update_vals(self, new_vals=None, axis=None, index=None, mode=None):
-        if self.is_half_space():
-            bg = self.vals[0, 0, 0]
-            self.vals = np.ones([self.nx, self.ny, self.nz]) * bg
+        if self.isotropic:
+            to_update = ['vals', 'rho_x']
         else:
-            if index is not None and axis is not None:
-                index = max((min((index, np.size(self.vals, axis=axis) - 1)), 0))
-                if mode is None or mode == 'insert':
-                    self.vals = np.insert(self.vals, index,
-                                          new_vals, axis)
-                elif mode == 'delete':
-                    self.vals = np.delete(self.vals, index, axis)
-                else:
-                    print('Mode {} not understood'.format(mode))
+            to_update = ['vals', 'rho_x', 'rho_y', 'rho_z']
+        for value in to_update:
+            vals = getattr(self, value)
+            if self.is_half_space():
+                bg = getattr(self, value)[0, 0, 0]
+                setattr(self, value, np.ones([self.nx, self.ny, self.nz]) * bg)
+            else:
+                if index is not None and axis is not None:
+                    index = max((min((index, np.size(vals, axis=axis) - 1)), 0))
+                    if mode is None or mode == 'insert':
+                        setattr(self, value, np.insert(vals, index, new_vals, axis))
+                    elif mode == 'delete':
+                        setattr(self, value, np.delete(vals, index, axis))
+                    else:
+                        print('Mode {} not understood'.format(mode))
 
     def generate_zmesh(self, min_z, max_z, NZ):
 
@@ -1823,15 +1905,15 @@ class Model(object):
         self._dz = list(np.cumsum([0, *vals]))
         self.update_vals()
 
-    def write(self, outfile, file_format='modem', use_log=True, use_resistivity=True, use_anisotropy=False):
+    def write(self, outfile, file_format='modem', use_log=True, use_resistivity=True, use_anisotropy=False, n_param=3):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        # IO.debug_print([use_log, use_resistivity], 'E:/phd/NextCloud/data/synthetics/EM3DANI/wst/aniso8/debug.log')
         IO.write_model(self, outfile,
                        file_format=file_format,
                        use_log=use_log,
                        use_resistivity=use_resistivity,
-                       use_anisotropy=use_anisotropy)
+                       use_anisotropy=use_anisotropy,
+                       n_param=n_param)
         self.spatial_units = units
 
     def write_covariance(self, outfile):
@@ -2194,6 +2276,37 @@ class Site(object):
             noise *= np.random.choice((1, -1))
             self.data[component] += np.squeeze(noise)
             self.data[component] = utils.truncate(self.data[component])
+
+    def apply_distortion(self, C):
+        try:
+            if C.shape != (2, 2):
+                C = np.reshape(C, [2, 2])
+        except ValueError:
+            print('C must be 4x1 or 2x2')
+            return
+        for ii in range(self.NP):
+            zxx = self.data['ZXXR'][ii]-1j*self.data['ZXXI'][ii]
+            zxy = self.data['ZXYR'][ii]-1j*self.data['ZXYI'][ii]
+            zyx = self.data['ZYXR'][ii]-1j*self.data['ZYXI'][ii]
+            zyy = self.data['ZYYR'][ii]-1j*self.data['ZYYI'][ii]
+            Z = np.array([[zxx, zxy], [zyx, zyy]])
+            # Z_D = np.matmul(C, Z)
+            Z_D = np.zeros((2,2), dtype=np.complex64)
+            Z_D[0,0] = zxx * C[0,0]
+            Z_D[0,1] = zxy * C[0,1]
+            Z_D[1,0] = zyx * C[1,0]
+            Z_D[1,1] = zyy * C[1,1]
+
+            self.data['ZXXR'][ii] = np.real(Z_D[0, 0])
+            self.data['ZXYR'][ii] = np.real(Z_D[0, 1])
+            self.data['ZYXR'][ii] = np.real(Z_D[1, 0])
+            self.data['ZYYR'][ii] = np.real(Z_D[1, 1])
+
+            self.data['ZXXI'][ii] = -1*np.imag(Z_D[0, 0])
+            self.data['ZXYI'][ii] = -1*np.imag(Z_D[0, 1])
+            self.data['ZYXI'][ii] = -1*np.imag(Z_D[1, 0])
+            self.data['ZYYI'][ii] = -1*np.imag(Z_D[1, 1])
+
 
     def apply_error_floor(self, error_floors=None, errfloorZ=None, errfloorT=None):
         if errfloorZ:
@@ -2600,11 +2713,15 @@ class Site(object):
 
             for ii, period in enumerate(self.periods):
                 Z = {impedance: self.data[impedance][ii] for impedance in self.IMPEDANCE_COMPONENTS}
-                self.phase_tensors.append(PhaseTensor(period=period, Z=Z,
+                Z_errors = {impedance: self.used_error[impedance][ii] for impedance in self.IMPEDANCE_COMPONENTS}
+                remove_flag = self.used_error['ZXYR'][ii] == self.REMOVE_FLAG
+
+                self.phase_tensors.append(PhaseTensor(period=period, Z=Z, Z_errors=Z_errors,
                                                       rho=[rhoxy[ii], rhoyx[ii],
                                                            rhoxy_err[ii], rhoyx_err[ii]],
                                                       phase=[phaxy[ii], phayx[ii],
-                                                             phaxy_err[ii], phayx_err[ii]]))
+                                                             phaxy_err[ii], phayx_err[ii]],
+                                                      remove_flag=remove_flag))
                 self.CART.append(CART(period=period, Z=Z))
         else:
             print('Phase tensor calculation requires all impedance components.')
@@ -2618,6 +2735,45 @@ class Site(object):
                 phi_error = {component: self.used_error[component][ii]
                              for component in self.PHASE_TENSOR_COMPONENTS}
                 self.phase_tensors.append(PhaseTensor(period=period, phi=phi, phi_error=phi_error))
+
+    def calculate_PT_errors(self, error_realizations):
+        # This will loop over periods, which is incredibly slow.
+        # for ii in range(self.NP):
+        #     self.phase_tensors[ii].error_realizations = n_realizations
+        #     self.phase_tensors[ii].calculate_errors()
+        # Better to have a site method that bundles all the periods and does it in a fraction of the time.
+        X = np.zeros((4, self.NP))
+        Y = np.zeros((4, self.NP))
+        ZR_errors = np.zeros((4, self.NP))
+        ZI_errors = np.zeros((4, self.NP))
+        # Setup some things that don't change each realization
+        for idx in range(self.NP):
+            X[:, idx] = np.reshape(self.phase_tensors[idx].X, [4,])
+            Y[:, idx] = np.reshape(self.phase_tensors[idx].Y, [4,])
+            ZR_errors[:, idx] = np.array([self.phase_tensors[idx].Z_errors['ZXXR'], self.phase_tensors[idx].Z_errors['ZXYR'],
+                                  self.phase_tensors[idx].Z_errors['ZYXR'], self.phase_tensors[idx].Z_errors['ZYYR']])
+            ZI_errors[:, idx] = np.array([self.phase_tensors[idx].Z_errors['ZXXI'], self.phase_tensors[idx].Z_errors['ZXYI'],
+                                  self.phase_tensors[idx].Z_errors['ZYXI'], self.phase_tensors[idx].Z_errors['ZYYI']])
+
+        # Set up some things that do change each realization
+        pt_r = np.zeros((4, self.NP, error_realizations))
+        noise_x = np.reshape(np.random.randn(4*self.NP*error_realizations), [4, self.NP, error_realizations])
+        noise_y = np.reshape(np.random.randn(4*self.NP*error_realizations), [4, self.NP, error_realizations])
+        Xr = X[:,:, np.newaxis] + ZR_errors[:,:, np.newaxis] * noise_x
+        Yr = Y[:,:, np.newaxis] + ZI_errors[:,:, np.newaxis] * noise_y
+
+        # ptr = np.zeros((4, self.NP, error_realizations))
+        pt_r[0, :, :] = Xr[3,:,:] * Yr[0,:,:] - Xr[1,:,:] * Yr[2,:,:]
+        pt_r[1, :, :] = Xr[3,:,:] * Yr[1,:,:] - Xr[1,:,:] * Yr[3,:,:]
+        pt_r[2, :, :] = -Xr[2,:,:] * Yr[0,:,:] + Xr[0,:,:] * Yr[2,:,:]
+        pt_r[3, :, :] = -Xr[2,:,:] * Yr[1,:,:] + Xr[0,:,:] * Yr[3,:,:]
+        pt_r /= Xr[0,:,:] * Xr[3,:,:] - Xr[1,:,:] * Xr[2,:,:]
+
+        med = np.median(pt_r, axis=2)
+        errors = np.median(np.abs(pt_r - np.ones((4, self.NP, error_realizations))*med[:,:,np.newaxis]), axis=2)
+        for idx in range(self.NP):
+            if not self.phase_tensors[idx].remove_flag:
+                self.phase_tensors[idx].phi_error = np.maximum(np.reshape(errors[:, idx], [2, 2]), self.phase_tensors[idx].error_floor)
 
 
 class RawData(object):
@@ -2675,6 +2831,7 @@ class RawData(object):
         if azi:
             # Note this may not be true if the EDI files have been rotated.
             self.azimuth = azi
+            self.locations = utils.rotate_locs(self.locations, azi)
         else:
             self.azimuth = 0
         # for site_name in self.site_names:
@@ -2852,15 +3009,11 @@ class RawData(object):
             Y = 'Long'
         if sites is None:
             sites = self.site_names
-        # IO.debug_print(sites, 'tester.txt')
-        # IO.debug_print(self.site_names, 'tester.txt')
         locs = np.array([[self.sites[name].locations[X],
                           self.sites[name].locations[Y]]
                          for name in sites])
         if mode.lower() == 'lambert':
-            # debug_print(locs, 'lambtest.txt')
             locs = np.fliplr(np.array(utils.to_lambert(locs[:, 0], locs[:, 1])).T)
-            # debug_print(locs, 'lambtest.txt')
         if azi != 0:
             locs = utils.rotate_locs(locs, azi)
         if mode.lower() == 'centered':
@@ -3022,13 +3175,16 @@ class RawData(object):
 
 
 class PhaseTensor(object):
-    def __init__(self, period, Z=None, rho=None, phase=None, phi=None, phi_error=None):
+    def __init__(self, period, Z=None, Z_errors=None, rho=None, phase=None, phi=None, phi_error=None, remove_flag=False, calculate_errors=False, error_realizations=10000):
         # Are alpha, beta, azimuth considered clockwise from 'y', or counter-clockwise from 'x'
         self._rotation_axis = 'x' 
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.error_floor = np.tan(np.deg2rad(3))
         self.period = period
         self.Z = Z
+        self.Z_errors = Z_errors
+        self.remove_flag = remove_flag
+        self.error_realizations = error_realizations
         self.det_phi = 0
         self.skew_phi = 0
         self.phi_1 = 0
@@ -3056,9 +3212,15 @@ class PhaseTensor(object):
         if Z:
             self.valid_data = True
             self.form_tensors(Z)
-            self.calculate_phase_tensor()
-            self.phi_error = np.array(((self.error_floor, self.error_floor),
-                                       (self.error_floor, self.error_floor)))
+            self.set_phase_tensor(self.calculate_phase_tensor())
+            if remove_flag:
+                self.phi_error = np.array(((1234567, 1234567),
+                                           (1234567, 1234567)))
+            elif calculate_errors:
+                self.calculate_errors()
+            else:
+                self.phi_error = np.array(((self.error_floor, self.error_floor),
+                                           (self.error_floor, self.error_floor)))
         elif phi:
             self.valid_data = True
             for k, v in phi.items():
@@ -3181,18 +3343,53 @@ class PhaseTensor(object):
         except KeyError:
             self.valid_data = False
 
-    def calculate_phase_tensor(self):
+    def calculate_errors(self):
+        pt_r = np.zeros((4, self.error_realizations))
+        ZR_errors = np.array([self.Z_errors['ZXXR'], self.Z_errors['ZXYR'],
+                              self.Z_errors['ZYXR'], self.Z_errors['ZYYR']])
+        ZI_errors = np.array([self.Z_errors['ZXXI'], self.Z_errors['ZXYI'],
+                              self.Z_errors['ZYXI'], self.Z_errors['ZYYI']])
+        for ii in range(self.error_realizations):
+            Xr = self.X + np.reshape((ZR_errors.T * np.random.randn((4))).T, [2, 2])
+            Yr = self.Y + np.reshape((ZI_errors.T * np.random.randn((4))).T, [2, 2])
+            pt_r[:, ii] = np.reshape(self.calculate_phase_tensor(X=Xr, Y=Yr), [1, 4])
+            # pt_r[0, ii] = np.remainder(pt_r[0, ii], np.pi/2)
+            # pt_r[1, ii] = np.remainder(pt_r[1, ii], np.pi/2)
+            # pt_r[2, ii] = np.remainder(pt_r[2, ii], np.pi/2)
+            # pt_r[3, ii] = np.remainder(pt_r[3, ii], np.pi/2)
+        med = np.median(pt_r, axis=1)
+        # print(pt_r)
+        # print(Z_errors)
+        # print(med)
+        errors = np.median(np.abs(pt_r - (np.ones((self.error_realizations, 4))*med).T), axis=1) * 1.4
+        # print(errors)
+        self.phi_error = np.array([[errors[0], errors[1]],
+                                   [errors[2], errors[3]]])
+
+    def calculate_phase_tensor(self, X=None, Y=None):
         try:
+            if X is None:
+                X = self.X
+            if Y is None:
+                Y = self.Y
             # Try it the fast way...
             # self.phi = np.matmul(np.linalg.inv(self.X), self.Y)
-            self.phi[0, 0] = self.X[1, 1] * self.Y[0, 0] - self.X[0, 1] * self.Y[1, 0]
-            self.phi[0, 1] = self.X[1, 1] * self.Y[0, 1] - self.X[0, 1] * self.Y[1, 1]
-            self.phi[1, 0] = -self.X[1, 0] * self.Y[0, 0] + self.X[0, 0] * self.Y[1, 0]
-            self.phi[1, 1] = -self.X[1, 0] * self.Y[0, 1] + self.X[0, 0] * self.Y[1, 1]
-            self.phi /= self.X[0, 0] * self.X[1, 1] - self.X[0, 1] * self.X[1, 0]
+            phi = np.zeros((2, 2))
+            phi[0, 0] = X[1, 1] * Y[0, 0] - X[0, 1] * Y[1, 0]
+            phi[0, 1] = X[1, 1] * Y[0, 1] - X[0, 1] * Y[1, 1]
+            phi[1, 0] = -X[1, 0] * Y[0, 0] + X[0, 0] * Y[1, 0]
+            phi[1, 1] = -X[1, 0] * Y[0, 1] + X[0, 0] * Y[1, 1]
+            phi /= X[0, 0] * X[1, 1] - X[0, 1] * X[1, 0]
+            return phi
         except np.linalg.LinAlgError:
             # Error with data. Use dummy data and set flag
             self.valid_data = False
+
+    def set_phase_tensor(self, phi):
+        self.phi[0, 0] = phi[0, 0]
+        self.phi[0, 1] = phi[0, 1]
+        self.phi[1, 0] = phi[1, 0]
+        self.phi[1, 1] = phi[1, 1]
 
     def calculate_rotation_parameters(self):
         if self.rotation_axis.lower() == 'x':
