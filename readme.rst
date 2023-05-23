@@ -30,6 +30,7 @@ Installation:
 	* matplotlib
 	* pyqt
 	* colorcet
+	* vtk
 	
 	Each of these can be installed manually using, e.g., conda install pip (assuming an Anaconda installation)
 	
@@ -61,4 +62,6 @@ Installation basics (tested method for new users)
 6b) Any time you want to update to the latest version, use: pip install --upgrade  git+https://github.com/eroots/pyMT.git
 
 7) Navigate to wherever your working folder is and launch: gateway_mt
+
+Note that some packages require Microsoft Visual C++ Redistributables. These may already be installed, but on newer PCs you may have to first install Microsoft Visual Studio.
 
