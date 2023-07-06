@@ -1431,13 +1431,15 @@ class Model(object):
         self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
 
     def generate_dummy_model(self):
-            self._xCS = [1] * 60
-            self._yCS = [1] * 60
-            self._zCS = [1] * 60
-            self.vals = np.zeros((60, 60, 60)) + self.background_resistivity
-            self.xCS = [1] * 60
-            self.yCS = [1] * 60
-            self.zCS = [1] * 60
+        self.isotropic = True
+        self._xCS = [1] * 60
+        self._yCS = [1] * 60
+        self._zCS = [1] * 60
+        self.vals = np.zeros((60, 60, 60)) + self.background_resistivity
+        self.rho_x = np.zeros((60, 60, 60)) + self.background_resistivity
+        self.xCS = [1] * 60
+        self.yCS = [1] * 60
+        self.zCS = [1] * 60
 
     def __read__(self, modelfile='', file_format='modem3d'):
         if modelfile:

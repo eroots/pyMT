@@ -265,7 +265,7 @@ mod.to_UTM()
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # title_ = 'Standard Inversion'
-rho_direction = 'rho_x'
+rho_direction = 'rho_y'
 save_fig = 0
 geotiff = 0
 vals_multiband = []
@@ -276,15 +276,15 @@ use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 annotate_sites = False
-site_markers = False
+site_markers = True
 site_marker_tol = 5000
 add_map = False
 add_colourbar = False
-marker = 'kv'
+marker = 'k.'
 padding = 5000
 reverse_xaxis = False
 # zlim = [0, 4.5]
-lut = 64
+lut = 32
 cax = [0, 5]
 # cax = [0, 4.5]
 isolum = False
@@ -312,8 +312,10 @@ VE = 1 # Vertical exaggeration
 # xlim = [463139.0099493311 / 1000, 790673.8220597332 / 1000]
 # zlim = [5246370.107073599 / 1000, 5468333.540126671 / 1000]
 xlim = []
-xy_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
-xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+# xy_xlim = list(np.array([min(data.locations[:, 1]) - padding, max(data.locations[:, 1]) + padding]) / 1000)
+# xy_zlim = list(np.array([min(data.locations[:, 0]) - padding, max(data.locations[:, 0]) + padding]) / 1000)
+xy_xlim = [-255, 780]
+xy_zlim = [-152, 460]
 # xy_xlim = [609.885, 659.423]
 # xy_zlim = [5315.767, 5380.109]
 
@@ -360,7 +362,7 @@ else:
 # file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbomod0-4p5/'
 # for line, slice_num in zip(lines, slices):
 # for plane in ['xz', 'yz']:
-for plane in ['yz']:
+for plane in ['xy']:
     if plane == 'xy':
         slices = list(range(0, 45))
         add_map = False
@@ -375,7 +377,7 @@ for plane in ['yz']:
         add_map = False
         add_colourbar = False
     # for slice_num in slices:
-    for slice_num in [90]:
+    for slice_num in [59]:
         # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
         if plane.lower() == 'xy':
             direction = 'Depth'
