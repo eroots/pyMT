@@ -1740,6 +1740,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.dataset.data.error_floors[component] = value
         self.dataset.data.apply_error_floor()
         self.update_dpm()
+        # print(self.dataset.data.sites[self.dataset.data.site_names[0]].used_error['TZXR'])
         # self.dpm.components = comps
         # self.update_dpm(updated_sites=self.dpm.site_names,
                         # updated_comps=self.dpm.components)

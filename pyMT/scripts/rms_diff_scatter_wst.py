@@ -10,15 +10,20 @@ import naturalneighbor as nn
 
 local_path = 'E:'
 # file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/rms_plots/feature_tests/perc_diff/'
-file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/feature_tests/depth_tests/impXY/'
-# file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/feature_tests/'
+# file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/feature_tests/geotherms/impYX/bwr/'
+# file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/feature_tests/depth_tests/'
+
+# file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/feature_tests/depth_tests/rho_z/all/notDiff/tipper/'
+file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/'
 
 listfile = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
 data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
 base_response = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
 # response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/feature_tests/shallower/'
 # response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/feature_tests/geotherms/western_edge/'
-response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/depth_tests/X/'
+# response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/'
+response_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/feature_tests/'
+# response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/depth_tests/Y/'
 
 # response_file = ['wstZK_C2R-300ohm_resp.dat', 
 #                  'wstZK_C2R-500ohm_resp.dat', 
@@ -64,19 +69,33 @@ response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/
 #                  'wst_ZK_359km_resp.dat'
 #                  ]
 # tags = [x.strip('wstZK_ani_').strip('_resp.dat') for x in response_file]
-response_file = ['wstZK_ani_100km_resp.dat',
-                 'wstZK_ani_114km_resp.dat',
-                 'wstZK_ani_129km_resp.dat',
-                 'wstZK_ani_147km_resp.dat',
-                 'wstZK_ani_167km_resp.dat',
-                 'wstZK_ani_190km_resp.dat',
-                 'wstZK_ani_215km_resp.dat',
-                 'wstZK_ani_245km_resp.dat',
-                 'wstZK_ani_278km_resp.dat',
-                 'wstZK_ani_316km_resp.dat',
-                 'wstZK_ani_359km_resp.dat'
-                 ]
-tags = [x.strip('wstZK_ani_').strip('_resp.dat') for x in response_file]
+# response_file = ['wstZK_ani_100km_resp.dat',
+#                  'wstZK_ani_114km_resp.dat',
+#                  'wstZK_ani_129km_resp.dat',
+#                  'wstZK_ani_147km_resp.dat',
+#                  'wstZK_ani_167km_resp.dat',
+#                  'wstZK_ani_190km_resp.dat',
+#                  'wstZK_ani_215km_resp.dat',
+#                  'wstZK_ani_245km_resp.dat',
+#                  'wstZK_ani_278km_resp.dat',
+#                  'wstZK_ani_316km_resp.dat',
+#                  'wstZK_ani_359km_resp.dat'
+#                  ]
+# response_file = ['wst_ani_XY-uMantle-Slab3000ohm_resp.dat']
+# response_file = ['wst-Z_99km_resp.dat',
+#                  'wst-Z_113km_resp.dat',
+#                  'wst-Z_129km_resp.dat',
+#                  'wst-Z_146km_resp.dat',
+#                  'wst-Z_166km_resp.dat',
+#                  'wst-Z_189km_resp.dat',
+#                  'wst-Z_215km_resp.dat',
+#                  'wst-Z_244km_resp.dat',
+#                  'wst-Z_278km_resp.dat',
+#                  'wst-Z_316km_resp.dat']
+# response_file = ['wst-ani_NLCG_000.dat']
+response_file = ['wst_ani_XY-uMantle-Slab3000ohm_resp.dat']
+tags = [x.strip('wst-XYZ_').strip('_resp.dat') for x in response_file]
+# tags = [x.strip('wst-Z_').strip('_resp.dat') for x in response_file]
 # tags = ['C3_resistor', 'C5a-north', 'C2_500ohm', '100km_depth']
 # tags = [x.strip('wstZK_').strip('_resp.dat') for x in response_file]
 # tags = [x.strip('wstZK_ani_').strip('_resp.dat') for x in response_file]
@@ -121,7 +140,7 @@ xlim = []
 ylim = [-200, 450]
 use_rms_difference  = 1 # If false, it shows the rms for the response itself
 use_perc_difference = 0 # If False, use normal difference
-use_component = 'XY'    # Choose a component, or 'all'. Not all implemented
+use_component = 'all'    # Choose a component, or 'all'. Not all implemented
 # interp_type = ('nn', 'linear', 'cubic')
 # interp_type = ['nnscatter']
 annotate_sites = 0
@@ -129,16 +148,21 @@ interp_type = ['scatter']
 # cmap = cm.get_cmap('turbo', 5)
 # cmap = cm.get_cmap('hot_r', 10)
 cmap = cm.get_cmap('bwr', N=17)
+# cmap = cm.get_cmap('bgyw_r', 14)
+
 # If using a diverging map but non-symmetric endpoints, use this to re-center at 0
 renormalize_cmap = False
 cmap_center = 0
 
 diff_cax = [-1, 1]
-perc_cax = [0, 50]
+perc_cax = [-20, 50]
+rms_cax = [0.5, 4]
 if use_perc_difference:
     use_cax = perc_cax
-else:
+elif use_rms_difference:
     use_cax = diff_cax
+else:
+    use_cax = rms_cax
 base_data = WSDS.Data(datafile=data_file, listfile=listfile)
 base_data.remove_sites(sites=rm_sites)
 base_response = WSDS.Data(datafile=base_response, listfile=listfile)
@@ -159,7 +183,7 @@ for ii, resp in enumerate(response_file):
     # dataset.data = base_data
     dataset.response = response
     rms = dataset.calculate_RMS()
-    if use_rms_difference:
+    if use_rms_difference or use_perc_difference:
         rms_diff = {}
         for site in base_dataset.data.site_names:
             if use_perc_difference:
@@ -173,10 +197,10 @@ for ii, resp in enumerate(response_file):
                     rms_diff.update({site: rms['Station'][site]['Total'] - base_rms['Station'][site]['Total']})
                 elif use_component == 'XY':
                     rms_diff.update({site: (np.sqrt(np.mean([rms['Station'][site]['ZXYR']**2, rms['Station'][site]['ZXYI']**2])) - 
-                                           (np.sqrt(np.mean([base_rms['Station'][site]['ZXYR']**2, base_rms['Station'][site]['ZXYI']]))))})
+                                           (np.sqrt(np.mean([base_rms['Station'][site]['ZXYR']**2, base_rms['Station'][site]['ZXYI']**2]))))})
                 elif use_component == 'YX':
                     rms_diff.update({site: (np.sqrt(np.mean([rms['Station'][site]['ZYXR']**2, rms['Station'][site]['ZYXI']**2])) - 
-                                           (np.sqrt(np.mean([base_rms['Station'][site]['ZYXR']**2, base_rms['Station'][site]['ZYXI']]))))})
+                                           (np.sqrt(np.mean([base_rms['Station'][site]['ZYXR']**2, base_rms['Station'][site]['ZYXI']**2]))))})
                 elif use_component == 'phayx':
                     phase1, errors = utils.compute_phase(dataset.response.sites[site], calc_comp='YX', errtype='none', wrap=1)
                     phase2, errors = utils.compute_phase(base_dataset.response.sites[site], calc_comp='YX', errtype='none', wrap=1)
@@ -186,7 +210,18 @@ for ii, resp in enumerate(response_file):
                     rms_diff.update({site: rms1 - rms2})
         rms = rms_diff
     else:
-        rms = {site: rms['Station'][site]['Total'] for site in data.site_names}
+        rms_diff = {}
+        for site in base_dataset.data.site_names:
+            if use_component == 'all':
+                rms_diff.update({site: rms['Station'][site]['Total']})
+            elif use_component == 'XY':
+                rms_diff.update({site: (np.sqrt(np.mean([rms['Station'][site]['ZXYR']**2, rms['Station'][site]['ZXYI']**2])))})
+            elif use_component == 'YX':
+                rms_diff.update({site: (np.sqrt(np.mean([rms['Station'][site]['ZYXR']**2, rms['Station'][site]['ZYXI']**2])))})
+            elif use_component == 'TZ':
+                rms_diff.update({site: (np.sqrt(np.mean([rms['Station'][site]['TZXR']**2, rms['Station'][site]['TZXI']**2,
+                                                         rms['Station'][site]['TZYR']**2, rms['Station'][site]['TZYI']**2])))})
+        rms = rms_diff
     total_rms = np.sqrt(np.mean([r ** 2 for r in rms.values() if r > 0]))
 
     for interp in interp_type:
@@ -261,18 +296,19 @@ for ii, resp in enumerate(response_file):
         else:
             plt.gca().set_ylim([min_p - padding, max_p + padding])
         plt.gca().set_aspect(1)
-    if use_rms_difference:
-        plt.gca().set_title('Total RMS: {:>4.2f}'.format(total_rms))
-        cb = plt.colorbar()
-        cb.set_label('RMS Misfit',
-                     rotation=270,
-                     labelpad=20,
-                     fontsize=16)
-        plt.clim(use_cax)
-        if save_fig:
-            # tag = '_{}{}'.format(dtype, comp)
-            for ext in ['.svg', '.png']:
-                plt.gcf().savefig(file_path + file_name + ext, dpi=dpi, bbox_inches='tight')
-            plt.close()
+    # if use_rms_difference:
+
+    plt.gca().set_title('Total RMS: {:>4.2f}'.format(total_rms))
+    cb = plt.colorbar()
+    cb.set_label('RMS Misfit',
+                 rotation=270,
+                 labelpad=20,
+                 fontsize=16)
+    plt.clim(use_cax)
+    if save_fig:
+        # tag = '_{}{}'.format(dtype, comp)
+        for ext in ['.svg', '.png']:
+            plt.gcf().savefig(file_path + file_name + ext, dpi=dpi, bbox_inches='tight')
+        plt.close()
 if not save_fig:                
     plt.show()

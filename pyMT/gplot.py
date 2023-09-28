@@ -604,6 +604,7 @@ class DataPlotManager(object):
                     # if Type == 'smoothed_data':
                         # print(toplot)
                         # print([marker, linestyle])
+                    # print(toplotErr)
                     artist = ax.errorbar(np.log10(periods), toplot, xerr=None,
                                          yerr=toplotErr, marker=use_marker,
                                          linestyle=linestyle, color=self.get_designated_colour(comp, ii),

@@ -143,10 +143,10 @@ def project_locations(data, zone, letter):
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst')
 # backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst') 
-mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/capped10000/from-cullZK/wst2dry-capped_lastIter.rho')
-main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
-data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
-backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
+# mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/capped10000/from-cullZK/wst2dry-capped_lastIter.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
 #########################################################
 # DRYDEN - R2
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst')
@@ -158,21 +158,21 @@ backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # WESTERN SUPERIOR
-seismic = pd.read_table(local_path + '/phd/NextCloud/andy/wsup_cdp-bin-1merge_interp-gaps.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-seismic['x'] -= 100000
-# # seismic = pd.read_table(local_path + '/phd/NextCloud/andy/wsup_cdp-bin-2b.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# seismic = pd.read_table(local_path + '/phd/NextCloud/andy/wsup_cdp-bin-1merge_interp-gaps.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# seismic['x'] -= 100000
+seismic = pd.read_table(local_path + '/phd/NextCloud/andy/wsup_cdp-bin-2b.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
 # # seismic['x'] = seismic['x'] - 10000
-# main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst')
-# main_transect.locations = main_transect.get_locs(mode='lambert')
-# data = copy.deepcopy(main_transect)
-# backup_data = copy.deepcopy(main_transect)
-# mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.rho')
-# mod.origin = main_transect.origin
-# mod.to_lambert()
-# transformer = pyproj.Transformer.from_crs('epsg:32615', 'epsg:3979')
+main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst')
+main_transect.locations = main_transect.get_locs(mode='lambert')
+data = copy.deepcopy(main_transect)
+backup_data = copy.deepcopy(main_transect)
+mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.rho')
+mod.origin = main_transect.origin
+mod.to_lambert()
+transformer = pyproj.Transformer.from_crs('epsg:32615', 'epsg:3979')
 # # out_x, out_y = np.zeros(len(x)), np.zeros(len(y))
-# for ii, (xx, yy) in enumerate(zip(seismic['x'], seismic['y'])):
-#     seismic['x'][ii], seismic['y'][ii] = transformer.transform(xx, yy)
+for ii, (xx, yy) in enumerate(zip(seismic['x'], seismic['y'])):
+    seismic['x'][ii], seismic['y'][ii] = transformer.transform(xx, yy)
 # # mod = WSDS.Model('E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.zani')
 # # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
 # # data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
@@ -352,12 +352,12 @@ seismic_is_depth = 0
 normalize_seismic = 0
 clip_val = 0.15
 depth_conversion_velocity = 6.3
-use_trace_ticks = 1
+use_trace_ticks = 0
 force_NS = 1
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
-project_data = True
+project_data = False
 UTM_number = 15
 UTM_letter = 'U'
 reso = []
@@ -395,7 +395,7 @@ isolum = 0
 # cmap_name = 'cet_rainbow_r'
 # cmap_name = 'jet_r'
 # cmap_name = 'bwr_r'
-cmap_name = 'turbo_r_mod'
+cmap_name = 'turbo_r'
 # cmap_name = 'gray'
 # cmap_name = 'viridis_r'
 # cmap_name = 'magma_r'

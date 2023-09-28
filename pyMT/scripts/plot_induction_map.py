@@ -20,13 +20,14 @@ if __name__ == '__main__':
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_flagged.dat'
     listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
-    respfile = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.dat'
-    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/ind_only/response/'
+    respfile = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
+    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/data/inds/resp/'
     # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
-    jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
+    # jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
+    jpg_file_name = ''
     out_file = 'wst_inds_'
     ext = ['.png', '.svg']
     dpi = 150
