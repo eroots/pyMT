@@ -2672,10 +2672,10 @@ class Site(object):
                     em.append(self.errmap[comp][ind] * mult)
                     f.append(mult)
                 except KeyError:
-                    d.append(np.float(self.NO_COMP_FLAG))
-                    e.append(np.float(self.REMOVE_FLAG))
-                    em.append(np.float(self.NO_COMP_FLAG))
-                    f.append(np.float(self.NO_COMP_FLAG))
+                    d.append(float(self.NO_COMP_FLAG))
+                    e.append(float(self.REMOVE_FLAG))
+                    em.append(float(self.NO_COMP_FLAG))
+                    f.append(float(self.NO_COMP_FLAG))
             # Check for dummy TF data
             if comp[0] == 'T':
                 if all(abs(x) < 0.001 for x in d):

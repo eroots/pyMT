@@ -539,7 +539,7 @@ def read_raw_data(site_names, datpath=''):
                     ns_cache.append(ns)
                     data = [(row.split()) for row in lines[ii + 2: ii + ns + 2]]
                     data = np.array([row for row in data])
-                    data = data.astype(np.float)
+                    data = data.astype(np.float64)
                     periods = data[:, 0]
                     dataReal = data[:, 1]
                     dataImag = data[:, 2]

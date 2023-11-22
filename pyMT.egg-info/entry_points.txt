@@ -3,4 +3,3 @@ data_plot = pyMT.DataGUI.data_plot:main
 gateway_mt = pyMT.GatewayGUI.gateway_main:main
 mesh_designer = pyMT.ModelGUI.mesh_designer:main
 model_viewer = pyMT.ModelGUI.model_viewer:main
-
