@@ -2784,7 +2784,7 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                     f.write('\n')
                 f.write('\n')
 
-    def write_modem(model, outfile, file_format):
+    def to_modem(model, outfile, file_format):
         if '.model' not in outfile:
             outfile = ''.join([outfile, '.model'])
         is_half_space = int(model.is_half_space())
@@ -2797,14 +2797,14 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
             f.write('{}\n'.format('# ' + outfile))
             f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
             for x in model.xCS:
-                f.write('{:<10.7f}  '.format(x))
+                f.write('{:<10.3f}  '.format(x))
             f.write('\n')
             for y in model.yCS:
-                f.write('{:<10.7f}  '.format(y))
+                f.write('{:<10.3f}  '.format(y))
             f.write('\n')
             for z in model.zCS:
-                f.write('{:<10.7f}  '.format(z))
-            f.write('\n')
+                f.write('{:<10.3f}  '.format(z))
+            f.write('\n\n')
             if header_four == 'LOGE':
                 if np.any(model.vals < 0):
                     print('Negative values detected in model.')
@@ -2822,8 +2822,13 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                     for yy in range(model.ny):
                         for xx in range(model.nx):
                             # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
-                            f.write('{:<10.7f}\n'.format(vals[model.nx - xx - 1, yy, zz]))
-
+                            f.write('{:<13.5E}'.format(vals[model.nx - xx - 1, yy, zz]))
+                        f.write('\n')
+                    f.write('\n')
+            # Write bottom left corner coordinate and rotation angle (dummies right now)
+            # f.write('\n')
+            f.write('{:<15.3f}{:<15.3f}{:<15.3f}\n'.format(model.dx[0], model.dy[0], model.dz[0]))
+            f.write('{:<6.3f}'.format(0))
     def write_modem_2d(model, outfile):
         if '.model' not in outfile:
             outfile = ''.join([outfile, '.model'])
@@ -2878,7 +2883,7 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                                                                                    model.vals[ix, iy, iz]))
 
     if file_format.lower() in ('modem', 'wsinv', 'wsinv3dmt'):
-        write_modem(model=model, outfile=outfile, file_format=file_format)
+        to_modem(model=model, outfile=outfile, file_format=file_format)
     elif file_format.lower() in ('modem2d'):
         write_modem_2d(model=model, outfile=outfile)
     elif file_format.lower() in ('ubc', 'ubc-gif'):

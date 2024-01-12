@@ -14,17 +14,21 @@ local_path = 'E:'
 # file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/feature_tests/depth_tests/'
 
 # file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/feature_tests/depth_tests/rho_z/all/notDiff/tipper/'
-file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/'
+file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/rms_plots/feature_tests/rms_diff/'
 
 listfile = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
 data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
-base_response = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
+base_response = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.dat'
+# base_response = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
+response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/depth_test/'
 # response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/feature_tests/shallower/'
 # response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/feature_tests/geotherms/western_edge/'
 # response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/'
-response_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/feature_tests/'
+# response_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/feature_tests/'
 # response_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/depth_tests/Y/'
 
+response_file = ['wstZK_63-400km_depthTest_resp.dat',
+                 'wstZK_100-400km_depthTest_resp.dat']
 # response_file = ['wstZK_C2R-300ohm_resp.dat', 
 #                  'wstZK_C2R-500ohm_resp.dat', 
 #                  'wstZK_C2R-1000ohm_resp.dat', 
@@ -93,11 +97,11 @@ response_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/
 #                  'wst-Z_278km_resp.dat',
 #                  'wst-Z_316km_resp.dat']
 # response_file = ['wst-ani_NLCG_000.dat']
-response_file = ['wst_ani_XY-uMantle-Slab3000ohm_resp.dat']
-tags = [x.strip('wst-XYZ_').strip('_resp.dat') for x in response_file]
+# response_file = ['wst_ani_XY-uMantle-Slab3000ohm_resp.dat']
+# tags = [x.strip('wst-XYZ_').strip('_resp.dat') for x in response_file]
 # tags = [x.strip('wst-Z_').strip('_resp.dat') for x in response_file]
 # tags = ['C3_resistor', 'C5a-north', 'C2_500ohm', '100km_depth']
-# tags = [x.strip('wstZK_').strip('_resp.dat') for x in response_file]
+tags = [x.strip('wstZK_').strip('_resp.dat') for x in response_file]
 # tags = [x.strip('wstZK_ani_').strip('_resp.dat') for x in response_file]
 # tags = ['C2R-300ohm',
 #         'C2R-500ohm',
@@ -146,15 +150,15 @@ use_component = 'all'    # Choose a component, or 'all'. Not all implemented
 annotate_sites = 0
 interp_type = ['scatter']
 # cmap = cm.get_cmap('turbo', 5)
-# cmap = cm.get_cmap('hot_r', 10)
-cmap = cm.get_cmap('bwr', N=17)
+cmap = cm.get_cmap('hot_r', 24)
+# cmap = cm.get_cmap('bwr', N=17)
 # cmap = cm.get_cmap('bgyw_r', 14)
 
 # If using a diverging map but non-symmetric endpoints, use this to re-center at 0
 renormalize_cmap = False
 cmap_center = 0
 
-diff_cax = [-1, 1]
+diff_cax = [0, 2]
 perc_cax = [-20, 50]
 rms_cax = [0.5, 4]
 if use_perc_difference:
