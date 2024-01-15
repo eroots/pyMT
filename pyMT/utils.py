@@ -90,6 +90,8 @@ def dms_to_dd(dms_string):
 
 
 def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
+    print('This function is depreciated.\n')
+    print('It functions as it used to, however, the function has been updated and included as a method within the pyMT Model object.')
     num_decade = int(np.ceil(np.log10(max_depth)) - floor(np.log10(min_depth)))
     try:
         if num_decade != len(NZ):

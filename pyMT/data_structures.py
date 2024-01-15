@@ -1352,7 +1352,7 @@ class Model(object):
             y_size = np.max((y_size, 1000))
             self.generate_mesh(site_locs=data.locations, regular=True, min_x=x_size, min_y=y_size,
                                num_pads=5, pad_mult=1.2)
-            self.generate_zmesh(min_z=1, max_z=500000, NZ=60)
+            self.generate_zmesh(min_depth=1, max_depth=500000, num_layers=60)
             self.update_vals()
         if covariance_file:
             self.read_covariance(covariance_file)
@@ -1708,9 +1708,76 @@ class Model(object):
                     else:
                         print('Mode {} not understood'.format(mode))
 
-    def generate_zmesh(self, min_z, max_z, NZ):
+    def generate_zmesh(self, min_depth, max_depth, num_layers=None, decades=None, increase_factor=None):
+        def zmesh_by_decade(min_depth=1, max_depth=500000, NZ=None):
+            # Specify the vertical mesh using logarithmically spaced layer thicknesses
+            num_decade = int(np.ceil(np.log10(max_depth)) - np.floor(np.log10(min_depth)))
+            try:
+                if num_decade != len(NZ):
+                    print('Number of decades is: {}'.format(num_decade))
+                    print('Number of parameters (NZ) given is: {}'.format(len(NZ)))
+                    print('len of NZ must be equal to the number of decades.')
+                    return
+                decade = np.log10(min_depth)
+                depths = []
+                for n in NZ:
+                    dDecade = np.logspace(decade, min(np.floor(decade + 1), np.log10(max_depth)), int(n + 1))
+                    decade = np.floor(decade + 1)
+                    depths.append(dDecade)
+                depths = utils.flatten_list(depths)
+                depths = np.array(np.unique(depths))
+            except TypeError:
+                depths = np.logspace(np.log10(min_depth), np.log10(max_depth), int(NZ))
+            depths = utils.to_list(depths)
+            depths.insert(0, 0)
+            return depths
 
-        z_mesh = utils.generate_zmesh(min_z, max_z, NZ)[0]
+        def zmesh_by_factor(min_depth, max_depth, increase_factor):
+            if len(utils.to_list(increase_factor)) > 1:
+                try:
+                    increase_factors = increase_factor[0]
+                    depth_cutoffs = increase_factor[1]
+                    if len(increase_factors) != len(depth_cutoffs):
+                        raise IndexError
+                except IndexError:
+                    print('Increase factor improperly specified. Must either be a single float, or a nested list' +
+                          ' specifying increase factors and corresponding depth cutoffs (e.g., [[1.1, 1.2], [10000, 100000]])')
+                    print('Defaulting to an increase factor of 1.2')
+                    increase_factors = [1.2]
+                    depth_cutoffs = [max_depth]
+                except TypeError:
+                    print('Increase factor improperly specified. Must either be a single float, or a nested list' +
+                          ' specifying increase factors and corresponding depth cutoffs (e.g., [[1.1, 1.2], [10000, 100000]])')
+                    print('Defaulting to an increase factor of 1.2')
+                    increase_factors = [1.2]
+                    depth_cutoffs = [max_depth]
+            else:
+                increase_factors = [increase_factor]
+                depth_cutoffs = [max_depth]
+            
+            counter = 0
+            depths = [min_depth]
+            while depths[-1] <= max_depth:
+                if increase_factor < 1.05:
+                    increase_factor = 1.05
+                    print('Increase factor cannot be less than 1.05')
+                depths.append(depths[-1] * increase_factors[min(counter, len(increase_factors) - 1)])
+                if depths[-1] > depth_cutoffs[min(counter, len(increase_factors) - 1)]:
+                    counter += 1
+            # Make sure that the new depths starts with 0
+            depths.insert(0, 0)
+            return depths
+
+        if bool(num_layers) + bool(decades) + bool(increase_factor) > 1:
+            print('Multiple mesh generation options specified, defaulting to the first.')
+        if num_layers:
+            z_mesh = np.insert(np.logspace(np.log10(min_depth), np.log10(max_depth), int(num_layers)), 0, 0)
+        elif decades:
+            z_mesh = zmesh_by_decade(min_depth, max_depth, decades)
+        elif increase_factor:
+            z_mesh = zmesh_by_factor(min_depth, max_depth, increase_factor)
+
+        # z_mesh = utils.generate_zmesh(min_depth, max_depth, NZ)[0]
         if self.is_half_space():
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
             # print('Mesh generation not setup for non-half-spaces. Converting to half space...')

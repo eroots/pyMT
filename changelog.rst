@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+*15/01/24
+
+  * Moved the function generate_zmesh from utils to within the Model class
+
+      * Function within utils is still available, but is depreciated
+
+  * Connected the 'Use Factor' radio button withn the Mesh Designer
+
+  * Added a tab within Mesh Designer 'Depths' which displays the depth intervals and layer thicknesses of the current model
+
 *12/01/24
 
   * Changed the way ModEM model files are written to match that of the ModEM itself.
