@@ -366,12 +366,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.map.has_nn:
             self.Interpolant.insertItem(0, 'Natural')
         self.Interpolant.currentIndexChanged.connect(self.update_map)
+        ###################################################
         #  Set up period scroll bar
         self.PeriodScrollBar.valueChanged.connect(self.change_period)
         self.PeriodScrollBar.setMinimum(1)
         self.PeriodScrollBar.setMaximum(len(self.map.site_data['data'].periods))
+        ###################################################
         #  Set up colour map selections
         self.colourMenu.action_group.triggered.connect(self.set_colourmap)
+        ###################################################
         # Reordering submenus
         self.colourMenu.removeAction(self.colourMenu.limits)
         self.colourMenu.removeAction(self.colourMenu.lut)
@@ -385,6 +388,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.skew_limits = self.colourMenu.limits.addAction('Skew')
         self.colourMenu.tipper_limits = self.colourMenu.limits.addAction('Tipper')
         # self.colourMenu.limits.triggered.connect(self.set_rho_cax)
+        ###################################################
         self.colourMenu.lut.triggered.connect(self.set_lut)
         self.groupColourmaps = QtWidgets.QActionGroup(self)
         self.colourMenu.rho_limits.triggered.connect(self.set_rho_cax)
@@ -394,10 +398,18 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
         self.colourMenu.tipper_limits.triggered.connect(self.set_tipper_cax)
         self.colourMenu.skew_limits.triggered.connect(self.set_skew_cax)
+        ###################################################
         self.PTRotGroup = QtWidgets.QActionGroup(self)
         self.actionPTRotAxisX.setActionGroup(self.PTRotGroup)
         self.actionPTRotAxisY.setActionGroup(self.PTRotGroup)
         self.PTRotGroup.triggered.connect(self.update_map)
+        ###################################################
+        self.inductionConventionGroup = QtWidgets.QActionGroup(self)
+        self.inductionConventionGroup.addAction(self.actionParkinson)
+        self.inductionConventionGroup.addAction(self.actionWeise)
+        self.inductionConventionGroup.setExclusive(True)
+        self.inductionConventionGroup.triggered.connect(self.update_map)
+        ###################################################
         # self.groupColourmaps.triggered.connect(self.set_colourmap)
         # self.actionJet.setActionGroup(self.groupColourmaps)
         # self.actionJet_r.setActionGroup(self.groupColourmaps)
@@ -444,6 +456,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.plotRMS.setEnabled(False)
         self.action_rmsColour.triggered.connect(self.set_rms_plot)
         self.action_rmsSize.triggered.connect(self.set_rms_plot)
+        self.action_rmsLabels.triggered.connect(self.set_rms_plot)
         # self.rmsGroup = QtWidgets.QActionGroup(self)
         # self.action_rmsColour.setActionGroup(self.rmsGroup)
         # self.action_rmsSize.setActionGroup(self.rmsGroup)
@@ -499,6 +512,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.rms_plot_style += ['colour']
         if self.action_rmsSize.isChecked():
             self.map.rms_plot_style += ['size']
+        if self.action_rmsLabels.isChecked():
+            self.map.rms_plot_style += ['labels']
         self.update_map()
 
     def set_pseudosection_options(self):
@@ -1005,10 +1020,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                 arrowType = ['I']
             else:
                 arrowType = ['R', 'I']
+            if self.actionParkinson.isChecked():
+                arrow_convention = 'parkinson'
+            elif self.actionWeise.isChecked():
+                arrow_convention = 'weise'
             self.map.plot_induction_arrows(data_type=induction_toggles['data'],
                                            normalize=induction_toggles['normalize'],
                                            period_idx=self.active_period,
-                                           arrow_type=arrowType)
+                                           arrow_type=arrowType,
+                                           arrow_convention=arrow_convention)
         if 'None' in PT_toggles['data'] and not induction_toggles['data']:
             self.map.plot_locations()
         self.set_axis_settings()
@@ -1597,7 +1617,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.ptActionGroup.addAction(self.actionDegrees)
         self.ptActionGroup.addAction(self.actionUnitless)
         self.ptActionGroup.setExclusive(True)
-        self.ptActionGroup.triggered.connect(self.change_pt_units)
+        self.ptActionGroup.triggered.connect(self.change_pt_units)        
         # self.actionDegrees.changed.connect(self.dummy_update_dpm)
         # self.actionUnitless.changed.connect(self.dummy_update_dpm)
         # Super hacky axis limits setters. Fix this at some point

@@ -654,10 +654,24 @@
    </widget>
    <widget class="QMenu" name="menuMesh_Lines">
     <property name="title">
-     <string>Mesh Lines</string>
+     <string>2-D Options</string>
     </property>
-    <addaction name="meshOn"/>
-    <addaction name="meshOff"/>
+    <widget class="QMenu" name="menuMesh_Lines_2">
+     <property name="title">
+      <string>Mesh Lines</string>
+     </property>
+     <addaction name="meshOn"/>
+     <addaction name="meshOff"/>
+    </widget>
+    <widget class="QMenu" name="menuDepth_Label">
+     <property name="title">
+      <string>Depth Label</string>
+     </property>
+     <addaction name="depthLabelRange"/>
+     <addaction name="depthLabelCenter"/>
+    </widget>
+    <addaction name="menuMesh_Lines_2"/>
+    <addaction name="menuDepth_Label"/>
    </widget>
    <widget class="QMenu" name="menuPlot_Value">
     <property name="title">
@@ -671,8 +685,8 @@
     <addaction name="action_plot_rho_yz"/>
    </widget>
    <addaction name="menuView"/>
-   <addaction name="menuPlot_Value"/>
    <addaction name="menuMesh_Lines"/>
+   <addaction name="menuPlot_Value"/>
   </widget>
   <action name="viewXY">
    <property name="text">
@@ -808,6 +822,41 @@
    </property>
    <property name="text">
     <string>rho_y/rho_z</string>
+   </property>
+  </action>
+  <action name="actionOn">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>On</string>
+   </property>
+  </action>
+  <action name="actionOff">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Off</string>
+   </property>
+  </action>
+  <action name="depthLabelRange">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Range</string>
+   </property>
+  </action>
+  <action name="depthLabelCenter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Center</string>
    </property>
   </action>
  </widget>

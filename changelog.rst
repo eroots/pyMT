@@ -1,6 +1,22 @@
 Change Log
 ==========
 
+*19/01/24
+
+  * Induction arrow plots in the map viewer now correctly display all legend items
+
+  * Added selection of Parkinson or Weise convention to induction arrow plotting in the map viewer
+
+  * Added labels and titles to the 2-D slice views in the model viewer
+
+    * Added option to specify whether the plan view slice label is given by the layers range or center point
+
+  * Added a colourbar to the bottom right corner of the 2-D plots in the model viewer
+
+  * Added a colourbar to the data plot map view when plotting RMS values by colour
+
+    * Fixed issue where colours of active site RMS values were not correct
+
 *15/01/24
 
   * Moved the function generate_zmesh from utils to within the Model class

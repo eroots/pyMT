@@ -196,7 +196,8 @@ def save_geotiff(img, vals, x, y, epsg, file_name, z):
 # WESTERN SUPERIOR
 data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst')
 site_data = WSDS.RawData(local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst')
-mod = WSDS.Model(local_path + '/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.zani')
+mod = WSDS.Model(local_path + '/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.rho')
+# mod = WSDS.Model(local_path + '/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.zani')
 # mod = WSDS.Model(local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/tests/wst_wDikes-XY_hasterok37.zani')
 file_path = local_path + 'Documents/ME_Transects/wst/wstZK_s1_slices/'
 ######################################################################
@@ -265,13 +266,13 @@ mod.to_UTM()
 modes = {1: 'pcolor', 2: 'imshow', 3: 'pcolorimage'}
 mode = 3
 # title_ = 'Standard Inversion'
-rho_direction = 'rho_y'
+rho_direction = 'rho_x'
 save_fig = 0
 geotiff = 0
 vals_multiband = []
 multiband = True
 epsg = '26909'
-tag = 'wstZK_Y68'
+tag = 'wstZK_YZ85'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
@@ -362,7 +363,7 @@ else:
 # file_path = local_path + 'Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/plan-views/wstatic/turbomod0-4p5/'
 # for line, slice_num in zip(lines, slices):
 # for plane in ['xz', 'yz']:
-for plane in ['xy']:
+for plane in ['yz']:
     if plane == 'xy':
         slices = list(range(0, 45))
         add_map = False
@@ -377,7 +378,7 @@ for plane in ['xy']:
         add_map = False
         add_colourbar = False
     # for slice_num in slices:
-    for slice_num in [59]:
+    for slice_num in [85]:
         # title_ = 'Depth: {:<6.2f} m'.format(mod.dz[slice_num])
         if plane.lower() == 'xy':
             direction = 'Depth'

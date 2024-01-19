@@ -195,16 +195,23 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.toolbar = {'2D': [], 'transect': []}
         self.fig_2D = Figure()
         self.spec = {'X': [], 'Y': [], 'Z': []}
-        self.spec['Y'] = GridSpec(3, 3).new_subplotspec((0, 2), colspan=1, rowspan=2)
-        self.spec['X'] = GridSpec(3, 3).new_subplotspec((2, 0), colspan=2, rowspan=1)
-        self.spec['Z'] = GridSpec(3, 3).new_subplotspec((0, 0), colspan=2, rowspan=2)
+        # self.spec['Y'] = GridSpec(3, 3).new_subplotspec((0, 2), colspan=1, rowspan=2)
+        # self.spec['X'] = GridSpec(3, 3).new_subplotspec((2, 0), colspan=2, rowspan=1)
+        # self.spec['Z'] = GridSpec(3, 3).new_subplotspec((0, 0), colspan=2, rowspan=2)
+        # self.spec['colorbar'] = GridSpec(3, 3).new_subplotspec((2, 2), colspan=1, rowspan=1)
+        self.spec['Y'] = GridSpec(12, 12).new_subplotspec((0, 8), colspan=4, rowspan=8)
+        self.spec['X'] = GridSpec(12, 12).new_subplotspec((8, 0), colspan=8, rowspan=4)
+        self.spec['Z'] = GridSpec(12, 12).new_subplotspec((0, 0), colspan=8, rowspan=8)
+        self.spec['colorbar'] = GridSpec(12, 12).new_subplotspec((11, 9), colspan=3, rowspan=1)
         self.fig_2D.add_subplot(self.spec['Z'])
         self.fig_2D.add_subplot(self.spec['Y'])
         self.fig_2D.add_subplot(self.spec['X'])
-        self.fig_2D.subplots_adjust(top=1, bottom=0.05,
+        self.fig_2D.add_subplot(self.spec['colorbar'])
+        self.fig_2D.subplots_adjust(top=0.95, bottom=0.1,
                                     left=0.06, right=0.94,
-                                    hspace=0.05, wspace=0.05)
+                                    hspace=0.08, wspace=0.02)
         self.map = gplot.MapView(figure=self.fig_2D)
+        # self.map.window['colorbar'] = self.
         self.init_map(self.dataset)
         self.add_mpl(self.map.window['figure'], '2D')
         self.fig_transect = Figure()
@@ -216,6 +223,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.update_plan_view()
         self.update_2D_X()
         self.update_2D_Y()
+        self.update_2D_colorbar()
 
     @property
     def x_slice(self):
@@ -346,7 +354,31 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.map.window['axes'][0].get_xaxis().set_visible(False)
         self.plot_transect_markers(redraw=True)
         self.plot_transect_line(redraw=True)
+        self.update_plan_title()
         # self.map.window['axes'][0].set_aspect('equal')
+        self.canvas['2D'].draw()
+
+    def update_2D_colorbar(self):
+        self.map.window['axes'][3].clear()
+        # fake_vals = np.linspace(self.cax[0], self.cax[1], self.lut)
+        # fake_im = self.map.window['axes'][3].scatter(range(self.lut), range(self.lut),
+                                                     # c=fake_vals, cmap=self.cmap)
+        fake_vals = np.linspace(self.cax[0], self.cax[1], self.lut)
+        fake_im = self.map.window['axes'][3].scatter(range(self.lut), range(self.lut), s=10, marker='.',
+                                                     c=fake_vals, cmap=self.cmap)
+        fake_im.set_visible(False)
+        self.map.window['figure'].colorbar(mappable=fake_im, cax=self.map.window['axes'][3],
+                                           orientation='horizontal')
+        self.map.window['axes'][3].set_xlabel(r'$Log_{10}$ Resistivity ($\Omega$m)', fontsize=self.map.label_fontsize)
+        self.canvas['2D'].draw()
+
+    def update_plan_title(self):
+        if self.depthLabelRange.isChecked():
+            self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
+                                                 ', Depth = '+'{:.3g}'.format((self.model.dz[self.z_slice]+self.model.dz[self.z_slice-1])/2)+' km', fontsize=self.map.label_fontsize)
+        elif self.depthLabelCenter.isChecked():
+            self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
+                                                 ', Depth = '+'{:.3g}'.format(self.model.dz[self.z_slice-1])+u'\u2013'+'{:.3g}'.format(self.model.dz[self.z_slice])+' km', fontsize=self.map.label_fontsize)
         self.canvas['2D'].draw()
 
     def update_slice_indicators(self, direction='xy', redraw=True):
@@ -437,9 +469,14 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Colour options
         self.colourMenu.action_group.triggered.connect(self.change_cmap)
         self.colourMenu.limits.triggered.connect(self.set_clim)
-        self.mesh_group.triggered.connect(self.show_mesh)
         self.colourMenu.lut.triggered.connect(self.set_lut)
         self.colourMenu.all_maps[self.colourmap].setChecked(True)
+        # 2-D Plot options
+        self.mesh_group.triggered.connect(self.show_mesh)
+        self.depthTitles = QtWidgets.QActionGroup(self)
+        self.depthTitles.addAction(self.depthLabelRange)
+        self.depthTitles.addAction(self.depthLabelCenter)
+        self.depthTitles.triggered.connect(self.update_plan_title)
         # View buttons
         self.viewXY.triggered.connect(self.view_xy)
         self.viewXZ.triggered.connect(self.view_xz)
@@ -474,6 +511,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.rho_axis_group.addAction(self.action_plot_rho_xz)
         self.rho_axis_group.addAction(self.action_plot_rho_yz)
         self.rho_axis_group.setExclusive(True)
+
         if self.dataset.model.isotropic:
             self.rho_axis_group.setEnabled(False)
         else:
@@ -996,6 +1034,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.update_2D_X()
         self.update_2D_Y()
         self.update_plan_view()
+        self.update_2D_colorbar()
         self.render_3D(reset_camera)
 
     def click_2D(self, event):

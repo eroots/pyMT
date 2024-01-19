@@ -723,7 +723,7 @@ class MapView(object):
         self.include_outliers = True
         self.allowed_std = 3
         self.units = 'm'
-        self.label_fontsize = 14
+        self.label_fontsize = 12
         self.mesh = False
         self.lut = 16
         self.linewidth = 0.005
@@ -907,21 +907,23 @@ class MapView(object):
             locs = utils.rotate_locs(locs, azi)
         return locs
 
-    def set_axis_labels(self, xlabel=None, ylabel=None):
+    def set_axis_labels(self, ax=None, xlabel=None, ylabel=None):
+        if ax is None:
+            ax = self.window['axes'][0]
         if xlabel:
-            self.window['axes'][0].set_xlabel(xlabel, fontsize=self.label_fontsize)
+            ax.set_xlabel(xlabel, fontsize=self.label_fontsize)
         else:
             if self.coordinate_system.lower() in ('utm', 'local', 'lambert'):
-                self.window['axes'][0].set_xlabel('Easting (km)', fontsize=self.label_fontsize)
+                ax.set_xlabel('Easting (km)', fontsize=self.label_fontsize)
             else:
-                self.window['axes'][0].set_xlabel(r'Longitude ($^{\circ}$)', fontsize=self.label_fontsize)
+                ax.set_xlabel(r'Longitude ($^{\circ}$)', fontsize=self.label_fontsize)
         if ylabel:
-            self.window['axes'][0].set_ylabel(ylabel, fontsize=self.label_fontsize)
+            ax.set_ylabel(ylabel, fontsize=self.label_fontsize)
         else:
             if self.coordinate_system.lower() in ('utm', 'local', 'lambert'):
-                self.window['axes'][0].set_ylabel('Northing (km)', fontsize=self.label_fontsize)
+                ax.set_ylabel('Northing (km)', fontsize=self.label_fontsize)
             else:
-                self.window['axes'][0].set_ylabel(r'Latitude ($^{\circ}$)', fontsize=self.label_fontsize)
+                ax.set_ylabel(r'Latitude ($^{\circ}$)', fontsize=self.label_fontsize)
 
     def set_axis_limits(self, bounds=None, ax=None):
         if ax is None:
@@ -969,6 +971,7 @@ class MapView(object):
         facecolour = {'generic': 'None', 'active': 'None'}
         edgecolour = deepcopy(self.site_exterior)
         edgewidth = deepcopy(self.edgewidth)
+        cmin, cmax = 1, 1
         if self.plot_rms:
             marker = 'o'
             generic_rms = np.array([self.dataset.rms['Station'][site]['Total']
@@ -985,6 +988,12 @@ class MapView(object):
                                                          lower=1, upper=2, explicit_bounds=True) *
                                          self.markersize) ** 2
             if 'colour' in self.rms_plot_style:
+                cmin = np.min(np.concatenate((generic_rms, active_rms), axis=0))
+                cmax = np.max(np.concatenate((generic_rms, active_rms), axis=0))
+                # facecolour['generic'] = utils.normalize(generic_rms,
+                #                                         lower=1, upper=2, explicit_bounds=True)
+                # facecolour['active'] = utils.normalize(active_rms,
+                #                                         lower=1, upper=2, explicit_bounds=True)
                 facecolour['generic'] = generic_rms
                 facecolour['active'] = active_rms
                 edgecolour['generic'] = None
@@ -1005,7 +1014,8 @@ class MapView(object):
                                                # facecolors=facecolour,
                                                c=facecolour['generic'],
                                                zorder=9,
-                                               cmap=self.cmap)
+                                               cmap=self.cmap,
+                                               vmin=cmin, vmax=cmax)
             except IndexError:
                 pass
 
@@ -1019,22 +1029,52 @@ class MapView(object):
                                            # facecolors=facecolour,
                                            c=facecolour['active'],
                                            zorder=9,
-                                           cmap=self.cmap)
+                                           cmap=self.cmap,
+                                           vmin=cmin, vmax=cmax)
+        if self.plot_rms:
+            if 'colour' in self.rms_plot_style and self.use_colourbar:
+                fake_vals = np.concatenate((generic_rms, active_rms), axis=0)
+                self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][:, 1],
+                                                              self.site_locations['all'][:, 0],
+                                                              c=fake_vals, cmap=self.cmap)
+                self.fake_im.set_visible(False)
+                self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
+                label = 'R.M.S. Misfit'
+                self.window['colorbar'].set_label(label,
+                                                  rotation=270,
+                                                  labelpad=20,
+                                                  fontsize=18)
+                self.window['colorbar'].set_ticks(np.linspace(np.min(fake_vals), np.max(fake_vals), min(self.lut, 24) + 1))
+            if 'labels' in self.rms_plot_style:
+                for ii, (xx, yy) in enumerate(self.site_locations['active']):
+                    self.actors['locations'].append(self.window['axes'][0].annotate('{:5.2f}'.format(active_rms[ii]),
+                                                                                     xy=(yy, xx),
+                                                                                     xytext=(10, -4), textcoords='offset points'))
+                for ii, (xx, yy) in enumerate(self.site_locations['generic']):
+                    self.actors['locations'].append(self.window['axes'][0].annotate('{:5.2f}'.format(generic_rms[ii]),
+                                                                                     xy=(yy, xx),
+                                                                                     xytext=(10, -4), textcoords='offset points'))
         self.set_axis_labels()
 
     def plot_annotate(self):    
         if self.annotate_sites == 'active':
             for ii, (xx, yy) in enumerate(self.site_locations['active']):
-                self.actors['annotation'].append(self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx)))
+                self.actors['annotation'].append(self.window['axes'][0].annotate(self.active_sites[ii],
+                                                                                 xy=(yy, xx),
+                                                                                 xytext=(10, 4), textcoords='offset points'))
         elif self.annotate_sites == 'all':
             for ii, (xx, yy) in enumerate(self.site_locations['active']):
-                    self.actors['annotation'].append(self.window['axes'][0].annotate(self.active_sites[ii], xy=(yy, xx)))
+                    self.actors['annotation'].append(self.window['axes'][0].annotate(self.active_sites[ii],
+                                                                                     xy=(yy, xx),
+                                                                                     xytext=(10, 4), textcoords='offset points'))
             for ii, (xx, yy) in enumerate(self.site_locations['generic']):
-                self.actors['annotation'].append(self.window['axes'][0].annotate(self.generic_sites[ii], xy=(yy, xx)))
+                self.actors['annotation'].append(self.window['axes'][0].annotate(self.generic_sites[ii],
+                                                                                 xy=(yy, xx),
+                                                                                 xytext=(10, 4), textcoords='offset points'))
         self.set_axis_limits()
 
-    @utils.enforce_input(data_type=list, normalize=bool, period_idx=int, arrow_type=list)
-    def plot_induction_arrows(self, data_type='data', normalize=True, period_idx=1, arrow_type=['R']):
+    @utils.enforce_input(data_type=list, normalize=bool, period_idx=int, arrow_type=list, arrow_convention=str)
+    def plot_induction_arrows(self, data_type='data', normalize=True, period_idx=1, arrow_type=['R'], arrow_convention='parkinson'):
         # max_length = np.sqrt((np.max(self.site_locations['all'][:, 0]) -
         #                       np.min(self.site_locations['all'][:, 0])) ** 2 +
         #                      (np.max(self.site_locations['all'][:, 1]) -
@@ -1059,12 +1099,16 @@ class MapView(object):
                     if np.all(np.array([site.used_error[comp][period_idx] for comp in site.TIPPER_COMPONENTS]) == site.REMOVE_FLAG):
                         continue
                     idx.append(ii)
+                    if (R_or_L == 'R' and arrow_convention.lower() == 'weise'):
+                        reverse = -1
+                    else:
+                        reverse = 1
                     if 'TZX' + R_or_L in site.components:
-                        X.append(-site.data['TZX' + R_or_L][period_idx])
+                        X.append(-site.data['TZX' + R_or_L][period_idx] * reverse)
                     else:
                         X.append(0)
                     if 'TZY' + R_or_L in site.components:
-                        Y.append(-site.data['TZY' + R_or_L][period_idx])
+                        Y.append(-site.data['TZY' + R_or_L][period_idx] * reverse)
                     else:
                         Y.append(0)
                 if idx:
@@ -1104,25 +1148,27 @@ class MapView(object):
                     self.set_axis_limits()
                 else:
                     preserved_lengths = 0
-            # If no arrows are drawn
-            if not idx:
-                return
-            # key_length_idx = np.argmin(np.abs(preserved_lengths - 0.5))
-            key_length = 0.5 * self.induction_scale / 50
-            horz_scale = (y_max - y_min) / 10
-            vert_scale = (x_max - x_min) / 10
-            label_pos_vert = x_min + vert_scale
-            if R_or_L == 'R':
-                key_label = 'Real'
-            else:
-                key_label = 'Imag'
-            qk = self.window['axes'][0].quiverkey(quiv_handle,
-                                                  self.window['axes'][0].get_xlim()[0] + horz_scale * 3.5,
-                                                  self.window['axes'][0].get_ylim()[0] + vert_scale - num_keys * vert_scale / 2,
-                                                  key_length, key_label + ', Length = 0.5',
-                                                  labelpos='W',
-                                                  coordinates='data')
-            num_keys += 1
+                # If no arrows are drawn
+                if not idx:
+                    return
+                # key_length_idx = np.argmin(np.abs(preserved_lengths - 0.5))
+                key_length = 0.5 * self.induction_scale / 50
+                horz_scale = (y_max - y_min) / 10
+                vert_scale = (x_max - x_min) / 10
+                label_pos_vert = x_min + vert_scale
+                if R_or_L == 'R':
+                    key_label = 'Real {} ({})'.format(dType, arrow_convention.capitalize())
+                else:
+                    key_label = 'Imaginary {}'.format(dType)
+                x_offset = np.floor(num_keys / 2) * horz_scale * 5
+                y_offset = (num_keys % 2) * (vert_scale / 2)
+                qk = self.window['axes'][0].quiverkey(quiv_handle,
+                                                      self.window['axes'][0].get_xlim()[0] + horz_scale * 4 + x_offset,
+                                                      self.window['axes'][0].get_ylim()[0] + vert_scale - y_offset,
+                                                      key_length, key_label + ', Length = 0.5',
+                                                      labelpos='W',
+                                                      coordinates='data')
+                num_keys += 1
 
     def pt_fill_limits(self, fill_param, pt_type):
         if fill_param in ['Lambda']:
@@ -1620,8 +1666,9 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        self.set_axis_labels()
+        self.set_axis_labels(ax=ax)
         # ax.set_ylabel('Northing (km)')
+        # ax.set_title('Test')
         # ax.set_xlabel('Easting (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
@@ -1654,9 +1701,9 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        self.set_axis_labels()
-        # ax.set_xlabel('Easting (km)')
-        # ax.set_ylabel('Depth (km)')
+        self.set_axis_labels(ax=ax, xlabel='Easting (km)', ylabel='Depth (km)')
+        # ax.set_xlabel('Easting (km)', fontsize=self.label_fontsize)
+        # ax.set_ylabel('Depth (km)', fontsize=self.label_fontsize)
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
                                               x_label='Easting', y_label='Depth')
@@ -1696,9 +1743,9 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        self.set_axis_labels(xlabel=x_label, ylabel=y_label)
-        # ax.set_xlabel(x_label)
-        # ax.set_ylabel(y_label)
+        self.set_axis_labels(ax=ax, xlabel=x_label, ylabel=y_label)
+        # ax.set_xlabel(x_label, fontsize=self.label_fontsize)
+        # ax.set_ylabel(y_label, fontsize=self.label_fontsize)
         ax.format_coord = format_model_coords(im, X=X, Y=Y,
                                               x_label=x_label.split()[0],
                                               y_label=y_label.split()[0])

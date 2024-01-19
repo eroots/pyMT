@@ -623,9 +623,17 @@
      <property name="title">
       <string>Induction Arrows</string>
      </property>
+     <widget class="QMenu" name="menuConvention">
+      <property name="title">
+       <string>Convention</string>
+      </property>
+      <addaction name="actionParkinson"/>
+      <addaction name="actionWeise"/>
+     </widget>
      <addaction name="actionInductionErrorTolerance"/>
      <addaction name="actionInductionScale"/>
      <addaction name="actionInductionCutoff"/>
+     <addaction name="menuConvention"/>
     </widget>
     <widget class="QMenu" name="menuCoordinate_System">
      <property name="title">
@@ -642,6 +650,7 @@
      </property>
      <addaction name="action_rmsSize"/>
      <addaction name="action_rmsColour"/>
+     <addaction name="action_rmsLabels"/>
     </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
@@ -774,6 +783,9 @@
   </action>
   <action name="actionAnnotate_Active">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -996,6 +1008,33 @@
    </property>
    <property name="text">
     <string>Zxy - Zyx</string>
+   </property>
+  </action>
+  <action name="actionParkinson">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Parkinson (Reversed)</string>
+   </property>
+  </action>
+  <action name="actionWeise">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Weise</string>
+   </property>
+  </action>
+  <action name="action_rmsLabels">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Labels</string>
    </property>
   </action>
  </widget>
