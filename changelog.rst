@@ -17,6 +17,8 @@ Change Log
 
     * Fixed issue where colours of active site RMS values were not correct
 
+  * Plotting RMS on the map viewer now respects the chosen marker shape (previously was being reset to a circle)
+
 *15/01/24
 
   * Moved the function generate_zmesh from utils to within the Model class

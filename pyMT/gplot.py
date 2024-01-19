@@ -973,7 +973,8 @@ class MapView(object):
         edgewidth = deepcopy(self.edgewidth)
         cmin, cmax = 1, 1
         if self.plot_rms:
-            marker = 'o'
+            # marker = 'o'
+            marker = self.site_marker
             generic_rms = np.array([self.dataset.rms['Station'][site]['Total']
                                     for site in self.generic_sites])
             active_rms = np.array([self.dataset.rms['Station'][site]['Total']
