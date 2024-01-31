@@ -254,6 +254,7 @@ class ColourMenu(QtWidgets.QMenu):
                                            'turbo', 'turbo_r', 'turbo_capped', 'turbo_capped_r', 'turbo_r_mod',
                                            'twilight', 'twilight_shifted',
                                            'colorwheel',
+                                           'hot', 'hot_r',
                                            'viridis', 'viridis_r')}
         self.action_group = QtWidgets.QActionGroup(self)
         self.setTitle('Colour Options')

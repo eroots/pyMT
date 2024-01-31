@@ -17,6 +17,8 @@ Change Log
 
     * Fixed issue where colours of active site RMS values were not correct
 
+    * Added a corresponding menu item to set the limits of the RMS colours
+
   * Plotting RMS on the map viewer now respects the chosen marker shape (previously was being reset to a circle)
 
 *15/01/24

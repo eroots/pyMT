@@ -2905,7 +2905,7 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                    n_param=n_param)
     else:
         print('File format {} not supported'.format(file_format))
-        print('Supported formats are: butts')
+        print('Supported formats are: ')
         print('ModEM, WSINV3DMT, UBC-GIF, CSV, EM3DANI, MT3DANI')
         return
 

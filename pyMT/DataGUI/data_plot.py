@@ -387,6 +387,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.difference_limits = self.colourMenu.limits.addAction('Difference')
         self.colourMenu.skew_limits = self.colourMenu.limits.addAction('Skew')
         self.colourMenu.tipper_limits = self.colourMenu.limits.addAction('Tipper')
+        self.colourMenu.rms_limits = self.colourMenu.limits.addAction('RMS')
         # self.colourMenu.limits.triggered.connect(self.set_rho_cax)
         ###################################################
         self.colourMenu.lut.triggered.connect(self.set_lut)
@@ -398,6 +399,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
         self.colourMenu.tipper_limits.triggered.connect(self.set_tipper_cax)
         self.colourMenu.skew_limits.triggered.connect(self.set_skew_cax)
+        self.colourMenu.rms_limits.triggered.connect(self.set_rms_cax)
         ###################################################
         self.PTRotGroup = QtWidgets.QActionGroup(self)
         self.actionPTRotAxisX.setActionGroup(self.PTRotGroup)
@@ -881,6 +883,13 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if limits is not None and limits != self.map.skew_cax:
             self.map.skew_cax = limits
             self.update_map()
+
+    def set_rms_cax(self):
+        limits = self.set_cax(self.map.rms_cax[0], self.map.rms_cax[1])
+        if limits is not None and limits != self.map.rms_cax:
+            self.map.rms_cax = limits
+            if self.plotRMS.checkState():
+                self.update_map()
 
     def set_colourmap(self):
         self.map.colourmap = self.colourMenu.action_group.checkedAction().text()

@@ -3478,6 +3478,11 @@ class PhaseTensor(object):
         phi_1 = (self.phi[0, 0] + self.phi[1, 1]) / 2
         phi_2 = np.sqrt(np.abs(det_phi))
         phi_3 = skew_phi / 2
+        # Alternative method for calculating phi_min and phi_max given by Moorkamp (2007)
+        # sig_1 = 0.5 * np.sqrt(((self.phi[0,0] - self.phi[1,1])**2 + (self.phi[0,1] + self.phi[1,0])**2))
+        # sig_2 = 0.5 * np.sqrt(((self.phi[0,0] + self.phi[1,1])**2 + (self.phi[0,1] - self.phi[1,0])**2))
+        # phi_max = sig_2 + sig_1
+        # phi_min = sig_2 - sig_1
         # Note there is no abs on det_phi here by recommendation of Moorkamp (2007)
         phi_max = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) +
                    np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))

@@ -1129,12 +1129,12 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         linear_x[1:-1] = np.sqrt((self.qx[1:] - self.qx[:-1]) ** 2 + (self.qy[1:] - self.qy[:-1]) ** 2)
         linear_x = np.cumsum(linear_x)
         # Hack to get dimesniosn right
-        # linear_x[-1] += (linear_x[-1] - linear_x[-1])
+        linear_x[-1] += (linear_x[-1] - linear_x[-1])
         # qz = list(qz)
         # qz.append(qz[-1] + 1)
         # qz = np.array(qz)
         self.fig_transect.axes[0].clear()
-        self.fig_transect.axes[0].pcolormesh(linear_x, self.qz,
+        self.fig_transect.axes[0].pcolormesh(linear_x, np.array(list(self.qz) + [self.qz[-1] + 1]),
                                              self.interp_vals.T,
                                              vmin=self.cax[0], vmax=self.cax[1],
                                              cmap=self.cmap)

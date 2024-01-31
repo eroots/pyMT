@@ -704,6 +704,7 @@ class MapView(object):
         self.model_cax = [1, 5]
         self.aniso_cax = [-2, 2]
         self.depth_cax = [0, 3.5]
+        self.rms_cax = [0, 4]
         self.model = []
         self.padding_scale = 5
         self.plot_rms = False
@@ -989,16 +990,19 @@ class MapView(object):
                                                          lower=1, upper=2, explicit_bounds=True) *
                                          self.markersize) ** 2
             if 'colour' in self.rms_plot_style:
-                cmin = np.min(np.concatenate((generic_rms, active_rms), axis=0))
-                cmax = np.max(np.concatenate((generic_rms, active_rms), axis=0))
+                # cmin = np.min(np.concatenate((generic_rms, active_rms), axis=0))
+                # cmax = np.max(np.concatenate((generic_rms, active_rms), axis=0))
                 # facecolour['generic'] = utils.normalize(generic_rms,
                 #                                         lower=1, upper=2, explicit_bounds=True)
                 # facecolour['active'] = utils.normalize(active_rms,
                 #                                         lower=1, upper=2, explicit_bounds=True)
                 facecolour['generic'] = generic_rms
                 facecolour['active'] = active_rms
-                edgecolour['generic'] = None
-                edgecolour['active'] = None
+                if 'size' in self.rms_plot_style:
+                    edgecolour['generic'] = None
+                    edgecolour['active'] = None
+                # else:
+
         else:
             marker = self.site_marker
             facecolour['active'] = self.facecolour
@@ -1016,7 +1020,7 @@ class MapView(object):
                                                c=facecolour['generic'],
                                                zorder=9,
                                                cmap=self.cmap,
-                                               vmin=cmin, vmax=cmax)
+                                               vmin=self.rms_cax[0], vmax=self.rms_cax[1])
             except IndexError:
                 pass
 
@@ -1031,10 +1035,10 @@ class MapView(object):
                                            c=facecolour['active'],
                                            zorder=9,
                                            cmap=self.cmap,
-                                           vmin=cmin, vmax=cmax)
+                                           vmin=self.rms_cax[0], vmax=self.rms_cax[1])
         if self.plot_rms:
             if 'colour' in self.rms_plot_style and self.use_colourbar:
-                fake_vals = np.concatenate((generic_rms, active_rms), axis=0)
+                fake_vals = np.linspace(self.rms_cax[0], self.rms_cax[1], self.site_locations['all'].shape[0])
                 self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][:, 1],
                                                               self.site_locations['all'][:, 0],
                                                               c=fake_vals, cmap=self.cmap)
@@ -1045,7 +1049,7 @@ class MapView(object):
                                                   rotation=270,
                                                   labelpad=20,
                                                   fontsize=18)
-                self.window['colorbar'].set_ticks(np.linspace(np.min(fake_vals), np.max(fake_vals), min(self.lut, 24) + 1))
+                self.window['colorbar'].set_ticks(np.linspace(self.rms_cax[0], self.rms_cax[1], min(self.lut, 24) + 1))
             if 'labels' in self.rms_plot_style:
                 for ii, (xx, yy) in enumerate(self.site_locations['active']):
                     self.actors['locations'].append(self.window['axes'][0].annotate('{:5.2f}'.format(active_rms[ii]),
