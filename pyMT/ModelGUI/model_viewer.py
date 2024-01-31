@@ -1131,8 +1131,11 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Hack to get dimesniosn right
         linear_x[-1] += (linear_x[-1] - linear_x[-1])
         # qz = list(qz)
+        # qz = list(self.qz)
         # qz.append(qz[-1] + 1)
         # qz = np.array(qz)
+        # sub the hack into call to pcolormesh below, replacing self.qz 
+        
         self.fig_transect.axes[0].clear()
         self.fig_transect.axes[0].pcolormesh(linear_x, np.array(list(self.qz) + [self.qz[-1] + 1]),
                                              self.interp_vals.T,
