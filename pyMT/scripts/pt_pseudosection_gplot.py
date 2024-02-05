@@ -127,14 +127,14 @@ for use_list_dummy in list_file[:1]:
     for tensor_type in ['phi']:
         # fill_param = ['phi_max', 'phi_min']
         # fill_param = ['phi_split']
-        fill_param = ['beta']
+        fill_param = ['phi_2']
         # fill_param = ['azimuth', 'beta']
         # tensor_type = 'phi'
         padding = 20.
         low_cut = 0.001
         high_cut = 600
-        save_fig = 1
-        freq_skip = 1
+        save_fig = 0
+        freq_skip = 0
         label_offset = -1.2
         xlim = [min(main_transect.locations[:,1])-padding, max(main_transect.locations[:,1])+padding]
         # ylim = [0.5, 4.2]

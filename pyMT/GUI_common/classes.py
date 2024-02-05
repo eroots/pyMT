@@ -245,17 +245,21 @@ class TwoInputDialog(QtWidgets.QDialog):
 class ColourMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
         super(QtWidgets.QMenu, self).__init__(parent)
-        self.all_maps = {x: None for x in ('bgy', 'bgy_r',
-                                           'viridis', 'viridis_r',
-                                           'jet', 'jet_r',
-                                           'jet_plus', 'jet_plus_r',
-                                           'bwr', 'bwr_r',
-                                           'greys', 'greys_r',
-                                           'turbo', 'turbo_r', 'turbo_capped', 'turbo_capped_r', 'turbo_r_mod',
-                                           'twilight', 'twilight_shifted',
+        self.default_cmap = 'turbo'
+        self.all_maps = {x: None for x in ('bgy', #'bgy_r',
+                                           'viridis', #'viridis_r',
+                                           'jet', #'jet_r',
+                                           'jet_plus',# 'jet_plus_r',
+                                           'bwr', #'bwr_r',
+                                           'greys', #'greys_r',
+                                           'turbo', #'turbo_r', 
+                                           'turbo_capped', #'turbo_capped_r', 
+                                           'turbo_mod',
+                                           'twilight', 
+                                           'twilight_shifted',
                                            'colorwheel',
-                                           'hot', 'hot_r',
-                                           'viridis', 'viridis_r')}
+                                           'hot', #'hot_r',
+                                           'viridis')} #'viridis_r')}
         self.action_group = QtWidgets.QActionGroup(self)
         self.setTitle('Colour Options')
         self.map = self.addMenu('Colour Map')
@@ -263,12 +267,17 @@ class ColourMenu(QtWidgets.QMenu):
         self.lut = self.addAction('# Colour Intervals')
 
         # Add all the colour maps
+        self.map.invert_cmap = QtWidgets.QAction('Invert Colourmap', parent, checkable=True)
+        self.map.addAction(self.map.invert_cmap)
+        self.map.invert_cmap.setChecked(True)
+        self.map.addSeparator()
         for item in self.all_maps.keys():
             self.all_maps[item] = QtWidgets.QAction(item, parent, checkable=True)
             self.map.addAction(self.all_maps[item])
             self.action_group.addAction(self.all_maps[item])
             # self.map.addMenu(item)
         self.action_group.setExclusive(True)
+        self.all_maps[self.default_cmap].setChecked(True)
 
     def set_clim(self, initial_1='1', initial_2='5'):
         inputs, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',

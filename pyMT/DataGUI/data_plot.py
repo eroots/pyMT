@@ -374,6 +374,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         ###################################################
         #  Set up colour map selections
         self.colourMenu.action_group.triggered.connect(self.set_colourmap)
+        self.colourMenu.map.invert_cmap.triggered.connect(self.set_colourmap)
         ###################################################
         # Reordering submenus
         self.colourMenu.removeAction(self.colourMenu.limits)
@@ -893,6 +894,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
 
     def set_colourmap(self):
         self.map.colourmap = self.colourMenu.action_group.checkedAction().text()
+        self.map.invert_cmap = self.colourMenu.map.invert_cmap.isChecked()
         # if self.actionJet.isChecked():
         #     self.map.colourmap = 'jet'
         # if self.actionJet_r.isChecked():

@@ -15,6 +15,8 @@ except ModuleNotFoundError:
     has_nn = False
     print('Natural Neighbor not found and will not be available')
 
+
+
 # import matplotlib.pyplot as plt
 
 
@@ -689,7 +691,8 @@ class MapView(object):
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = 'active'
-        self.colourmap = 'turbo_r'
+        self.colourmap = 'turbo'
+        self.invert_cmap = True
         self.has_nn = has_nn
         if self.has_nn:
             self.interpolant = 'natural'
@@ -754,7 +757,7 @@ class MapView(object):
 
     @property
     def cmap(self):
-        return cm.get_cmap(self.colourmap, N=self.lut)
+        return cm.get_cmap(self.colourmap, N=self.lut, invert=self.invert_cmap)
 
     @property
     def generic_sites(self):
@@ -1605,7 +1608,8 @@ class MapView(object):
         im = self.window['axes'][0].pcolor(grid_x, grid_y, grid_vals.T,
                                            cmap=self.cmap,
                                            vmin=cax[0], vmax=cax[1],
-                                           zorder=0)
+                                           zorder=0,
+                                           shading='auto')
         if self.window['colorbar'] and self.use_colourbar:
             self.window['colorbar'].remove()
             self.window['colorbar'] = self.window['figure'].colorbar(mappable=im)

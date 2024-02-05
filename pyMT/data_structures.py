@@ -170,11 +170,7 @@ class Dataset(object):
 
     @utils.enforce_input(sites=list, periods=list, components=list, hTol=float, lTol=float)
     def get_data_from_raw(self, lTol=None, hTol=None, sites=None, periods=None, components=None):
-        # if components:
-        #     if any(comp not in Data.ACCEPTED_COMPONENTS for comp in components):
-
-        #         print('Invalid component passed to keyword "components"')
-        #         return
+        
         self.data.sites = self.raw_data.get_data(sites=sites, periods=periods,
                                                  components=components, lTol=lTol,
                                                  hTol=hTol)
@@ -488,9 +484,6 @@ class Dataset(object):
                                                           to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
                     smoothed_data2 = smoothed_data / scale
-                    # print(smoothed_data2 - to_smooth)
-                    # smoothed_site = deepcopy(raw_site)
-                    # smoothed_site.data[comp] = smoothed_data
                     
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))
@@ -3427,11 +3420,7 @@ class PhaseTensor(object):
             # pt_r[2, ii] = np.remainder(pt_r[2, ii], np.pi/2)
             # pt_r[3, ii] = np.remainder(pt_r[3, ii], np.pi/2)
         med = np.median(pt_r, axis=1)
-        # print(pt_r)
-        # print(Z_errors)
-        # print(med)
         errors = np.median(np.abs(pt_r - (np.ones((self.error_realizations, 4))*med).T), axis=1) * 1.4
-        # print(errors)
         self.phi_error = np.array([[errors[0], errors[1]],
                                    [errors[2], errors[3]]])
 

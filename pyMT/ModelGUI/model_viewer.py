@@ -169,8 +169,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.plot_locations = False
         self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
         self.lut = 32
-        self.colourmap = 'turbo_r'
-        self.cmap = cm.get_cmap('turbo_r', 32)
+        # self.colourmap = 'turbo_r'
+        self.colourmap = self.colourMenu.action_group.checkedAction().text()
+        self.cmap = cm.get_cmap(self.colourmap, self.lut, self.colourMenu.map.invert_cmap.isChecked())
         self.cax, self.rho_cax, self.resolution_cax, self.aniso_cax = [1, 5], [1, 5], [-6, -2], [-2, 2]
         self.actors = {'X': [], 'Y': [], 'Z': [], 'transect': [], 'isosurface': []}
         self.contours = []
@@ -470,7 +471,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.colourMenu.action_group.triggered.connect(self.change_cmap)
         self.colourMenu.limits.triggered.connect(self.set_clim)
         self.colourMenu.lut.triggered.connect(self.set_lut)
-        self.colourMenu.all_maps[self.colourmap].setChecked(True)
+        self.colourMenu.map.invert_cmap.triggered.connect(self.change_cmap)
+        # self.colourMenu.all_maps[self.colourmap].setChecked(True)
         # 2-D Plot options
         self.mesh_group.triggered.connect(self.show_mesh)
         self.depthTitles = QtWidgets.QActionGroup(self)
@@ -660,7 +662,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def change_cmap(self):
         self.colourmap = self.colourMenu.action_group.checkedAction().text()
-        self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text(), self.lut)
+        self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text(),
+                                self.lut,
+                                self.colourMenu.map.invert_cmap.isChecked())
         self.map.colourmap = self.colourmap
         self.map.lut = self.lut
         self.update_all(reset_camera=False)
