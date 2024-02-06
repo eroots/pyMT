@@ -6,6 +6,7 @@ from copy import deepcopy
 from math import log10, floor
 import pyproj
 from scipy.interpolate import RegularGridInterpolator as RGI
+from scipy.ndimage import median_filter
 # from pyMT.IO import debug_print
 
 
@@ -54,6 +55,15 @@ def percdiff(val1, val2):
     return abs(val1 - val2) / (0.5 * (val1 + val2))
 
 
+def remove_outliers(data, size=7, threshold=1):
+    med = median_filter(data, size=size)
+    diff = percdiff(data, med)
+    idx = abs(diff) > threshold
+    output = np.array(data)
+    output[idx] = med[idx]
+    return output
+
+
 def skin_depth(resistivity, period):
     return 500 * np.sqrt(resistivity * period)
 
@@ -80,6 +90,8 @@ def dms_to_dd(dms_string):
 
 
 def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
+    print('This function is depreciated.\n')
+    print('It functions as it used to, however, the function has been updated and included as a method within the pyMT Model object.')
     num_decade = int(np.ceil(np.log10(max_depth)) - floor(np.log10(min_depth)))
     try:
         if num_decade != len(NZ):
@@ -704,26 +716,26 @@ def compute_rho(site, calc_comp=None, errtype='none'):
         np.array: Associated errors. Note that the errors are set to 0 for the determinant apparent
                   resistivities (Proper calculatation not implemented yet)
     """
-    def compute_rho_error(sited, errtyped, compd):
+    def compute_rho_error(site, errtyped, compd):
         # compd = ''.join(['Z', compd.upper()])
-        zeR = getattr(sited, errtyped)[''.join([compd, 'R'])]
-        zeI = getattr(sited, errtyped)[''.join([compd, 'I'])]
+        zeR = getattr(site, errtyped)[''.join([compd, 'R'])]
+        zeI = getattr(site, errtyped)[''.join([compd, 'I'])]
         z = site.data[''.join([compd, 'R'])] - 1j * site.data[''.join([compd, 'I'])]
         if len(zeR) == 0:
             zeR = zeI = z * 0
-        C = 2 * sited.periods / (MU * 2 * np.pi)
+        C = 2 * site.periods / (MU * 2 * np.pi)
         rho_error = np.sqrt((C * np.real(z) * zeR) ** 2 + (C * np.imag(z) * zeI) ** 2)
         rho_log10Err = (rho_error * np.sqrt(2) /
                         ((C * np.real(z) ** 2 + C * np.imag(z) ** 2) * np.log(10)))
-        idx = zeR == sited.REMOVE_FLAG
+        idx = zeR == site.REMOVE_FLAG
         # Preserve remove flags
-        rho_error[idx] = sited.REMOVE_FLAG
-        rho_log10Err[idx] = sited.REMOVE_FLAG
+        rho_error[idx] = site.REMOVE_FLAG
+        rho_log10Err[idx] = site.REMOVE_FLAG
         return rho_error, rho_log10Err
 
     COMPS = ('XX', 'XY',
              'YY', 'YX',
-             'DET', 'GAV', 'AAV')
+             'DET', 'GAV', 'AAV', 'SSQ')
     if not calc_comp:
         calc_comp = 'det'
     calc_comp = calc_comp.lower()
@@ -741,6 +753,8 @@ def compute_rho(site, calc_comp=None, errtype='none'):
             det, err = compute_gav(site)
         elif calc_comp == 'aav':
             det, err = compute_aav(site)
+        elif calc_comp == 'ssq':
+            det, err = compute_ssq(site)
         rho_data = det * np.conj(det) * site.periods / (MU * 2 * np.pi)
         # print(err)
         if errtype.lower() != 'none':
@@ -809,7 +823,7 @@ def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
 
     COMPS = ('XX', 'XY',
              'YY', 'YX',
-             'DET', 'GAV', 'AAV')
+             'DET', 'GAV', 'AAV', 'SSQ')
     if not errtype:
         errtype = 'none'
     if not calc_comp:
@@ -827,9 +841,11 @@ def compute_phase(site, calc_comp=None, errtype=None, wrap=0):
             det, err = compute_gav(site)
         elif calc_comp == 'aav':
             det, err = compute_aav(site)
+        elif calc_comp == 'ssq':
+            det, err = compute_ssq(site)
         # pha_data = (np.angle(det, deg=True) + 90) % 90
         pha_data = np.rad2deg(np.arctan2(np.imag(det), np.real(det)))
-        if calc_comp == 'aav':
+        if calc_comp == 'aav' or calc_comp == 'ssq':
             pha_data = pha_data % 90
             # zR = np.real(det)
             # zI = 1j*np.imag(det)
@@ -917,6 +933,24 @@ def compute_MT_determinant(site):
         raise e
     else:
         return det, det_err
+
+
+def compute_ssq(site):
+    try:
+        zxy = (site.data['ZXYR'] - 1j * site.data['ZXYI'])
+        zyx = (site.data['ZYXR'] - 1j * site.data['ZYXI'])
+        zxx = (site.data['ZXXR'] - 1j * site.data['ZXXI'])
+        zyy = (site.data['ZYYR'] - 1j * site.data['ZYYI'])
+        ssq = np.sqrt((zxx * zxx + zxy * zxy + zyx * zyx + zyy * zyy) / 2)
+        det_err = (site.used_error['ZXXR'] * (abs(site.data['ZYYR'] + 1j*site.data['ZYYI'])) +
+                   site.used_error['ZYYR'] * (abs(site.data['ZXXR'] + 1j*site.data['ZXXI'])) +
+                   site.used_error['ZXYR'] * (abs(site.data['ZYXR'] + 1j*site.data['ZYXI'])) +
+                   site.used_error['ZYXR'] * (abs(site.data['ZXYR'] + 1j*site.data['ZXYI']))) / (2 * abs(ssq))
+    except KeyError as e:
+        print('SSQ cannot be computed unless all impedance components are available')
+        raise e
+    else:
+        return ssq, det_err
 
 
 def geotools_filter(x, y, fwidth=1, use_log=True):
@@ -1040,28 +1074,50 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
     return bostick, depth, rhofit, phase
 
 
+# @enforce_input(files=list)
+# def sort_files(files):
+#     ret_dict = {}
+#     print(files)
+#     types = ('model', 'dat', 'resp', 'lst', 'reso')
+#     for file in files:
+#         try:
+#             file_type = (next(x for x in types if '.'+x in file))
+#         except StopIteration:
+#             if '.rho' in file.lower():
+#                 ret_dict.update({'model': file})
+#             else:
+#                 print('{} does not correspond to a recognized file type'.format(file))
+#         else:
+#             ret_dict.update({file_type: file})
+#     return ret_dict
 @enforce_input(files=list)
 def sort_files(files):
-    ret_dict = {}
-    print(files)
-    types = ('model', 'dat', 'resp', 'lst', 'reso')
-    for file in files:
-        try:
-            file_type = (next(x for x in types if '.'+x in file))
-        except StopIteration:
-            if '.rho' in file.lower():
+        ret_dict = {}
+        # types = ('model', 'dat', 'resp', 'lst', 'reso')
+
+        for file in files:
+            name, ext = os.path.splitext(file)
+            if ext in ('.rho', '.model', '.zani'):
                 ret_dict.update({'model': file})
-            else:
-                print('{} does not correspond to a recognized file type'.format(file))
-        else:
-            ret_dict.update({file_type: file})
-    return ret_dict
+            elif ext in ('.dat', '.data'):
+                with open(file, 'r') as f:
+                    line = f.readline()
+                if 'response' in line:
+                    ret_dict.update({'response': file})
+                else:
+                    ret_dict.update({'data': file})
+            elif ext in ('.lst', '.list'):
+                ret_dict.update({'list': file})
+            elif ext in ('.reso', '.resolution'):
+                ret_dict.update({'resolution': file})
+        return ret_dict
 
 
 def calculate_misfit(data_site, response_site):
     components = response_site.components
     NP = len(data_site.periods)
     NR = len(response_site.components)
+    # N_flagged = np.zeros(NP)
     misfit = {comp: np.zeros((NP)) for comp in components}
     # comp_misfit = {comp: 0 for comp in components}
     comp_misfit = {comp: np.zeros((NP)) for comp in components}
@@ -1076,8 +1132,11 @@ def calculate_misfit(data_site, response_site):
                                 data_site.used_error[comp]) ** 2
                 comp_misfit[comp] = ((misfit[comp]))
                 period_misfit += misfit[comp]
+                # Account for points that have been flagged for removal
+                # N_flagged += [int(x) for x in data_site.used_error[comp] == data_site.REMOVE_FLAG] 
             except ValueError:
                 a+=1
+    # period_misfit = (period_misfit / NR - np.array(N_flagged))
     period_misfit = (period_misfit / NR)
     comp_misfit.update({'Total': period_misfit})
     return misfit, comp_misfit
@@ -1127,7 +1186,7 @@ _projections = {}
 
 
 def rms(data):
-    return np.sqrt(np.mean(data ** 2))
+    return np.sqrt(np.nanmean(data ** 2))
 
 
 def zone_convert(coordinates):
@@ -1143,6 +1202,24 @@ def zone_convert(coordinates):
         return 37
     return int((coordinates[0] + 180) / 6) + 1
 
+def generic_projection(x, y, from_proj=None, to_proj=None, utm_zone=None):
+    if not (from_proj and to_proj):
+        print('Have to define your projections...')
+        return False
+    proj_dict = {'lambert': 'epsg:3979',
+                 'latlong': 'epsg:4326',
+                 'utm': 'epsg:4269'}
+    # if isinstance(utm_zone, str):
+        # proj_dict['utm'] += utm_zone
+    try:                 
+        transformer = pyproj.Transformer.from_crs(proj_dict[from_proj], proj_dict[to_proj])
+        out_x, out_y = np.zeros(len(x)), np.zeros(len(y))
+        for ii, (xx, yy) in enumerate(zip(x, y)):
+            out_x[ii], out_y[ii] = transformer.transform(xx, yy)
+    except KeyError:
+        print('Requested projection not recognized')
+        return x, y
+    return out_x, out_y
 
 def project(coordinates, zone=None, letter=None):
     def letter_convert(coordinates):

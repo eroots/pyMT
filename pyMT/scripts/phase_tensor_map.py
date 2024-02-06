@@ -71,25 +71,29 @@ if __name__ == '__main__':
     # filename = local_path + 'data/Regions/MetalEarth/AG/AG_plotset.dat'
     # listfile = local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
-    filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
-    listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
-    out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
+    filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
+    listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
+    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/pt_only/phi2/'
+    # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
+    # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
+    # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
-    jpg_file_name = []
-    out_file = 'AG_PT-beta_'
+    # jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
+    jpg_file_name = ''
+    out_file = 'wst_PT-phi2_'
     ext = ['.png', '.svg']
     dpi = 150
     padding = 20
-    save_fig = 0
-    bostick_depth = 25.
+    save_fig = 1
+    bostick_depth = None
     cutoff_distance = 3500
     remove_close_sites = 0
     # fill_param = ['phi_2', 'beta']
-    fill_param = ['absbeta', None]
-    # fill_param = ['phi_2', None]
-    # data = WSDS.Data(filename, listfile=listfile)
+    # fill_param = ['phi_split_pt', None]
+    fill_param = ['phi_2', None]
+    data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
-    data = deepcopy(raw)
+    # data = deepcopy(raw)
     # data.locations = rawdata.get_locs(mode='latlong')
     freq_skip = 0
 
@@ -107,7 +111,8 @@ if __name__ == '__main__':
         # rm_sites = [site for site in data.site_names[2:]]
         data.remove_sites(sites=rm_sites)
         raw.remove_sites(sites=rm_sites)
-    raw.locations = raw.get_locs(mode='latlong')
+    raw.locations = raw.get_locs(mode='lambert')
+    data.locations = raw.locations
     # for ii in range(len(raw.locations)):
     #     lon, lat = utils.project((raw.locations[ii, 1], raw.locations[ii, 0]), zone=17, letter='U')[2:]
     #     raw.locations[ii, 1], raw.locations[ii, 0] = lon, lat
@@ -132,29 +137,31 @@ if __name__ == '__main__':
     MV.window['figure'] = fig
     MV.window['axes'] = [ax]
     MV.colourmap = 'turbo'
-    MV.phase_cax = [0, 90]
+    MV.phase_cax = [30, 90]
     MV.skew_cax = [-15, 15]
+    MV.diff_cax = [-40, 40]
     # MV.interpolant = 'cubic'
     # MV.colourmap = 'bwr'
+    # MV.colourmap = 'greys_r'
     MV.site_data['data'] = data
     MV.site_data['raw_data'] = raw
     MV.site_names = data.site_names
     MV.padding_scale = 10
-    MV.pt_scale = 1.5
+    MV.pt_scale = .75
     MV.min_pt_ratio = 0.3
     MV.pt_ratio_cutoff = 0.01
     MV.phase_error_tol = 1000
     MV.rho_error_tol = 1000
     MV.include_outliers = True
     MV.allowed_std = 20
-    MV.lut = 8
+    MV.lut = 16
     # # MV.site_locations['generic'] = MV.get_locations(sites=MV.generic_sites)
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
     first_time = 0
     # for ii in range(len(data.periods)):
-    for ii in [3]:
+    for ii in range(data.NP):
     # for ii in range(0, len(data.periods), freq_skip + 1):
     # for ii in [0]:
     # for ii in range(len(data.periods)):   
@@ -163,10 +170,11 @@ if __name__ == '__main__':
             MV.window['axes'] = [MV.window['figure'].add_subplot(111)]
         else:
             first_time = 1
-        # period = data.periods[ii]
+        # period = data.sites[data.site_names[0]].periods[ii]
+        period = data.periods[ii]
         # if period < 1:
         #     period = -1 / period
-        # period = str(int(period))
+        period = str(int(period))
         if jpg_file_name:
             MV.plot_image(im, extents)
         # MV.plot_phase_tensor(data_type='data', normalize=True,
@@ -191,14 +199,14 @@ if __name__ == '__main__':
             # MV.ellipse_linewidth = 1
             # MV.min_pt_ratio = 0.3
             # MV.pt_scale = 1.
-            MV.plot_phase_tensor(data_type='raw_data', normalize=True,
+            MV.plot_phase_tensor(data_type='data', normalize=True,
                              fill_param=fill_param[0], period_idx=ii,
                              bostick_depth=bostick_depth)
             # MV.plot_phase_bar(data_type='data', normalize=True,
                               # fill_param='beta', period_idx=ii)
         else:
             two_param = 0
-            MV.plot_phase_tensor(data_type='raw_data', normalize=True,
+            MV.plot_phase_tensor(data_type='data', normalize=True,
                              fill_param=fill_param[0], period_idx=ii,
                              bostick_depth=bostick_depth)
         # MV.plot_phase_bar2(data_type='data', normalize=True,
@@ -246,8 +254,8 @@ if __name__ == '__main__':
             label = MV.get_label(fill_param[1])
             cax2.set_ylabel(label + r' ($^{\circ}$)', fontsize=18)
             caxes = [cax1, cax2]
-        # MV.window['axes'][0].set_title('Period: {0:.5g} s'.format(data.periods[ii]))
-        MV.window['axes'][0].set_title('NB Depth: {0:.5g} s'.format(bostick_depth))
+        MV.window['axes'][0].set_title('Period: {0:.5g} s'.format(data.sites[data.site_names[0]].periods[ii]))
+        # MV.window['axes'][0].set_title('NB Depth: {0:.5g} s'.format(bostick_depth))
         # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
         if save_fig:
             for file_format in ext:

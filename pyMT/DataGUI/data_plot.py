@@ -25,7 +25,7 @@
 import numpy as np
 import re
 from PyQt5.uic import loadUiType
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from matplotlib.figure import Figure
 from matplotlib.pyplot import imread
 # from PIL import UnidentifiedImageError  # This will require a new dependency?
@@ -36,16 +36,23 @@ from matplotlib.backends.backend_qt5agg import (
 import sys
 import os
 from pyMT import gplot, utils, data_structures
-from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser
+from pyMT import resources
+from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser, MyPopupDialog
 from pyMT.IO import debug_print
 from copy import deepcopy
-
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    import importlib_resources as pkg_resources
 
 
 path = os.path.dirname(os.path.realpath(__file__))
+with pkg_resources.path(resources, 'data_plot.jpg') as p:
+    data_plot_jpg = str(p)
+# data_plot_jpg = str(next(pkg_resources.path(resources, 'data_plot.jpg').func(resources, 'data_plot.jpg')))
+# data_plot_jpg = path + '/../resources/images/data_plot.jpg'
 
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
-UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
 UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
 UI_ModelingWindow, QModelingMain = loadUiType(os.path.join(path, '1D_modeling.ui'))
 
@@ -71,7 +78,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         else:
             self.period_range = [-4, 4]
         self.site = deepcopy(dummy_site)
-        self.rho = []
+        self.rho_x, self.rho_y = [], []
         self.Z = []
         self.add_mpl(self.model_figure)
         self.setup_model_table()
@@ -84,14 +91,14 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         return float(self.layerTable.item(0, 1).text())
 
     def setup_model_table(self):
-        header = ['Layer Thickness\n(km)', 'Layer Rho\n(ohm-m)']
+        header = ['Layer Thickness\n(km)', 'Rho X\n(ohm-m)', 'Rho Y\n(ohm-m)']
         self.layerTable.setColumnCount(len(header))
         self.layerTable.setRowCount(25)
         for ii, label in enumerate(header):
             self.layerTable.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem(label))
         self.layerTable.setVerticalHeaderItem(0, QtWidgets.QTableWidgetItem('Half Space'))
-        for ii in range(1, self.layerTable.rowCount()):
-            self.layerTable.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem('Layer {}'.format(ii)))
+        # for ii in range(1, self.layerTable.rowCount()):
+        #     self.layerTable.setHorizontalHeaderItem(ii, QtWidgets.QTableWidgetItem('Layer {}'.format(ii)))
         self.layerTable.setItem(0, 1, QtWidgets.QTableWidgetItem(str(self.default_hs)))
         self.layerTable.setItem(0, 0, QtWidgets.QTableWidgetItem(str('')))
         self.layerTable.itemAt(0, 0).setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
@@ -121,7 +128,8 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.rho_lim[0]),
                                      initial_2=str(self.rho_lim[1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.rho_lim = [float(x) for x in limits]
@@ -131,7 +139,8 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.depth_lim[0]),
                                      initial_2=str(self.depth_lim[1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.depth_lim = [float(x) for x in limits]
@@ -169,6 +178,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
                 if self.layerTable.item(row, col + 1).text() == '':
         #             # self.layerTable.setItem(row, col + 1, QtWidgets.QTableWidgetItem(item.text()))
                     self.layerTable.setItem(row, col + 1, QtWidgets.QTableWidgetItem(str(self.default_rho)))
+                    self.layerTable.setItem(row, col + 2, QtWidgets.QTableWidgetItem(str(self.default_rho)))
             elif col == 1 and row != 0:
                 # print(self.layerTable.item(row, col - 1).text())
                 if self.layerTable.item(row, col - 1).text() == '':
@@ -178,17 +188,20 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.layerTable.itemChanged.connect(self.model_param_change)
 
     def update_model(self):
-        self.thickness, self.rho = [], []
+        self.thickness, self.rho_x, self.rho_y = [], [], []
         for layer in range(1, self.layerTable.rowCount()):
             thickness = self.layerTable.item(layer, 0).text()
-            rho = self.layerTable.item(layer, 1).text()
+            rho_x = self.layerTable.item(layer, 1).text()
+            rho_y = self.layerTable.item(layer, 2).text()
             if thickness:
                 if float(thickness) != 0:
                     self.thickness.append(float(thickness))
-                    if rho:
-                        self.rho.append(float(rho))
+                    if rho_x:
+                        self.rho_x.append(float(rho_x))
+                        self.rho_y.append(float(rho_y))
                     else:
-                        self.rho.append(self.default_rho)
+                        self.rho_x.append(self.default_rho)
+                        self.rho_y.append(self.default_rho)
         self.plot_model()
         self.calculate_response()
 
@@ -196,8 +209,10 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.model_figure.clear()
         self.axis = self.model_figure.add_subplot(111)
         depth = np.cumsum([0] + self.thickness + [100000])
-        rho = self.rho + [self.hs] * 2
-        self.image = self.axis.step(np.log10(rho), depth)
+        rho_x = self.rho_x + [self.hs] * 2
+        rho_y = self.rho_y + [self.hs] * 2
+        self.image = self.axis.step(np.log10(rho_x), depth, linestyle='-')
+        self.image = self.axis.step(np.log10(rho_y), depth, linestyle='--')
         # self.axis.set_ylim([0, self.max_plot_depth])
         self.axis.set_ylabel('Depth (km)')
         self.axis.set_xlabel('Rho (ohm-m)')
@@ -210,46 +225,51 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.canvas.draw()
 
     def calculate_response(self):
-        scale = 1 / (4 * np.pi / 10000000)
-        mu = 4 * np.pi * 1e-7
-        periods = np.logspace(self.period_range[0], self.period_range[1], 80)
-        omega = 2 * np.pi / periods
-        # d = np.cumsum(self.thickness + [100000])
-        d = np.array(self.thickness + [self.hs_thickness]) * 1000
-        r = self.rho + [self.hs]
-        cond = 1 / np.array(r)
-        # r = 1 / np.array(r)
-        Z = np.zeros(len(periods), dtype=complex)
-        rhoa = np.zeros(len(periods))
-        phi = np.zeros(len(periods))
-        for nfreq, w in enumerate(omega):
-            prop_const = np.sqrt(1j*mu*cond[-1] * w)
-            C = np.zeros(len(r), dtype=complex)
-            C[-1] = 1 / prop_const
-            if len(d) > 1:
-                for k in reversed(range(len(r) - 1)):
-                    prop_layer = np.sqrt(1j*w*mu*cond[k])
-                    k1 = (C[k+1] * prop_layer + np.tanh(prop_layer * d[k]))
-                    k2 = ((C[k+1] * prop_layer * np.tanh(prop_layer * d[k])) + 1)
-                    C[k] = (1 / prop_layer) * (k1 / k2)
-        # #         k2 = np.sqrt(1j*omega[nfreq]*C*mu0/r[k+1]);
-        #         g = (g*k2+k1*np.tanh(k1*d[k]))/(k1+g*k2*np.tanh(k1*d[k]));
-            Z[nfreq] = 1j * w * mu * C[0]
+        for ii, rho in enumerate([self.rho_x, self.rho_y]):
+            scale = 1 / (4 * np.pi / 10000000)
+            mu = 4 * np.pi * 1e-7
+            periods = np.logspace(self.period_range[0], self.period_range[1], 80)
+            omega = 2 * np.pi / periods
+            # d = np.cumsum(self.thickness + [100000])
+            d = np.array(self.thickness + [self.hs_thickness]) * 1000
+            r = rho + [self.hs]
+            cond = 1 / np.array(r)
+            # r = 1 / np.array(r)
+            Z = np.zeros(len(periods), dtype=complex)
+            rhoa = np.zeros(len(periods))
+            phi = np.zeros(len(periods))
+            for nfreq, w in enumerate(omega):
+                prop_const = np.sqrt(1j*mu*cond[-1] * w)
+                C = np.zeros(len(r), dtype=complex)
+                C[-1] = 1 / prop_const
+                if len(d) > 1:
+                    for k in reversed(range(len(r) - 1)):
+                        prop_layer = np.sqrt(1j*w*mu*cond[k])
+                        k1 = (C[k+1] * prop_layer + np.tanh(prop_layer * d[k]))
+                        k2 = ((C[k+1] * prop_layer * np.tanh(prop_layer * d[k])) + 1)
+                        C[k] = (1 / prop_layer) * (k1 / k2)
+            # #         k2 = np.sqrt(1j*omega[nfreq]*C*mu0/r[k+1]);
+            #         g = (g*k2+k1*np.tanh(k1*d[k]))/(k1+g*k2*np.tanh(k1*d[k]));
+                Z[nfreq] = 1j * w * mu * C[0]
 
-        rhoa = 1/omega*np.abs(Z)**2;
-        phi = np.angle(Z, deg=True);
+            rhoa = 1/omega*np.abs(Z)**2
+            phi = np.angle(Z, deg=True)
 
-        self.Z = Z
-        self.site.periods = periods
-        # Update all the data
-        self.site.data['ZXYR'] = np.real(Z)
-        self.site.data['ZXYI'] = -np.imag(Z)
-        self.site.data['ZYXR'] = -np.real(Z)
-        self.site.data['ZYXI'] = np.imag(Z)
+            self.Z = Z
+            
+            # Update all the data
+            if ii == 0:
+                self.site.data['ZXYR'] = np.real(Z)
+                self.site.data['ZXYI'] = -np.imag(Z)
+            else:
+                self.site.data['ZYXR'] = -np.real(Z)
+                self.site.data['ZYXI'] = np.imag(Z)
+
         self.site.data['ZXXR'] = 0.00001 * np.real(Z)
         self.site.data['ZXXI'] = 0.00001 * np.imag(Z)
         self.site.data['ZYYR'] = 0.00001 * np.real(Z)
         self.site.data['ZYYI'] = 0.00001 * np.imag(Z)
+        self.site.periods = periods
         self.site.data.update({'TZXR': np.zeros(Z.shape)})
         self.site.data.update({'TZXI': np.zeros(Z.shape)})
         self.site.data.update({'TZYR': np.zeros(Z.shape)})
@@ -267,6 +287,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.site.used_error.update({'TZXI': np.ones(Z.shape)})
         self.site.used_error.update({'TZYR': np.ones(Z.shape)})
         self.site.used_error.update({'TZYI': np.ones(Z.shape)})
+
         self.site.calculate_phase_tensors()
         self.update_parent()
 
@@ -307,6 +328,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_dataInduction.setEnabled(False)
             self.toggle_responseInduction.setEnabled(False)
             self.toggle_normalizeInduction.setEnabled(False)
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('Tipper Amplitude'))
             self.arrowType.setEnabled(False)
         #  Connect phase tensor toggles
         if self.map.dataset.data.inv_type in (1, 5, 6):
@@ -327,6 +349,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.PhaseTensor_fill.setEnabled(False)
             self.Bar_fill.setEnabled(False)
             self.phaseTensorType.setEnabled(False)
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('Beta'))
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('Abs. Beta'))
+            self.pseudoFillType.removeItem(self.pseudoFillType.findText('PT Azimuth'))
         #  Connect pseudo-section plotting toggles
         # self.toggle_rhoPseudo.clicked.connect(self.update_map)
         # self.toggle_phasePseudo.clicked.connect(self.update_map)
@@ -341,34 +366,53 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.map.has_nn:
             self.Interpolant.insertItem(0, 'Natural')
         self.Interpolant.currentIndexChanged.connect(self.update_map)
+        ###################################################
         #  Set up period scroll bar
         self.PeriodScrollBar.valueChanged.connect(self.change_period)
         self.PeriodScrollBar.setMinimum(1)
         self.PeriodScrollBar.setMaximum(len(self.map.site_data['data'].periods))
+        ###################################################
         #  Set up colour map selections
         self.colourMenu.action_group.triggered.connect(self.set_colourmap)
+        self.colourMenu.map.invert_cmap.triggered.connect(self.set_colourmap)
+        ###################################################
         # Reordering submenus
         self.colourMenu.removeAction(self.colourMenu.limits)
         self.colourMenu.removeAction(self.colourMenu.lut)
         self.colourMenu.limits = self.colourMenu.addMenu('Colour Limits')
         self.colourMenu.lut = self.colourMenu.addAction('# Colour Intervals')
         self.colourMenu.rho_limits = self.colourMenu.limits.addAction('Rho')
+        self.colourMenu.aniso_limits = self.colourMenu.limits.addAction('Anisotropic Ratio')
         self.colourMenu.phase_limits = self.colourMenu.limits.addAction('Phase')
+        self.colourMenu.phase_split_limits = self.colourMenu.limits.addAction('Phase Splits')
         self.colourMenu.difference_limits = self.colourMenu.limits.addAction('Difference')
         self.colourMenu.skew_limits = self.colourMenu.limits.addAction('Skew')
         self.colourMenu.tipper_limits = self.colourMenu.limits.addAction('Tipper')
+        self.colourMenu.rms_limits = self.colourMenu.limits.addAction('RMS')
         # self.colourMenu.limits.triggered.connect(self.set_rho_cax)
+        ###################################################
         self.colourMenu.lut.triggered.connect(self.set_lut)
         self.groupColourmaps = QtWidgets.QActionGroup(self)
         self.colourMenu.rho_limits.triggered.connect(self.set_rho_cax)
+        self.colourMenu.aniso_limits.triggered.connect(self.set_aniso_cax)
         self.colourMenu.phase_limits.triggered.connect(self.set_phase_cax)
+        self.colourMenu.phase_split_limits.triggered.connect(self.set_phase_split_cax)
         self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
         self.colourMenu.tipper_limits.triggered.connect(self.set_tipper_cax)
         self.colourMenu.skew_limits.triggered.connect(self.set_skew_cax)
+        self.colourMenu.rms_limits.triggered.connect(self.set_rms_cax)
+        ###################################################
         self.PTRotGroup = QtWidgets.QActionGroup(self)
         self.actionPTRotAxisX.setActionGroup(self.PTRotGroup)
         self.actionPTRotAxisY.setActionGroup(self.PTRotGroup)
         self.PTRotGroup.triggered.connect(self.update_map)
+        ###################################################
+        self.inductionConventionGroup = QtWidgets.QActionGroup(self)
+        self.inductionConventionGroup.addAction(self.actionParkinson)
+        self.inductionConventionGroup.addAction(self.actionWeise)
+        self.inductionConventionGroup.setExclusive(True)
+        self.inductionConventionGroup.triggered.connect(self.update_map)
+        ###################################################
         # self.groupColourmaps.triggered.connect(self.set_colourmap)
         # self.actionJet.setActionGroup(self.groupColourmaps)
         # self.actionJet_r.setActionGroup(self.groupColourmaps)
@@ -383,37 +427,60 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # self.actionPhase_cax.triggered.connect(self.set_phase_cax)
         # self.actionDifference_cax.triggered.connect(self.set_difference_cax)
         # Set up point / marker options
+        # Annotate Options
         self.groupAnnotate = QtWidgets.QActionGroup(self)
         self.actionAnnotate_All.setActionGroup(self.groupAnnotate)
         self.actionAnnotate_None.setActionGroup(self.groupAnnotate)
         self.actionAnnotate_Active.setActionGroup(self.groupAnnotate)
         self.groupAnnotate.triggered.connect(self.set_annotations)
+        # Marker Options
         self.actionMarker_Size.triggered.connect(self.set_marker_size)
         self.actionMarker_Shape.triggered.connect(self.set_marker_shape)
         self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
         self.actionFilled.triggered.connect(self.set_marker_fill)
+        # Phase Tensor Options
         self.actionPhaseTensorScale.triggered.connect(self.set_pt_scale)
         self.actionMinimumAxisRatio.triggered.connect(self.set_pt_axis_ratio)
-        self.actionInductionScale.triggered.connect(self.set_induction_scale)
-        self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
-        self.actionInductionCutoff.triggered.connect(self.set_induction_cutoff)
+        # self.groupPhiSplit = QtWidgets.QActionGroup(self)
+        # self.actionPhiSplitPT.setActionGroup(self.groupPhiSplit)
+        # self.actionPhiSplitZ.setActionGroup(self.groupPhiSplit)
+        # self.groupPhiSplit.triggered.connect(self.set_phi_split)
         self.actionPTPhaseErrorTolerance.triggered.connect(self.set_pt_phase_error_tol)
         self.actionPTRhoErrorTolerance.triggered.connect(self.set_pt_rho_error_tol)
         self.actionEqualAspect.triggered.connect(self.update_map)
+        # Induction Arrow Options
+        self.actionInductionScale.triggered.connect(self.set_induction_scale)
+        self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
+        self.actionInductionCutoff.triggered.connect(self.set_induction_cutoff)
         # RMS plotting
         if self.map.dataset.response.sites:
             self.plotRMS.clicked.connect(self.update_map)
         else:
             self.plotRMS.setEnabled(False)
+        self.action_rmsColour.triggered.connect(self.set_rms_plot)
+        self.action_rmsSize.triggered.connect(self.set_rms_plot)
+        self.action_rmsLabels.triggered.connect(self.set_rms_plot)
+        # self.rmsGroup = QtWidgets.QActionGroup(self)
+        # self.action_rmsColour.setActionGroup(self.rmsGroup)
+        # self.action_rmsSize.setActionGroup(self.rmsGroup)
+        # self.rmsGroup.triggered.connect(self.set_rms_plot)
         # Model plan view plotting
         if self.map.dataset.model.file:
             self.toggle_planView.clicked.connect(self.update_map)
             self.planSlice.valueChanged.connect(self.update_map)
             self.planSlice.setMinimum(0)
             self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
+            if self.map.dataset.model.rho_y != []:
+                self.rhoAxis.addItem('rho_x / rho_y')
+                self.rhoAxis.addItem('rho_x / rho_z')
+                self.rhoAxis.addItem('rho_y / rho_z')
+                self.rhoAxis.currentIndexChanged.connect(self.update_map)
+            else:
+                self.rhoAxis.setEnabled(False)
         else:
             self.toggle_planView.setEnabled(False)
             self.planSlice.setEnabled(False)
+            self.rhoAxis.setEnabled(False)
         # JPEG Loading
         self.actionLoad_JPEG.triggered.connect(self.load_jpeg)
         self.actionShow_JPEG.triggered.connect(self.show_jpeg)
@@ -441,6 +508,16 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             return 'Va'
         else:
             return 'phi'
+
+    def set_rms_plot(self):
+        self.map.rms_plot_style = []
+        if self.action_rmsColour.isChecked():
+            self.map.rms_plot_style += ['colour']
+        if self.action_rmsSize.isChecked():
+            self.map.rms_plot_style += ['size']
+        if self.action_rmsLabels.isChecked():
+            self.map.rms_plot_style += ['labels']
+        self.update_map()
 
     def set_pseudosection_options(self):
         self.map.include_outliers = self.actionIncludeOutliers.isChecked()
@@ -751,6 +828,14 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # else:
         #     print('Invalid colour limits')
 
+    def set_aniso_cax(self):
+        limits = self.set_cax(self.map.aniso_cax[0], self.map.aniso_cax[1])
+        if limits is not None and limits != self.map.aniso_cax:
+            self.map.aniso_cax = limits
+            self.map.aniso_cax = limits
+            self.update_map()
+
+
     def set_difference_cax(self):
         limits = self.set_cax(self.map.diff_cax[0], self.map.diff_cax[1])
         if limits is not None and limits != self.map.diff_cax:
@@ -781,7 +866,13 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if limits is not None and limits != self.map.phase_cax:
             self.map.phase_cax = limits
             self.update_map()
-        
+    
+    def set_phase_split_cax(self):
+        limits = self.set_cax(self.map.phase_split_cax[0], self.map.phase_split_cax[1])
+        if limits is not None and limits != self.map.phase_split_cax:
+            self.map.phase_split_cax = limits
+            self.update_map()
+
     def set_tipper_cax(self):
         limits = self.set_cax(self.map.tipper_cax[0], self.map.tipper_cax[1])
         if limits is not None and limits != self.map.tipper_cax:
@@ -794,8 +885,16 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.skew_cax = limits
             self.update_map()
 
+    def set_rms_cax(self):
+        limits = self.set_cax(self.map.rms_cax[0], self.map.rms_cax[1])
+        if limits is not None and limits != self.map.rms_cax:
+            self.map.rms_cax = limits
+            if self.plotRMS.checkState():
+                self.update_map()
+
     def set_colourmap(self):
         self.map.colourmap = self.colourMenu.action_group.checkedAction().text()
+        self.map.invert_cmap = self.colourMenu.map.invert_cmap.isChecked()
         # if self.actionJet.isChecked():
         #     self.map.colourmap = 'jet'
         # if self.actionJet_r.isChecked():
@@ -862,11 +961,14 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.model = dataset.model
         self.map.site_names = sites
         self.map._active_sites = active_sites
+        self.map._generic_sites = list(set(self.map.site_names) - set(self.map.active_sites))
         self.map.site_locations['generic'] = self.map.get_locations(
             sites=self.map.generic_sites)
         self.map.site_locations['active'] = self.map.get_locations(
             sites=self.map.active_sites)
         self.map.site_locations['all'] = self.map.get_locations(self.map.site_names)
+        if self.map.model:
+            self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
 
     def update_map(self):
         # Currently redraws the whole map every time
@@ -885,7 +987,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.plot_image(image=self.background_image['image'],
                                extents=self.background_image['extent'])
         if self.toggle_planView.checkState():
-            self.map.plot_plan_view(z_slice=self.planSlice.value())
+            self.map.plot_plan_view(z_slice=self.planSlice.value(), rho_axis=self.rhoAxis.currentText())
             depth = self.map.model.dz[self.planSlice.value()]
             if depth < 1000:
                 depth = '{:0.6g} m'.format(depth)
@@ -929,10 +1031,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                 arrowType = ['I']
             else:
                 arrowType = ['R', 'I']
+            if self.actionParkinson.isChecked():
+                arrow_convention = 'parkinson'
+            elif self.actionWeise.isChecked():
+                arrow_convention = 'weise'
             self.map.plot_induction_arrows(data_type=induction_toggles['data'],
                                            normalize=induction_toggles['normalize'],
                                            period_idx=self.active_period,
-                                           arrow_type=arrowType)
+                                           arrow_type=arrowType,
+                                           arrow_convention=arrow_convention)
         if 'None' in PT_toggles['data'] and not induction_toggles['data']:
             self.map.plot_locations()
         self.set_axis_settings()
@@ -976,6 +1083,12 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             toggles['fill'] = 'absbeta'
         elif item == 'pt azimuth':
             toggles['fill'] = 'azimuth'
+        elif item == 'pt split':
+            toggles['fill'] = 'pt_split'
+        elif item == 'phi_max':
+            toggles['fill'] = 'phi_max'
+        elif item == 'phi_min':
+            toggles['fill'] = 'phi_min'
         # if self.toggle_rhoPseudo.isChecked():
         #     toggles['fill'] = 'Rho'
         # elif self.toggle_phasePseudo.isChecked():
@@ -1039,14 +1152,38 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.file_dialog = FileDialog(self)
         self.map = {'fig': None, 'canvas': None, 'axis': None,
                     'plots': {'all': None, 'highlight': None, 'mesh': None}}
+        list_files = {}
         for ii, (dname, files) in enumerate(dataset_dict.items()):
             files = {file_type: files.get(file_type, '')
                      for file_type in ('data', 'raw_path', 'response', 'list', 'model')}
-            dataset = data_structures.Dataset(listfile=files['list'],
+            # If a list has already been loaded, copy it instead of reloading.
+            load_raw = None
+            if files['list']:
+                if files['list'] in list_files.keys():
+                    load_raw = self.stored_datasets[list_files[files['list']]].raw_data
+                else:
+                    load_raw = files['list']
+                    list_files.update({files['list']: dname})
+            dataset = data_structures.Dataset(listfile=load_raw,
                                               datafile=files['data'],
                                               responsefile=files['response'],
                                               datpath=files['raw_path'],
                                               modelfile=files['model'])
+            azis = []
+            message = 'Inconsistent azimuths found in data set {}.\n'.format(dname)
+            if dataset.raw_data.sites:
+                azis.append(dataset.raw_data.azimuth)
+                message += 'Raw Data: {}, '.format(dataset.raw_data.azimuth)
+            if dataset.data.sites:
+                azis.append(dataset.data.azimuth)
+                message += 'Inversion Data: {}, '.format(dataset.data.azimuth)
+            if dataset.response.sites:
+                azis.append(dataset.response.azimuth)
+                message += 'Response: {}'.format(dataset.response.azimuth)
+            if dataset.raw_data.check_azi() is False:
+                message += '\nAzimuths not consistent in raw data (varies by EDI). Fix this before continuing! {}'.format(dataset.raw_data.check_azi())
+            if len(set(azis)) > 1 or dataset.raw_data.check_azi() is False:
+                QtWidgets.QMessageBox.warning(self, 'Failed azimuth check', message)            
             if ii == 0:
                 self.stored_datasets = {dname: dataset}
                 self.dataset = dataset
@@ -1094,6 +1231,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
         else:
             self.toggle1DResponse.setCheckState(0)
 
+    def plot_smoothed_data(self, event):
+        # print('triggered')
+        if self.dataset.smoothed_data:
+            print(['Setting toggle to {}'.format(event)])
+            self.dpm.toggles['smoothed_data'] = event
+            self.update_dpm()
+
     def init_rms_tables(self):
         self.dataset.rms = self.dataset.calculate_RMS()
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
@@ -1110,7 +1254,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
             for jj, site in enumerate(self.dataset.data.site_names):
                 if ii == 0:
                     self.stationRMS.setVerticalHeaderItem(jj, QtWidgets.QTableWidgetItem(site))
-                node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Station'][site][label])[:4])
+                # node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Station'][site][label])[:4])
+                node = QtWidgets.QTableWidgetItem('{:5.2f}'.format(self.dataset.rms['Station'][site][label]))
                 node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 self.stationRMS.setItem(jj, ii, node)
             for jj, period in enumerate(periods):
@@ -1121,11 +1266,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 if ii == 0:
                     self.periodRMS.setVerticalHeaderItem(jj, QtWidgets.QTableWidgetItem(str(period)))
                 if jj == 0:
-                    node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Component'][label])[:4])
+                    node = QtWidgets.QTableWidgetItem('{:5.2f}'.format(self.dataset.rms['Component'][label]))
                     node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                     self.periodRMS.setItem(jj, ii, QtWidgets.QTableWidgetItem(node))
                 else:
-                    node = QtWidgets.QTableWidgetItem(str(self.dataset.rms['Period'][label][jj - 1])[:4])
+                    node = QtWidgets.QTableWidgetItem('{:5.2f}'.format(self.dataset.rms['Period'][label][jj - 1]))
                     node.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                     self.periodRMS.setItem(jj, ii, QtWidgets.QTableWidgetItem(node))
         for ii in range(len(header)):
@@ -1145,14 +1290,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.label_NP_2.setText('Periods: ' + str(self.dataset.data.NP))
         self.label_NS_2.setText('Sites: ' + str(self.dataset.data.NS))
 
-    @property
-    def error_type(self):
-        if self.dataErrRadio.isChecked():
-            return 'raw'
-        elif self.usedErrRadio.isChecked():
-            return 'mapped'
-        elif self.noErrRadio.isChecked():
-            return 'none'
+    # @property
+    # def error_type(self):
+    #     if self.dataErrRadio.isChecked():
+    #         return 'raw'
+    #     elif self.usedErrRadio.isChecked():
+    #         return 'mapped'
+    #     elif self.noErrRadio.isChecked():
+    #         return 'none'
 
     @property
     def site_names(self):
@@ -1212,6 +1357,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             ordered_comps.remove('TZYI')
         if 'PTXX' in ordered_comps:
             all_comps.update({'PhsTensor': [comp for comp in ordered_comps if comp[0].upper() == 'P']})
+            all_comps['PhsTensor'] += ['Phi_max', 'Phi_min', 'Beta', 'Azimuth']
             ordered_comps.remove('PTXX')
             ordered_comps.remove('PTXY')
             ordered_comps.remove('PTYX')
@@ -1248,17 +1394,28 @@ class DataMain(QMainWindow, Ui_MainWindow):
             all_comps['Rho'].append('RhoDet')
             all_comps['Rho'].append('RhoAAV')
             all_comps['Rho'].append('RhoGAV')
+            all_comps['Rho'].append('RhoSSQ')
             all_comps['Phase'].append('PhaDet')
             all_comps['Phase'].append('PhaAAV')
             all_comps['Phase'].append('PhaGAV')
+            all_comps['Phase'].append('PhaSSQ')
             all_comps['Bostick'].append('BostDet')
             all_comps['Bostick'].append('BostAAV')
             all_comps['Bostick'].append('BostGAV')
+            all_comps['Bostick'].append('BostSSQ')
             if not all_comps['PhsTensor']:  # If it hasn't already been added...
                 all_comps['PhsTensor'].append('PTXX')
                 all_comps['PhsTensor'].append('PTXY')
                 all_comps['PhsTensor'].append('PTYX')
                 all_comps['PhsTensor'].append('PTYY')
+                all_comps['PhsTensor'].append('Phi_max')
+                all_comps['PhsTensor'].append('Phi_min')
+                all_comps['PhsTensor'].append('Beta')
+                all_comps['PhsTensor'].append('Azimuth')
+        if 'PTXX' in all_comps['PhsTensor']:
+            self.calculatePtErrors.clicked.connect(self.calculate_PT_errors)
+        else:
+            self.calculate_PT_errors.setEnabled(False)
         # If none of the Impedance if's above triggered, remove all the associated headers
         # Will have to change this if we ever do Rho / Phase inversion
         # header = ['Impedance', 'Rho', 'Phase', 'Bostick', 'PhsTensor']
@@ -1290,6 +1447,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.comp_table.resizeRowsToContents()
 
     def update_comp_list(self):
+        # Not used anymore
         ordered_comps = [comp for comp in self.dataset.data.ACCEPTED_COMPONENTS
                          if comp in self.dataset.data.components]
         c = 0
@@ -1369,19 +1527,28 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.update_dpm(updated_sites=self.dpm.site_names,
                             updated_comps=self.dpm.components)
 
+    def calculate_PT_errors(self):
+        n_realizations = self.nPtRealizations.value()
+        self.dataset.data.calculate_PT_errors(n_realizations)
+        self.update_dpm()
+
     @property
     def dTypes(self):
         return list(filter(None,
                            ['raw_data' * bool(self.toggleRaw.checkState()),
                             'data' * bool(self.toggleData.checkState()),
-                            'response' * bool(self.toggleResponse.checkState())]))
+                            'response' * bool(self.toggleResponse.checkState()),
+                            'smoothed_data' * bool(self.toggleSmoothedData.checkState())]))
 
     def init_dpm(self):
         self.dpm = gplot.DataPlotManager(fig=self.fig)
         self.dpm.sites = self.dataset.get_sites(site_names=self.site_names,
                                                 dTypes=self.dTypes)
         self.dpm.sites.update({'1d': []})
+        self.dpm.sites.update({'smoothed_data': []})
         self.dpm.scale = self.scalingBox.currentText()
+        if 'ZXYR' not in self.dataset.data.components:
+            self.dpm.components = [self.dataset.data.components[0]]
 
     def setup_widgets(self):
         self.select_points_button.clicked.connect(self.select_points)
@@ -1390,7 +1557,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.error_tree.itemDoubleClicked.connect(self.edit_error_tree)
         self.BackButton.clicked.connect(self.Back)
         self.ForwardButton.clicked.connect(self.Forward)
-        self.WriteDataButton.clicked.connect(self.WriteData)
+        # self.WriteDataButton.clicked.connect(self.WriteData)
         # self.comp_list.itemSelectionChanged.connect(self.list_click)
         self.comp_table.itemSelectionChanged.connect(self.comp_table_click)
         self.errorFloorTable.cellChanged.connect(self.error_floor_changed)
@@ -1403,8 +1570,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.toggleRaw.setCheckState(bool(self.dataset.raw_data.sites) * 2)
         self.toggleData.setCheckState(bool(self.dataset.data.sites) * 2)
         self.toggleResponse.setCheckState(bool(self.dataset.response.sites) * 2)
+        self.azimuthEdit.setValue(self.dataset.azimuth % 360)
         self.azimuthEdit.valueChanged.connect(self.set_azimuth)
-        self.azimuthEdit.setValue(self.dataset.azimuth)
         self.removeSites.clicked.connect(self.remove_sites)
         self.addSites.clicked.connect(self.add_sites)
         self.recalculateRMS.clicked.connect(self.init_rms_tables)
@@ -1418,14 +1585,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.siteList.addItems(self.dataset.data.site_names)
         self.numSubplots.setText(str(len(self.site_names)))
         self.numSubplots.editingFinished.connect(self.num_subplots)
-        self.dataErrRadio.toggled.connect(self.dummy_update_dpm)
-        self.usedErrRadio.toggled.connect(self.dummy_update_dpm)
-        self.noErrRadio.toggled.connect(self.dummy_update_dpm)
+        # self.dataErrRadio.toggled.connect(self.dummy_update_dpm)
+        # self.usedErrRadio.toggled.connect(self.dummy_update_dpm)
+        # self.noErrRadio.toggled.connect(self.dummy_update_dpm)
         self.refreshErrorTree.clicked.connect(self.update_error_tree)
         self.resetErrors.clicked.connect(self.reset_errors)
         self.showMap.clicked.connect(self.show_map)
         self.sortSites.addItems(['Default', 'West-East',
-                                 'South-North', 'Clustering'])
+                                 'South-North', 'Clustering', 'Selection'])
         self.sortSites.currentIndexChanged.connect(self.sort_sites)
         self.showOutliers.clicked.connect(self.toggle_outliers)
         self.outlierThreshold.editingFinished.connect(self.set_outlier_threshold)
@@ -1438,6 +1605,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.writeAllPlots.triggered.connect(self.write_all_plots)
         self.actionPhase_Wrap.triggered.connect(self.set_phase_wrap)
         self.regErrors.clicked.connect(self.regulate_errors)
+        if self.dataset.raw_data.initialized:
+            self.medianSize.setMaximum(min([site.NP for site in self.dataset.raw_data.sites.values()]))
+        else:
+            self.medianSize.setMaximum(self.dataset.data.NP)
         self.LockAxes.clicked.connect(self.link_axes)
         #  Set up Inversion Type action group
         self.InversionTypeGroup = QtWidgets.QActionGroup(self)
@@ -1451,13 +1622,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.InversionTypeGroup.addAction(self.inv_type10)
         # self.AzimuthScrollBar.valueChanged.connect(self.azimuth_scroll)
         #  Set up connect to which errors are plotted
-        self.actionDataErrors.changed.connect(self.dummy_update_dpm)
-        self.actionRawErrors.changed.connect(self.dummy_update_dpm)
+        self.invErrorCheck.stateChanged.connect(self.set_plotted_errors)
+        self.rawErrorCheck.stateChanged.connect(self.set_plotted_errors)
         # Set up units for phase tensors
         self.ptActionGroup.addAction(self.actionDegrees)
         self.ptActionGroup.addAction(self.actionUnitless)
         self.ptActionGroup.setExclusive(True)
-        self.ptActionGroup.triggered.connect(self.change_pt_units)
+        self.ptActionGroup.triggered.connect(self.change_pt_units)        
         # self.actionDegrees.changed.connect(self.dummy_update_dpm)
         # self.actionUnitless.changed.connect(self.dummy_update_dpm)
         # Super hacky axis limits setters. Fix this at some point
@@ -1467,6 +1638,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.actionPhaseLimits.triggered.connect(self.set_phase_limits)
         self.actionTipperLimits.triggered.connect(self.set_tipper_limits)
         self.actionImpedanceLimits.triggered.connect(self.set_impedance_limits)
+        self.actionSkewLimits.triggered.connect(self.set_skew_limits)
+        self.actionAzimuthLimits.triggered.connect(self.set_azimuth_limits)
         self.resetDummyErrors.clicked.connect(self.reset_dummy_errors)
         if self.dataset.raw_data.initialized:
             self.lowPeriodToleranceFlag.setValue(self.dataset.raw_data.low_tol * 100)
@@ -1484,6 +1657,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.plotFlaggedData.clicked.connect(self.plot_flagged_data)
 
         self.actionLaunchModeler.triggered.connect(self.launch_modeler)
+
+    def set_plotted_errors(self):
+        self.dpm.which_errors = []
+        if self.invErrorCheck.checkState():
+            self.dpm.which_errors.append('data')
+        if self.rawErrorCheck.checkState():
+            self.dpm.which_errors.append('raw_data')
+        self.update_dpm()
 
     def set_period_tolerance(self):
         self.dataset.raw_data.low_tol = self.lowPeriodToleranceFlag.value() / 100
@@ -1505,7 +1686,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['rho'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['rho'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['rho'] = [float(x) for x in limits]
@@ -1515,7 +1697,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['phase'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['phase'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['phase'] = [float(x) for x in limits]
@@ -1525,7 +1708,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['impedance'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['impedance'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['impedance'] = [float(x) for x in limits]
@@ -1535,10 +1719,33 @@ class DataMain(QMainWindow, Ui_MainWindow):
         limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
                                      initial_1=str(self.dpm.ax_lim_dict['tipper'][0]),
                                      initial_2=str(self.dpm.ax_lim_dict['tipper'][1]),
-                                     parent=self)
+                                     parent=self,
+                                     expected=float)
         if ret:
             if limits[0] < limits[1]:
                 self.dpm.ax_lim_dict['tipper'] = [float(x) for x in limits]
+                self.update_dpm()
+
+    def set_skew_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['skew'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['skew'][1]),
+                                     parent=self,
+                                     expected=float)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['skew'] = [float(x) for x in limits]
+                self.update_dpm()
+
+    def set_azimuth_limits(self):
+        limits, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
+                                     initial_1=str(self.dpm.ax_lim_dict['azimuth'][0]),
+                                     initial_2=str(self.dpm.ax_lim_dict['azimuth'][1]),
+                                     parent=self,
+                                     expected=float)
+        if ret:
+            if limits[0] < limits[1]:
+                self.dpm.ax_lim_dict['azimuth'] = [float(x) for x in limits]
                 self.update_dpm()
 
     def change_pt_units(self):
@@ -1564,15 +1771,16 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.dataset.data.error_floors[component] = value
         self.dataset.data.apply_error_floor()
         self.update_dpm()
+        # print(self.dataset.data.sites[self.dataset.data.site_names[0]].used_error['TZXR'])
         # self.dpm.components = comps
         # self.update_dpm(updated_sites=self.dpm.site_names,
                         # updated_comps=self.dpm.components)
 
     def set_phase_wrap(self):
         if self.actionPhase_Wrap.isChecked():
-            self.dpm.wrap = 1
+            self.dpm.wrap_phase = 1
         else:
-            self.dpm.wrap = 0
+            self.dpm.wrap_phase = 0
         if 'pha' in self.dpm.components[0].lower():
             self.dummy_update_dpm(toggled=True)
 
@@ -1636,20 +1844,91 @@ class DataMain(QMainWindow, Ui_MainWindow):
         print('Recalculating error maps...')
         fwidth = float(self.width.text())
         mult = float(self.mult.text())
-        print([fwidth, mult])
-        self.dataset.regulate_errors(multiplier=mult, fwidth=fwidth)
+        median_window = int(self.medianSize.text())
+        threshold = float(self.threshold.text())
+        # print([fwidth, mult])
+        self.dataset.regulate_errors(multiplier=mult, fwidth=fwidth, median_window=median_window, threshold=threshold)
         print('Updating error tree...')
         self.update_error_tree()
         print('Done!')
+        # self.dpm.sites['smoothed_data'] = self.dataset.raw_data.smoothed_data
         self.update_dpm()
+        # if not self.toggleSmoothedData.isEnabled():
+        self.toggleSmoothedData.setEnabled(True)
+        self.toggleSmoothedData.clicked.connect(self.plot_smoothed_data)
 
     def sort_sites(self, index=None):
         if index is None:
             index = self.sortSites.currentIndex()
-        self.dataset.sort_sites(self.sortSites.itemText(index))
-        self.siteList.clear()
-        self.siteList.addItems(self.dataset.data.site_names)
-        self.update_map_data()
+        sort_type = self.sortSites.itemText(index)
+        # Skip if its already disconnected, but otherwise disconnect it before doing anything
+        try:
+            self.siteList.itemSelectionChanged.disconnect(self.plot_selected_sites)
+        except TypeError:
+            pass
+        if sort_type != 'Selection':
+            
+            self.dataset.sort_sites(self.sortSites.itemText(index))
+            self.siteList.clear()
+            self.siteList.addItems(self.dataset.data.site_names)
+            self.update_map_data()
+            self.ForwardButton.setEnabled(True)
+            self.BackButton.setEnabled(True)
+            self.numSubplots.setEnabled(True)
+        else:
+            self.ForwardButton.setEnabled(False)
+            self.BackButton.setEnabled(False)
+            self.removeSites.setEnabled(False)
+            self.addSites.setEnabled(False)
+            self.numSubplots.setEnabled(False)
+            self.siteList.itemSelectionChanged.connect(self.plot_selected_sites)
+
+    def plot_selected_sites(self):
+        sites_to_add = [site.text() for site in self.siteList.selectedItems()]
+        self.collapse_tree_nodes(to_collapse=self.dpm.site_names)
+        self.site_names = sites_to_add
+        # If the sites haven't changed
+        sites = self.dataset.get_sites(site_names=self.site_names, dTypes='all')
+        # debug_print(sites, 'debug.log')
+        # self.dpm.replace_sites(sites_in=sites, sites_out=self.dpm.site_names)
+        # self.dpm.fig.canvas.draw()
+
+        for dType in self.dpm.sites.keys():
+            self.dpm.sites[dType] = []
+            if self.dataset.has_dType(dType) or dType == '1d':
+                # tmp_sites = self.site_names
+                # sites_to_add = [site for site in self.dataset.data.site_names
+                #                 if site not in self.site_names][:num_to_add]
+                for site in sites_to_add:
+                    if dType == '1d':
+                        self.dpm.sites[dType].append(self.dpm.site1D)
+                    else:
+                        self.dpm.sites[dType].append(getattr(self.dataset, dType).sites[site])
+                # for ii in range(num_to_add):
+                #     site_name = next(site for site in self.dataset.data.site_names
+                #                      if site not in tmp_sites)
+                #     tmp_sites.append(site_name)
+                #     self.dpm.sites[dType].append(getattr(self.dataset, dType).sites[site_name])
+
+        # self.site_names = self.dpm.site_names
+        # self.dpm.draw_all()
+        self.dpm.plot_data()
+        self.dpm.fig.canvas.draw()
+        self.update_dpm()
+
+        self.expand_tree_nodes(to_expand=self.site_names, expand=True)
+        self.numSubplots.setText(str(len(sites_to_add)))
+        self.map_view.map.active_sites = self.site_names
+        for annotation in self.map_view.map.actors['annotation']:
+            annotation.remove()
+            del annotation
+        self.map_view.map.actors['annotation'] = []
+        # del self.map_view.map.actors['annotation']
+        self.map_view.x_lim = self.map_view.map.window['axes'][0].get_xlim()
+        self.map_view.y_lim = self.map_view.map.window['axes'][0].get_ylim()
+        self.map_view.map.plot_annotate()
+        self.map_view.set_axis_settings()
+        self.map_view.canvas.draw()
 
     def show_map(self):
         # print(self.map_view.map.site_locations['generic'])
@@ -1721,16 +2000,26 @@ class DataMain(QMainWindow, Ui_MainWindow):
         else:
             self.recalculateRMS.setEnabled(False)
             # self.select_points_button.setEnabled(True)
-        self.site_names = self.shift_site_names(shift=0)
+        # Try to keep the same selection if possible
+        if (self.sortSites.currentText() == 'Selection' and set(self.site_names).issubset(set(self.dataset.data.site_names))):
+            shift_sites = False
+        else:
+            self.site_names = self.shift_site_names(shift=0)
+            shift_sites = True
         self.map_view.init_map(dataset=self.dataset,
                                sites=self.dataset.data.site_names,
                                active_sites=self.site_names)
         self.set_data_toggles()
-        # Temporarily disconnect the error tree so it doesn't freak out when the data is updated
-        # self.error_tree.itemChanged.disconnect()
         self.sort_sites()
         self.update_error_tree()
-        self.back_or_forward_button(shift=0)
+        # Call if using different sites, otherwise just plot the new data
+        if shift_sites:
+            self.back_or_forward_button(shift=0)
+        else:
+            # This will replace the site data with that from the new dataset (same site names though)
+            self.dpm.replace_sites(sites_in=self.dataset.get_sites(site_names=self.site_names, dTypes='all'),
+                                   sites_out=self.site_names)
+            self.update_dpm()
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
         self.map_view.update_map()
         self.set_nparam_labels()
@@ -2063,6 +2352,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                             QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                     if reply == QtWidgets.QMessageBox.Yes:
                         write_removed = True
+                X, Y = self.dataset.data.locations[:, 0], self.dataset.data.locations[:, 1]
+                ox, oy = ((np.max(X) + np.min(X)) / 2, (np.max(Y) + np.min(Y)) / 2)
+                if (abs(ox) > 0.5) or (abs(oy) > 0.5):
+                    reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                                            'Data origin is ({:10.3g},{:10.3g}). Do you want to center the stations?'.format(ox, oy),
+                                                            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        self.dataset.data.center_locs()
                 retval = self.dataset.write_data(outfile=outfile, file_format=file_format, write_removed=write_removed)
             if retval:
                 break
@@ -2158,12 +2455,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         a site with another, you must first call the replace_site method of the DataPlotManager
         """
         # dpm_sites = [site.name for site in self.dpm.sites['data']]  # Sites currently plotted
-        self.dpm.errors = self.error_type
-        self.dpm.which_errors = []
-        if self.actionDataErrors.isChecked():
-            self.dpm.which_errors.append('data')
-        if self.actionRawErrors.isChecked():
-            self.dpm.which_errors.append('raw_data')
+        # self.dpm.errors = self.error_type
         if updated_sites is None:
             updated_sites = self.dpm.site_names
         if updated_comps is None:
@@ -2193,8 +2485,14 @@ class DataMain(QMainWindow, Ui_MainWindow):
             return 'tipper'
         elif self.dpm.components[0].lower().startswith('p'):
             return 'phase'
-        elif self.dpm.components[0].lower().startswith('r') or self.dpm.components[0].lower().startswith('b'):
+        elif self.dpm.components[0].lower().startswith('r'):
             return 'rho'
+        elif self.dpm.components[0].lower().startswith('bost'):
+            return 'rho'
+        elif self.dpm.components[0].lower() == 'beta':
+            return 'beta'
+        elif self.dpm.components[0].lower() == 'azimuth':
+            return 'azimuth'
 
     def edit_error_tree(self, column):
         """
@@ -2546,41 +2844,6 @@ class MyTableModel(QtCore.QAbstractTableModel):
 
 # Should just modify this to allow for multiple lines of input, as well as a browse button.
 # The returned files can then be parsed by FileInputParser.
-class MyPopupDialog(UiPopupMain, QPopupWindow):
-    """
-    Creates a pop-up window belonging to parent
-
-    Args:
-        parent (obj): The parent window the created pop-up will be attached to
-    """
-
-    def __init__(self, parent=None):
-        super(MyPopupDialog, self).__init__(parent)
-        self.setupUi(self)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-
-    @staticmethod
-    def get_file(parent=None, message='', default='', label='Output'):
-        """Summary
-
-        Args:
-            parent (None, optional): Description
-            message (str, optional): Description
-            default (str, optional): Description
-            label (str, optional): Description
-
-        Returns:
-            TYPE: Description
-        """
-        dialog = MyPopupDialog(parent)
-        dialog.message.setText(message)
-        dialog.lineEdit.setText(default)
-        dialog.label.setText(label)
-        ret = dialog.exec_()
-        file = dialog.lineEdit.text()
-        return file, ret
-
 
 def parse_commandline(args):
     start_file = None
@@ -2653,6 +2916,7 @@ def main():
         # Because files is a dictionary, the plotter may not load the same dataset first every time.
         # The dataset that gets loaded first should be the same given the same start file.
         mainGUI = DataMain(files)  # Instantiate a GUI window
+        mainGUI.setWindowIcon(QtGui.QIcon(data_plot_jpg))
         mainGUI.show()  # Show it.
         ret = app.exec_()
         sys.exit(ret)  # Properly close the loop when the window is closed.

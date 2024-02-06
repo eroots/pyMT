@@ -1,0 +1,10 @@
+numpy
+scipy
+colorcet
+matplotlib
+naturalneighbor
+pyproj
+pyshp
+pyvista
+pyqt5
+vtk

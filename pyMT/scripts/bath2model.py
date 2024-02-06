@@ -4,13 +4,14 @@ import codecs
 import numpy as np
 import scipy.interpolate
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+# from mpl_toolkits.basemap import Basemap
 import cmocean
 import pyMT.data_structures as DS
 import pyMT.utils as utils
 import pickle
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
+# from skimage.transform import downscale_local_mean
 
 #####################################
 ########## INSTRUCTIONS #############
@@ -25,18 +26,28 @@ from rasterio.warp import calculate_default_transform, reproject, Resampling
 #   - list_file: The list file (as used by pyMT) containing the EDI or j-format files to read in.
 #   - data_file: The ModEM data file to modify. As with the model file, this should already be set up as you want it for the inversion - this script will only modify the elevations.
 #   - bath_file: The file containing the bathymetry / topography data. If this is the first time running this script, set bath_file = []. The script will generate the bathymetry and save it to bath_out
+#                If your bathymetry is in a Geotiff file, set this to the path. Note that you have to have rasterio installed for this to work.
 #   - bath_out: File to save bathymetry data to. The script goes online and downloads the required data, so you can use this and bath_file to make sure you're only downloading it once.
 #   - model_out: File to save the modified model to. The only difference between this and 'model_file' is that the relevant model cells will have air resistivities.
 #   - cov_out: File to save the covariance file to. This file is required by ModEM when using topography / bathymetry.
 #   - data_out: File to save the modified data to. The only difference between this and 'data_file' is that the data here will have non-zero elevation values.
 # There are a few other things you can change if you want below these lines. Comment in / out as needed.
-
-def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1):
+# Lines you'll need to change start at line #142
+def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1, resource=30):
     print('Retrieving topo data from latitude {:>6.3g} to {:>6.3g}, longitude {:>6.3g} to {:>6.3g}'.format(minlat, maxlat, minlon, maxlon))
     # Read data from: http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.html
-    response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v6.csv?topo[(' \
-                                  +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
-
+    # Had to change to v1 since v6 stopped working for some reason...
+    # 'https://coastwatch.pfeg.noaa.gov/erddap/griddap/srtm15plus.csv?z%5B(59):1:(63)%5D%5B(-141):1:(-137)%5D'
+    if resource == 15:
+        response = urllib.request.urlopen('https://coastwatch.pfeg.noaa.gov/erddap/griddap/srtm15plus.csv?z%5B(' \
+                                      +str(minlat)+'):'+str(stride)+':('+str(maxlat)+')%5D%5B('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')%5D')
+    elif resource == 30:
+        response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v1.csv?topo[(' \
+                                      +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
+    else:
+        print('Resource should be 15 or 30. Using 30.')
+        response = urllib.request.urlopen('http://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeSrtm30v1.csv?topo[(' \
+                                      +str(maxlat)+'):'+str(stride)+':('+str(minlat)+')][('+str(minlon)+'):'+str(stride)+':('+str(maxlon)+')]')
     r = csv.reader(codecs.iterdecode(response, 'utf-8'))
     # Initialize variables
     lat, lon, topo = [], [], []
@@ -55,6 +66,7 @@ def get_bathymetry(minlat, maxlat, minlon, maxlon, stride=1):
 
 def bathymetry_to_model(model, lat, lon, topo):
     print('Gridding topo data...')
+
     grid_x, grid_y = np.meshgrid(model.dy, model.dx)
     grid_z = scipy.interpolate.griddata((lon, lat), topo, (grid_x, grid_y), method='nearest')
     return grid_x, grid_y, grid_z
@@ -130,89 +142,47 @@ def plot_it(grid_x, grid_y, grid_z, locations=None, cmap=None):
 if __name__ == '__main__':
     # Define the domain of interest
     #################################
-    # LANAI
-    # model_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test.model'
-    # list_file = 'E:/phd/Nextcloud/data/Regions/Lanai/j2/lanai_good_only.lst'
-    # data_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_test_Z.dat'
-    # bath_file = 'E:/phd/Nextcloud/data/Regions/Lanai/test/bathy.p'
-    # bath_out = []
-    # model_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/test_wTopoAndOcean.model'
-    # cov_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean.cov'
-    # data_out = 'E:/phd/Nextcloud/data/Regions/Lanai/test/lanai_wTopoAndOcean_Z.dat'
-    #################################
-    # COREDILLA
-    # model_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/test_topo.model'
-    # list_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/j2/select.lst'
-    # data_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/modem.dat'
-    # # bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.xyz'
-    # bath_file = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.p'
-    # # bath_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo.p'
-    # model_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/test_wTopo.model'
-    # cov_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai_topo.cov'
-    # data_out = 'C:/Users/eroots/phd/ownCloud/data/Regions/jim_topo_test/mm/mm/inv2/topo/lanai__topoTest_Z.dat'
-    ################################
-    # WESTERN SUPERIOR
-    # size = 'nest'
-    # model_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_hs500_{}.model'.format(size)
-    # list_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_mantle_fullrun_ffmt.lst'
-    # data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_fullmantle_LAMBERT_all_flagged.dat'
-    # data_out = []
-    # # bath_file = []
-    # bath_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
-    # bath_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/bathy_{}.p'.format(size)
-    # model_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.model'.format(size)
-    # cov_out = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/full/wst_hs500_wOcean_{}.cov'.format(size)
-    ################################
-    #  Ciomadual
-    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D-smooth.model'
-    # model_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio1D_nest.model'
-    # list_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/j2/originals/rotated/fixed/ffmt_sorted.lst'
-    # data_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/cio4_halfPers.dat'
-    # # bath_file = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/bathy_nest.p'
-    # bath_file = 'E:/phd/NextCloud/data/ArcMap/Ciomadul/cioDEM3.tif'
-    # # bath_file = []
-    # bath_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/tifDEM/bathy-tif_nest.p'
-    # model_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioHS_wTopoAndOcean_nest.model'
-    # cov_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioHS_wTopoAndOceanFlipX_nest.cov'
-    # data_out = 'E:/phd/Nextcloud/data/Regions/Ciomadul/cio5/1D/smoothed/topo/1D/tifDEM/cioHS_wTopoAndOcean_nest.dat'
-    ###############################
-    #################################
-    # Rae Craton
-    mod_type = 'large'
-    list_file = 'E:/phd/NextCloud/data/Regions/rae/j2/rae_allnew1.lst'
-    data_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae_Z_flagged.dat'
-    model_file = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_{}.model'.format(mod_type)
-    # bath_file = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy.p'
-    bath_file = []
-    bath_out = 'E:/phd/NextCloud/data/Regions/rae/new1/bathy_large.p'
-    model_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_bath_{}.model'.format(mod_type)
-    cov_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_large_bath.cov'
-    # data_out = 'E:/phd/NextCloud/data/Regions/rae/new1/rae1_topo_Z_flagged.dat'
-    data_out = []
-
+    model_file = '/file/location/here'
+    list_file  = '/file/location/here'
+    data_file  = '/file/location/here'
+    bath_file  = '/file/location/here'
+    bath_out   = '/file/location/here'
+    model_out  = '/file/location/here'
+    cov_out    = '/file/location/here'
+    data_out   = '/file/location/here'
+    # Resample topography file. Mainly useful to resample from GeoTiff.
+    # Set to False if you don't want it, otherwise set to a 2x1 tuple, e.g., (2, 2) will resample every 2nd cell in each direction
+    resample_topo = False 
+    lat_pad = 2  # Extend the download of topo/bathymetry data by this many degrees in latitude
+    lon_pad = 2  # Extend the download of topo/bathymetry data by this many degrees in longitude
+    data_collect_stride = 1 # Integer multiple of the resolution desired (base resolution is 30 arc seconds) - change this if you have a big model or you'll download way more data than is needed!
+    with_topography = True  # Include topography?
+    with_oceans = True      # Include oceans?
+    resource = 30           # Which resource to use (15 or 30 arc seconds)
+    UTM_zone = '7N' # Set to the UTM zone of your data
+    # cmap = cmocean.cm.haline
+    cmap = None
     raw_data = DS.RawData(list_file)
     data = DS.Data(listfile=list_file, datafile=data_file)
     model = DS.Model(model_file)
     model.origin = raw_data.origin
-    lat_pad = 5
-    lon_pad = 5
-    data_collect_stride = 8
-    with_topography = False
-    cmap = cmocean.cm.haline
-    ####################################
+    model.UTM_zone = UTM_zone  # Set your UTM zone
     # If you want to modify the vertical meshing, do it now (see examples below)
-    # Add 20 layers that are each 200 m thick, then append the existing mesh (I used this for testing purposes)
-    # Z = [50] * 20 + model.zCS
-    # model.zCS = Z
-    # model.vals[:,:,:] = 10
-    # model.zCS = [50] * 12 + [20] + model.zCS
+    # I find its best to have constant layer thickness inside the topography
+    # Example below we use 25x50 m layers (1250 m total), then append the original model thicknesses starting at the 24th layer (i.e., where the thickness is ~50 m)
+    Z = [50] * 33 + model.zCS[24:]
+    model.zCS = Z
+    # Some other test possibilities for setting up your model + mesh below
+    ####################################    
+    # Set up the z-mesh as a series logspace intervals
     # model.dz = list(np.arange(0, 620, 20)) + list(np.logspace(np.log10(620), 4.5, 80)) + list(np.logspace(4.5, 6, 20))[1:]
-    # model.background_resistivity = 100
+    # Reset the resistivities to a half-space
+    # model.background_resistivity = 100 
     # model.generate_half_space()
+    #####################################
+    # Set the z-mesh as 31x20 m cells followed by a logspace setup
     # model.zCS = [20] * 31 + list(np.logspace(np.log10(20), 3, 80)) + list(np.logspace(3.1, 5, 20))
-    # model.zCS = [50] * 10 + model.zCS[13:]
-    # for ii in range(20):
-        # model.dz_insert(0, 50)
+    #####################################
     # Another testing mesh, this time with 100 m layers from 0-10 km, then 1 km layers from 10-100 km depth
     # model.dz = list(range(0, 10000, 100)) + list(range(10000, 100000, 1000))
     ####################################
@@ -220,14 +190,12 @@ if __name__ == '__main__':
     # model.background_resistivity = 100
     # model.generate_half_space()
     # This one is needed to make sure the projection to lat/long is correct.
-    # model.UTM_zone = '4Q'
-    # model.UTM_zone = '35N'
-    model.UTM_zone = '15N'
-    # model.UTM_zone = '16N'
-    # model.UTM_zone = '16U'
+    #####################################
+    # You can change these if you want - they set what the lat/long bounds of your topography are
+    # Be mindful of how you set this up - you can run out of RAM if you're not careful.
     model.to_latlong()
-    minlat, maxlat = model.dx[0] - lat_pad, model.dx[-1] + lat_pad
-    minlon, maxlon = model.dy[0] - lon_pad, model.dy[-1] + lon_pad
+    minlat, maxlat = np.round(model.dx[0] - lat_pad, decimals=2), np.round(model.dx[-1] + lat_pad, decimals=2)
+    minlon, maxlon = np.round(model.dy[0] - lon_pad, decimals=2), np.round(model.dy[-1] + lon_pad, decimals=2)
     # minlat = 18
     # maxlat = 22
     # minlon = -157
@@ -277,19 +245,28 @@ if __name__ == '__main__':
                 bathy = np.genfromtxt(bath_file)
                 lat, lon, topo = bathy[:, 1], bathy[:, 0], bathy[:, 2]
     else:
-        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=data_collect_stride)
+        lat, lon, topo = get_bathymetry(minlat, maxlat, minlon, maxlon, stride=data_collect_stride, resource=resource)
         with open(bath_out, 'wb') as f:
             pickle.dump(np.array((lat, lon, topo)), f, protocol=pickle.HIGHEST_PROTOCOL)
     
+    if resample_topo:
+        print('Resampling grid first...')
+        nx = len(np.unique(lat))
+        ny = len(np.unique(lon))
+        im = np.reshape(topo, [nx, ny])
+        lat = np.reshape(lat, [nx, ny])[::resample_topo[0], ::resample_topo[0]]
+        lon = np.reshape(lon, [nx, ny])[::resample_topo[0], ::resample_topo[0]]
+        lat, lon = lat.flatten(), lon.flatten()
+        im = downscale_local_mean(im, resample_topo)
+        topo = im.flatten()
+
     grid_x, grid_y, grid_z = bathymetry_to_model(model, lat, lon, topo)
     if with_topography:
         insert_topography(model, grid_x, grid_y, grid_z)
-    insert_oceans(model, grid_x, grid_y, grid_z, with_topography=with_topography)
+    if with_oceans:
+        insert_oceans(model, grid_x, grid_y, grid_z, with_topography=with_topography)
     model.to_local()
     reposition_data(data, model)
-    # # Should be straightforward to assign model vals and covariances for AIR
-    # # However there is the additional complication that the data file must be altered so that sites are located properly
-    # # From ModEM Manual: Z = 0 is the highest point in the topography, all site Z coords must be specified relative to this, with +ve Z being downward (sites should have +ve Z)
     model.write(model_out)
     model.set_exceptions()
     model.write_covariance(cov_out)

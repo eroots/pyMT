@@ -1,8 +1,14 @@
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 from PyQt5 import QtWidgets, Qt
+from PyQt5.uic import loadUiType
 import pyMT.utils as utils
 import re
+import os
+
+
+path = os.path.dirname(os.path.realpath(__file__))
+UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
 
 
 class DraggablePoint:
@@ -223,24 +229,37 @@ class TwoInputDialog(QtWidgets.QDialog):
         return self.line_edit1.text(), self.line_edit2.text()
 
     @staticmethod
-    def get_inputs(label_1, label_2, initial_1=None, initial_2=None, parent=None):
+    def get_inputs(label_1, label_2, initial_1=None, initial_2=None, parent=None, expected=None):
         dialog = TwoInputDialog(label_1, label_2, initial_1, initial_2, parent)
         result = dialog.exec_()
         inputs = dialog.inputs()
+        if expected:
+            try:
+                result = [expected(x) for x in inputs]
+            except ValueError:
+                QtWidgets.QMessageBox.warning(self, '...', 'Inputs not valid. Must be {}'.format(expected))
+                result = False
         return inputs, result
 
 
 class ColourMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
         super(QtWidgets.QMenu, self).__init__(parent)
-        self.all_maps = {x: None for x in ('bgy', 'bgy_r',
-                                           'jet', 'jet_r',
-                                           'jet_plus', 'jet_plus_r',
-                                           'bwr', 'bwr_r',
-                                           'greys', 'greys_r',
-                                           'turbo', 'turbo_r', 'turbo_capped', 'turbo_capped_r',
-                                           'twilight', 'twilight_shifted',
-                                           'colorwheel')}
+        self.default_cmap = 'turbo'
+        self.all_maps = {x: None for x in ('bgy', #'bgy_r',
+                                           'viridis', #'viridis_r',
+                                           'jet', #'jet_r',
+                                           'jet_plus',# 'jet_plus_r',
+                                           'bwr', #'bwr_r',
+                                           'greys', #'greys_r',
+                                           'turbo', #'turbo_r', 
+                                           'turbo_capped', #'turbo_capped_r', 
+                                           'turbo_mod',
+                                           'twilight', 
+                                           'twilight_shifted',
+                                           'colorwheel',
+                                           'hot', #'hot_r',
+                                           'viridis')} #'viridis_r')}
         self.action_group = QtWidgets.QActionGroup(self)
         self.setTitle('Colour Options')
         self.map = self.addMenu('Colour Map')
@@ -248,12 +267,17 @@ class ColourMenu(QtWidgets.QMenu):
         self.lut = self.addAction('# Colour Intervals')
 
         # Add all the colour maps
+        self.map.invert_cmap = QtWidgets.QAction('Invert Colourmap', parent, checkable=True)
+        self.map.addAction(self.map.invert_cmap)
+        self.map.invert_cmap.setChecked(True)
+        self.map.addSeparator()
         for item in self.all_maps.keys():
             self.all_maps[item] = QtWidgets.QAction(item, parent, checkable=True)
             self.map.addAction(self.all_maps[item])
             self.action_group.addAction(self.all_maps[item])
             # self.map.addMenu(item)
         self.action_group.setExclusive(True)
+        self.all_maps[self.default_cmap].setChecked(True)
 
     def set_clim(self, initial_1='1', initial_2='5'):
         inputs, ret = TwoInputDialog.get_inputs(label_1='Lower Limit', label_2='Upper Limit',
@@ -373,3 +397,39 @@ class FileInputParser(object):
                 print('Cannot read raw data with a list file!')
                 return False
         return retval
+
+
+class MyPopupDialog(UiPopupMain, QPopupWindow):
+    """
+    Creates a pop-up window belonging to parent
+
+    Args:
+        parent (obj): The parent window the created pop-up will be attached to
+    """
+
+    def __init__(self, parent=None):
+        super(MyPopupDialog, self).__init__(parent)
+        self.setupUi(self)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+    @staticmethod
+    def get_file(parent=None, message='', default='', label='Output'):
+        """Summary
+
+        Args:
+            parent (None, optional): Description
+            message (str, optional): Description
+            default (str, optional): Description
+            label (str, optional): Description
+
+        Returns:
+            TYPE: Description
+        """
+        dialog = MyPopupDialog(parent)
+        dialog.message.setText(message)
+        dialog.lineEdit.setText(default)
+        dialog.label.setText(label)
+        ret = dialog.exec_()
+        file = dialog.lineEdit.text()
+        return file, ret

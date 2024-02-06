@@ -4,11 +4,11 @@ import numpy as np
 
 scale = 1 / (4 * np.pi / 10000000)
 mu = 4 * np.pi * 1e-7 * scale
-periods = np.logspace(-4, 4, 80)
+periods = np.logspace(-4, 5, 80)
 omega = 2 * np.pi / periods
 # d = np.cumsum(self.thickness + [100000])
-thickness = [1000, 1000]
-r = [1000, 1000]
+thickness = [1000, 1000, 100000]
+r = [10000, 1000, 10000]
 cond = 1 / np.array(r)
 # r = 1 / np.array(r)
 Z = np.zeros(len(periods), dtype=complex)

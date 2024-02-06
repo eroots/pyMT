@@ -59,14 +59,14 @@ local_path = 'E:/phd/Nextcloud'
 # data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\R2Central_noOOQ/placed_TFPT/finer/R2Central-2_placed.data'
 ########################################
 # WESTERN SUPERIOR - MANTLE TO CRUST
-model_file = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wStatic/0p5/wstStatic3_0p5_lastIter.rho'
-# model_file_large = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wst_embed_shield_large.model'
-base_data_file = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wStatic/0p5/wstStatic3_0p5_lastIter.dat'
-base_list = local_path + '/data/Regions/MetalEarth/wst/j2/mantle/wst_mantle_wNorth.lst'
-data_file = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_wUSarray2_all_flagged.dat'
-list_file = local_path + '/data/Regions/MetalEarth/wst/j2/ME_wst_usarray.lst'
-model_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/from0p5/mantle2crust_placed_nest.model'
-data_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/from0p5/mantle2crust_placed.dat'
+# model_file = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wStatic/0p5/wstStatic3_0p5_lastIter.rho'
+# # model_file_large = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wst_embed_shield_large.model'
+# base_data_file = local_path + '/data/Regions/MetalEarth/wst/mantle/wNorth/embed_shield/hs300-1000/10km/wStatic/0p5/wstStatic3_0p5_lastIter.dat'
+# base_list = local_path + '/data/Regions/MetalEarth/wst/j2/mantle/wst_mantle_wNorth.lst'
+# data_file = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_wUSarray2_all_flagged.dat'
+# list_file = local_path + '/data/Regions/MetalEarth/wst/j2/ME_wst_usarray.lst'
+# model_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/from0p5/mantle2crust_placed_nest.model'
+# data_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/from0p5/mantle2crust_placed.dat'
 ########################################
 # WESTERN SUPERIOR - DRYDEN
 # model_file = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
@@ -79,6 +79,20 @@ data_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/from0p5/mantl
 # # # base_list = r'C:\Users\eric\phd\Nextcloud\data\Regions\wst\j2\southcentral.lst'
 # model_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
 # data_out = r'C:\Users\eroots\phd\Nextcloud\data\Regions\MetalEarth\dryden\wst2dry2_wOOQ\wst2dry'
+### 2022 try
+# Should try the new wstZK model later
+model_file = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.rho'
+model_file_large = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.rho'
+base_data_file = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
+base_list = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
+# base_list = local_path + '/data/Regions/MetalEarth/wst/j2/ME_wst_usarray.lst'
+# model_file = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+# base_data_file = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.dat'
+# model_file_large = local_path + '/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
+data_file = 'E:/phd/Nextcloud/data/Regions/MetalEarth/dryden/wst2dry2/wst2dry_Z_flagged.dat'
+list_file = 'E:/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ_edi-names.lst'
+model_out = 'E:/phd/Nextcloud/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/capped10000/from-cullZK/wst2dry_nest'
+data_out = 'E:/phd/Nextcloud/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/capped10000/from-cullZK/wst2dry_Z'
 ########################################
 # WESTERN SUPERIOR - STURGEON
 # model_file = local_path + r'\data\Regions\MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho'
@@ -152,7 +166,7 @@ data_out = local_path + '/data/Regions/MetalEarth/wst/mantle2crust/from0p5/mantl
 produce_large_model = 0
 plot_it = 0
 write_it = 1
-plot_depth = 20000  # in meters
+plot_depth = 40000  # in meters
 azi = -0  # Rotate the non-base data back
 
 mod = WSDS.Model(model_file)
@@ -306,46 +320,48 @@ for ii in range(len(mod.dz) - 1):
 # y_pad_extention = 75000
 #####################################
 # DRYDEN WST2DRY
-# bot_edge = -225000
-# top_edge = 50000
-# left_edge = -250000
-# right_edge = 0
-# bot_edge = min(data.locations[:, 0]) + 35000
-# top_edge = max(data.locations[:, 0]) - 20000
-# left_edge = min(data.locations[:, 1]) + 40000
-# right_edge = max(data.locations[:, 1]) - 15000
-# x_interp = int(abs(bot_edge - top_edge) / 1500)
-# y_interp = int(abs(left_edge - right_edge) / 1500)
-# # x_interp = 100
-# # y_interp = 70
-# n_xpad = 15
-# n_ypad = 15
-# pad_multiplier = 1.1
-# min_depth = 10
-# max_depth = 1000000
-######################################
-# STURGEON WST2STU
-bot_edge = min(data.locations[:, 0]) - 10000
-top_edge = max(data.locations[:, 0]) + 10000
-left_edge = min(data.locations[:, 1]) - 10000
-right_edge = max(data.locations[:, 1]) + 10000
-x_interp = int(abs(bot_edge - top_edge) / 5000)
-y_interp = int(abs(left_edge - right_edge) / 5000)
+bot_edge = -225000
+top_edge = 50000
+left_edge = -250000
+right_edge = 0
+bot_edge = min(data.locations[:, 0]) + 35000
+top_edge = max(data.locations[:, 0]) - 20000
+left_edge = min(data.locations[:, 1]) + 40000
+right_edge = max(data.locations[:, 1]) - 15000
+x_interp = int(abs(bot_edge - top_edge) / 1000)
+y_interp = int(abs(left_edge - right_edge) / 1000)
 # x_interp = 100
 # y_interp = 70
-n_xpad = 10
-n_ypad = 10
 # n_xpad = 25
 # n_ypad = 25
+n_xpad = 20
+n_ypad = 20
 pad_multiplier = 1.1
+min_depth = 10
+max_depth = 1000000
+######################################
+# STURGEON WST2STU
+# bot_edge = min(data.locations[:, 0]) - 10000
+# top_edge = max(data.locations[:, 0]) + 10000
+# left_edge = min(data.locations[:, 1]) - 10000
+# right_edge = max(data.locations[:, 1]) + 10000
+# x_interp = int(abs(bot_edge - top_edge) / 5000)
+# y_interp = int(abs(left_edge - right_edge) / 5000)
+# # x_interp = 100
+# # y_interp = 70
 # n_xpad = 10
 # n_ypad = 10
-# min_depth = 10
-# max_depth = 650000
-# depths_per_decade = (10, 12, 14, 10, 8)
-# dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
-# dz[-3] = 410000
-dz = mod.dz
+# # n_xpad = 25
+# # n_ypad = 25
+# pad_multiplier = 1.1
+# n_xpad = 10
+# n_ypad = 10
+min_depth = 10
+max_depth = 650000
+depths_per_decade = (10, 12, 14, 16, 8)
+dz = utils.generate_zmesh(min_depth=min_depth, max_depth=max_depth, NZ=depths_per_decade)[0]
+dz[-3] = 410000
+# dz = mod.dz
 fill_value = 1000
 # max_depth = mod.dz[-1]
 x_interior = np.linspace(bot_edge, top_edge, x_interp)
@@ -416,12 +432,12 @@ if plot_it:
     zz_2 = np.argmin(abs(plot_depth - np.array(dz)))
     fig, axes = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
     axes[0].pcolormesh(y, x, np.log10(mod.vals[:, :, zz_1]),
-                       cmap=cm.jet_plus(64), vmin=1, vmax=5,
+                       cmap=cm.get_cmap('turbo_r',64), vmin=1, vmax=5,
                        edgecolor='k', linewidth=0.01)
     axes[0].plot(base_data.locations[:, 1], base_data.locations[:, 0], 'kv')
     axes[0].plot(data.locations[:, 1], data.locations[:, 0], 'w^')
     axes[1].pcolormesh(Y, X, np.log10(new_vals[:, :, zz_2]),
-                       cmap=cm.jet_plus(64), vmin=1, vmax=5,
+                       cmap=cm.get_cmap('turbo_r',64), vmin=1, vmax=5,
                        edgecolor='k', linewidth=0.01)
     axes[1].plot(data.locations[:, 1], data.locations[:, 0], 'kv')
     # axes[0].invert_yaxis()

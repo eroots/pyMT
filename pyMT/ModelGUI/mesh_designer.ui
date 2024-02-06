@@ -97,8 +97,19 @@
     <addaction name="menuColour_Map"/>
     <addaction name="menuMesh_Lines"/>
    </widget>
+   <widget class="QMenu" name="menuDisplay_Options">
+    <property name="title">
+     <string>Display Options</string>
+    </property>
+    <addaction name="actionLock_Aspect_Ratio"/>
+    <addaction name="actionMarker_Shape"/>
+    <addaction name="actionMarker_Size"/>
+    <addaction name="actionMarker_Colour"/>
+    <addaction name="actionAnnotate_Sites"/>
+   </widget>
    <addaction name="menuWrite_Model"/>
    <addaction name="menuColours"/>
+   <addaction name="menuDisplay_Options"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
@@ -144,7 +155,7 @@
           <x>0</x>
           <y>0</y>
           <width>278</width>
-          <height>672</height>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -450,7 +461,7 @@
               </item>
              </layout>
             </widget>
-            <widget class="QRadioButton" name="radioButton">
+            <widget class="QRadioButton" name="zUseDecades">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -466,7 +477,7 @@
               <bool>true</bool>
              </property>
             </widget>
-            <widget class="QRadioButton" name="radioButton_2">
+            <widget class="QRadioButton" name="zUseFactor">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -495,7 +506,7 @@
               <string>Increase Factor</string>
              </property>
             </widget>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox">
+            <widget class="QDoubleSpinBox" name="zIncreaseFactor">
              <property name="geometry">
               <rect>
                <x>130</x>
@@ -505,7 +516,7 @@
               </rect>
              </property>
              <property name="minimum">
-              <double>1.000000000000000</double>
+              <double>1.050000000000000</double>
              </property>
              <property name="maximum">
               <double>10.000000000000000</double>
@@ -558,13 +569,30 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="page">
+        <attribute name="label">
+         <string>Depths</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QTableWidget" name="depthList">
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAsNeeded</enum>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="page_4">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>278</width>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -647,7 +675,7 @@
           <x>0</x>
           <y>0</y>
           <width>278</width>
-          <height>672</height>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -941,6 +969,37 @@
    </property>
    <property name="text">
     <string>White</string>
+   </property>
+  </action>
+  <action name="actionLock_Aspect_Ratio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lock Aspect Ratio</string>
+   </property>
+  </action>
+  <action name="actionMarker_Shape">
+   <property name="text">
+    <string>Marker Shape</string>
+   </property>
+  </action>
+  <action name="actionMarker_Size">
+   <property name="text">
+    <string>Marker Size</string>
+   </property>
+  </action>
+  <action name="actionMarker_Colour">
+   <property name="text">
+    <string>Marker Colour</string>
+   </property>
+  </action>
+  <action name="actionAnnotate_Sites">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Annotate Sites</string>
    </property>
   </action>
  </widget>

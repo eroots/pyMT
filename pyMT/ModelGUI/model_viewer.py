@@ -19,51 +19,68 @@ import sys
 from copy import deepcopy
 import numpy as np
 import pyvista as pv
+from pyvistaqt import QtInteractor
 import pyMT.data_structures as WSDS
 from pyMT.utils import sort_files, check_file
 import pyMT.e_colours.colourmaps as cm
 from pyMT.GUI_common import classes
 from pyMT import gplot
+from pyMT import resources
 from PyQt5.uic import loadUiType
 from pyMT.IO import debug_print
 from scipy.interpolate import RegularGridInterpolator as RGI
 # from PyQt5 import QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 # from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    import importlib_resources as pkg_resources
 
 
 path = ospath.dirname(ospath.realpath(__file__))
+with pkg_resources.path(resources, 'model_viewer.jpg') as p:
+    model_viewer_jpg = str(p)
+# model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
+# model_viewer_jpg = path + '/../resources/images/data_plot.jpg'
 # Ui_MainWindow, QMainWindow = loadUiType(ospath.join(path, 'data_plot.ui'))
 # UiPopupMain, QPopupWindow = loadUiType(ospath.join(path, 'saveFile.ui'))
 UI_ModelWindow, QModelWindow = loadUiType(ospath.join(path, 'model_viewer.ui'))
 
 
-def model_to_rectgrid(model, resolution=None):
+def model_to_rectgrid(model, resolution=None, rho_axis='rho_x'):
+    if '/' in rho_axis:
+        rho_axis = rho_axis.split('/')
+        v1 = getattr(model, rho_axis[0].strip())
+        v2 = getattr(model, rho_axis[1].strip())
+        vals = v1 / v2
+    else:
+        vals = getattr(model, rho_axis, 'vals')
     grid = pv.RectilinearGrid(np.array(model.dy),
                               np.array(model.dx),
                               -np.array(model.dz))
-    vals = np.log10(np.swapaxes(np.flip(model.vals, 2), 0, 1)).flatten(order='F')
-    grid.cell_arrays['Resistivity'] = vals
+    vals = np.log10(np.swapaxes(np.flip(vals, 2), 0, 1)).flatten(order='F')
+    grid.cell_data['Resistivity'] = vals
     if resolution:
         X, Y, Z = np.meshgrid(resolution.yCS, resolution.xCS, resolution.zCS)
         volume = np.swapaxes(np.flip(X * Y * Z, 2), 0, 1).flatten(order='F')
         resvals = np.swapaxes(np.flip(resolution.vals, 2), 0, 1).flatten(order='F')
-        grid.cell_arrays['RawResolution'] = np.log10(resvals)
+        grid.cell_data['RawResolution'] = np.log10(resvals)
         resvals = resvals / (volume.ravel())# ** (2/3))
         resvals[resvals > np.median(resvals.ravel())] = np.median(resvals.ravel())
         resvals = resvals - np.mean(resvals)
         resvals = resvals / np.std(resvals)
         resvals = 0.5 + resvals * np.sqrt(0.5)
         resvals[resvals > 1] = 1
-        grid.cell_arrays['Resolution'] = resvals
+        grid.cell_data['Resolution'] = resvals
     else:
-        grid.cell_arrays['Resolution'] = np.ones(vals.shape)
-        grid.cell_arrays['Resolution'][0] = .99
+        grid.cell_data['Resolution'] = np.ones(vals.shape)
+        grid.cell_data['Resolution'][0] = .99
     return grid
 
 
@@ -73,22 +90,44 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.setupUi(self)
 
         # Add the model
-        try:
+        self.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
+        if files.get('data', None):
             self.dataset = WSDS.Dataset(modelfile=files['model'],
-                                        datafile=files['dat'])
-        except KeyError:
+                                        datafile=files['data'])
+        elif files.get('response', None):
+            self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                        datafile=files['response'])
+        else:
             self.dataset = WSDS.Dataset(modelfile=files['model'])
+            print('No data file given. Site locations will not be available.')
+        # try:
+            # self.dataset = WSDS.Dataset(modelfile=files['model'],
+                                        # datafile=files['data'])
+        # except KeyError:
+            # self.dataset = WSDS.Dataset(modelfile=files['model'])
         if self.dataset.model.dimensionality == '2d':
             # idx = np.argmin(abs(np.array(self.dataset.model.dy)))
             self.dataset.data.locations[:, 1] += self.dataset.model.dy[0] #sum(self.dataset.model.dy[:idx])
-        try:
-            self.resolution = WSDS.Model(files['reso'])
-            self.use_resolution = 'Resolution'
-        except KeyError:
-            self.resolution = None            
-            # self.resolution.vals = np.ones(self.dataset.model.vals.shape)
+        if files.get('resolution', None):
+            try:
+                self.resolution = WSDS.Model(files['resolution'])
+                self.use_resolution = 'Resolution'
+            except ValueError:
+                with open(files['resolution'], 'r') as f:
+                    r = [float(x.strip()) for x in f.readlines()]
+                    self.resolution = deepcopy(self.dataset.model)
+                    self.resolution.vals = np.transpose(np.reshape(r, [self.resolution.nz,
+                                                                       self.resolution.ny,
+                                                                       self.resolution.nx]), [2, 1, 0])
+                    self.use_resolution = 'Resolution'
+            except KeyError:
+                self.resolution = None            
+                # self.resolution.vals = np.ones(self.dataset.model.vals.shape)
+        else:
+            self.resolution = None
         self.use_resolution = 1
         self.use_scalar = 'Resistivity'
+        self.rho_axis = 'rho_x'
         self.model = self.dataset.model
         self.clip_model = deepcopy(self.model)
         self.clip_resolution = deepcopy(self.resolution)
@@ -99,7 +138,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Make sure the frame fills the tab
         vlayout3D = QtWidgets.QVBoxLayout()
         # add the pyvista interactor object
-        self.vtk_widget = pv.QtInteractor(self.frame3D)
+        self.vtk_widget = QtInteractor(self.frame3D)
         vlayout3D.addWidget(self.vtk_widget)
         self.frame3D.setLayout(vlayout3D)
         self.pv_default_background = deepcopy(self.vtk_widget.background_color)
@@ -118,7 +157,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.mesh_group.setExclusive(True)
 
         self.plot_data = {'stations': []}
-        if 'dat' in files.keys():
+        has_data = files.get('data', None)
+        has_response = files.get('response', None)
+        if has_data or has_response:
             self.plot_locations = True
             self.locs_3D = np.zeros((len(self.dataset.data.locations), 3))
             self.plot_data['stations'] = pv.PolyData(self.locs_3D)
@@ -127,11 +168,12 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         else:
             self.locs_3D = np.zeros((1, 3))
             self.plot_locations = False
-        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution)
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
         self.lut = 32
-        self.colourmap = 'turbo_r'
-        self.cmap = cm.get_cmap('turbo_r', 32)
-        self.cax, self.rho_cax, self.resolution_cax = [1, 5], [1, 5], [-6, -2]
+        # self.colourmap = 'turbo_r'
+        self.colourmap = self.colourMenu.action_group.checkedAction().text()
+        self.cmap = cm.get_cmap(self.colourmap, self.lut, self.colourMenu.map.invert_cmap.isChecked())
+        self.cax, self.rho_cax, self.resolution_cax, self.aniso_cax = [1, 5], [1, 5], [-6, -2], [-2, 2]
         self.actors = {'X': [], 'Y': [], 'Z': [], 'transect': [], 'isosurface': []}
         self.contours = []
         self.slices = {'X': [], 'Y': [], 'Z': [], 'transect': []}
@@ -155,16 +197,23 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.toolbar = {'2D': [], 'transect': []}
         self.fig_2D = Figure()
         self.spec = {'X': [], 'Y': [], 'Z': []}
-        self.spec['Y'] = GridSpec(3, 3).new_subplotspec((0, 2), colspan=1, rowspan=2)
-        self.spec['X'] = GridSpec(3, 3).new_subplotspec((2, 0), colspan=2, rowspan=1)
-        self.spec['Z'] = GridSpec(3, 3).new_subplotspec((0, 0), colspan=2, rowspan=2)
+        # self.spec['Y'] = GridSpec(3, 3).new_subplotspec((0, 2), colspan=1, rowspan=2)
+        # self.spec['X'] = GridSpec(3, 3).new_subplotspec((2, 0), colspan=2, rowspan=1)
+        # self.spec['Z'] = GridSpec(3, 3).new_subplotspec((0, 0), colspan=2, rowspan=2)
+        # self.spec['colorbar'] = GridSpec(3, 3).new_subplotspec((2, 2), colspan=1, rowspan=1)
+        self.spec['Y'] = GridSpec(12, 12).new_subplotspec((0, 8), colspan=4, rowspan=8)
+        self.spec['X'] = GridSpec(12, 12).new_subplotspec((8, 0), colspan=8, rowspan=4)
+        self.spec['Z'] = GridSpec(12, 12).new_subplotspec((0, 0), colspan=8, rowspan=8)
+        self.spec['colorbar'] = GridSpec(12, 12).new_subplotspec((11, 9), colspan=3, rowspan=1)
         self.fig_2D.add_subplot(self.spec['Z'])
         self.fig_2D.add_subplot(self.spec['Y'])
         self.fig_2D.add_subplot(self.spec['X'])
-        self.fig_2D.subplots_adjust(top=1, bottom=0.05,
+        self.fig_2D.add_subplot(self.spec['colorbar'])
+        self.fig_2D.subplots_adjust(top=0.95, bottom=0.1,
                                     left=0.06, right=0.94,
-                                    hspace=0.05, wspace=0.05)
+                                    hspace=0.08, wspace=0.02)
         self.map = gplot.MapView(figure=self.fig_2D)
+        # self.map.window['colorbar'] = self.
         self.init_map(self.dataset)
         self.add_mpl(self.map.window['figure'], '2D')
         self.fig_transect = Figure()
@@ -176,6 +225,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.update_plan_view()
         self.update_2D_X()
         self.update_2D_Y()
+        self.update_2D_colorbar()
 
     @property
     def x_slice(self):
@@ -237,7 +287,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def update_2D_X(self):
         self.map.window['axes'][2].clear()
-        self.map.plot_x_slice(x_slice=self.x_slice, ax=self.map.window['axes'][2])
+        self.map.plot_x_slice(x_slice=self.x_slice,
+                              ax=self.map.window['axes'][2],
+                              rho_axis=self.rho_axis)
         bounds = np.array([self.clip_model.dy[0], self.clip_model.dy[-1],
                            self.clip_model.dz[0], self.clip_model.dz[-1]])
         self.map.set_axis_limits(ax=self.map.window['axes'][2], bounds=bounds)
@@ -249,7 +301,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.map.window['axes'][1].clear()
         self.map.plot_y_slice(y_slice=self.y_slice,
                               ax=self.map.window['axes'][1],
-                              orientation='zx')
+                              orientation='zx',
+                              rho_axis=self.rho_axis)
         bounds = np.array([self.clip_model.dz[0], self.clip_model.dz[-1],
                            self.clip_model.dx[0], self.clip_model.dx[-1]])
         self.map.set_axis_limits(ax=self.map.window['axes'][1], bounds=bounds)
@@ -294,7 +347,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.toolbar.push_current()
         bounds = np.array([self.clip_model.dy[0], self.clip_model.dy[-1],
                            self.clip_model.dx[0], self.clip_model.dx[-1]])
-        self.map.plot_plan_view(z_slice=self.z_slice, ax=self.map.window['axes'][0])
+        self.map.plot_plan_view(z_slice=self.z_slice, ax=self.map.window['axes'][0], rho_axis=self.rho_axis)
         self.update_slice_indicators('xy')
         if self.plot_locations:
             self.map.plot_locations()
@@ -303,7 +356,31 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.map.window['axes'][0].get_xaxis().set_visible(False)
         self.plot_transect_markers(redraw=True)
         self.plot_transect_line(redraw=True)
+        self.update_plan_title()
         # self.map.window['axes'][0].set_aspect('equal')
+        self.canvas['2D'].draw()
+
+    def update_2D_colorbar(self):
+        self.map.window['axes'][3].clear()
+        # fake_vals = np.linspace(self.cax[0], self.cax[1], self.lut)
+        # fake_im = self.map.window['axes'][3].scatter(range(self.lut), range(self.lut),
+                                                     # c=fake_vals, cmap=self.cmap)
+        fake_vals = np.linspace(self.cax[0], self.cax[1], self.lut)
+        fake_im = self.map.window['axes'][3].scatter(range(self.lut), range(self.lut), s=10, marker='.',
+                                                     c=fake_vals, cmap=self.cmap)
+        fake_im.set_visible(False)
+        self.map.window['figure'].colorbar(mappable=fake_im, cax=self.map.window['axes'][3],
+                                           orientation='horizontal')
+        self.map.window['axes'][3].set_xlabel(r'$Log_{10}$ Resistivity ($\Omega$m)', fontsize=self.map.label_fontsize)
+        self.canvas['2D'].draw()
+
+    def update_plan_title(self):
+        if self.depthLabelRange.isChecked():
+            self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
+                                                 ', Depth = '+'{:.3g}'.format((self.model.dz[self.z_slice]+self.model.dz[self.z_slice-1])/2)+' km', fontsize=self.map.label_fontsize)
+        elif self.depthLabelCenter.isChecked():
+            self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
+                                                 ', Depth = '+'{:.3g}'.format(self.model.dz[self.z_slice-1])+u'\u2013'+'{:.3g}'.format(self.model.dz[self.z_slice])+' km', fontsize=self.map.label_fontsize)
         self.canvas['2D'].draw()
 
     def update_slice_indicators(self, direction='xy', redraw=True):
@@ -394,9 +471,15 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Colour options
         self.colourMenu.action_group.triggered.connect(self.change_cmap)
         self.colourMenu.limits.triggered.connect(self.set_clim)
-        self.mesh_group.triggered.connect(self.show_mesh)
         self.colourMenu.lut.triggered.connect(self.set_lut)
-        self.colourMenu.all_maps[self.colourmap].setChecked(True)
+        self.colourMenu.map.invert_cmap.triggered.connect(self.change_cmap)
+        # self.colourMenu.all_maps[self.colourmap].setChecked(True)
+        # 2-D Plot options
+        self.mesh_group.triggered.connect(self.show_mesh)
+        self.depthTitles = QtWidgets.QActionGroup(self)
+        self.depthTitles.addAction(self.depthLabelRange)
+        self.depthTitles.addAction(self.depthLabelCenter)
+        self.depthTitles.triggered.connect(self.update_plan_title)
         # View buttons
         self.viewXY.triggered.connect(self.view_xy)
         self.viewXZ.triggered.connect(self.view_xz)
@@ -421,8 +504,31 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.pv_background_group.addAction(self.actionBlue)
         self.pv_background_group.addAction(self.actionWhite)
         self.pv_background_group.setExclusive(True)
-
         self.pv_background_group.triggered.connect(self.change_background)
+        # Rho axis selection actions
+        self.rho_axis_group = QtWidgets.QActionGroup(self)
+        self.rho_axis_group.addAction(self.action_plot_rho_x)
+        self.rho_axis_group.addAction(self.action_plot_rho_y)
+        self.rho_axis_group.addAction(self.action_plot_rho_z)
+        self.rho_axis_group.addAction(self.action_plot_rho_xy)
+        self.rho_axis_group.addAction(self.action_plot_rho_xz)
+        self.rho_axis_group.addAction(self.action_plot_rho_yz)
+        self.rho_axis_group.setExclusive(True)
+
+        if self.dataset.model.isotropic:
+            self.rho_axis_group.setEnabled(False)
+        else:
+            self.rho_axis_group.triggered.connect(self.change_rho_axis)
+
+    def change_rho_axis(self):
+        self.rho_axis = self.rho_axis_group.checkedAction().text().lower()
+        if '/' in self.rho_axis:
+            self.cax = self.aniso_cax
+        else:
+            self.cax = self.rho_cax
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
+        self.update_all(reset_camera=False)
+
 
     def change_background(self):
         color = self.pv_background_group.checkedAction().text().lower()
@@ -557,10 +663,12 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def change_cmap(self):
         self.colourmap = self.colourMenu.action_group.checkedAction().text()
-        self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text(), self.lut)
+        self.cmap = cm.get_cmap(self.colourMenu.action_group.checkedAction().text(),
+                                self.lut,
+                                self.colourMenu.map.invert_cmap.isChecked())
         self.map.colourmap = self.colourmap
         self.map.lut = self.lut
-        self.update_all()
+        self.update_all(reset_camera=False)
 
     def set_lut(self):
         inputs, ret = self.colourMenu.set_lut(initial=self.lut)
@@ -808,7 +916,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             if self.resolution:
                 self.clip_resolution.dz_delete(self.clip_model.nz)
         # self.map.model = self.clip_model
-        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution)
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
         self.validate_slice_locations()
         # debug_print([self.model.dy[self.y_slice], self.model.dy[self.y_clip[0]], self.model.dy[self.model.ny]], 'C:/Users/eric/Desktop/debug.log')
         self.xSliceSlider.setMinimum(self.x_clip[0] + 1)
@@ -862,7 +970,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # sphere = pv.Sphere()
         # self.model = WSDS.Model(model_path)
         # rect_grid = pv.RectilinearGrid(np.array(model.dx), np.array(model.dy), np.array(model.dz))
-        # rect_grid.cell_arrays['Resitivity'] = np.log10(model.vals.flatten(order='F'))
+        # rect_grid.cell_data['Resitivity'] = np.log10(model.vals.flatten(order='F'))
         # self.vtk_widget.add_mesh(self.rect_grid)
         self.vtk_widget.clear()
         # This method is a full redraw - but slices should still be taken again even
@@ -905,9 +1013,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
                                           self.clip_model.dx[0], self.clip_model.dx[-1],
                                           -self.clip_model.dz[-1], self.clip_model.dz[0]],
-                                  xlabel='Easting (km)',
-                                  ylabel='Northing (km)',
-                                  zlabel='Depth (km)')
+                                  xtitle='Easting (km)',
+                                  ytitle='Northing (km)',
+                                  ztitle='Depth (km)')
 
     def view_xy(self):
         self.vtk_widget.view_xy()
@@ -927,11 +1035,12 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # self.vtk_widget.view_xy()
         self.vtk_widget.update()
 
-    def update_all(self):
+    def update_all(self, reset_camera=True):
         self.update_2D_X()
         self.update_2D_Y()
         self.update_plan_view()
-        self.render_3D()
+        self.update_2D_colorbar()
+        self.render_3D(reset_camera)
 
     def click_2D(self, event):
         if self.map.window['axes'][0] == event.inaxes:
@@ -995,7 +1104,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                 cc += 1
 
         cell_N, cell_E, cell_z = self.clip_model.cell_centers()
-        vals = np.transpose(np.log10(self.clip_model.vals), [1, 0, 2])
+        rho = getattr(self.clip_model, self.rho_axis)
+        vals = np.transpose(np.log10(rho), [1, 0, 2])
         self.interpolator = RGI((cell_E, cell_N, cell_z),
                                 vals, bounds_error=False, fill_value=None)
         interp_vals = self.interpolator(query_points)
@@ -1024,12 +1134,15 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         linear_x[1:-1] = np.sqrt((self.qx[1:] - self.qx[:-1]) ** 2 + (self.qy[1:] - self.qy[:-1]) ** 2)
         linear_x = np.cumsum(linear_x)
         # Hack to get dimesniosn right
-        # linear_x[-1] += (linear_x[-1] - linear_x[-1])
+        linear_x[-1] += (linear_x[-1] - linear_x[-1])
         # qz = list(qz)
+        # qz = list(self.qz)
         # qz.append(qz[-1] + 1)
         # qz = np.array(qz)
+        # sub the hack into call to pcolormesh below, replacing self.qz 
+        
         self.fig_transect.axes[0].clear()
-        self.fig_transect.axes[0].pcolormesh(linear_x, self.qz,
+        self.fig_transect.axes[0].pcolormesh(linear_x, np.array(list(self.qz) + [self.qz[-1] + 1]),
                                              self.interp_vals.T,
                                              vmin=self.cax[0], vmax=self.cax[1],
                                              cmap=self.cmap)
@@ -1107,11 +1220,11 @@ def main():
             print('File {} not found.'.format(file))
             return
     files = sort_files(files=files)
-    try:
-        data = WSDS.Data(datafile=files['dat'])
-    except KeyError:
-        print('No data file given. Site locations will not be available.')
-        data = None
+    # try:
+    #     data = WSDS.Data(datafile=files['dat'])
+    # except KeyError:
+    #     print('No data file given. Site locations will not be available.')
+    #     data = None
     try:
         model = WSDS.Model(files['model'])
     except KeyError:
@@ -1119,7 +1232,8 @@ def main():
         return
     app = QtWidgets.QApplication(sys.argv)
     viewer = ModelWindow(files)
-    viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
+    viewer.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
+    # viewer.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
 
     viewer.show()
     ret = app.exec_()

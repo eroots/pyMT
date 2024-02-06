@@ -46,13 +46,13 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>150</width>
+     <width>175</width>
      <height>1038</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>150</width>
+     <width>175</width>
      <height>524287</height>
     </size>
    </property>
@@ -253,6 +253,16 @@
             <string>Phi_split</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_Z</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_PT</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
@@ -325,6 +335,16 @@
             <string>Phi_split</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_Z</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_split_PT</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
@@ -373,35 +393,21 @@
             <string>PT Azimuth</string>
            </property>
           </item>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="toggle_rhoPseudo">
-          <property name="text">
-           <string>Apparent 
-Resistivity</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="toggle_depthPseudo">
-          <property name="text">
-           <string>Bostick Depth</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="toggle_phasePseudo">
-          <property name="text">
-           <string>Phase</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="toggle_tipPseudo">
-          <property name="text">
-           <string>Tipper Amp.</string>
-          </property>
+          <item>
+           <property name="text">
+            <string>Phi_max</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Phi_min</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PT Split</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
@@ -474,6 +480,30 @@ Resistivity</string>
         <string>Plan View</string>
        </property>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Slice #</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QSpinBox" name="planSlice"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Depth:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLabel" name="planDepth">
+          <property name="text">
+           <string>0 km</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0" colspan="2">
          <widget class="QCheckBox" name="toggle_planView">
           <property name="text">
@@ -481,28 +511,23 @@ Resistivity</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Slice #</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QSpinBox" name="planSlice"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Depth:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="planDepth">
-          <property name="text">
-           <string>0 km</string>
-          </property>
+        <item row="1" column="0" colspan="2">
+         <widget class="QComboBox" name="rhoAxis">
+          <item>
+           <property name="text">
+            <string>rho_x</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>rho_y</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>rho_z</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
@@ -553,7 +578,7 @@ Resistivity</string>
     </property>
     <widget class="QMenu" name="menuMarker">
      <property name="title">
-      <string>Marker</string>
+      <string>Site Markers</string>
      </property>
      <addaction name="actionMarker_Size"/>
      <addaction name="actionMarker_Shape"/>
@@ -564,8 +589,11 @@ Resistivity</string>
      <property name="enabled">
       <bool>true</bool>
      </property>
+     <property name="toolTip">
+      <string>Annotate the station locations with their names. 'Active' annotates only those that are currently plotted in the Data Plot window.</string>
+     </property>
      <property name="title">
-      <string>Annotate</string>
+      <string>Site Annotations</string>
      </property>
      <addaction name="actionAnnotate_All"/>
      <addaction name="actionAnnotate_None"/>
@@ -595,9 +623,17 @@ Resistivity</string>
      <property name="title">
       <string>Induction Arrows</string>
      </property>
+     <widget class="QMenu" name="menuConvention">
+      <property name="title">
+       <string>Convention</string>
+      </property>
+      <addaction name="actionParkinson"/>
+      <addaction name="actionWeise"/>
+     </widget>
      <addaction name="actionInductionErrorTolerance"/>
      <addaction name="actionInductionScale"/>
      <addaction name="actionInductionCutoff"/>
+     <addaction name="menuConvention"/>
     </widget>
     <widget class="QMenu" name="menuCoordinate_System">
      <property name="title">
@@ -608,11 +644,20 @@ Resistivity</string>
      <addaction name="action_coordLatlong"/>
      <addaction name="action_coordLambert"/>
     </widget>
+    <widget class="QMenu" name="menuRMS_Plotting">
+     <property name="title">
+      <string>RMS Plotting</string>
+     </property>
+     <addaction name="action_rmsSize"/>
+     <addaction name="action_rmsColour"/>
+     <addaction name="action_rmsLabels"/>
+    </widget>
     <addaction name="menuAnnotate"/>
     <addaction name="menuMarker"/>
     <addaction name="menuPhase_Tensors"/>
     <addaction name="menuInduction_Arrows"/>
     <addaction name="menuCoordinate_System"/>
+    <addaction name="menuRMS_Plotting"/>
    </widget>
    <widget class="QMenu" name="menuAxis_Options">
     <property name="title">
@@ -622,6 +667,9 @@ Resistivity</string>
     <addaction name="actionLockAxis"/>
    </widget>
    <widget class="QMenu" name="menuJPEG">
+    <property name="toolTip">
+     <string>Load and control plotting of a georeferenced JPEG. Selected .jpg file must have a corresponding .jgw file</string>
+    </property>
     <property name="title">
      <string>JPEG</string>
     </property>
@@ -735,6 +783,9 @@ Resistivity</string>
   </action>
   <action name="actionAnnotate_Active">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -919,6 +970,71 @@ Resistivity</string>
   <action name="actionStandardDeviation">
    <property name="text">
     <string># Standard Deviation</string>
+   </property>
+  </action>
+  <action name="action_rmsSize">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Size</string>
+   </property>
+  </action>
+  <action name="action_rmsColour">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Colours</string>
+   </property>
+  </action>
+  <action name="actionPhiSplitPT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>phi_max - phi_min</string>
+   </property>
+  </action>
+  <action name="actionPhiSplitZ">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Zxy - Zyx</string>
+   </property>
+  </action>
+  <action name="actionParkinson">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Parkinson (Reversed)</string>
+   </property>
+  </action>
+  <action name="actionWeise">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Weise</string>
+   </property>
+  </action>
+  <action name="action_rmsLabels">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Labels</string>
    </property>
   </action>
  </widget>

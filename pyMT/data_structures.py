@@ -4,7 +4,7 @@ import numpy as np
 import os
 from pyMT.WSExceptions import WSFileError
 import pyMT.utils as utils
-import pyMT.IO as WS_io
+import pyMT.IO as IO
 from copy import deepcopy
 
 
@@ -85,10 +85,16 @@ class Dataset(object):
             responsefile (str, optional): Description
             datpath (str, optional): Description
         """
+        # Check if the list file passed is just a RawData instance, and if so copy it
+        if isinstance(listfile, RawData):
+            self.raw_data = deepcopy(listfile)
+            listfile = self.raw_data.listfile
+        else:
+            self.raw_data = RawData(listfile=listfile, datpath=datpath)
         self.data = Data(listfile=listfile, datafile=datafile)
         self.model = Model(modelfile=modelfile)
-        self.raw_data = RawData(listfile=listfile, datpath=datpath)
         self.response = Data(listfile=listfile, datafile=responsefile)
+        self.smoothed_data = deepcopy(self.raw_data)
         self.rms = self.calculate_RMS()
         self._spatial_units = 'm'
         if not self.data.site_names and self.raw_data.initialized:
@@ -102,6 +108,7 @@ class Dataset(object):
         if len(set(azi)) == 1 and len(azi) == num_dTypes:
             self.azimuth = azi[0]
         else:
+            # print('Not all data azimuths are equal. Defaulting to that set in the data file (no actual rotation is applied).')
             print('Not all data azimuths are equal. Defaulting to that set in the data file.')
             print('data: {}, raw_data: {}, response: {}'.format(self.data.azimuth,
                                                                 self.raw_data.azimuth,
@@ -110,7 +117,7 @@ class Dataset(object):
             self.azimuth = self.data.azimuth
         if self.raw_data.initialized:
             try:
-                self.freqset = WS_io.read_freqset(self.raw_data.datpath)
+                self.freqset = IO.read_freqset(self.raw_data.datpath)
             except FileNotFoundError:
                 self.freqset = None
         else:
@@ -163,11 +170,7 @@ class Dataset(object):
 
     @utils.enforce_input(sites=list, periods=list, components=list, hTol=float, lTol=float)
     def get_data_from_raw(self, lTol=None, hTol=None, sites=None, periods=None, components=None):
-        # if components:
-        #     if any(comp not in Data.ACCEPTED_COMPONENTS for comp in components):
-
-        #         print('Invalid component passed to keyword "components"')
-        #         return
+        
         self.data.sites = self.raw_data.get_data(sites=sites, periods=periods,
                                                  components=components, lTol=lTol,
                                                  hTol=hTol)
@@ -182,7 +185,9 @@ class Dataset(object):
             self.data.components = RawData.ACCEPTED_COMPONENTS
         self.data.locations = self.data.get_locs()
         self.data.center_locs()
-        self.data.azimuth = 0  # Azi is set to 0 when reading raw data, so this will be too.
+        self.data.azimuth = self.raw_data.azimuth
+        if self.data.azimuth != 0:
+            self.data.locations = utils.rotate_locs(self.data.locations, self.data.azimuth)
         self.data.auto_set_inv_type()
 
     def reset_dummy_periods(self):
@@ -336,10 +341,10 @@ class Dataset(object):
 
     @utils.enforce_input(site_names=list, dTypes=list)
     def get_sites(self, site_names, dTypes='all'):
-        site_list = {'raw_data': [], 'data': [], 'response': []}
+        site_list = {'raw_data': [], 'data': [], 'response': [], 'smoothed_data': []}
         if len(dTypes) == 1:  # or isinstance(dTypes, str):
             if dTypes[0].lower() == 'all':
-                dTypes = ['raw_data', 'response', 'data']
+                dTypes = ['raw_data', 'response', 'data', 'smoothed_data']
             # else:
                 # dTypes = utils.to_list(dTypes)
         for site in site_names:
@@ -349,6 +354,7 @@ class Dataset(object):
         return site_list
 
     def rotate_sites(self, azi=0):
+        print('Rotating Data')
         self.azimuth = azi
         if self.has_dType('data'):
             self.data.rotate_sites(azi=azi)
@@ -428,8 +434,9 @@ class Dataset(object):
                 return
             self.response.locations = self.response.get_locs()
 
-    def regulate_errors(self, multiplier=2.5, fwidth=1):
+    def regulate_errors(self, multiplier=2.5, fwidth=1, median_window=11, threshold=1):
         use_log = False
+        # self.smoothed_data = deepcopy(self.raw_data)
         for site in self.raw_data.site_names:
             raw_site = self.raw_data.sites[site]
             data_site = self.data.sites[site]
@@ -457,23 +464,27 @@ class Dataset(object):
                             return
                     except KeyError:
                         print('Component {} not found'.format(comp))
-                        return
+                        continue
                     # error_map = np.zeros(data_site.data[comp].shape)
                     # Replace insane values with the nearest non-insane value
-                    idx = np.abs(to_smooth) <= 100000 * np.median(np.abs(to_smooth) + 0.000001)
-
-                    if not np.all(idx):
-                        print([site, comp])
-                        for ii in range(len(idx)):
-                            if not idx[ii]:
-                                if ii == 0:
-                                    to_smooth[0] = to_smooth[np.argmax(idx)]
-                                else:
-                                    to_smooth[ii] = to_smooth[np.argmin(np.abs(ii - np.argwhere(idx)))]
-
+                    to_smooth *= scale
+                    # Old method of outlier detection, based on just removing huge values
+                    # idx = np.abs(to_smooth) <= 10 * np.median(np.abs(to_smooth) + 0.000001)
+                    # if not np.all(idx):
+                    #     # print([site, comp])
+                    #     where = np.argwhere(idx)
+                    #     for ii in range(len(idx)):
+                    #         if not idx[ii]:
+                    #             if ii == 0:
+                    #                 to_smooth[0] = to_smooth[np.argmax(idx)]
+                    #             else:
+                    #                 to_smooth[ii] = to_smooth[where[np.argmin(np.abs(ii - where))]]
+                    to_smooth = utils.remove_outliers(to_smooth, size=median_window, threshold=threshold)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
-                                                          scale * to_smooth,
+                                                          to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
+                    smoothed_data2 = smoothed_data / scale
+                    
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))
                         if comp[0].lower() == 'z':
@@ -486,8 +497,6 @@ class Dataset(object):
                         #     max_error = np.tan(np.deg2rad(max_error))
                         # error_map[ii] = min([data_site.errmap[comp][ii],
                         # np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
-                        # print(abs(scale * data_site.data[comp][ii] -
-                                                     # smoothed_data[ind]))
                         if not (self.data.sites[site].errors[comp][ii] == self.data.REMOVE_FLAG or \
                                 self.data.sites[site].used_error[comp][ii] == self.data.REMOVE_FLAG):
                             self.data.sites[site].errors[comp][ii] = max_error
@@ -495,9 +504,18 @@ class Dataset(object):
                             self.data.sites[site].errmap[comp][ii] = 1
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
-            self.data.apply_no_data_map()
-            self.data.sites[site].apply_error_floor()
-            self.data.equalize_complex_errors()
+                    self.smoothed_data.sites[site].data.update({comp: smoothed_data2})
+                    self.smoothed_data.sites[site].used_error.update({comp: smoothed_data2 * 0.05})
+                if comp not in self.smoothed_data.sites[site].components:
+                    self.smoothed_data.sites[site].components.append(comp)
+            if comp[0].lower() == 'p':
+                self.smoothed_data.sites[site].define_phase_tensor()
+            else:
+                self.smoothed_data.sites[site].calculate_phase_tensors()
+                    # self.smoothed_data.calculate_phase_parameters()
+        self.data.apply_error_floor() 
+        self.data.equalize_complex_errors()
+        self.data.apply_no_data_map()
 
     def equalize_complex_errors(self):
         for site in self.data.site.names:
@@ -511,6 +529,7 @@ class Dataset(object):
         NP = self.data.NP
         NS = self.data.NS
         NR = self.data.NR
+
         components = list(self.data.components)
         if NS == 0 or NR == 0 or NP == 0:
             return None
@@ -522,39 +541,94 @@ class Dataset(object):
             print('Number of sites in data and response not equal')
             return None
         sites = self.data.site_names
-        misfit = {site: {comp: np.zeros((NP)) for comp in components}
-                  for site in sites}
-        # period_misfit = {site: np.zeros(NP) for site in sites}
-        period_misfit = {comp: np.zeros((NP)) for comp in components + ['Total']}
-        comp_misfit = {comp: 0 for comp in components + ['Total']}
-        total_misfit = 0
-        for site in sites:
-            all_misfits = utils.calculate_misfit(self.data.sites[site],
-                                                 self.response.sites[site])
-            misfit[site] = all_misfits[0]
-            # period_misfit += all_misfits[1]
-            total_misfit += np.mean(all_misfits[1]['Total'])
-            for comp in comp_misfit.keys():
-                period_misfit[comp] += all_misfits[1][comp]
-                # comp_misfit[comp] += np.mean(period_misfit[comp])
-        period_RMS = {comp: np.sqrt(period_misfit[comp] / NS) for comp in period_misfit.keys()}
-        total_RMS = np.sqrt(total_misfit / NS)
-        comp_RMS = {comp: np.sqrt(np.mean(period_misfit[comp]) / NS) for comp in comp_misfit.keys()}
-        station_RMS = {site: {comp: np.sqrt(np.mean(misfit[site][comp])) for comp in components}
-                       for site in sites}
-        for site in sites:
-            station_RMS[site].update({'Total': 0})
-            for comp in components:
-                station_RMS[site]['Total'] += station_RMS[site][comp] ** 2
-            station_RMS[site]['Total'] = np.sqrt(station_RMS[site]['Total'] / NR)
+        comp_RMS = {comp: [] for comp in components + ['Total']}
+        period_RMS = {comp: [] for comp in components + ['Total']}
+        station_RMS = {site: {comp: [] for comp in components} for site in sites}
+        all_misfits = np.zeros((NS, NR, NP))
+        flagged = np.zeros((NS, NR, NP), dtype=int)
+        for isite, site in enumerate(sites):
+            data_site = self.data.sites[site]
+            response_site = self.response.sites[site]
+            for icomp, comp in enumerate(components):
+                flagged[isite, icomp, :] = data_site.used_error[comp] == data_site.REMOVE_FLAG
+                response = response_site.data[comp]
+                data = data_site.data[comp]
+                errors = data_site.used_error[comp]
+                all_misfits[isite, icomp, :] = (np.abs(response - data) / errors) ** 2
 
-        # return {'Total': total_RMS, 'Period': period_RMS,
-        #         'Component': comp_RMS, 'Station': station_RMS}
+        all_misfits = np.ma.masked_array(all_misfits, flagged)
+        total_RMS = np.sqrt(np.nanmean(all_misfits))
+        comp_RMS['Total'] = total_RMS
+        temp = np.sqrt(np.nanmean(np.nanmean(all_misfits, axis=0), axis=1))
+        for icomp, comp in enumerate(components):
+            comp_RMS[comp] = temp[icomp]
+
+        temp = np.sqrt(np.nanmean(all_misfits, axis=0))
+        period_RMS['Total'] = np.sqrt(np.nanmean(temp ** 2, axis=0))
+        for icomp, comp in enumerate(components):
+            period_RMS[comp] = temp[icomp, :]
+
+        temp = np.sqrt(np.nanmean(all_misfits, axis=2))
+        for isite, site in enumerate(sites):
+            for icomp, comp in enumerate(components):
+                station_RMS[site][comp] = temp[isite, icomp]
+            station_RMS[site]['Total'] = np.sqrt(np.nanmean(temp[isite, :] ** 2))
+        # 'Period' returns a dictionary with the nRMS for every period, with nested dictionaries for each comp + one for Total
+        # 'Station' has entries for every station (plus one for Total), within which there is an entry to the total nRMS for every component
+        # 'Component' has a entries with a single total nRMS for each component, plus one for total
+        # 'Total' is just the total nRMS of everything
         return {'Total': total_RMS, 'Component': comp_RMS,
                 'Station': station_RMS, 'Period': period_RMS}
+
+
+        # NP = self.data.NP
+        # NS = self.data.NS
+        # NR = self.data.NR
+
+        # components = list(self.data.components)
+        # if NS == 0 or NR == 0 or NP == 0:
+        #     return None
+        # if NP != self.response.NP:
+        #     print('Data and response periods do not match')
+        #     print('Data NP: {}, Response NP: {}'.format(self.data.NP, self.response.NP))
+        #     return None
+        # if NS != self.response.NS:
+        #     print('Number of sites in data and response not equal')
+        #     return None
+        # sites = self.data.site_names
+        # misfit = {site: {comp: np.zeros((NP)) for comp in components}
+        #   for site in sites}
+        # period_misfit = {site: np.zeros(NP) for site in sites}
+        # period_misfit = {comp: np.zeros((NP)) for comp in components + ['Total']}
+        # comp_misfit = {comp: 0 for comp in components + ['Total']}
+        # total_misfit = 0
         # for site in sites:
+        #     all_misfits = utils.calculate_misfit(self.data.sites[site],
+        #                                          self.response.sites[site])
+        #     misfit[site] = all_misfits[0]
+        #     # period_misfit += all_misfits[1]
+        #     total_misfit += np.mean(all_misfits[1]['Total'])
+        #     for comp in comp_misfit.keys():
+        #         period_misfit[comp] += all_misfits[1][comp]
+        #         # comp_misfit[comp] += np.mean(period_misfit[comp])
+        # period_RMS = {comp: np.sqrt(period_misfit[comp] / NS) for comp in period_misfit.keys()}
+        # total_RMS = np.sqrt(total_misfit / NS)
+        # comp_RMS = {comp: np.sqrt(np.mean(period_misfit[comp]) / NS) for comp in comp_misfit.keys()}
+        # station_RMS = {site: {comp: np.sqrt(np.mean(misfit[site][comp])) for comp in components}
+        #                for site in sites}
+        # for site in sites:
+        #     station_RMS[site].update({'Total': 0})
         #     for comp in components:
-        #         station_RMS[site][comp] = np.sqrt(np.mean(misfit[site][comp]))
+        #         station_RMS[site]['Total'] += station_RMS[site][comp] ** 2
+        #     station_RMS[site]['Total'] = np.sqrt(station_RMS[site]['Total'] / NR)
+
+        # # return {'Total': total_RMS, 'Period': period_RMS,
+        # #         'Component': comp_RMS, 'Station': station_RMS}
+        # return {'Total': total_RMS, 'Component': comp_RMS,
+        #         'Station': station_RMS, 'Period': period_RMS}
+        # # for site in sites:
+        # #     for comp in components:
+        # #         station_RMS[site][comp] = np.sqrt(np.mean(misfit[site][comp]))
 
 
 class Data(object):
@@ -590,8 +664,9 @@ class Data(object):
                                'PTYX', 'PTYY')
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
                            'WSINV3DMT': ['.data', '.resp'],
-                           'ModEM': '.dat'}
-    INVERSION_TYPES = WS_io.INVERSION_TYPES
+                           'ModEM': '.dat',
+                           'EM3DANI': ['.adat', '.resp']}
+    INVERSION_TYPES = IO.INVERSION_TYPES
     REMOVE_FLAG = 1234567
     FLOAT_CAP = 1e10
     # INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
@@ -690,7 +765,7 @@ class Data(object):
                              'Rho': 0.05,
                              'Phase': 0.03}
         self._spatial_units = 'm'
-        if not file_format or file_format in Data.IMPLEMENTED_FORMATS.keys():
+        if not file_format or (file_format.lower() in [val.lower() for val in Data.IMPLEMENTED_FORMATS.keys()]):
             self.file_format = file_format
         else:
             print('File format {} not recognized. ' +
@@ -731,9 +806,8 @@ class Data(object):
             TYPE: Description
         """
         # path, filename, ext = fileparts(datafile)
-
         if listfile and datafile:
-            self.site_names = WS_io.read_sites(listfile)
+            self.site_names = IO.read_sites(listfile)
         if datafile:
             # Might have to watch that if site names are read after data, that
             # The data site names are updated appropriately.
@@ -743,6 +817,8 @@ class Data(object):
                     self.file_format = 'MARE2DEM'
                 elif ext == '.dat':
                     self.file_format = 'ModEM'
+                elif ext == '.adat' or ext == '.resp':
+                    self.file_format = 'em3dani'
                 elif ext == '.data' or 'resp' in datafile:
                     self.file_format = 'WSINV3DMT'
                 else:
@@ -750,7 +826,7 @@ class Data(object):
                     for code, ext in Data.IMPLEMENTED_FORMATS.items():
                         message += '{} => {}\n'.format(code, ext)
                     raise WSFileError(ID='fmt', offender=datafile, extra=message)
-            all_data, other_info = WS_io.read_data(datafile=datafile,
+            all_data, other_info = IO.read_data(datafile=datafile,
                                                    site_names=self.site_names,
                                                    file_format=self.file_format, invType=invType)
             self.site_names = other_info['site_names']
@@ -1002,7 +1078,7 @@ class Data(object):
             file_format = self.file_format
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_data(data=self, outfile=outfile,
+        IO.write_data(data=self, outfile=outfile,
                          to_write=to_write, file_format=file_format,
                          use_elevation=use_elevation)
         if write_removed:
@@ -1010,23 +1086,24 @@ class Data(object):
                 new_out = outfile.replace('.dat', '_removed.dat')
             else:
                 new_out = outfile + '_removed'
-            WS_io.write_data(data=self, outfile=new_out,
+            IO.write_data(data=self, outfile=new_out,
                              to_write=to_write, file_format=file_format,
                              use_elevation=use_elevation, include_flagged=False)
         self.spatial_units = units
 
     def write_list(self, outfile):
-        WS_io.write_list(data=self, outfile=outfile)
+        IO.write_list(data=self, outfile=outfile)
 
     def to_vtk(self, outfile, UTM, origin=None, sea_level=0, use_elevation=False):
         if not origin:
             print('Using origin = (0, 0)')
             origin = (0, 0)
-        WS_io.sites_to_vtk(self, outfile=outfile, origin=origin,
+        IO.sites_to_vtk(self, outfile=outfile, origin=origin,
                            UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
 
-    def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50):
-        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose, scale_factor=scale_factor)
+    def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50, period_idx=None):
+        IO.write_phase_tensors(self, out_file=out_file, verbose=verbose,
+                                        scale_factor=scale_factor, period_idx=period_idx)
 
     def rotate_sites(self, azi):
         if DEBUG:
@@ -1053,15 +1130,22 @@ class Data(object):
     def get_locs(self, site_list=None, azi=0):
         if site_list is None:
             site_list = self.site_names
+        # if azi % 360 != 0:
+            # idx = [ii for ii in range(self.NS) if self.site_names[ii] in site_list]
+            # locs = np.array([self.locations[ii, :] for ii in idx])
+        # else:
+        locs = np.array([[self.sites[name].locations['X'],
+                          self.sites[name].locations['Y']]
+                         for name in self.site_names])
+        # locs = np.array([[self.sites[name].locations['X'],
+        #                   self.sites[name].locations['Y']]
+        #                  for name in site_list])
         if azi % 360 != 0:
-            idx = [ii for ii in range(self.NS) if self.site_names[ii] in site_list]
-            locs = np.array([self.locations[ii, :] for ii in idx])
-        else:
-            locs = np.array([[self.sites[name].locations['X'],
-                              self.sites[name].locations['Y']]
-                             for name in site_list])
-            if azi % 360 != 0:
-                locs = utils.rotate_locs(locs, azi)
+            locs = utils.rotate_locs(locs, azi)
+        ret_locs = []
+        for site in site_list:
+            ret_locs.append(locs[self.site_names.index(site),:])
+        locs = np.array(ret_locs)
         return locs
 
     def set_locs(self):
@@ -1222,6 +1306,9 @@ class Data(object):
                 print('Inverted data at {}'.format(flagged_comps))
         return flagged_sites
 
+    def calculate_PT_errors(self, n_realizations):
+        for site in self.site_names:
+            self.sites[site].calculate_PT_errors(n_realizations)
 
 class Model(object):
     """Summary
@@ -1258,7 +1345,7 @@ class Model(object):
             y_size = np.max((y_size, 1000))
             self.generate_mesh(site_locs=data.locations, regular=True, min_x=x_size, min_y=y_size,
                                num_pads=5, pad_mult=1.2)
-            self.generate_zmesh(min_z=1, max_z=500000, NZ=60)
+            self.generate_zmesh(min_depth=1, max_depth=500000, num_layers=60)
             self.update_vals()
         if covariance_file:
             self.read_covariance(covariance_file)
@@ -1317,6 +1404,16 @@ class Model(object):
             z[ii] = (self.dz[ii] + self.dz[ii + 1]) / 2
         return x, y, z
 
+    def depth_weighted_rho(self, idx_0, idx_1):
+        conductance = self.conductance(idx_0, idx_1)
+        return (1 / conductance) * np.sum(self.dz[idx_0:idx_1])
+
+    def conductance(self, idx_0, idx_1):
+        conductance = np.zeros((self.nx, self.ny))
+        for ii in range(idx_0, idx_1):
+            conductance += self.zCS[ii] * (1 / self.vals[:, :, ii])
+        return conductance
+
     def set_exceptions(self):
         self.cov_exceptions = np.ones(self.vals.shape)
         self.cov_exceptions[self.vals == self.RHO_AIR] = self.AIR_EXCEPTION
@@ -1327,18 +1424,37 @@ class Model(object):
         self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
 
     def generate_dummy_model(self):
-            self._xCS = [1] * 60
-            self._yCS = [1] * 60
-            self._zCS = [1] * 60
-            self.vals = np.zeros((60, 60, 60)) + self.background_resistivity
-            self.xCS = [1] * 60
-            self.yCS = [1] * 60
-            self.zCS = [1] * 60
+        self.isotropic = True
+        self._xCS = [1] * 60
+        self._yCS = [1] * 60
+        self._zCS = [1] * 60
+        self.vals = np.zeros((60, 60, 60)) + self.background_resistivity
+        self.rho_x = np.zeros((60, 60, 60)) + self.background_resistivity
+        self.xCS = [1] * 60
+        self.yCS = [1] * 60
+        self.zCS = [1] * 60
 
     def __read__(self, modelfile='', file_format='modem3d'):
         if modelfile:
-            mod, dim = WS_io.read_model(modelfile=modelfile, file_format=file_format)
+            mod, dim = IO.read_model(modelfile=modelfile, file_format=file_format)
             # Set up these first so update_vals isn't called
+            if file_format.lower() in ('em3dani', 'mt3dani') or mod.get('rho_y', []) != []:
+                self.rho_x = mod['rho_x']
+                self.rho_y = mod['rho_y']
+                self.rho_z = mod['rho_z']
+                self.strike = mod['strike']
+                self.dip = mod['dip']
+                self.slant = mod['slant']
+                self.isotropic = False
+            else:
+                self.rho_x = mod['vals']
+                self.rho_y = []
+                self.rho_z = []
+                self.strike = []
+                self.dip = []
+                self.slant = []
+                self.isotropic = True
+            self.dimensionality = dim
             self._xCS = mod['xCS']
             self._yCS = mod['yCS']
             self._zCS = mod['zCS']
@@ -1346,11 +1462,10 @@ class Model(object):
             self.xCS = mod['xCS']
             self.yCS = mod['yCS']
             self.zCS = mod['zCS']
-            self.dimensionality = dim
 
     def read_covariance(self, covariance_file=''):
         if covariance_file:
-            NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions = WS_io.read_covariance(covariance_file)
+            NX, NY, NZ, sigma_x, sigma_y, sigma_z, num_smooth, cov_exceptions = IO.read_covariance(covariance_file)
             if (NX == self.nx) and (NY == self.ny) and (NZ == self.nz):
                 self.sigma_x = sigma_x
                 self.sigma_y = sigma_y
@@ -1366,7 +1481,7 @@ class Model(object):
         if not outfile:
             print('Must specify output file name')
             return
-        WS_io.model_to_vtk(self, outfile=outfile, sea_level=sea_level)
+        IO.model_to_vtk(self, outfile=outfile, sea_level=sea_level)
 
     def to_local(self):
         self._dx = np.cumsum([0] + self.xCS)
@@ -1375,6 +1490,114 @@ class Model(object):
         self._dy = list(self._dy - self._dy[-1] / 2)
         self.coord_system = 'local'
 
+    def project_model(self, system='local', origin=None, utm_zone=None):
+        # Note this doesn't work very well.
+        # To and from latlong is hard because rectangles, plus we'd need to make the UTM zone 
+        # is passed along
+        def calculate_projection(dx, dy, from_proj, to_proj):
+
+                x_ref = dx[round(len(dx)/2)]
+                y_ref = dy[round(len(dy)/2)]
+                x, tmp = utils.generic_projection(x=dx, y=y_ref * np.ones(len(dx)),
+                                                  from_proj=from_proj,
+                                                  to_proj=to_proj)
+                tmp, y = utils.generic_projection(x=x_ref * np.ones(len(dy)), y=dy,
+                                                  from_proj=from_proj,
+                                                  to_proj=to_proj)
+                    # lons.append(lon)
+                return x, y
+
+        system = system.lower()
+        if self.coord_system == system:
+            print('Already in {}'.format(system))
+            return True, ''
+        elif system == 'latlong':
+            print('Latlong model transformation not implemented')
+            return
+        if system.lower() not in ('local', 'utm', 'lambert', 'latlong'):
+            msg = 'Coordinate system {} not recognized'.format(system)
+            print(msg)
+            return False, msg
+        if self.coord_system == 'local':
+            if origin is None:
+                msg = 'An origin must be provided when projecting from local coordinates'
+                print(msg)
+                return False, msg
+            if system in ('utm', 'lambert'):
+                if utm_zone:
+                    self.UTM_zone = utm_zone
+                self.origin = origin
+                self._dx = [x + self.origin[1] for x in self._dx]
+                self._dy = [y + self.origin[0] for y in self._dy]
+
+            elif system == 'latlong':
+                self.project_model(system='lambert', origin=origin)
+                self._dy, self._dx = calculate_projection(dx=self._dy, dy=self._dx,
+                                                          from_proj=self.coord_system,
+                                                          to_proj=system)
+                # lon, lat = utils.generic_projection(x=self._dy, y=self._dx,
+                #                                     from_proj=self.coord_system,
+                #                                     to_proj=system,
+                #                                     utm_zone=utm_zone)
+                # x_ref = self.dx[round(self.nx)]
+                # y_ref = self.dy[round(self.ny)]
+                # # lats, lons = [], []
+                # # for xx in self._dx:
+                # lat, tmp = utils.generic_projection(x=self._dx, y=y_ref * np.ones(len(self._dx)),
+                #                                     from_proj=self.coord_system,
+                #                                     to_proj=system)
+                #     # lats.append(lat)
+                # # for yy in self._dy:
+                # tmp, lon = utils.generic_projection(x=x_ref * np.ones(len(self._dy)), y=self._dy,
+                #                                     from_proj=self.coord_system,
+                #                                     to_proj=system)
+                #     # lons.append(lon)
+                # self._dx = list(lat)
+                # self._dy = list(lon)
+                # lon = utils.unproject(number, letter,
+                #               self._dy,
+                #               [self.dx[round(len(self.dx) / 2)] for iy in self.dy])[0]
+                # lat = utils.unproject(number, letter,
+                #               [self.dy[round(len(self.dy) / 2)] for ix in self.dx],
+                #               self._dx)[1]
+        else:
+            if system == 'local':
+                origin = (np.mean(self.dy), np.mean(self.dx))
+                print('Origin is {}'.format(origin))
+                self._dx = [x - origin[1] for x in self._dx]
+                self._dy = [y - origin[0] for y in self._dy]
+            # elif system == 'latlong':
+                # self.project_model(system='lambert', origin=origin)
+                # self._dy, self._dx = calculate_projection(dx=self._dy, dy=self._dx,
+                                                          # from_proj=self.coord_system,
+                                                          # to_proj=system)
+            else:
+                self.project_model(system='local')
+                self.project_model(system='lambert', origin=origin)
+                # self._dy, self._dx = calculate_projection(dx=self._dy, dy=self._dx,
+                                                          # from_proj=self.coord_system,
+                                                          # to_proj=system)
+        self.coord_system = system
+        # elif self.coord_system == 'utm':
+        #     if system == 'local':
+        #         origin = (np.mean(self.dy), np.mean(self.dx))
+        #         self._dx = [x + origin[1] for x in self._dx]
+        #         self._dy = [y + origin[1] for y in self._dy]
+        #     elif system == 'latlong':
+
+        #         lon = utils.unproject(number, letter,
+        #                       self._dy,
+        #                       [self.dx[round(len(self.dx) / 2)] for iy in self.dy])[0]
+        #         lat = utils.unproject(number, letter,
+        #                       [self.dy[round(len(self.dy) / 2)] for ix in self.dx],
+        #                       self._dx)[1]
+        #         self._dx, self._dy = (lat, lon)
+        #     elif system == 'lambert':
+        #         self.origin = origin
+        #         self._dx = [x + self.origin[1] for x in self._dx]
+        #         self._dy = [y + self.origin[0] for y in self._dy]
+        # elif self.coord_system == 'lambert':
+        # self.coord_sytem = system
     def to_UTM(self, origin=None):
         '''
             Convert model coordinates to UTM
@@ -1383,12 +1606,10 @@ class Model(object):
         print('in to_UTM')
         if self.coord_system == 'local':
             if origin is not None:
-                # print('in if origin')
                 self.origin = origin
             elif self.origin is None:
                 print('Must specify origin if model.origin is not set')
                 return False
-            # print('should be doing stuff')
             self._dx = [x + self.origin[1] for x in self._dx]
             self._dy = [y + self.origin[0] for y in self._dy]
         elif self.coord_system == 'latlong':
@@ -1398,6 +1619,31 @@ class Model(object):
             print('Already in UTM')
             return False
         self.coord_system = 'UTM'
+        return True
+
+    def to_lambert(self, origin=None):
+        print('in to_lambert')
+        if self.coord_system == 'local':
+            if origin is not None:
+                self.origin = origin
+            elif self.origin is None:
+                print('Must specify origin if model.origin is not set')
+                return False
+            self._dx = [x + self.origin[1] for x in self._dx]
+            self._dy = [y + self.origin[0] for y in self._dy]
+        elif self.coord_system == 'latlong':
+            # self._dy, self._dx = utils.project((self._dx, self._dy))
+            self._dy, self._dx = utils.to_lambert(self._dx, self._dy)
+        elif self.coord_system == 'UTM':
+            if origin is not None:
+                self.origin == origin
+                self._dx = [x + self.origin[1] for x in self._dx]
+                self._dy = [y + self.origin[0] for y in self._dy]
+            else:
+                print('Need to specify origin for lambert conversion')
+                return False
+            return False
+        self.coord_system = 'lambert'
         return True
 
     def to_latlong(self, zone=None):
@@ -1433,28 +1679,98 @@ class Model(object):
         return (lat, lon)
 
     def is_half_space(self):
-        # print(self.vals.shape)
         return np.all(np.equal(self.vals.flatten(), self.vals[0, 0, 0]))
 
     def update_vals(self, new_vals=None, axis=None, index=None, mode=None):
-        if self.is_half_space():
-            bg = self.vals[0, 0, 0]
-            print('Changing values')
-            self.vals = np.ones([self.nx, self.ny, self.nz]) * bg
+        if self.isotropic:
+            to_update = ['vals', 'rho_x']
         else:
-            if index is not None and axis is not None:
-                index = max((min((index, np.size(self.vals, axis=axis) - 1)), 0))
-                if mode is None or mode == 'insert':
-                    self.vals = np.insert(self.vals, index,
-                                          new_vals, axis)
-                elif mode == 'delete':
-                    self.vals = np.delete(self.vals, index, axis)
-                else:
-                    print('Mode {} not understood'.format(mode))
+            to_update = ['vals', 'rho_x', 'rho_y', 'rho_z']
+        for value in to_update:
+            vals = getattr(self, value)
+            if self.is_half_space():
+                bg = getattr(self, value)[0, 0, 0]
+                setattr(self, value, np.ones([self.nx, self.ny, self.nz]) * bg)
+            else:
+                if index is not None and axis is not None:
+                    index = max((min((index, np.size(vals, axis=axis) - 1)), 0))
+                    if mode is None or mode == 'insert':
+                        setattr(self, value, np.insert(vals, index, new_vals, axis))
+                    elif mode == 'delete':
+                        setattr(self, value, np.delete(vals, index, axis))
+                    else:
+                        print('Mode {} not understood'.format(mode))
 
-    def generate_zmesh(self, min_z, max_z, NZ):
+    def generate_zmesh(self, min_depth, max_depth, num_layers=None, decades=None, increase_factor=None):
+        def zmesh_by_decade(min_depth=1, max_depth=500000, NZ=None):
+            # Specify the vertical mesh using logarithmically spaced layer thicknesses
+            num_decade = int(np.ceil(np.log10(max_depth)) - np.floor(np.log10(min_depth)))
+            try:
+                if num_decade != len(NZ):
+                    print('Number of decades is: {}'.format(num_decade))
+                    print('Number of parameters (NZ) given is: {}'.format(len(NZ)))
+                    print('len of NZ must be equal to the number of decades.')
+                    return
+                decade = np.log10(min_depth)
+                depths = []
+                for n in NZ:
+                    dDecade = np.logspace(decade, min(np.floor(decade + 1), np.log10(max_depth)), int(n + 1))
+                    decade = np.floor(decade + 1)
+                    depths.append(dDecade)
+                depths = utils.flatten_list(depths)
+                depths = np.array(np.unique(depths))
+            except TypeError:
+                depths = np.logspace(np.log10(min_depth), np.log10(max_depth), int(NZ))
+            depths = utils.to_list(depths)
+            depths.insert(0, 0)
+            return depths
 
-        z_mesh = utils.generate_zmesh(min_z, max_z, NZ)[0]
+        def zmesh_by_factor(min_depth, max_depth, increase_factor):
+            if len(utils.to_list(increase_factor)) > 1:
+                try:
+                    increase_factors = increase_factor[0]
+                    depth_cutoffs = increase_factor[1]
+                    if len(increase_factors) != len(depth_cutoffs):
+                        raise IndexError
+                except IndexError:
+                    print('Increase factor improperly specified. Must either be a single float, or a nested list' +
+                          ' specifying increase factors and corresponding depth cutoffs (e.g., [[1.1, 1.2], [10000, 100000]])')
+                    print('Defaulting to an increase factor of 1.2')
+                    increase_factors = [1.2]
+                    depth_cutoffs = [max_depth]
+                except TypeError:
+                    print('Increase factor improperly specified. Must either be a single float, or a nested list' +
+                          ' specifying increase factors and corresponding depth cutoffs (e.g., [[1.1, 1.2], [10000, 100000]])')
+                    print('Defaulting to an increase factor of 1.2')
+                    increase_factors = [1.2]
+                    depth_cutoffs = [max_depth]
+            else:
+                increase_factors = [increase_factor]
+                depth_cutoffs = [max_depth]
+            
+            counter = 0
+            depths = [min_depth]
+            while depths[-1] <= max_depth:
+                if increase_factor < 1.05:
+                    increase_factor = 1.05
+                    print('Increase factor cannot be less than 1.05')
+                depths.append(depths[-1] * increase_factors[min(counter, len(increase_factors) - 1)])
+                if depths[-1] > depth_cutoffs[min(counter, len(increase_factors) - 1)]:
+                    counter += 1
+            # Make sure that the new depths starts with 0
+            depths.insert(0, 0)
+            return depths
+
+        if bool(num_layers) + bool(decades) + bool(increase_factor) > 1:
+            print('Multiple mesh generation options specified, defaulting to the first.')
+        if num_layers:
+            z_mesh = np.insert(np.logspace(np.log10(min_depth), np.log10(max_depth), int(num_layers)), 0, 0)
+        elif decades:
+            z_mesh = zmesh_by_decade(min_depth, max_depth, decades)
+        elif increase_factor:
+            z_mesh = zmesh_by_factor(min_depth, max_depth, increase_factor)
+
+        # z_mesh = utils.generate_zmesh(min_depth, max_depth, NZ)[0]
         if self.is_half_space():
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
             # print('Mesh generation not setup for non-half-spaces. Converting to half space...')
@@ -1474,8 +1790,6 @@ class Model(object):
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
         else:
             self.vals = utils.regrid_model(self, x_mesh, y_mesh, self.dz)
-        # print(x_mesh)
-        # print(y_mesh)
         self.dx = x_mesh
         self.dy = y_mesh
         # self.dy = ymesh
@@ -1501,21 +1815,29 @@ class Model(object):
     #     else:
     #         getattr(self,)
     def dx_delete(self, index):
+        if index < 0:
+            index = self.nx + index + 1
         del self._dx[index]
         self._xCS = list(np.diff(self._dx))
         self.update_vals(axis=0, index=index, mode='delete')
 
     def dy_delete(self, index):
+        if index < 0:
+            index = self.ny + index + 1
         del self._dy[index]
         self._yCS = list(np.diff(self._dy))
         self.update_vals(axis=1, index=index, mode='delete')
 
     def dz_delete(self, index):
+        if index < 0:
+            index = self.nz + index + 1
         del self._dz[index]
         self._zCS = list(np.diff(self._dz))
         self.update_vals(axis=2, index=index, mode='delete')
 
     def dx_insert(self, index, value):
+        if index < 0:
+            index = self.nx + index + 1
         if self.check_new_mesh('dx', index, value):
             mod_idx = max((min((index, self.nx - 1)), 0))
             new_vals = self.vals[max((mod_idx - 1, 0)), :, :]
@@ -1524,6 +1846,8 @@ class Model(object):
             self.update_vals(axis=0, index=mod_idx, new_vals=new_vals)
 
     def dy_insert(self, index, value):
+        if index < 0:
+            index = self.ny + index + 1
         if self.check_new_mesh('dy', index, value):
             mod_idx = max((min((index, self.ny - 1)), 0))
             new_vals = self.vals[:, max((mod_idx - 1, 0)), :]
@@ -1532,6 +1856,8 @@ class Model(object):
             self.update_vals(axis=1, index=mod_idx, new_vals=new_vals)
 
     def dz_insert(self, index, value):
+        if index < 0:
+            index = self.nz + index + 1
         if self.check_new_mesh('dz', index, value):
             mod_idx = max((min((index, self.nz - 1)), 0))
             new_vals = self.vals[:, :, max((mod_idx - 1, 0))]
@@ -1641,14 +1967,19 @@ class Model(object):
         self._dz = list(np.cumsum([0, *vals]))
         self.update_vals()
 
-    def write(self, outfile, file_format='modem'):
+    def write(self, outfile, file_format='modem', use_log=True, use_resistivity=True, use_anisotropy=False, n_param=3):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_model(self, outfile, file_format)
+        IO.write_model(self, outfile,
+                       file_format=file_format,
+                       use_log=use_log,
+                       use_resistivity=use_resistivity,
+                       use_anisotropy=use_anisotropy,
+                       n_param=n_param)
         self.spatial_units = units
 
     def write_covariance(self, outfile):
-        WS_io.write_covariance(outfile,
+        IO.write_covariance(outfile,
                                NX=self.nx,
                                NY=self.ny,
                                NZ=self.nz,
@@ -1666,7 +1997,7 @@ class Response(Data):
     def write(self, outfile):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_response(self, outfile)
+        IO.write_response(self, outfile)
         self.spatial_units = units
 
 
@@ -2008,6 +2339,37 @@ class Site(object):
             self.data[component] += np.squeeze(noise)
             self.data[component] = utils.truncate(self.data[component])
 
+    def apply_distortion(self, C):
+        try:
+            if C.shape != (2, 2):
+                C = np.reshape(C, [2, 2])
+        except ValueError:
+            print('C must be 4x1 or 2x2')
+            return
+        for ii in range(self.NP):
+            zxx = self.data['ZXXR'][ii]-1j*self.data['ZXXI'][ii]
+            zxy = self.data['ZXYR'][ii]-1j*self.data['ZXYI'][ii]
+            zyx = self.data['ZYXR'][ii]-1j*self.data['ZYXI'][ii]
+            zyy = self.data['ZYYR'][ii]-1j*self.data['ZYYI'][ii]
+            Z = np.array([[zxx, zxy], [zyx, zyy]])
+            # Z_D = np.matmul(C, Z)
+            Z_D = np.zeros((2,2), dtype=np.complex64)
+            Z_D[0,0] = zxx * C[0,0]
+            Z_D[0,1] = zxy * C[0,1]
+            Z_D[1,0] = zyx * C[1,0]
+            Z_D[1,1] = zyy * C[1,1]
+
+            self.data['ZXXR'][ii] = np.real(Z_D[0, 0])
+            self.data['ZXYR'][ii] = np.real(Z_D[0, 1])
+            self.data['ZYXR'][ii] = np.real(Z_D[1, 0])
+            self.data['ZYYR'][ii] = np.real(Z_D[1, 1])
+
+            self.data['ZXXI'][ii] = -1*np.imag(Z_D[0, 0])
+            self.data['ZXYI'][ii] = -1*np.imag(Z_D[0, 1])
+            self.data['ZYXI'][ii] = -1*np.imag(Z_D[1, 0])
+            self.data['ZYYI'][ii] = -1*np.imag(Z_D[1, 1])
+
+
     def apply_error_floor(self, error_floors=None, errfloorZ=None, errfloorT=None):
         if errfloorZ:
             print('Usage of errfloorZ is depreciated and will be removed in the future.\n')
@@ -2177,7 +2539,8 @@ class Site(object):
             # if ind is None
             # self.periods.delete(ind)
             self.periods = np.delete(self.periods, ind)
-            del self.phase_tensors[int(ind)]
+            if self.phase_tensors:
+                del self.phase_tensors[int(ind)]
             for comp in self.data.keys():
                 self.data[comp] = np.delete(self.data[comp], ind)
                 self.errors[comp] = np.delete(self.errors[comp], ind)
@@ -2369,10 +2732,10 @@ class Site(object):
                     em.append(self.errmap[comp][ind] * mult)
                     f.append(mult)
                 except KeyError:
-                    d.append(np.float(self.NO_COMP_FLAG))
-                    e.append(np.float(self.REMOVE_FLAG))
-                    em.append(np.float(self.NO_COMP_FLAG))
-                    f.append(np.float(self.NO_COMP_FLAG))
+                    d.append(float(self.NO_COMP_FLAG))
+                    e.append(float(self.REMOVE_FLAG))
+                    em.append(float(self.NO_COMP_FLAG))
+                    f.append(float(self.NO_COMP_FLAG))
             # Check for dummy TF data
             if comp[0] == 'T':
                 if all(abs(x) < 0.001 for x in d):
@@ -2412,11 +2775,15 @@ class Site(object):
 
             for ii, period in enumerate(self.periods):
                 Z = {impedance: self.data[impedance][ii] for impedance in self.IMPEDANCE_COMPONENTS}
-                self.phase_tensors.append(PhaseTensor(period=period, Z=Z,
+                Z_errors = {impedance: self.used_error[impedance][ii] for impedance in self.IMPEDANCE_COMPONENTS}
+                remove_flag = self.used_error['ZXYR'][ii] == self.REMOVE_FLAG
+
+                self.phase_tensors.append(PhaseTensor(period=period, Z=Z, Z_errors=Z_errors,
                                                       rho=[rhoxy[ii], rhoyx[ii],
                                                            rhoxy_err[ii], rhoyx_err[ii]],
                                                       phase=[phaxy[ii], phayx[ii],
-                                                             phaxy_err[ii], phayx_err[ii]]))
+                                                             phaxy_err[ii], phayx_err[ii]],
+                                                      remove_flag=remove_flag))
                 self.CART.append(CART(period=period, Z=Z))
         else:
             print('Phase tensor calculation requires all impedance components.')
@@ -2430,6 +2797,45 @@ class Site(object):
                 phi_error = {component: self.used_error[component][ii]
                              for component in self.PHASE_TENSOR_COMPONENTS}
                 self.phase_tensors.append(PhaseTensor(period=period, phi=phi, phi_error=phi_error))
+
+    def calculate_PT_errors(self, error_realizations):
+        # This will loop over periods, which is incredibly slow.
+        # for ii in range(self.NP):
+        #     self.phase_tensors[ii].error_realizations = n_realizations
+        #     self.phase_tensors[ii].calculate_errors()
+        # Better to have a site method that bundles all the periods and does it in a fraction of the time.
+        X = np.zeros((4, self.NP))
+        Y = np.zeros((4, self.NP))
+        ZR_errors = np.zeros((4, self.NP))
+        ZI_errors = np.zeros((4, self.NP))
+        # Setup some things that don't change each realization
+        for idx in range(self.NP):
+            X[:, idx] = np.reshape(self.phase_tensors[idx].X, [4,])
+            Y[:, idx] = np.reshape(self.phase_tensors[idx].Y, [4,])
+            ZR_errors[:, idx] = np.array([self.phase_tensors[idx].Z_errors['ZXXR'], self.phase_tensors[idx].Z_errors['ZXYR'],
+                                  self.phase_tensors[idx].Z_errors['ZYXR'], self.phase_tensors[idx].Z_errors['ZYYR']])
+            ZI_errors[:, idx] = np.array([self.phase_tensors[idx].Z_errors['ZXXI'], self.phase_tensors[idx].Z_errors['ZXYI'],
+                                  self.phase_tensors[idx].Z_errors['ZYXI'], self.phase_tensors[idx].Z_errors['ZYYI']])
+
+        # Set up some things that do change each realization
+        pt_r = np.zeros((4, self.NP, error_realizations))
+        noise_x = np.reshape(np.random.randn(4*self.NP*error_realizations), [4, self.NP, error_realizations])
+        noise_y = np.reshape(np.random.randn(4*self.NP*error_realizations), [4, self.NP, error_realizations])
+        Xr = X[:,:, np.newaxis] + ZR_errors[:,:, np.newaxis] * noise_x
+        Yr = Y[:,:, np.newaxis] + ZI_errors[:,:, np.newaxis] * noise_y
+
+        # ptr = np.zeros((4, self.NP, error_realizations))
+        pt_r[0, :, :] = Xr[3,:,:] * Yr[0,:,:] - Xr[1,:,:] * Yr[2,:,:]
+        pt_r[1, :, :] = Xr[3,:,:] * Yr[1,:,:] - Xr[1,:,:] * Yr[3,:,:]
+        pt_r[2, :, :] = -Xr[2,:,:] * Yr[0,:,:] + Xr[0,:,:] * Yr[2,:,:]
+        pt_r[3, :, :] = -Xr[2,:,:] * Yr[1,:,:] + Xr[0,:,:] * Yr[3,:,:]
+        pt_r /= Xr[0,:,:] * Xr[3,:,:] - Xr[1,:,:] * Xr[2,:,:]
+
+        med = np.median(pt_r, axis=2)
+        errors = np.median(np.abs(pt_r - np.ones((4, self.NP, error_realizations))*med[:,:,np.newaxis]), axis=2)
+        for idx in range(self.NP):
+            if not self.phase_tensors[idx].remove_flag:
+                self.phase_tensors[idx].phi_error = np.maximum(np.reshape(errors[:, idx], [2, 2]), self.phase_tensors[idx].error_floor)
 
 
 class RawData(object):
@@ -2483,7 +2889,13 @@ class RawData(object):
         self.master_periods = self.master_period_list()
         self.narrow_periods = self.narrow_period_list()
         self._spatial_units = 'm'
-        self.azimuth = 0  # Note this may not be true if the EDI files have been rotated.
+        azi = self.check_azi()
+        if azi:
+            # Note this may not be true if the EDI files have been rotated.
+            self.azimuth = azi
+            self.locations = utils.rotate_locs(self.locations, azi)
+        else:
+            self.azimuth = 0
         # for site_name in self.site_names:
         #     self.sites[site_name].rotate_data(azi=0)
 
@@ -2499,9 +2911,11 @@ class RawData(object):
         azi = []
         for site in self.sites.values():
             azi.append(site.azimuth)
-        if len(set(azi)) != 1:
+        if len(set(azi)) > 1:
             print('Inconsistent set of azimuths in raw data files')
             return False
+        elif len(set(azi)) == 0:
+            return 0
         else:
             return azi[0]
 
@@ -2553,8 +2967,8 @@ class RawData(object):
         Returns:
             TYPE: Description
         """
-        self.site_names = WS_io.read_sites(listfile)
-        all_data = WS_io.read_raw_data(self.site_names, datpath)
+        self.site_names = IO.read_sites(listfile)
+        all_data = IO.read_raw_data(self.site_names, datpath)
         self.sites = {}
         for site_name, site in all_data.items():
             try:
@@ -2579,14 +2993,26 @@ class RawData(object):
         if dummy_sites:
             self.remove_components(sites=dummy_sites,
                                    components=['TZXR', 'TZXI', 'TZYR', 'TZYI'])
-        #  Check this. It looks like more periods are being removed than should be?
-        #  Take out the call to 'remove_periods' and manually check what it wants to take out.
+         # Check this. It looks like more periods are being removed than should be?
+         # Take out the call to 'remove_periods' and manually check what it wants to take out.
         dummy_periods = self.check_dummy_periods()
         if dummy_periods:
             self.remove_periods(site_dict=dummy_periods)
+        self.set_remove_flags()
         self.locations = Data.get_locs(self)
         self.datpath = datpath
         self.listfile = listfile
+
+    def set_remove_flags(self):
+        # Likely some other conditions here for flagging, but this is the one I need to handle now.
+        for site in self.site_names:
+            for comp in self.sites[site].components:
+                for ii in range(self.sites[site].NP):
+                    if self.sites[site].data[comp][ii] == -9999:
+                        self.sites[site].errors[comp][ii] = self.sites[site].REMOVE_FLAG
+                        self.sites[site].used_error[comp][ii] = self.sites[site].REMOVE_FLAG
+
+
 
     def average_rho(self, fwidth=1):
         avg = []
@@ -2596,7 +3022,7 @@ class RawData(object):
                                                   to_smooth,
                                                   fwidth=fwidth, use_log=True)
             avg.append(np.mean(smoothed_data))
-        return 10 ** np.mean(np.log10(avg)), avg
+        return 10 ** np.nanmean(np.log10(avg)), avg
 
     def remove_periods(self, site_dict):
         for site, periods in site_dict.items():
@@ -2611,8 +3037,14 @@ class RawData(object):
         for site in self.sites.values():
             periods = []
             for ii, p in enumerate(site.periods):
-                vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'Z']
+                # First check the impedances
+                # vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'Z']
+                vals = [site.data[comp][ii] for comp in site.components]
                 if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
+                    # print(site.name)
+                    # Then check the tippers
+                    # vals = [site.data[comp][ii] for comp in site.components if comp[0] == 'T']
+                    # if all(abs(abs(np.array(vals)) - abs(vals[0])) < threshold):
                     periods.append(p)
             if periods:
                 sites.update({site.name: periods})
@@ -2639,15 +3071,11 @@ class RawData(object):
             Y = 'Long'
         if sites is None:
             sites = self.site_names
-        # WS_io.debug_print(sites, 'tester.txt')
-        # WS_io.debug_print(self.site_names, 'tester.txt')
         locs = np.array([[self.sites[name].locations[X],
                           self.sites[name].locations[Y]]
                          for name in sites])
         if mode.lower() == 'lambert':
-            # debug_print(locs, 'lambtest.txt')
             locs = np.fliplr(np.array(utils.to_lambert(locs[:, 0], locs[:, 1])).T)
-            # debug_print(locs, 'lambtest.txt')
         if azi != 0:
             locs = utils.rotate_locs(locs, azi)
         if mode.lower() == 'centered':
@@ -2662,14 +3090,19 @@ class RawData(object):
                                  zone=zone, letter=letter)[2:]
             self.locations[ii, 1], self.locations[ii, 0] = E, N
 
-    def write_locations(self, out_file, file_format='csv'):
+    def write_locations(self, out_file, file_format='csv', verbose=0):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
-        WS_io.write_locations(self, out_file=out_file, file_format=file_format)
+        IO.write_locations(self, out_file=out_file, file_format=file_format, verbose=verbose)
         self.spatial_units = units
 
-    def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50):
-        WS_io.write_phase_tensors(self, out_file=out_file, verbose=verbose, scale_factor=scale_factor)
+    def write_phase_tensors(self, out_file, verbose=False, scale_factor=1/50, period_idx=None):
+        IO.write_phase_tensors(self, out_file=out_file, verbose=verbose,
+                                        scale_factor=scale_factor, period_idx=period_idx)
+
+    def write_induction_arrows(self, out_file, verbose=False, scale_factor=1/50, period_idx=None):
+        IO.write_induction_arrows(self, out_file=out_file, verbose=verbose,
+                                     scale_factor=scale_factor, period_idx=period_idx)
 
     def master_period_list(self):
         """Summary
@@ -2793,15 +3226,27 @@ class RawData(object):
         Data.to_vtk(self, outfile=outfile, origin=origin,
                     UTM=UTM, sea_level=sea_level, use_elevation=use_elevation)
 
+    def write_waldim(self):
+        locs = self.get_locs(mode='latlong')
+        with open('list.dat', 'w') as f:
+            f.write('INFO\n')
+            f.write('{}\n'.format(self.NS))
+            for ii, s in enumerate(self.site_names):
+                f.write('{} {:>7.5f} {:>7.5f}\n'.format(s, locs[ii, 0], locs[ii, 1]))
+
+
 
 class PhaseTensor(object):
-    def __init__(self, period, Z=None, rho=None, phase=None, phi=None, phi_error=None):
+    def __init__(self, period, Z=None, Z_errors=None, rho=None, phase=None, phi=None, phi_error=None, remove_flag=False, calculate_errors=False, error_realizations=10000):
         # Are alpha, beta, azimuth considered clockwise from 'y', or counter-clockwise from 'x'
         self._rotation_axis = 'x' 
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.error_floor = np.tan(np.deg2rad(3))
         self.period = period
         self.Z = Z
+        self.Z_errors = Z_errors
+        self.remove_flag = remove_flag
+        self.error_realizations = error_realizations
         self.det_phi = 0
         self.skew_phi = 0
         self.phi_1 = 0
@@ -2829,9 +3274,15 @@ class PhaseTensor(object):
         if Z:
             self.valid_data = True
             self.form_tensors(Z)
-            self.calculate_phase_tensor()
-            self.phi_error = np.array(((self.error_floor, self.error_floor),
-                                       (self.error_floor, self.error_floor)))
+            self.set_phase_tensor(self.calculate_phase_tensor())
+            if remove_flag:
+                self.phi_error = np.array(((1234567, 1234567),
+                                           (1234567, 1234567)))
+            elif calculate_errors:
+                self.calculate_errors()
+            else:
+                self.phi_error = np.array(((self.error_floor, self.error_floor),
+                                           (self.error_floor, self.error_floor)))
         elif phi:
             self.valid_data = True
             for k, v in phi.items():
@@ -2954,18 +3405,49 @@ class PhaseTensor(object):
         except KeyError:
             self.valid_data = False
 
-    def calculate_phase_tensor(self):
+    def calculate_errors(self):
+        pt_r = np.zeros((4, self.error_realizations))
+        ZR_errors = np.array([self.Z_errors['ZXXR'], self.Z_errors['ZXYR'],
+                              self.Z_errors['ZYXR'], self.Z_errors['ZYYR']])
+        ZI_errors = np.array([self.Z_errors['ZXXI'], self.Z_errors['ZXYI'],
+                              self.Z_errors['ZYXI'], self.Z_errors['ZYYI']])
+        for ii in range(self.error_realizations):
+            Xr = self.X + np.reshape((ZR_errors.T * np.random.randn((4))).T, [2, 2])
+            Yr = self.Y + np.reshape((ZI_errors.T * np.random.randn((4))).T, [2, 2])
+            pt_r[:, ii] = np.reshape(self.calculate_phase_tensor(X=Xr, Y=Yr), [1, 4])
+            # pt_r[0, ii] = np.remainder(pt_r[0, ii], np.pi/2)
+            # pt_r[1, ii] = np.remainder(pt_r[1, ii], np.pi/2)
+            # pt_r[2, ii] = np.remainder(pt_r[2, ii], np.pi/2)
+            # pt_r[3, ii] = np.remainder(pt_r[3, ii], np.pi/2)
+        med = np.median(pt_r, axis=1)
+        errors = np.median(np.abs(pt_r - (np.ones((self.error_realizations, 4))*med).T), axis=1) * 1.4
+        self.phi_error = np.array([[errors[0], errors[1]],
+                                   [errors[2], errors[3]]])
+
+    def calculate_phase_tensor(self, X=None, Y=None):
         try:
+            if X is None:
+                X = self.X
+            if Y is None:
+                Y = self.Y
             # Try it the fast way...
             # self.phi = np.matmul(np.linalg.inv(self.X), self.Y)
-            self.phi[0, 0] = self.X[1, 1] * self.Y[0, 0] - self.X[0, 1] * self.Y[1, 0]
-            self.phi[0, 1] = self.X[1, 1] * self.Y[0, 1] - self.X[0, 1] * self.Y[1, 1]
-            self.phi[1, 0] = -self.X[1, 0] * self.Y[0, 0] + self.X[0, 0] * self.Y[1, 0]
-            self.phi[1, 1] = -self.X[1, 0] * self.Y[0, 1] + self.X[0, 0] * self.Y[1, 1]
-            self.phi /= self.X[0, 0] * self.X[1, 1] - self.X[0, 1] * self.X[1, 0]
+            phi = np.zeros((2, 2))
+            phi[0, 0] = X[1, 1] * Y[0, 0] - X[0, 1] * Y[1, 0]
+            phi[0, 1] = X[1, 1] * Y[0, 1] - X[0, 1] * Y[1, 1]
+            phi[1, 0] = -X[1, 0] * Y[0, 0] + X[0, 0] * Y[1, 0]
+            phi[1, 1] = -X[1, 0] * Y[0, 1] + X[0, 0] * Y[1, 1]
+            phi /= X[0, 0] * X[1, 1] - X[0, 1] * X[1, 0]
+            return phi
         except np.linalg.LinAlgError:
             # Error with data. Use dummy data and set flag
             self.valid_data = False
+
+    def set_phase_tensor(self, phi):
+        self.phi[0, 0] = phi[0, 0]
+        self.phi[0, 1] = phi[0, 1]
+        self.phi[1, 0] = phi[1, 0]
+        self.phi[1, 1] = phi[1, 1]
 
     def calculate_rotation_parameters(self):
         if self.rotation_axis.lower() == 'x':
@@ -2985,6 +3467,11 @@ class PhaseTensor(object):
         phi_1 = (self.phi[0, 0] + self.phi[1, 1]) / 2
         phi_2 = np.sqrt(np.abs(det_phi))
         phi_3 = skew_phi / 2
+        # Alternative method for calculating phi_min and phi_max given by Moorkamp (2007)
+        # sig_1 = 0.5 * np.sqrt(((self.phi[0,0] - self.phi[1,1])**2 + (self.phi[0,1] + self.phi[1,0])**2))
+        # sig_2 = 0.5 * np.sqrt(((self.phi[0,0] + self.phi[1,1])**2 + (self.phi[0,1] - self.phi[1,0])**2))
+        # phi_max = sig_2 + sig_1
+        # phi_min = sig_2 - sig_1
         # Note there is no abs on det_phi here by recommendation of Moorkamp (2007)
         phi_max = (np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3)) +
                    np.sqrt((phi_1 * phi_1) + (phi_3 * phi_3) - (det_phi)))
@@ -3011,7 +3498,8 @@ class PhaseTensor(object):
         self.phi_3 = phi_3
         self.phi_max = phi_max
         self.phi_min = phi_min
-        # self.phi_split = np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min)))
+        self.phi_split_pt = np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min)))
+        self.phi_split_z = self.phasexy - self.phaseyx
         self.phi_split = self.phasexy - self.phaseyx
         self.alpha = alpha
         self.Lambda = Lambda
@@ -3271,6 +3759,8 @@ class CART(PhaseTensor):
                 self.phi_3 = phi_3
                 self.phi_max = phi_max
                 self.phi_min = phi_min
+                self.phi_split_Z = self.phasexy - self.phaseyx
+                self.phi_split_pt = np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min)))
                 self.phi_split = np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min)))
                 self.alpha = alpha
                 self.Lambda = Lambda
@@ -3284,6 +3774,8 @@ class CART(PhaseTensor):
                 setattr(self, '_'.join([param, 'phi_2']), phi_2)
                 setattr(self, '_'.join([param, 'phi_3']), phi_3)
                 setattr(self, '_'.join([param, 'phi_max']), phi_max)
+                setattr(self, '_'.join([param, 'phi_split_pt']), np.rad2deg(abs(np.arctan(phi_max) - np.arctan(phi_min))))
+                setattr(self, '_'.join([param, 'phi_split_z']), self.phasexy - self.phaseyx)
                 setattr(self, '_'.join([param, 'phi_split']), np.tan(abs(np.arctan(phi_max) - np.arctan(phi_min))))
                 setattr(self, '_'.join([param, 'phi_min']), phi_min)
                 setattr(self, '_'.join([param, 'alpha']), alpha)

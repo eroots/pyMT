@@ -7,7 +7,6 @@ import re
 import shapefile
 import datetime
 
-
 REMOVE_FLAG = 1234567
 
 
@@ -293,6 +292,57 @@ def read_freqset(path='./'):
 
 def read_model(modelfile='', file_format='modem3d'):
 
+    def read_em3dani(modelfile):
+        # Not fully written - probably won't work for general anisotropy yet.
+        with open(modelfile, 'r') as f:
+            mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': [], 
+                  'rho_x': [], 'rho_y': [], 'rho_z': [], 'zAir': [],
+                  'strike': [], 'dip': [], 'slant': []}
+            counter = 0
+            header = '#'
+            while header.strip().startswith('#'):
+                header = next(f)
+            NX = int(header.split(':')[1])
+            # print(next(f))
+            # xCS = []
+            for direction in ('xCS', 'yCS', 'zAir', 'zCS'):
+                vals = []
+                line = f.readline()
+                while True:
+                    try:
+                        vals.append([float(x) for x in line.split()])
+                        line = f.readline()
+                    except ValueError:
+                        break
+                mod[direction] = [item for sublist in vals for item in sublist]
+            val_type = line.split(':')[1].strip()
+            model_type = next(f).split(':')[1].strip()
+            NY = len(mod['yCS'])
+            NZ = len(mod['zCS'])
+            line = next(f)
+            if 'Anisotropy' in line:
+                rhos = ('rho_x', 'rho_y', 'rho_z')
+                line = next(f)
+            else:
+                rhos = ['rho_x']
+            for rho in rhos:
+                line = next(f)
+                vals = []
+                counter = 0
+                while len(line.split(':')) == 1:
+                    vals.append([float(x) for x in line.split()])
+                    counter += 1
+                    line = next(f)
+                vals = np.array([item for sublist in vals for item in sublist])
+                if val_type.lower() == 'conductivity':
+                    vals = 1 / vals
+                if model_type.lower() == 'log':
+                    vals = 10 ** vals
+                mod[rho] = np.reshape(np.array(vals), [NX, NY, NZ], order='F') # flipud?
+            mod['vals'] = copy.deepcopy(mod['rho_x'])
+
+            return mod, False
+
     def read_3d(modelfile):
         with open(modelfile, 'r') as f:
             mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': []}
@@ -356,22 +406,85 @@ def read_model(modelfile='', file_format='modem3d'):
                                      [NY, NZ], order='F')
             mod['vals'] = np.tile(mod['vals'][np.newaxis, :, :], [NX, 1, 1])
         return mod, loge_flag
-    if not modelfile:
-        print('No model to read')
-        return None
-    if file_format.lower() == 'modem3d':
-        try:
-            mod, loge_flag = read_3d(modelfile)
-            dimensionality = '3d'
-        except ValueError:
-            print('Model not in ModEM3D format. Trying 2D')
+   
+    def read_mt3dani(modelfile, n_param=3):
+        with open(modelfile, 'r') as f:
+            mod = {'xCS': [], 'yCS': [], 'zCS': [], 'vals': [], 
+                  'rho_x': [], 'rho_y': [], 'rho_z': [],
+                  'strike': [], 'dip': [], 'slant': []}
+            # Skip any comment lines at the top
+            counter = 0
+            while True:
+            # header = next(f)
+                header = next(f)
+                if not header.strip().startswith('#') and counter:
+                    break
+                counter += 1
+            NX, NY, NZ, *MODTYPE = [h for h in header.split()]
+            NX, NY, NZ = int(NX), int(NY), int(NZ)
+            loge_flag = False
+            if len(MODTYPE) == 1:
+                MODTYPE = int(MODTYPE[0])
+            else:
+                if MODTYPE[1] == 'LOGE':
+                    loge_flag = True
+                MODTYPE = int(MODTYPE[0])
+            lines = f.readlines()
+            lines = [x.split() for x in lines]
+            lines = [item for sublist in lines for item in sublist]
+            lines = [float(x) for x in lines]
+            mod['xCS'] = lines[:NX]
+            mod['yCS'] = lines[NX: NX + NY]
+            mod['zCS'] = lines[NX + NY: NX + NY + NZ]
+            if MODTYPE == 1:
+                mod['vals'] = np.ones([NX, NY, NZ]) * lines[NX + NY + NZ]
+            else:
+                # vals = lines[NX + NY + NZ: ]
+                param = ['rho_x', 'rho_y', 'rho_z', 'strike', 'dip', 'slant']
+                for pp in range(n_param):
+                    idx1 = NX + NY + NZ + (NX*NY*NZ*pp)
+                    idx2 = NX + NY + NZ + (NX*NY*NZ*(pp+1))
+                    vals = np.flipud(np.reshape(np.array(lines[idx1:idx2]), [NX, NY, NZ], order='F'))
+                    if loge_flag == True:
+                        vals = np.exp(vals)
+                    mod.update({param[pp]: vals})
+                mod['vals'] = copy.deepcopy(mod['rho_x'])
+                loge_flag = False
+        return mod, loge_flag
+
+    try:
+        if not modelfile:
+            print('No model to read')
+            return None
+        if modelfile[-4:] == 'zani':
+            print('Reading MT3DANI model')
+            file_format = 'mt3dani'
+        if file_format.lower() == 'modem3d':
+            try:
+                mod, loge_flag = read_3d(modelfile)
+                dimensionality = '3d'
+            except ValueError:
+                try:
+                    print('Model not in ModEM3D format. Trying 2D')
+                    mod, loge_flag = read_2d(modelfile)
+                    dimensionality = '2d'
+                except ValueError:
+                    print('Not in ModEM format. Trying EM3DANI.')
+                    mod, loge_flag = read_em3dani(modelfile)
+                    dimensionality = '3d'
+        elif file_format.lower() == 'modem2d':
             mod, loge_flag = read_2d(modelfile)
-            dimensionality = '2d'
-    elif file_format.lower() == 'modem2d':
-        mod, loge_flag = read_2d(modelfile)
-    if loge_flag:
-        mod['vals'] = np.exp(mod['vals'])
-    return mod, dimensionality
+        elif file_format.lower() == 'em3dani':
+            mod, loge_flag = read_em3dani(modelfile)
+            dimensionality = '3d'
+        elif file_format.lower() == 'mt3dani':
+            mod, loge_flag = read_mt3dani(modelfile)
+            dimensionality = '3d'
+        if loge_flag:
+            mod['vals'] = np.exp(mod['vals'])
+        return mod, dimensionality
+    except FileNotFoundError as e:
+        raise(WSFileError(ID='fnf', offender=modelfile))
 
 
 def read_raw_data(site_names, datpath=''):
@@ -426,7 +539,7 @@ def read_raw_data(site_names, datpath=''):
                     ns_cache.append(ns)
                     data = [(row.split()) for row in lines[ii + 2: ii + ns + 2]]
                     data = np.array([row for row in data])
-                    data = data.astype(np.float)
+                    data = data.astype(np.float64)
                     periods = data[:, 0]
                     dataReal = data[:, 1]
                     dataImag = data[:, 2]
@@ -443,7 +556,7 @@ def read_raw_data(site_names, datpath=''):
         except AssertionError:
             msg = 'Number of periods in {} is not equal for all components'.format(file)
             print('Fatal error in pyMT.IO.read_dat')
-            raise(WSFileError(id='int', offender=file, extra=msg))
+            raise(WSFileError(ID='int', offender=file, extra=msg))
         site_dict = {'data': siteData_dict,
                      'errors': siteError_dict,
                      'locations': siteLoc_dict,
@@ -578,7 +691,13 @@ def read_raw_data(site_names, datpath=''):
                         else:
                             data.update({new_key: data_block})
                 elif key == 'ZROT':
-                    data_block = read_data_block(blocks[key])
+                    try:
+                        data_block = read_data_block(blocks[key])
+                    except IndexError:
+                        print('Missing ZROT info, setting ZROT=0')
+                        azi = 0
+                        equal_rots = 1
+                        continue    
                     if not np.all(data_block == data_block[1]):
                         azi = data_block[0]
                         equal_rots = 0
@@ -587,10 +706,13 @@ def read_raw_data(site_names, datpath=''):
                         equal_rots = 1
             # EDI format has ZxyR, ZxyI positive; ZyxR, ZyxI negative. This needs to be changed
             # EDI is generally +iwt sign convention. Note this can be specified in EDI files, but is not read anywhere here.
-            data['ZXYI'] *= -1
-            data['ZYXI'] *= -1
-            data['ZXXI'] *= -1
-            data['ZYYI'] *= -1
+            try:
+                data['ZXYI'] *= -1
+                data['ZYXI'] *= -1
+                data['ZXXI'] *= -1
+                data['ZYYI'] *= -1
+            except KeyError:
+                pass
             try:
                 data['TZXI'] *= -1
                 data['TZYI'] *= -1
@@ -661,6 +783,7 @@ def read_raw_data(site_names, datpath=''):
     # all_edi = [file for file in os.listdir(path) if file.endswith('.edi')]
     for site in site_names:
         # Look for J-format files first
+        # print(site)
         if ''.join([site, '.dat']) in all_dats:
             if site.endswith('.dat'):
                 file = ''.join([path, site])
@@ -1614,20 +1737,124 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                       'dimensionality': '2d'}
         return site_dict, other_info
 
+    def read_em3dani(datafile='', site_names=''):
+        def read_data_format(lines, data, errors, site_names, components):
+            for line in lines:
+                freqno, rxno, comp_no, real_val, imag_val, error_val = line.split()
+                freqno, rxno, comp_no = int(freqno), int(rxno), int(comp_no)
+                data[site_names[rxno-1]][components[(comp_no-1)*2]][freqno-1] = float(real_val)
+                data[site_names[rxno-1]][components[(comp_no-1)*2+1]][freqno-1] = float(imag_val)
+                errors[site_names[rxno-1]][components[(comp_no-1)*2]][freqno-1] = float(error_val)
+                errors[site_names[rxno-1]][components[(comp_no-1)*2+1]][freqno-1] = float(error_val)
+                # for ii, val in enumerate(values):
+                #     data[site_names[rxno-1]][components[ii]][freqno-1] = float(val)
+                #     errors[site_names[rxno-1]][components[ii][freqno-1]] = float(error_val)
+            return data, errors
+
+        def read_response_format(lines, data, site_names, components):
+            for line in lines:
+                freqno, rxno, *values = line.split()
+                freqno, rxno = int(freqno), int(rxno)
+                for ii, val in enumerate(values):
+                    data[site_names[rxno-1]][components[ii]][freqno-1] = float(val)
+            return data
+
+        try:
+            with open(datafile, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            raise(WSFileError(ID='fnf', offender=datafile)) from None
+        header = ['#']
+        counter = 0
+        # Pull out the commented lines.
+        while header[-1].lower().strip().startswith('#'):
+            header.append(lines.pop(0))
+        # Look to see if it has the file format (data or resp file)
+        file_format = [string for string in header if 'format' in string.lower()][0]
+        if 'data' in file_format.lower():
+            file_format = 'data'
+        elif 'resp' in file_format.lower():
+            file_format = 'response'
+        else:
+            print('File format {} not recognized. Aborting.'.format(file_format))
+            raise(WSFileError(ID='fmt', offender=datafile, expected='MT3DResp or MT3DData'))
+        phase_convention = header[-1].split(':')[1].strip()
+        NS = int(lines.pop(0).split(':')[1].strip())
+        header = lines.pop(0) # Should be commented X Y Z line
+        if not site_names:
+            site_names = ['site_{}'.format(ii) for ii in range(NS)]
+        locations = {site: {'X': [], 'Y': [], 'elev': []} for site in site_names}
+        for site in site_names:
+            X, Y, Z = [float(val) for val in lines.pop(0).split()]
+            locations[site]['X'] = X
+            locations[site]['Y'] = Y
+            locations[site]['elev'] = Z
+        NP = int(lines.pop(0).split(':')[1])
+        periods = np.zeros((NP))
+        for ii in range(NP):
+            periods[ii] = 1 / float(lines.pop(0))
+        data_type = lines.pop(0).split(':')[1].strip()
+        data_components = ['ZXXR', 'ZXXI',
+                           'ZXYR', 'ZXYI',
+                           'ZYXR', 'ZYXI',
+                           'ZYYR', 'ZYYI']
+        inv_type = 1
+        if 'tipper' in data_type.lower():
+            data_components += ['TZXR', 'TZXI', 'TZYR', 'TZYI']
+            inv_type = 5
+        NR = int(lines.pop(0).split(':')[1])
+        if NR != len(data_components) / 2:
+            print('Number of components does not match the listed data type, proceeding anyways.')
+        for ii in range(NR):
+            lines.pop(0)
+        num_data = int(lines.pop(0).split(':')[1])
+        header = lines.pop(0)
+        data = {site: {comp: np.zeros((NP)) for comp in data_components} for site in site_names}
+        errors = {site: {comp: np.ones((NP)) for comp in data_components} for site in site_names}
+        if file_format == 'data':
+            data, errors = read_data_format(lines, data, errors, site_names, data_components)
+        else:
+            data = read_response_format(lines, data, site_names, data_components)
+
+        sites = {}
+        for site in site_names:
+            sites.update({site: {
+                  'data': data[site],
+                  'errors': errors[site],
+                  'periods': periods,
+                  'locations': locations[site],
+                  'azimuth': 0,
+                  'errFloorZ': 0,
+                  'errFloorT': 0}
+                  })
+        other_info = {'inversion_type': inv_type,
+                      'site_names': site_names,
+                      'origin': (0, 0),
+                      'UTM_zone': None,
+                      'dimensionality': '3d'}
+        return sites, other_info
+
     if file_format.lower() == 'wsinv3dmt':
-        return read_ws_data(datafile, site_names, invType)
+        # wsinv and em3dani have the same extension type,, so try both.
+        try:
+            return read_ws_data(datafile, site_names, invType)
+        except ValueError:
+            return read_em3dani(datafile, site_names)
     elif file_format.lower() == 'modem':
         return read_modem_data(datafile, site_names, invType)
     elif file_format.lower() == 'mare2dem':
         return read_mare2dem_data(datafile, site_names, invType)
+    elif file_format.lower() == 'em3dani':
+        return read_em3dani(datafile, site_names)
     else:
         print('Output format {} not recognized'.format(file_format))
         raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
                                                                     'wsinv3dmt',
-                                                                    'ModEM'))
+                                                                    'ModEM',
+                                                                    'em3dani'))
 
 
-def write_locations(data, out_file=None, file_format='csv'):
+def write_locations(data, out_file=None, file_format='csv', verbose=0):
     def write_shapefile(data, outfile):
         if not outfile.endswith('.shp'):
             outfile += '.shp'
@@ -1648,12 +1875,24 @@ def write_locations(data, out_file=None, file_format='csv'):
 
     def write_csv(data, outfile):
         with open(outfile, 'w') as f:
-            f.write('Station, X, Y, Elevation\n')
+            if verbose:
+                f.write('Station, X, Y, Elevation, Latitude, Longitude\n')
+            else:
+                f.write('Station, X, Y, Elevation\n')
             for ii, site in enumerate(data.site_names):
-                f.write('{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}\n'.format(site,
-                                                                           data.locations[ii, 1],
-                                                                           data.locations[ii, 0],
-                                                                           data.sites[site].locations['elev']))
+                # f.write('{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}\n'.format(site,
+                #                                                            data.locations[ii, 1],
+                #                                                            data.locations[ii, 0],
+                #                                                            data.sites[site].locations['elev']))
+                string = '{:>6s}, {:>12.8g}, {:>12.8g}, {:>12.8g}'.format(site,
+                                                                          data.locations[ii, 1],
+                                                                          data.locations[ii, 0],
+                                                                          data.sites[site].locations['elev'])
+                if verbose:
+                    string += ', {:>8.5g}, {:>8.5g}'.format(data.sites[site].locations['Lat'],
+                                                            data.sites[site].locations['Long'])
+                string += '\n'
+                f.write(string)
 
     if file_format.lower() not in ('csv', 'shp', 'kml'):
         print('File format {} not supported'.format(file_format))
@@ -1808,6 +2047,65 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
     #  Writes out the contents of a Data object into format specified by 'file_format'
     #  Currently implemented options include WSINV3DMT and ModEM3D.
     #  Plans to implement OCCAM2D, MARE2DEM, and ModEM2D.
+    def write_em3dani(data, outfile):
+        if not outfile.lower().endswith('.adat'):
+            outfile += '.adat'
+        with open(outfile, 'w') as f:
+            f.write('# Format:       MT3DData_1.0\n')
+            f.write('# Description:  written by pyMT\n')
+            f.write('Phase Convention:  lag\n')
+            f.write('Receiver Location (m):    {}\n'.format(data.NS))
+            f.write('#         X          Y           Z\n')
+            for ii in range(data.NS):
+                f.write('{:<14.2f} {:<14.2f} {:<14.2f}\n'.format(data.locations[ii, 0],
+                                                                 data.locations[ii, 1],
+                                                                 0)) # No topography in this code yet?
+            f.write('Frequencies (Hz):     {}\n'.format(data.NP))
+            for ii in range(data.NP):
+                f.write('{:<10.5e}\n'.format(1 / data.periods[ii]))
+            if data.inv_type == 1:
+                f.write('DataType:   Impedance\n')
+                NR = 4
+            elif data.inv_type == 5:
+                f.write('DataType:   Impedance_Tipper\n')
+                NR = 6
+            else:
+                print('Inversion Type {} not allowed for em3dani. Writing Impedances only.'.format(data.inv_type))
+                f.write('DataType:   Impedance\n')
+            f.write('DataComp:    {}\n'.format(NR))
+            f.write('ZXX\nZXY\nZYX\nZYY\n')
+            if NR == 6:
+                f.write('TZX\nTZY\n')
+            f.write('Data Block: {}\n'.format(int(data.NP * data.NS * NR)))
+            f.write('# FreqNo.  RxNo.    DCompNo.     RealValue      ImagValue      Error\n')
+            for ii, site in enumerate(data.site_names):
+                for jj in range(NR):
+                    if jj == 0:
+                        vals = data.sites[site].data['ZXXR'] + 1j*data.sites[site].data['ZXXI']
+                        errors = np.abs(data.sites[site].used_error['ZXXR'] + 1j*data.sites[site].used_error['ZXXI'])
+                    if jj == 1:
+                        vals = data.sites[site].data['ZXYR'] + 1j*data.sites[site].data['ZXYI']
+                        errors = np.abs(data.sites[site].used_error['ZXYR'] + 1j*data.sites[site].used_error['ZXYI'])
+                    if jj == 2:
+                        vals = data.sites[site].data['ZYXR'] + 1j*data.sites[site].data['ZYXI']
+                        errors = np.abs(data.sites[site].used_error['ZYXR'] + 1j*data.sites[site].used_error['ZYXI'])
+                    if jj == 3:
+                        vals = data.sites[site].data['ZYYR'] + 1j*data.sites[site].data['ZYYI']
+                        errors = np.abs(data.sites[site].used_error['ZYYR'] + 1j*data.sites[site].used_error['ZYYI'])
+                    if jj == 4:
+                        vals = data.sites[site].data['TZXR'] + 1j*data.sites[site].data['TZXI']
+                        errors = np.abs(data.sites[site].used_error['TZXR'] + 1j*data.sites[site].used_error['TZXI'])
+                    if jj == 5:
+                        vals = data.sites[site].data['TZYR'] + 1j*data.sites[site].data['TZYI']
+                        errors = np.abs(data.sites[site].used_error['TZYR'] + 1j*data.sites[site].used_error['TZYI'])
+                    for kk in range(data.NP):
+                        f.write('{:<10d} {:<10d} {:<10d} {:<14.6e} {:<14.6e} {:<14.6e}\n'.format(kk+1,
+                                                                                                 ii+1,
+                                                                                                 jj+1,
+                                                                                                 np.real(vals[kk]),
+                                                                                                 np.imag(vals[kk]),
+                                                                                                 errors[kk]))
+
     def write_ws(data, outfile, to_write):
         if '.data' not in outfile:
             outfile = ''.join([outfile, '.data'])
@@ -2276,6 +2574,8 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
         write_MARE2DEM(data, outfile)
     elif file_format.lower() == 'occam':
         write_occam(data, outfile)
+    elif file_format.lower() == 'em3dani':
+        write_em3dani(data, outfile)
     else:
         print('Output file format {} not recognized'.format(file_format))
 
@@ -2350,7 +2650,74 @@ def write_list(data, outfile):
         f.write('{}'.format(''.join([data.site_names[-1], '.dat'])))
 
 
-def write_model(model, outfile, file_format='modem'):
+def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_log=True, use_resistivity=True, n_param=3):
+    def to_em3dani(model, outfile, use_log, use_resistivity, use_anisotropy):
+        # debug_print([use_log, use_resistivity], 'E:/phd/NextCloud/data/synthetics/EM3DANI/wst/aniso8/debug.log')
+        value_dict = {'sigma': 'vals',
+                      'sigmax': 'rho_x', 'sigmay': 'rho_y', 'sigmaz': 'rho_z',
+                      'slant': 'slant', 'dip': 'dip', 'strike': 'strike'}
+        if not outfile.lower().endswith('.mod'):
+            outfile += '.mod'
+        with open(outfile, 'w') as f:
+            f.write('# Format:      EM3DModelFile_1.0\n')
+            f.write('# Description:     Written from pyMT\n')
+            f.write('NX:     {}\n'.format(model.nx))
+            for xx in model.xCS:
+                f.write('{:<14.0f} '.format(xx))
+            f.write('\n')
+            f.write('NY:     {}\n'.format(model.ny))
+            for yy in model.yCS:
+                f.write('{:<14.0f} '.format(yy))
+            f.write('\n')
+            f.write('NAIR:     7\n')
+            for iz in [100, 300, 1000, 3000, 10000, 30000, 100000]:
+                f.write('{:<14.0f} '.format(iz))
+            f.write('\n')
+            f.write('NZ:     {}\n'.format(model.nz))
+            for iz in model.zCS:
+                f.write('{:<14.0f} '.format(iz))
+            f.write('\n')
+            if use_resistivity:
+                f.write('Resistivity Type:  Resistivity\n')
+            else:
+                f.write('Resistivity Type:  Conductivity\n')
+            if use_log:
+                f.write('Model Type:        Log\n')
+            else:
+                f.write('Model Type:        Linear\n')
+            if len(model.rho_y) > 1:
+                val_names = ['sigmax', 'sigmay', 'sigmaz']
+                use_anisotropy = True
+            else:
+                val_names = ['sigma']
+            if len(model.strike) > 1:
+                val_names += ['strike']
+                val_names += ['dip']
+                val_names += ['slant']
+            if use_anisotropy:
+                f.write('Anisotropy Type: Anisotropy\n')
+            for name in val_names:
+                f.write('{}:\n'.format(name))
+                values = getattr(model, value_dict[name])
+                # for val in values:
+                for iz in range(model.nz):
+                    for iy in range(model.ny):
+                        for ix in range(model.nx):
+                            if 'sigma' in name:
+                                if use_resistivity:
+                                    val = values[ix, iy, iz]
+                                else:
+                                    val = 1 / values[ix, iy, iz]
+                                if use_log and 'sigma' in name:
+                                    val = np.log10(val)
+                                # f.write('{:<10.5f} '.format(np.log10(values[ix, iy, iz])))
+                                f.write('{:<10.5f} '.format(val))
+                            else:
+                                f.write('{:<10.5f} '.format((values[ix, iy, iz])))
+                    f.write('\n')
+            ox, oy = np.sum(model.xCS) / 2, np.sum(model.yCS) / 2
+            f.write('Origin: {:<14.2f}  {:<14.2f}  0.0'.format(ox, oy))
+
     def to_ubc(model, outfile):
         file_name, ext = os.path.splitext(outfile)
         with open(file_name + '.msh', 'w') as f:
@@ -2373,7 +2740,51 @@ def write_model(model, outfile, file_format='modem'):
                     for iz in range(model.nz):
                         f.write('{:<10.7f}\n'.format(model.vals[ix, iy, iz]))
 
-    def write_inv_model(model, outfile, file_format):
+    def to_mt3dani(model, outfile, use_log, use_resistivity, use_anisotropy, n_param):
+        if '.zani' not in outfile:
+            outfile = ''.join([outfile, '.zani'])
+        is_half_space = int(model.is_half_space())
+        if use_log:
+            header_four = 'LOGE'
+        else:
+            header_four = 'LINEAR'
+        with open(outfile, 'w') as f:
+            f.write('{}\n'.format('# ' + outfile))
+            f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, 0, header_four))
+            for x in model.xCS:
+                f.write('{:<10.7f}  '.format(x))
+            f.write('\n')
+            for y in model.yCS:
+                f.write('{:<10.7f}  '.format(y))
+            f.write('\n')
+            for z in model.zCS:
+                f.write('{:<10.7f}  '.format(z))
+            f.write('\n')
+
+            param = ['rho_x', 'rho_y', 'rho_z', 'strike', 'dip', 'slant']
+            for pp in range(n_param):
+                if header_four == 'LOGE':
+                    if np.any(model.vals < 0):
+                        print('Negative values detected in model.')
+                        print('I hope you know what you\'re doing.')
+                        vals = np.sign(getattr(model, param[pp], model.vals)) * np.log(np.abs(getattr(model, param[pp], model.vals)))
+                        vals = np.nan_to_num(vals)
+                    else:
+                        vals = getattr(model, param[pp], model.vals)
+                        if pp < 3:
+                            vals = np.log(vals)
+                else:
+                    vals = get(model, param[pp], model.vals)
+                for zz in range(model.nz):
+                    for yy in range(model.ny):
+                        for xx in range(model.nx):
+                            # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
+                            f.write('{:<14.5E}'.format(vals[model.nx - xx - 1, yy, zz]))
+                        f.write('\n')
+                    f.write('\n')
+                f.write('\n')
+
+    def to_modem(model, outfile, file_format):
         if '.model' not in outfile:
             outfile = ''.join([outfile, '.model'])
         is_half_space = int(model.is_half_space())
@@ -2386,14 +2797,14 @@ def write_model(model, outfile, file_format='modem'):
             f.write('{}\n'.format('# ' + outfile))
             f.write('{} {} {} {} {}\n'.format(model.nx, model.ny, model.nz, is_half_space, header_four))
             for x in model.xCS:
-                f.write('{:<10.7f}  '.format(x))
+                f.write('{:<10.3f}  '.format(x))
             f.write('\n')
             for y in model.yCS:
-                f.write('{:<10.7f}  '.format(y))
+                f.write('{:<10.3f}  '.format(y))
             f.write('\n')
             for z in model.zCS:
-                f.write('{:<10.7f}  '.format(z))
-            f.write('\n')
+                f.write('{:<10.3f}  '.format(z))
+            f.write('\n\n')
             if header_four == 'LOGE':
                 if np.any(model.vals < 0):
                     print('Negative values detected in model.')
@@ -2411,9 +2822,14 @@ def write_model(model, outfile, file_format='modem'):
                     for yy in range(model.ny):
                         for xx in range(model.nx):
                             # f.write('{:<10.7E}\n'.format(model.vals[model.nx - xx - 1, yy, zz]))
-                            f.write('{:<10.7f}\n'.format(vals[model.nx - xx - 1, yy, zz]))
-
-    def write_model_2d(model, outfile):
+                            f.write('{:<13.5E}'.format(vals[model.nx - xx - 1, yy, zz]))
+                        f.write('\n')
+                    f.write('\n')
+            # Write bottom left corner coordinate and rotation angle (dummies right now)
+            # f.write('\n')
+            f.write('{:<15.3f}{:<15.3f}{:<15.3f}\n'.format(model.dx[0], model.dy[0], model.dz[0]))
+            f.write('{:<6.3f}'.format(0))
+    def write_modem_2d(model, outfile):
         if '.model' not in outfile:
             outfile = ''.join([outfile, '.model'])
         # is_half_space = int(model.is_half_space())
@@ -2467,26 +2883,40 @@ def write_model(model, outfile, file_format='modem'):
                                                                                    model.vals[ix, iy, iz]))
 
     if file_format.lower() in ('modem', 'wsinv', 'wsinv3dmt'):
-        write_inv_model(model=model, outfile=outfile, file_format=file_format)
+        to_modem(model=model, outfile=outfile, file_format=file_format)
     elif file_format.lower() in ('modem2d'):
-        write_model_2d(model=model, outfile=outfile)
+        write_modem_2d(model=model, outfile=outfile)
     elif file_format.lower() in ('ubc', 'ubc-gif'):
         to_ubc(model=model, outfile=outfile)
     elif file_format.lower() in ('csv'):
         to_csv(model=model, outfile=outfile)
+    elif file_format.lower() in ('em3dani'):
+        to_em3dani(model=model,
+                   outfile=outfile,
+                   use_log=use_log, 
+                   use_resistivity=use_resistivity,
+                   use_anisotropy=use_anisotropy)
+    elif file_format.lower() in ('mt3dani'):
+        to_mt3dani(model=model,
+                   outfile=outfile,
+                   use_log=use_log,
+                   use_resistivity=use_resistivity,
+                   use_anisotropy=use_anisotropy,
+                   n_param=n_param)
     else:
         print('File format {} not supported'.format(file_format))
         print('Supported formats are: ')
-        print('ModEM, WSINV3DMT, UBC-GIF, CSV')
+        print('ModEM, WSINV3DMT, UBC-GIF, CSV, EM3DANI, MT3DANI')
         return
 
-def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
+def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50, period_idx=None):
+
     if not out_file.endswith('.csv'):
         out_file += '.csv'
     print('Writing phase tensor data to {}'.format(out_file))
     with open(out_file, 'w') as f:
         header = ['Site', 'Period', 'Latitude', 'Longitude', 'Azimuth',
-                  'Phi_min', 'Phi_max', 'Phi_min_scaled', 'Phi_max_scaled']
+                  'Phi_min', 'Phi_max', 'Phi_min_scaled', 'Phi_max_scaled', 'Phi_split']
         if verbose:
             header += ['Phi_1', 'Phi_2', 'Phi_3', 'Det_Phi', 'Alpha', 'Beta', 'Lambda']
         f.write(','.join(header))
@@ -2504,28 +2934,82 @@ def write_phase_tensors(data, out_file, verbose=False, scale_factor=1/50):
         for site_name in data.site_names:
             site = data.sites[site_name]
             X, Y = site.locations[X_key], site.locations[Y_key]
+            if period_idx is None:
+                # period_idx = list(range(site.NP))
+                period_idx = site.periods
             for ii, period in enumerate(site.periods):
-                phi_max = 1 * scale
-                phi_min = scale * site.phase_tensors[ii].phi_min / site.phase_tensors[ii].phi_max
-                f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}'.format(site_name,
-                                                        period,
-                                                        X,
-                                                        Y,
-                                                        -np.rad2deg((site.phase_tensors[ii].azimuth)) + 90,
-                                                        site.phase_tensors[ii].phi_min,
-                                                        site.phase_tensors[ii].phi_max,
-                                                        phi_min,
-                                                        phi_max))
-                if verbose:
-                    f.write(', {}, {}, {}, {}, {}, {}, {}\n'.format(np.rad2deg(np.arctan(site.phase_tensors[ii].phi_1)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].phi_3)),
-                                                                    np.rad2deg(np.arctan(site.phase_tensors[ii].det_phi)),
-                                                                    np.rad2deg((site.phase_tensors[ii].alpha)),
-                                                                    np.rad2deg((site.phase_tensors[ii].beta)),
-                                                                    site.phase_tensors[ii].Lambda))
-                else:
-                    f.write('\n')
+                if min(abs(period - period_idx)) < period * 0.1: # in period_idx:
+                    phi_max = 1 * scale
+                    phi_min = scale * site.phase_tensors[ii].phi_min / site.phase_tensors[ii].phi_max
+                    f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}'.format(site_name,
+                                                            period,
+                                                            X,
+                                                            Y,
+                                                            -np.rad2deg((site.phase_tensors[ii].azimuth)) + 90,
+                                                            site.phase_tensors[ii].phi_min,
+                                                            site.phase_tensors[ii].phi_max,
+                                                            phi_min,
+                                                            phi_max,
+                                                            site.phase_tensors[ii].phi_max - site.phase_tensors[ii].phi_min))
+                    if verbose:
+                        f.write(', {}, {}, {}, {}, {}, {}, {}\n'.format(np.rad2deg(np.arctan(site.phase_tensors[ii].phi_1)),
+                                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].phi_2)),
+                                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].phi_3)),
+                                                                        np.rad2deg(np.arctan(site.phase_tensors[ii].det_phi)),
+                                                                        np.rad2deg((site.phase_tensors[ii].alpha)),
+                                                                        np.rad2deg((site.phase_tensors[ii].beta)),
+                                                                        site.phase_tensors[ii].Lambda))
+                    else:
+                        f.write('\n')
+
+
+def write_induction_arrows(data, out_file, period_idx=None, verbose=False, scale_factor=1):
+    if not out_file.endswith('.csv'):
+        out_file += '.csv'
+    with open(out_file, 'w') as f:
+        header = header = ['Site', 'Period', 'Latitude', 'Longitude',
+                           'TXR', 'TYR', 'TXI', 'TYI', 'Rev. TXR', 'Rev. TYR', 'Rev. TXI', 'Rev. TYI',
+                           'Azimuth_R', 'Azimuth_I', 'Magnitude_R', 'Magnitude_I']
+
+        try:
+            test = data.sites[data.site_names[0]].locations['Lat'], data.sites[data.site_names[0]].locations['Long']
+            X_key, Y_key = 'Lat', 'Long'
+        except KeyError:
+            X_key, Y_key = 'Y', 'X'
+        f.write(','.join(header))
+        f.write('\n')
+        for site_name in data.site_names:
+            site = data.sites[site_name]
+            X, Y = site.locations[X_key], site.locations[Y_key]
+            if period_idx is None:
+                period_idx = site.periods
+            if set(site.TIPPER_COMPONENTS).issubset(set(site.components)):
+                for ii, period in enumerate(site.periods):
+                    if min(abs(period - period_idx)) < period * 0.1:
+                        azi_R = np.rad2deg(np.arctan2(-site.data['TZYR'][ii], -site.data['TZXR'][ii]))
+                        azi_I = np.rad2deg(np.arctan2(-site.data['TZYI'][ii], -site.data['TZXI'][ii]))
+                        mag_R = np.sqrt(site.data['TZXR'][ii] ** 2 + site.data['TZYR'][ii] ** 2)
+                        mag_I = np.sqrt(site.data['TZXI'][ii] ** 2 + site.data['TZYI'][ii] ** 2)
+                        f.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(site_name,
+                                                                                          period,
+                                                                                          X,
+                                                                                          Y,
+                                                                                          site.data['TZXR'][ii],
+                                                                                          site.data['TZYR'][ii],
+                                                                                          site.data['TZXI'][ii],
+                                                                                          site.data['TZYI'][ii],
+                                                                                          -site.data['TZXR'][ii],
+                                                                                          -site.data['TZYR'][ii],
+                                                                                          -site.data['TZXI'][ii],
+                                                                                          -site.data['TZYI'][ii],
+                                                                                          azi_R,
+                                                                                          azi_I,
+                                                                                          mag_R,
+                                                                                          mag_I))
+            else:
+                print('No tipper in {}'.format(site_name))
+
+
 
 
 

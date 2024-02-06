@@ -72,7 +72,7 @@
 
 
 \title{pyMT}
-\date{Aug 04, 2020}
+\date{Dec 19, 2020}
 \release{0.0.1}
 \author{Eric Roots}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -138,6 +138,13 @@ Clone the repository:
 \PYG{n}{git} \PYG{n}{clone} \PYG{n}{https}\PYG{p}{:}\PYG{o}{/}\PYG{o}{/}\PYG{n}{github}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{eroots}\PYG{o}{/}\PYG{n}{pyMT}\PYG{o}{.}\PYG{n}{git}
 \end{sphinxVerbatim}
 
+Install the more complicated prerequisites:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n}{conda} \PYG{n}{install} \PYG{n}{numpy}
+\PYG{n}{conda} \PYG{n}{install} \PYG{n}{vtk}
+\end{sphinxVerbatim}
+
 Install by navigating to the cloned pyMT directory and entering:
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
@@ -150,7 +157,9 @@ Or if you intend to modify the code:
 \PYG{n}{python} \PYG{n}{setup}\PYG{o}{.}\PYG{n}{py} \PYG{n}{develop}
 \end{sphinxVerbatim}
 
-All dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with potentially complicated dependencies.
+It is recommended you use the ‘develop’ option regardless at this time.
+
+Most dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with potentially complicated dependencies.
 These include:
 \begin{itemize}
 \item {} 
@@ -166,30 +175,28 @@ scipy
 matplotlib
 
 \item {} 
-pyqt
+colorcet
 
 \item {} 
-colorcet
+vtk
 
 \end{itemize}
 
-The tested method of installation involves installing each of these with Anaconda prior to installing pyMT.
+The tested method of installation involves installing each of these with Anaconda prior to installing pyMT. As of the last time I tested this (December 2020), the only ones that needed to be manually installed were vtk and numpy.
 
 Note, a previously required package ‘naturalneighbor’ has been removed from the dependency list. {\hyperref[\detokenize{content/data_plot/main_window:data-plot}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Main Window}}}} will now instead offer other interpolation schemes based on scipy. If naturalneighbor is installed (it can be installed through pip, or using the wheel at \sphinxurl{https://www.lfd.uci.edu/~gohlke/pythonlibs/\#naturalneighbor}), the natural neighbor scheme will still be available.
 
-As of the time of writing this (April 2020), there is an issue between versions of python and pyqt that may cause some GUIs to fail:
+Other dependency issues:
 \begin{itemize}
 \item {} 
 Python needs to be version 3.7.*
 
 \item {} 
-PyQT5 needs to be version 5.14.*
+PyQT5 needs to be version \textgreater{}5.14.*
 
 \end{itemize}
 
-Note that as of now, Anaconda only seems to have access to pyqt5 version 5.9.*. You will therefore have to install pyqt5 using pip, and ensure this version supercedes any other version of pyqt installed in your environment.
-
-An update to pyvista version 0.24.* has also caused an error in setting up the {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}, so pyvista version 0.23.* is required for now.
+An update to pyvista version 0.24.* has also caused an error in setting up the {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}, so pyvista version 0.23.* is required for now. This requirement is included in the setup.
 
 
 \chapter{Testing Installation}
@@ -1634,6 +1641,159 @@ The 2-D transect plot does not respond to changes in the model trim. The workaro
 
 \subsection{Change Log}
 \label{\detokenize{content/misc/changelog:change-log}}\label{\detokenize{content/misc/changelog::doc}}\begin{itemize}
+\item {} 
+17/12/20
+\begin{itemize}
+\item {} 
+A standalone executable version of pyMT is now available.
+\begin{itemize}
+\item {} 
+This is just the GUIs, with the entry point being the new ‘Gateway’ GUI.
+
+\item {} 
+No python installation required - the executable contains everything needed.
+\begin{itemize}
+\item {} 
+Main drawback is it is only the GUIs - you won’t have access to the pyMT API or any of the scripts.
+
+\end{itemize}
+
+\end{itemize}
+
+\item {} 
+Fixed a minor bug where the data cursor (hovering over plots in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} or {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}) would give slightly incorrect values
+
+\item {} 
+New ‘Gateway’ GUI for creating, modifying, and loading your projects (.pymt files, previous ‘pystartup’ files)
+\begin{itemize}
+\item {} 
+Should be compatible with old pystart files, and all previous calling methods should still work (e.g., command line calling of data\_plot, model\_viewer, etc.)
+\begin{itemize}
+\item {} 
+Add a ‘.pymt’ extention to your old project files to get the GUI to automatically recognize them
+
+\end{itemize}
+
+\end{itemize}
+
+\item {} 
+Add Niblett-Bostick depth, PT Skew, and PT Azimuth to pseudosection options in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}
+\begin{itemize}
+\item {} 
+Since there are now many options for pseudosections, the radio buttons which previously controlled the plot were replaced with a drop-down menu
+
+\end{itemize}
+
+\item {} 
+Added ‘XY-YX’ to the component option of the pseudosections
+\begin{itemize}
+\item {} 
+Only works for App. Rho, Phase, and Bostick depths, but shows XY-YX (TE minus TM) versions
+
+\item {} 
+Mainly useful for showing phase splitting, but could also be useful for showing variations in penetration depth
+
+\end{itemize}
+
+\item {} 
+Similarly, ‘Phi\_split’ has been added to the phase tensor plotting
+\begin{itemize}
+\item {} 
+Maybe a misnomer, but this shows XY-YX phases, NOT phi\_max - phi\_min.
+
+\end{itemize}
+
+\item {} 
+Added ‘Dimensionality’ fill option for PT plotting. This is calculated using skew and ellipticity thresholds of the phase tensor (by default at 3 degrees and 0.1, respectively)
+
+\item {} 
+Added ‘Lambert’ projection option in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}.
+
+\item {} 
+Added ‘Include Outliers’ option in pseudosection plotting, along with defineable standard deviation limits
+\begin{itemize}
+\item {} 
+Values outside the defined range won’t be plotted, so you don’t get one station with 400 degree phase colouring your whole plot
+
+\end{itemize}
+
+\item {} 
+Data points with the REMOVE\_FLAG set (e.g., after using ‘Reset Dummy Errors’) no longer plot phase tensors in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}}. Should result in much cleaner plots.
+
+\end{itemize}
+
+\item {} 
+30/09/20
+\begin{itemize}
+\item {} 
+Changed the way missing period fill-in is handled
+\begin{itemize}
+\item {} 
+Previously would just grab the closest period - now the data point is ‘corrected’ for mismatch in period
+
+\item {} 
+This correction means that the impedance value is different, but the apparent resistivity and phase values are the same
+
+\item {} 
+Note that this correction is only applied for impedance data - all other data is in-filled as before
+
+\end{itemize}
+
+\item {} 
+{\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} can now plot tipper amplitude pseudosections
+\begin{itemize}
+\item {} 
+Should behave identically to Rho and Phase pseudosections, except that the ‘XY / YX/ Det’ menu does nothing (only real tipper amplitudes are plotted)
+
+\end{itemize}
+
+\item {} 
+Induction arrows and phase tensors now override station location plotting in {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} - no more giant dots hiding PT info!
+
+\end{itemize}
+
+\item {} 
+14/08/20
+\begin{itemize}
+\item {} 
+Added some logic to ‘regulate\_errors’ so that it would ignore extreme outliers.
+
+\item {} 
+ModEM has an upper limit on floating point values - exceeding these values causes a crash. Therefore, data and error values are now capped when written to file (and a message is printed).
+\begin{itemize}
+\item {} 
+Note that things could still go wrong with this fix (e.g., if data at the cap is inverted, the nRMS is likely to be off the charts). I hesistate to flat out zero such data, and prefer to let the user fix things.
+
+\end{itemize}
+
+\item {} 
+Error bars are now shown for average (AAV, GAV, DET) apparent resistivities and phases. The errors are calculated following GEOTOOLS, where the maximum error between XY and YX is taken.
+
+\item {} 
+Fixed a bug where {\hyperref[\detokenize{content/data_plot/map_viewer:map-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Data Plot - Map Viewer}}}} would let you try to change the coordinate system even if no raw data was loaded, and promptly crash.
+
+\item {} 
+Fixed a few issues with isosurface plotting in {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}
+\begin{itemize}
+\item {} 
+Isosurface will now automatically refresh when recalculated
+
+\item {} 
+Added opacity toggles so that you can actually see multiple isosurfaces if plotted
+
+\item {} 
+Added try/except block to make sure you can’t plot a contour that has no values (e.g., if your desired contour line is lower than all the values in the model)
+
+\end{itemize}
+
+\item {} 
+Added toggle to plot station locations at their inverted elevation.
+
+\item {} 
+Added some canned background colours for the 3D view in {\hyperref[\detokenize{content/model_viewer/main_window:model-viewer}]{\sphinxcrossref{\DUrole{std,std-ref}{Model Viewer - Main Window}}}}:. Mostly cosmetic, but also useful if you are plotting transparency based on resolution.
+
+\end{itemize}
+
 \item {} 
 04/08/20
 \begin{itemize}
