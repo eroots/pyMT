@@ -17,6 +17,7 @@ import copy
 import colorsys
 from pyMT.e_colours import colourmaps
 import segyio
+import pyproj
 
 
 #local_path = 'C:/Users/eroots'
@@ -142,6 +143,10 @@ def project_locations(data, zone, letter):
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
 # data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst')
 # backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/wst2dry_wOOQ_cull.lst') 
+# mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/dryden/wst2dry2/smooth2/capped10000/from-cullZK/wst2dry-capped_lastIter.rho')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/main_transect.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_noOOQ.lst')
 #########################################################
 # DRYDEN - R2
 # main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/MetalEarth/dryden/j2/dry_central_all.lst')
@@ -153,13 +158,28 @@ def project_locations(data, zone, letter):
 #                         header=0, names=('trace', 'x', 'y'), sep='\s+')
 #########################################################
 # WESTERN SUPERIOR
-# seismic = pd.read_table(local_path + '/phd/ownCloud/andy/navout_600m.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
-# main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-# data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-# backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
-# # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_NLCG_061.rho')
-# # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_bg1000_lastIter.rho')
-# mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
+# seismic = pd.read_table(local_path + '/phd/NextCloud/andy/wsup_cdp-bin-1merge_interp-gaps.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# seismic['x'] -= 100000
+seismic = pd.read_table(local_path + '/phd/NextCloud/andy/wsup_cdp-bin-2b.dat', header=None, names=('cdp', 'x', 'y', 'z', 'rho'), sep='\s+')
+# # seismic['x'] = seismic['x'] - 10000
+main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst')
+main_transect.locations = main_transect.get_locs(mode='lambert')
+data = copy.deepcopy(main_transect)
+backup_data = copy.deepcopy(main_transect)
+mod = WSDS.Model(local_path + '/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.rho')
+mod.origin = main_transect.origin
+mod.to_lambert()
+transformer = pyproj.Transformer.from_crs('epsg:32615', 'epsg:3979')
+# # out_x, out_y = np.zeros(len(x)), np.zeros(len(y))
+for ii, (xx, yy) in enumerate(zip(seismic['x'], seismic['y'])):
+    seismic['x'][ii], seismic['y'][ii] = transformer.transform(xx, yy)
+# # mod = WSDS.Model('E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.zani')
+# # main_transect = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# # data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# # backup_data = WSDS.RawData(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/j2/ME_wst_cull1.lst')
+# # # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_NLCG_061.rho')
+# # # # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/wst_bg1000_lastIter.rho')
+# # mod = WSDS.Model(local_path + '/phd/ownCloud/data/Regions/MetalEarth/wst/cull1/bg1000/bigger/ocean/w_usarray/wst_lastIter.rho')
 ##########################################################
 # MALARTIC
 # main_transect = WSDS.RawData(local_path + '/phd/NextCloud/data/Regions/MetalEarth/malartic/j2/main_transect_more.lst')
@@ -321,11 +341,11 @@ def project_locations(data, zone, letter):
                         # header=0, names=('trace', 'x', 'y'), sep='\s')
 ####################################################
 # PLC (Patterson Lake)
-main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/line1.lst')
-data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
-backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
+# main_transect = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/line1.lst')
+# data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
+# backup_data = WSDS.RawData(local_path + '/phd/Nextcloud/data/Regions/plc18/j2/new/all.lst')
 ####################################################
-use_seismic = 0
+use_seismic = 1
 overlay_seismic = 0
 only_seismic = 0
 seismic_is_depth = 0
@@ -333,12 +353,12 @@ normalize_seismic = 0
 clip_val = 0.15
 depth_conversion_velocity = 6.3
 use_trace_ticks = 0
-force_NS = 0
+force_NS = 1
 azi = 0  # Malartic regional
 # UTM_number = 16
 # UTM_letter = 'U'
 project_data = False
-UTM_number = 17
+UTM_number = 15
 UTM_letter = 'U'
 reso = []
 ninterp = 50
@@ -356,16 +376,16 @@ linear_xaxis = 0
 save_fig = 0
 save_dat = 0
 annotate_sites = 0
-site_markers = 1
+site_markers = 0
 plot_contours = 0
 plot_map = 1
 dpi = 300
-csv_name = local_path + '/phd/Nextcloud/Metal Earth/Data/model_csvs/rouyn_along2D.dat'
+csv_name = local_path + '/phd/NextCloud/Documents/ME_Transects/wst/slices/wstZK/dats/wstZK-lambert-merged_interpGaps_'
 use_alpha = 0
 saturation = 0.8
 lightness = 0.4
 xlim = []
-zlim = [0, 60]
+zlim = [0, 100]
 aspect_ratio = 1
 lut = 32
 isolum = False
@@ -415,12 +435,12 @@ nudge_sites = ['18-swz024m', 'SWZ016M', 'SWZ034M', '18-swz036l',
 
 # nudge_dist = 500
 # nudge_dist = -750
-use_nudge = 0
+use_nudge = 1
 fig_num = 0
-# all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
-#                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
-all_backups = {'main_transect': copy.deepcopy(main_transect),
+all_backups = {'model': copy.deepcopy(mod), 'main_transect': copy.deepcopy(main_transect),
                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
+# all_backups = {'main_transect': copy.deepcopy(main_transect),
+#                'data': copy.deepcopy(data), 'backup_data': copy.deepcopy(backup_data)}
 # for nudge_dist in [-1200, -800, -400, 0, 400, 800, 1200]:
 # for nudge_dist in [-1200, -900, -600, -300, 300, 600, 900, 1200]:
 # for seisline in seismic_lines:
@@ -441,23 +461,24 @@ depth = ['5.0']
 # fig_save_path = 'E:/phd/NextCloud/Documents/ME_Transects/Geraldton/RoughFigures/model_slices/'
 # fig_save_name = 'gerHS3000_alongSeisSouth-linear'
 # plot_directions = ['']
-plot_direction = 'we'
+plot_direction = 'sn'
 seisline = ['dummy'] * 4
-fig_save_path = 'E:/phd/Nextcloud/data/Regions/plc18/final/feature_test/figs/'
-path = 'E:/phd/Nextcloud/data/Regions/plc18/final/feature_test/C1/'
-models = ['C1-500ohm.model', 'C1-500ohm-deep.model', 'C1-1000ohm.model', 'C1-1000ohm-deep.model']
+fig_save_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/slices/wstZK/100km/cdps/'
+# path = 'E:/phd/Nextcloud/data/Regions/plc18/final/feature_test/C1/'
+# models = ['C1-500ohm.model', 'C1-500ohm-deep.model', 'C1-1000ohm.model', 'C1-1000ohm-deep.model']
 nudge_distances = [0, 0, 0, 0]
 # nudge_distances = [6000]
 for r in rho:
         # for d in depth:
         for il, line in enumerate(seisline[:1]):
-            all_backups.update({'model': WSDS.Model(path+models[il])})
-            fig_save_name = models[il].replace('.model', '')
+            # all_backups.update({'model': WSDS.Model(path+models[il])})
+            # fig_save_name = models[il].replace('.model', '')
             # fig_save_name = line[:-4]
             # path = local_path + '/phd/NextCloud/data/Regions/MetalEarth/swayze/swz_cull1/norot/mesh/PT/lcc_test/'
             # mod = WSDS.Model(path + '{}ohm/swz_lccTest_{}ohm_{}kmDepth.model'.format(r, r, d))
             # for nudge_dist in [nudge_distances[il]]:
             for nudge_dist in [0]:
+            # for nudge_dist in range(-50000, 60000, 10000):
                     # line = seisline[0]
                     # for nudge_dist in [0]:
                     # fig_save_path = local_path + '/phd/NextCloud/Documents/ME_Transects/Upper_Abitibi/Paper/RoughFigures/alongSeis/alternate_cmaps/bwr/'
@@ -496,7 +517,7 @@ for r in rho:
                     fig_num += 1
                     # fig_save_name = 'AG_alongLitho_linear_line{}_{}_mOffset'.format(line, nudge_dist)
                     # fig_save_name = 'AG_LithoprobeLine{}_depth'.format(line)
-                    # fig_save_name = 'rou_along_MT_turbo0-5_{}m-offset'.format(nudge_dist)
+                    fig_save_name = 'wstZK-lambert_merged-interpGaps_turbomod0-5_{}m-offset'.format(nudge_dist)
                     if project_data:
                         data.to_utm(UTM_number, UTM_letter)
                         main_transect.to_utm(UTM_number, UTM_letter)
@@ -575,46 +596,47 @@ for r in rho:
                     #     if site in nudge_sites:
                     #         nudge_locations[ii, 1] += nudge_dist
                     if use_seismic:
-                            qx, qy = (np.array(seismic['x'] / 1000),
-                                                np.array(seismic['y']) / 1000)
-                            if qy[0] > qy[-1]:
-                                qx, qy = np.flip(qx), np.flip(qy)
-                            if azi:
-                                locs = utils.rotate_locs(np.array((qy, qx)).T, azi)
-                                qx, qy = locs[:, 1], locs[:, 0]
-                            if force_NS:
-                                if plot_direction == 'sn':
-                                    if qy[0] > qy[-1]:
-                                        qx, qy = np.flip(qx), np.flip(qy)
-                                elif plot_direction == 'we':
-                                    if qx[0] > qx[-1]:
-                                        qx, qy = np.flip(qx), np.flip(qy)
-                                elif plot_direction == 'ns':
-                                    if qy[0] < qy[-1]:
-                                        qx, qy = np.flip(qx), np.flip(qy)
-                                elif plot_direction == 'ew':
-                                    if qx[0] < qx[-1]:
-                                        qx, qy = np.flip(qx), np.flip(qy)
-                            # add = np.arange(1, 30, 0.1)
-                            # qx = np.hstack([qx, np.ones(add.shape) * qx[-1]])
-                            # qy = np.hstack([qy, add + qy[-1]])
-                            # qx = np.hstack([np.ones(add.shape) * qx[0], qx, np.ones(add.shape) * qx[-1]])
-                            # qy = np.hstack([qy[0] - np.flip(add), qy, add + qy[-1]])
+                        qx, qy = (np.array(seismic['x'] / 1000),
+                                            np.array(seismic['y']) / 1000)
+                        cdp = np.array(seismic['cdp'])
+                        if qy[0] > qy[-1]:
+                            qx, qy, cdp = np.flip(qx), np.flip(qy), np.flip(cdp)
+                        if azi:
+                            locs = utils.rotate_locs(np.array((qy, qx)).T, azi)
+                            qx, qy = locs[:, 1], locs[:, 0]
+                        if force_NS:
+                            if plot_direction == 'sn':
+                                if qy[0] > qy[-1]:
+                                    qx, qy, cdp = np.flip(qx), np.flip(qy), np.flip(cdp)
+                            elif plot_direction == 'we':
+                                if qx[0] > qx[-1]:
+                                    qx, qy, cdp = np.flip(qx), np.flip(qy), np.flip(cdp)
+                            elif plot_direction == 'ns':
+                                if qy[0] < qy[-1]:
+                                    qx, qy, cdp = np.flip(qx), np.flip(qy), np.flip(cdp)
+                            elif plot_direction == 'ew':
+                                if qx[0] < qx[-1]:
+                                    qx, qy, cdp = np.flip(qx), np.flip(qy), np.flip(cdp)
+                        # add = np.arange(1, 30, 0.1)
+                        # qx = np.hstack([qx, np.ones(add.shape) * qx[-1]])
+                        # qy = np.hstack([qy, add + qy[-1]])
+                        # qx = np.hstack([np.ones(add.shape) * qx[0], qx, np.ones(add.shape) * qx[-1]])
+                        # qy = np.hstack([qy[0] - np.flip(add), qy, add + qy[-1]])
+                        if plot_map:
+                            qx_map = copy.deepcopy(qx) * 1000
+                            qy_map = copy.deepcopy(qy) * 1000
+                        if use_nudge:
+                            if plot_direction in ('ns', 'sn'):
+                                qx += nudge_dist / 1000
+                            else:
+                                qy += nudge_dist / 1000
                             if plot_map:
-                                qx_map = copy.deepcopy(qx) * 1000
-                                qy_map = copy.deepcopy(qy) * 1000
-                            if use_nudge:
                                 if plot_direction in ('ns', 'sn'):
-                                    qx += nudge_dist / 1000
+                                    qx_map += nudge_dist / 1000
                                 else:
                                     qy += nudge_dist / 1000
-                                if plot_map:
-                                    if plot_direction in ('ns', 'sn'):
-                                        qx_map += nudge_dist / 1000
-                                    else:
-                                        qy += nudge_dist / 1000
 
-                else:
+                    else:
                         # if plot_direction in ('we', 'ew'):
                         #     nudge_locations = np.fliplr(nudge_locations)
                         X = np.linspace(nudge_locations[0, 0] - padding, nudge_locations[0, 0], ninterp_padding)
@@ -842,21 +864,21 @@ for r in rho:
                                         
                                         to_plot = to_plot[1:, 1:]
                                         if use_seismic and use_trace_ticks:
-                                                with segyio.open(seismic_data_path, strict=False) as f:
-                                                        cdp = np.array([t[segyio.TraceField.CDP] for t in f.header])
-                                                cdp = range(len(cdp))
-                                                aspect_ratio = 1/50
+                                                # with segyio.open(seismic_data_path, strict=False) as f:
+                                                        # cdp = np.array([t[segyio.TraceField.CDP] for t in f.header])
+                                                # cdp = range(len(cdp))
+                                                aspect_ratio = 'auto'
                                                 plt.xticks(cdp[::round(len(cdp)/10)])
                                                 im, ax = pcolorimage(ax,
-                                                                                         x=(np.array(cdp)),
-                                                                                         y=np.array(qz),
-                                                                                         A=(to_plot), cmap=cmap)
+                                                                     x=(np.array(cdp)),
+                                                                     y=np.array(qz),
+                                                                     A=(to_plot), cmap=cmap)
                                         else:
                                                 idx = np.argmin(abs(np.array(qz) - zlim[1]))
                                                 im, ax = pcolorimage(ax,
-                                                                                         x=(np.array(x_axis)),
-                                                                                         y=np.array(qz),
-                                                                                         A=(to_plot), cmap=cmap)
+                                                                     x=(np.array(x_axis)),
+                                                                     y=np.array(qz),
+                                                                     A=(to_plot), cmap=cmap)
                                         # sites = ax.plot(data.locations[:, 0] / 1000,
                                         #                 np.zeros(len(data.locations[:, 1])) - 0.5,
                                         #                 'wv', mec='k', markersize=7)
@@ -1009,11 +1031,26 @@ for r in rho:
                 y_loc = np.tile(1000 * qy[:, np.newaxis], [vals.shape[-1]]).ravel()
                 z_loc = np.tile(1000 * qz, len(qx))
                 # cdp = np.array(seismic['cdp'])
-                cdp = np.array(range(1, len(qx) + 1))
+                # cdp = np.array(range(1, len(qx) + 1))
                 cdp = np.tile(cdp[:, np.newaxis], [vals.shape[-1]]).ravel()
-                df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, np.ravel(vals))).T, columns=None)
-                df.to_csv(''.join([csv_name, 'log10.dat']), sep=',', header=None, index=False)
-                df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, 10 ** (np.ravel(vals)))).T, columns=None)
-                df.to_csv(''.join([csv_name, 'linear.dat']), sep=',', header=None, index=False)
+                df  = np.array((cdp, x_loc, y_loc, z_loc, np.ravel(vals))).T
+                np.savetxt(''.join([csv_name, 'log10.dat']), df, fmt='%12.1f')
+                df  = np.array((cdp, x_loc, y_loc, z_loc, 10**np.ravel(vals))).T
+                np.savetxt(''.join([csv_name, 'linear.dat']), df, fmt='%12.1f')
+                # df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, np.ravel(vals))).T, columns=None)
+                # df[0] = df[0].map(lambda x: '%7.0f' % x)
+                # df[1] = df[1].map(lambda x: '%9.1f' % x)
+                # df[2] = df[2].map(lambda x: '%9.1f' % x)
+                # df[3] = df[3].map(lambda x: '%9.1f' % x)
+                # df[4] = df[4].map(lambda x: '%9.2f' % x)
+                # df.to_csv(''.join([csv_name, 'log10.dat']), sep=' ', header=None, index=False)
+                # df = pd.DataFrame(np.array((cdp, x_loc, y_loc, z_loc, 10 ** (np.ravel(vals)))).T, columns=None)
+                # df[0] = df[0].map(lambda x: '%7.0f' % x)
+                # df[1] = df[1].map(lambda x: '%9.1f' % x)
+                # df[2] = df[2].map(lambda x: '%9.1f' % x)
+                # df[3] = df[3].map(lambda x: '%9.1f' % x)
+                # df[4] = df[4].map(lambda x: '%9.2f' % x)
+                # df.to_csv(''.join([csv_name, 'linear.dat']), sep=' ', header=None, index=False)
+                
 
 

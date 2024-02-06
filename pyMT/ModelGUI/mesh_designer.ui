@@ -155,7 +155,7 @@
           <x>0</x>
           <y>0</y>
           <width>278</width>
-          <height>652</height>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -461,7 +461,7 @@
               </item>
              </layout>
             </widget>
-            <widget class="QRadioButton" name="radioButton">
+            <widget class="QRadioButton" name="zUseDecades">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -477,7 +477,7 @@
               <bool>true</bool>
              </property>
             </widget>
-            <widget class="QRadioButton" name="radioButton_2">
+            <widget class="QRadioButton" name="zUseFactor">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -506,7 +506,7 @@
               <string>Increase Factor</string>
              </property>
             </widget>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox">
+            <widget class="QDoubleSpinBox" name="zIncreaseFactor">
              <property name="geometry">
               <rect>
                <x>130</x>
@@ -516,7 +516,7 @@
               </rect>
              </property>
              <property name="minimum">
-              <double>1.000000000000000</double>
+              <double>1.050000000000000</double>
              </property>
              <property name="maximum">
               <double>10.000000000000000</double>
@@ -569,13 +569,30 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="page">
+        <attribute name="label">
+         <string>Depths</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QTableWidget" name="depthList">
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAsNeeded</enum>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="page_4">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
           <width>278</width>
-          <height>652</height>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -658,7 +675,7 @@
           <x>0</x>
           <y>0</y>
           <width>278</width>
-          <height>652</height>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">

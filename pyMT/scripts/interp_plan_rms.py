@@ -12,14 +12,14 @@ local_path = 'E:'
 # datafile = 'E:/phd/NextCloud/data/Regions/plc18/PLC MT-20210303T165501Z-001/PLC MT/tests/all_inv18.dat'
 # file_path = 'E:/phd/NextCloud/Documents/GoldenTriangle/RoughFigures/rms_plots/'
 # file_name = 'line3_scatter-all'
-file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/rms_plots/'
+file_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/rms_plots/'
 file_name = 'rms_scatterplot'
 # listfile = local_path + '/phd/Nextcloud/data/Regions/snorcle/j2/jformat-0TN/j2edi/ffmt_output/renamed/line3_plus.lst'
 # base_data_file = local_path + '/phd/Nextcloud/data/Regions/snorcle/line3_plus/line3_wTopo_all_removed.dat'
 # datafile = local_path + '/phd/NextCloud/data/Regions/snorcle/line3_plus/line3-all_lastIter.dat'
 listfile = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
 base_data_file = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
-datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wstZK_lastIter.dat'
+datafile = 'E:/phd/NextCloud/data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
 
 # data = WSDS.Data(datafile=datafile)
 # data = WSDS.RawData(listfile)
@@ -40,7 +40,7 @@ padding = 30
 annotate_sites = 0
 interp_type = ['scatter']
 # cmap = cm.get_cmap('turbo', 5)
-cmap = cm.get_cmap('bgy_r', 7)
+cmap = cm.get_cmap('bgyw_r', 14)
 # cmap = cm.get_cmap('coolwarm', N=16)
 use_cax = [0.5, 4]
 # use_cax = [-4, 4]
@@ -144,11 +144,11 @@ for d in depths:
                 grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges)).T
             elif interp != 'scatter':
                 grid_vals = griddata(points, vals, (grid_x, grid_y), method=interp)
-            plt.figure(figsize=(12, 8))
+            plt.figure(figsize=(8, 10))
             if interp != 'scatter':
                 plt.pcolor(grid_x, grid_y, grid_vals, cmap=cmap, vmin=use_cax[0], vmax=use_cax[1])
             if 'scatter' in interp:
-                plt.scatter(locs, periods, s=100, c=vals,
+                plt.scatter(locs, periods, s=50, c=vals,
                             cmap=cmap, vmin=use_cax[0], vmax=use_cax[1],
                             edgecolors='k', linewidths=1)
                 if annotate_sites:

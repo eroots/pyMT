@@ -131,9 +131,9 @@ class NewProject(QNewProject, Ui_NewProject):
 
         for file in files:
             name, ext = os.path.splitext(file)
-            if ext in ('.rho', '.model', '.mod', 'zani', 'ani'):
+            if ext in ('.rho', '.model', '.mod', '.zani', '.ani'):
                 ret_dict.update({'model': file})
-            elif ext in ('.dat', '.data', 'adat'):
+            elif ext in ('.dat', '.data', '.adat'):
                 with open(file, 'r') as f:
                     line = f.readline()
                 if 'response' in line:

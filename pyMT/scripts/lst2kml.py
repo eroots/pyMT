@@ -9,16 +9,16 @@ from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
 # transects = ['litho_bb', 'litho_lmt', 'metal_earth', 'usarray']
-transects = ['larder_bb', 'larder_amt', 'larder_legacy']
+transects = ['churchill_MT']
 # Path to the list file
-list_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/'
-dat_path = 'E:/phd/NextCloud/data/Regions/MetalEarth/larder/j2/'
+list_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
+dat_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
 # list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/cullmantle_separated/'
 # dat_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/'
 # Name of the list file(s) - these would go with your list of transects above
 # lists = ['allsites.lst']
 # lists = ['litho_bb.lst', 'litho_lmt.lst', 'metal_earth.lst', 'usarray.lst']
-lists = ['lar_bb.lst', 'lar_amt.lst', 'lar_legacy.lst']
+lists = ['allsites.lst']
 # Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
 # data_type = 'BB_'
 data_type = ''
@@ -27,16 +27,16 @@ data_type = ''
 # shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/wst_cullmantle/'
 # kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 # csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
-shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/SHPs/Larder-for-Ras/'
+shp_save_path = 'E:/phd/NextCloud/data/ArcMap/MT-locations/stations/'
 kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 
 # Set to true or false depending on what you want written
-write_kml = False
+write_kml = True
 write_csv = False
-write_shp = True
+write_shp = False
 # Whatever your UTM zone is
-UTM = 17
+UTM = 15
 
 for ii, lst in enumerate(lists):
     try:

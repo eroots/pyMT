@@ -133,8 +133,8 @@ for use_list_dummy in list_file[:1]:
         padding = 20.
         low_cut = 0.001
         high_cut = 600
-        save_fig = 1
-        freq_skip = 1
+        save_fig = 0
+        freq_skip = 0
         label_offset = -1.2
         xlim = [min(main_transect.locations[:,1])-padding, max(main_transect.locations[:,1])+padding]
         # ylim = [0.5, 4.2]
@@ -149,7 +149,7 @@ for use_list_dummy in list_file[:1]:
         # out_path = local_path + '/phd/NextCloud/Documents/ME_transects/Rouyn/Edits/'
         # out_file = '{}_phi2-beta_removed_pseudosection'.format(use_list_dummy)
         # out_file = 'line{}_beta_pseudosection'.format(use_list_dummy)
-        out_file = '{}_{}_pseudosection'.format(os.path.basename(use_list_dummy).replace('.lst', ''), tensor_type)
+        out_file = '{}_{}_pseudosection'.format(os.path.basename(use_list_dummy).replace('.lst', ''), fill_param[0])
 
         # file_name = 'MAL_pseudosection_{}_northing'.format(fill_param.replace('_', ''))
         file_exts = ['.png', '.svg']

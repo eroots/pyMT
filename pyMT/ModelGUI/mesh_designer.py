@@ -91,6 +91,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.connect_mpl_events()
         self.setup_widgets()
         self.init_decade_list()
+        self.update_depth_list()
         # self.update_decade_list()
         self.initialized = True
 
@@ -378,16 +379,39 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         max_depth = float(self.maxDepth.text())
         depths_per_decade = [float(self.zPerDecade.item(ii).text())
                              for ii in range(self.zPerDecade.count())]
-        depths, zCS, ddz = utils.generate_zmesh(min_depth, max_depth, depths_per_decade)
+        if self.zUseDecades.isChecked():
+            self.model.generate_zmesh(min_depth=min_depth,
+                                                         max_depth= max_depth,
+                                                         decades=depths_per_decade)
+        elif self.zUseFactor.isChecked():
+            self.model.generate_zmesh(min_depth=min_depth,
+                                                         max_depth=max_depth,
+                                                         increase_factor=self.zIncreaseFactor.value())
+        ddz = np.diff(np.diff(self.model.dz[1:]))
         if any(ddz < 0):
             # idx = np.where(ddz)[0][0]
             self.messages.setText('Warning!\n Second derivative of depths is not always positive.')
         else:
             self.messages.setText('Z mesh generation complete.')
-        self.model.generate_zmesh(min_depth, max_depth, depths_per_decade)
+        # self.model.generate_zmesh(min_depth, max_depth, depths_per_decade)
+        self.update_depth_list()
         self.redraw_pcolor()
 
         # print(ddz)
+
+    def update_depth_list(self):
+        self.depthList.setRowCount(self.model.nz)
+        self.depthList.setColumnCount(2)
+        # self.depthList.setHorizontalHeaderItem(0, QtWidgets.QTableWidgetItem('Layer #'))
+        self.depthList.setHorizontalHeaderItem(0, QtWidgets.QTableWidgetItem('Depth (m)'))
+        self.depthList.setHorizontalHeaderItem(1, QtWidgets.QTableWidgetItem('Thickness (m)'))
+        for ii, z in enumerate(self.model.dz):
+            self.depthList.setVerticalHeaderItem(ii, QtWidgets.QTableWidgetItem(str(ii)))
+            self.depthList.setItem(ii, 0, QtWidgets.QTableWidgetItem(str(round(z,2))))
+            if ii > 0:
+                self.depthList.setItem(ii, 1, QtWidgets.QTableWidgetItem(str(round(self.model.zCS[ii-1],2))))
+        self.depthList.resizeColumnToContents(0)
+        self.depthList.resizeColumnToContents(1)
 
     def add_pads(self):
         # print('Adding pads')
@@ -433,6 +457,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
     def revert_progress(self):
         print('Reverting...')
         self.model = copy.deepcopy(self.revert_model)
+        self.update_depth_list()
         self.redraw_pcolor()
 
     def save_progress(self):

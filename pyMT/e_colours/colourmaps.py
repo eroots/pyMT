@@ -349,46 +349,51 @@ def turbo_r(N=64):
     return np.flipud(turbo(N))
 
 
-def get_cmap(cmap, N=64):
+def get_cmap(cmap, N=64, invert=True):
     if cmap in ('cet_bgy', 'bgy'):
-        return bgy(N)
+        new_cmap = bgy(N)
     elif cmap in('cet_bgy_r', 'bgy_r'):
-        return bgy_r(N)
+        new_cmap = bgy_r(N)
     elif cmap in('jet'):
-        return jet(N)
+        new_cmap = jet(N)
     elif cmap in ('jet_r'):
-        return jet_r(N)
+        new_cmap = jet_r(N)
     elif cmap in ('jet_plus', 'jetplus'):
-        return jet_plus(N)
+        new_cmap = jet_plus(N)
     elif cmap in ('jet_plus_r', 'jetplus_r'):
-        return jet_plus_r(N)
+        new_cmap = jet_plus_r(N)
     elif cmap in ('bwr'):
-        return bwr(N)
+        new_cmap = bwr(N)
     elif cmap in ('bwr_r'):
-        return bwr_r(N)
+        new_cmap = bwr_r(N)
     elif cmap in ('greys'):
-        return greys(N)
+        new_cmap = greys(N)
     elif cmap in ('greys_r'):
-        return greys_r(N)
+        new_cmap = greys_r(N)
     elif cmap in ('turbo'):
-        return colors.ListedColormap(turbo(N))
+        new_cmap = colors.ListedColormap(turbo(N))
     elif cmap in ('turbo_r'):
-        return colors.ListedColormap(turbo_r(N))
-    elif cmap in ('turbo_r_mod'):
+        new_cmap = colors.ListedColormap(turbo_r(N))
+    elif cmap in ('turbo_mod'):
         idx = int(N / min(N,32)) * 3
-        return(colors.ListedColormap(turbo_r(N)[idx:-idx]))
+        new_cmap =(colors.ListedColormap(turbo(N)[idx:-idx]))
     elif cmap in ('turbo_capped', 'turbo_capped_r'):
         purple = np.array([128 / 256, 0, 128 / 256])
         output = np.vstack([purple, turbo(N), purple])
         if cmap.endswith('r'):
             output = output[::-1]
-        return colors.ListedColormap(output)
+        new_cmap = colors.ListedColormap(output)
     elif cmap in ('colorwheel', 'cet_colorwheel'):
-        return cm.get_cmap('cet_colorwheel', lut=N)
+        new_cmap = cm.get_cmap('cet_colorwheel', lut=N)
     else:
         try:
             output = cm.get_cmap(cmap, lut=N)
         except ValueError:
-            output = colorcet.cm[cmap]
-        return output
+            # output = colors.LinearSegmentedColormap(cmap, colorcet.cm[cmap], N)
+            output = cm.get_cmap('cet_' + cmap, lut=N)
+        new_cmap = output
+    if invert:
+        new_cmap = new_cmap.reversed()
+
+    return new_cmap
 
