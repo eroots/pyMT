@@ -19,6 +19,7 @@ import sys
 from copy import deepcopy
 import numpy as np
 import pyvista as pv
+from pyvistaqt import QtInteractor
 import pyMT.data_structures as WSDS
 from pyMT.utils import sort_files, check_file
 import pyMT.e_colours.colourmaps as cm
@@ -64,22 +65,22 @@ def model_to_rectgrid(model, resolution=None, rho_axis='rho_x'):
                               np.array(model.dx),
                               -np.array(model.dz))
     vals = np.log10(np.swapaxes(np.flip(vals, 2), 0, 1)).flatten(order='F')
-    grid.cell_arrays['Resistivity'] = vals
+    grid.cell_data['Resistivity'] = vals
     if resolution:
         X, Y, Z = np.meshgrid(resolution.yCS, resolution.xCS, resolution.zCS)
         volume = np.swapaxes(np.flip(X * Y * Z, 2), 0, 1).flatten(order='F')
         resvals = np.swapaxes(np.flip(resolution.vals, 2), 0, 1).flatten(order='F')
-        grid.cell_arrays['RawResolution'] = np.log10(resvals)
+        grid.cell_data['RawResolution'] = np.log10(resvals)
         resvals = resvals / (volume.ravel())# ** (2/3))
         resvals[resvals > np.median(resvals.ravel())] = np.median(resvals.ravel())
         resvals = resvals - np.mean(resvals)
         resvals = resvals / np.std(resvals)
         resvals = 0.5 + resvals * np.sqrt(0.5)
         resvals[resvals > 1] = 1
-        grid.cell_arrays['Resolution'] = resvals
+        grid.cell_data['Resolution'] = resvals
     else:
-        grid.cell_arrays['Resolution'] = np.ones(vals.shape)
-        grid.cell_arrays['Resolution'][0] = .99
+        grid.cell_data['Resolution'] = np.ones(vals.shape)
+        grid.cell_data['Resolution'][0] = .99
     return grid
 
 
@@ -137,7 +138,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Make sure the frame fills the tab
         vlayout3D = QtWidgets.QVBoxLayout()
         # add the pyvista interactor object
-        self.vtk_widget = pv.QtInteractor(self.frame3D)
+        self.vtk_widget = QtInteractor(self.frame3D)
         vlayout3D.addWidget(self.vtk_widget)
         self.frame3D.setLayout(vlayout3D)
         self.pv_default_background = deepcopy(self.vtk_widget.background_color)
@@ -969,7 +970,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # sphere = pv.Sphere()
         # self.model = WSDS.Model(model_path)
         # rect_grid = pv.RectilinearGrid(np.array(model.dx), np.array(model.dy), np.array(model.dz))
-        # rect_grid.cell_arrays['Resitivity'] = np.log10(model.vals.flatten(order='F'))
+        # rect_grid.cell_data['Resitivity'] = np.log10(model.vals.flatten(order='F'))
         # self.vtk_widget.add_mesh(self.rect_grid)
         self.vtk_widget.clear()
         # This method is a full redraw - but slices should still be taken again even
@@ -1012,9 +1013,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
                                           self.clip_model.dx[0], self.clip_model.dx[-1],
                                           -self.clip_model.dz[-1], self.clip_model.dz[0]],
-                                  xlabel='Easting (km)',
-                                  ylabel='Northing (km)',
-                                  zlabel='Depth (km)')
+                                  xtitle='Easting (km)',
+                                  ytitle='Northing (km)',
+                                  ztitle='Depth (km)')
 
     def view_xy(self):
         self.vtk_widget.view_xy()

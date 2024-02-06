@@ -35,7 +35,8 @@ setup(name='pyMT',
                         'naturalneighbor',
                         'pyproj',
                         'pyshp',
-                        'pyvista==0.23',
+                        'pyvista',
+                        'pyvistaqt'
                         'pyqt5',
                         'vtk'],
       include_package_data=True)
