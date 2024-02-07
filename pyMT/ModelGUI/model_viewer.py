@@ -139,6 +139,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         vlayout3D = QtWidgets.QVBoxLayout()
         # add the pyvista interactor object
         self.vtk_widget = QtInteractor(self.frame3D)
+        self.vtk_widget.background_color = 'grey'
         vlayout3D.addWidget(self.vtk_widget)
         self.frame3D.setLayout(vlayout3D)
         self.pv_default_background = deepcopy(self.vtk_widget.background_color)
@@ -505,6 +506,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.pv_background_group.addAction(self.actionWhite)
         self.pv_background_group.setExclusive(True)
         self.pv_background_group.triggered.connect(self.change_background)
+        self.actionGrey.setChecked(True)
         # Rho axis selection actions
         self.rho_axis_group = QtWidgets.QActionGroup(self)
         self.rho_axis_group.addAction(self.action_plot_rho_x)
@@ -1003,7 +1005,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.generate_transect3D(redraw=False)
         # Checkbox for sites?
         if self.plot_locations:
-            self.actors['stations'] = self.vtk_widget.add_mesh(self.plot_data['stations'])
+            self.actors['stations'] = self.vtk_widget.add_mesh(self.plot_data['stations'],
+                                                               style='points',
+                                                               color='white')
         self.vtk_widget.update()
         self.show_bounds()
         if reset_camera:
