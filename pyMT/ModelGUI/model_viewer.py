@@ -1007,7 +1007,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         if self.plot_locations:
             self.actors['stations'] = self.vtk_widget.add_mesh(self.plot_data['stations'],
                                                                style='points',
-                                                               color='black')
+                                                               color='white')
         self.vtk_widget.update()
         self.show_bounds()
         if reset_camera:
