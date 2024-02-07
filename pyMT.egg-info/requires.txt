@@ -6,5 +6,6 @@ naturalneighbor
 pyproj
 pyshp
 pyvista
-pyqt5
+pyvistaqt
+PyQt5
 vtk
