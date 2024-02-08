@@ -19,6 +19,7 @@ import sys
 from copy import deepcopy
 import numpy as np
 import pyvista as pv
+pv.set_plot_theme('dark')
 from pyvistaqt import QtInteractor
 import pyMT.data_structures as WSDS
 from pyMT.utils import sort_files, check_file
@@ -63,7 +64,7 @@ def model_to_rectgrid(model, resolution=None, rho_axis='rho_x'):
         vals = getattr(model, rho_axis, 'vals')
     grid = pv.RectilinearGrid(np.array(model.dy),
                               np.array(model.dx),
-                              -np.array(model.dz))
+                              -np.array(model.dz[::-1]))
     vals = np.log10(np.swapaxes(np.flip(vals, 2), 0, 1)).flatten(order='F')
     grid.cell_data['Resistivity'] = vals
     if resolution:
@@ -139,10 +140,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         vlayout3D = QtWidgets.QVBoxLayout()
         # add the pyvista interactor object
         self.vtk_widget = QtInteractor(self.frame3D)
-        self.vtk_widget.background_color = 'grey'
+        self.vtk_widget.background_color = 'paraview'
         vlayout3D.addWidget(self.vtk_widget)
         self.frame3D.setLayout(vlayout3D)
-        self.pv_default_background = deepcopy(self.vtk_widget.background_color)
+        self.pv_default_background = 'paraview'
         # simple menu to demo functions
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('File')
@@ -506,7 +507,6 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.pv_background_group.addAction(self.actionWhite)
         self.pv_background_group.setExclusive(True)
         self.pv_background_group.triggered.connect(self.change_background)
-        self.actionGrey.setChecked(True)
         # Rho axis selection actions
         self.rho_axis_group = QtWidgets.QActionGroup(self)
         self.rho_axis_group.addAction(self.action_plot_rho_x)
@@ -968,12 +968,6 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.zSliceEdit.editingFinished.connect(self.z_text_change)
 
     def render_3D(self, reset_camera=True):
-        """ add a sphere to the pyqt frame """
-        # sphere = pv.Sphere()
-        # self.model = WSDS.Model(model_path)
-        # rect_grid = pv.RectilinearGrid(np.array(model.dx), np.array(model.dy), np.array(model.dz))
-        # rect_grid.cell_data['Resitivity'] = np.log10(model.vals.flatten(order='F'))
-        # self.vtk_widget.add_mesh(self.rect_grid)
         self.vtk_widget.clear()
         # This method is a full redraw - but slices should still be taken again even
         # if checks are off otherwise they will not get trimmed
@@ -1014,12 +1008,14 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.vtk_widget.reset_camera()
 
     def show_bounds(self):
-        self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
-                                          self.clip_model.dx[0], self.clip_model.dx[-1],
-                                          -self.clip_model.dz[-1], self.clip_model.dz[0]],
-                                  xtitle='Easting (km)',
-                                  ytitle='Northing (km)',
-                                  ztitle='Depth (km)')
+        pass
+        # self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
+        #                                   self.clip_model.dx[0], self.clip_model.dx[-1],
+        #                                   -self.clip_model.dz[-1], self.clip_model.dz[0]],
+        #                           xtitle='Easting (km)',
+        #                           ytitle='Northing (km)',
+        #                           ztitle='Depth (km)',
+        #                           font_size=10)
 
     def view_xy(self):
         self.vtk_widget.view_xy()
@@ -1127,9 +1123,17 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
     def generate_transect3D(self, redraw=True):
         query_points = deepcopy(self.query_points)
         query_points[:, 2] *= -1
-        self.slices['transect'] = pv.PolyData(query_points, self.faces)
-        # self.slices['transect'] = poly.delaunay_2d()
-        # self.slices['transect'] = pv.PointGrid(poly)
+        qp = np.vstack([self.transect_plot['easting'],
+                        self.transect_plot['northing'],
+                        np.zeros((len(self.transect_plot['easting'])))]).T
+        spline = pv.Spline(qp)
+        debug_print(spline, 'E:/my_modules/test.txt')
+        self.slices['transect'] = self.rect_grid.slice_along_line(spline).clip_box(invert=False, 
+                                                                                   bounds=spline.bounds[:4] +
+                                                                                          (-self.clip_model.dz[-1],
+                                                                                           self.clip_model.dz[0]))
+        debug_print(self.slices['transect'], 'E:/my_modules/test.txt')
+        # self.slices['transect'] = pv.PolyData(query_points, self.faces)
         self.plot_transect3D(redraw=redraw)
 
     def plot_transect2D(self, redraw=True):
@@ -1165,7 +1169,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             # self.slices['transect'] = self.generate_slice('z')
             self.actors['transect'] = self.vtk_widget.add_mesh(self.slices['transect'],
                                                                style='surface',
-                                                               scalars=self.interp_vals,
+                                                               # scalars=self.interp_vals,
                                                                # axis=0,
                                                                cmap=self.cmap,
                                                                clim=self.cax)

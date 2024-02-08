@@ -2,7 +2,7 @@ numpy
 scipy
 colorcet
 matplotlib
-naturalneighbor
+naturalneighbor@ git+https://github.com/eroots/natural-neighbor-interpolation
 pyproj
 pyshp
 pyvista

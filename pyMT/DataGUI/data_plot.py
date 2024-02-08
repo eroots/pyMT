@@ -365,6 +365,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.Interpolant.insertItems(0, ['Linear', 'Cubic', 'Nearest'])
         if self.map.has_nn:
             self.Interpolant.insertItem(0, 'Natural')
+            self.Interpolant.setCurrentIndex(0)
         self.Interpolant.currentIndexChanged.connect(self.update_map)
         ###################################################
         #  Set up period scroll bar

@@ -6,6 +6,17 @@ Home-page: http://github.com/eroots/pyMT
 Author: Eric Roots
 Author-email: eroots087@gmail.com
 License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: colorcet
+Requires-Dist: matplotlib
+Requires-Dist: naturalneighbor@ git+https://github.com/eroots/natural-neighbor-interpolation
+Requires-Dist: pyproj
+Requires-Dist: pyshp
+Requires-Dist: pyvista
+Requires-Dist: pyvistaqt
+Requires-Dist: PyQt5
+Requires-Dist: vtk
 
 pyMT
 ====
