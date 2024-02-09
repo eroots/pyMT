@@ -5,21 +5,21 @@ Codebase for visualization, analysis, and preparation of magnetotelluric data fo
 
 Installation basics (tested method for new users)
 
-	1a) Install anaconda (or miniconda; skip this if you already have anaconda)
+# 1a) Install anaconda (or miniconda; skip this if you already have anaconda)
 
-	2) Open anaconda prompt
+# 2) Open anaconda prompt
 
-	3) Create an environment for pyMT, re-load a few dependencies: conda create -n pymt python conda pip git setuptools
+# 3) Create an environment for pyMT, re-load a few dependencies: conda create -n pymt python conda pip git setuptools
 
-	4a) Enter that environment: conda activate pymt
+# 4a) Enter that environment: conda activate pymt
 
-	4b) Add that command to your .bashrc (or whatever login script) so you don't have to enter it every time you open a new anaconda prompt
+# 4b) Add that command to your .bashrc (or whatever login script) so you don't have to enter it every time you open a new anaconda prompt
 
-	5a) Install pyMT: pip install git+https://github.com/eroots/pyMT.git
+# 5a) Install pyMT: pip install git+https://github.com/eroots/pyMT.git
 
-	5b) Any time you want to update to the latest version, use: pip install --upgrade  git+https://github.com/eroots/pyMT.git
+# 5b) Any time you want to update to the latest version, use: pip install --upgrade  git+https://github.com/eroots/pyMT.git
 
-	6) Navigate to wherever your working folder is and launch: gateway_mt
+# 6) Navigate to wherever your working folder is and launch: gateway_mt
 
 	Note: The dependence on natural-neighbor has been removed to improve the installation process. The default interpolation method for plan-view pseudosections is now based on the linear kernel of the scipy radial basis function interpolator (https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RBFInterpolator.html).
 
