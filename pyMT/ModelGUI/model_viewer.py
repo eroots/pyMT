@@ -588,7 +588,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # print(self.isoPlot.checkState())
         # print(self.actors['isosurface'])
         # print(self.contours)
-        self.vtk_widget.remove_actor(self.actors['isosurface'])
+        # self.vtk_widget.remove_actor(self.actors['isosurface'])
         if self.isoPlot.checkState():
             if self.contours:
                 opacity = self.isoOpacity.value()
@@ -596,7 +596,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                     self.actors['isosurface'] = self.vtk_widget.add_mesh(self.contours,
                                                                          cmap=self.cmap,
                                                                          clim=self.cax,
-                                                                         opacity=opacity)
+                                                                         opacity=opacity,
+                                                                         name='isosurface')
                 except RuntimeError:
                     self.isoPlot.setCheckState(0)
                     # QtWidgets.QMessageBox.warning(self, 'Unable to change coordinate system.')
@@ -815,7 +816,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.z_slice_change()
 
     def x_slice_change(self):
-        self.vtk_widget.remove_actor(self.actors['X'])
+        # self.vtk_widget.remove_actor(self.actors['X'])
         if self.xSliceCheckbox.checkState():
             # x_slice = self.clip_model.dx[self.x_slice] 
             # self.slices['X'] = self.rect_grid.slice(normal='y',
@@ -826,15 +827,18 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                         clim=self.cax,
                                                         scalars=self.use_scalar,
                                                         opacity=self.use_resolution,
-                                                        use_transparency=False)
+                                                        use_transparency=False,
+                                                        name='x_slice')
+        else:
+            self.vtk_widget.remove_actor(self.actors['X'])
         self.update_2D_X()
         self.update_slice_indicators(direction='x', redraw=False)
         self.fig_2D.canvas.draw()
         self.vtk_widget.update()
-        self.show_bounds()
+        # self.show_bounds()
 
     def y_slice_change(self):
-        self.vtk_widget.remove_actor(self.actors['Y'])
+        # self.vtk_widget.remove_actor(self.actors['Y'])
         if self.ySliceCheckbox.checkState():
             # y_slice = self.clip_model.dy[self.y_slice] 
             # self.actors['Y'] = self.rect_grid.slice(normal='x',
@@ -845,15 +849,18 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                         clim=self.cax,
                                                         scalars=self.use_scalar,
                                                         opacity=self.use_resolution,
-                                                        use_transparency=False)
+                                                        use_transparency=False,
+                                                        name='y_slice')
+        else:
+            self.vtk_widget.remove_actor(self.actors['Y'])
         self.update_2D_Y()
         self.update_slice_indicators(direction='y', redraw=False)
         self.fig_2D.canvas.draw()
         self.vtk_widget.update()
-        self.show_bounds()
+        # self.show_bounds()
 
     def z_slice_change(self):
-        self.vtk_widget.remove_actor(self.actors['Z'])
+        # self.vtk_widget.remove_actor(self.actors['Z'])
         if self.zSliceCheckbox.checkState():
             # z_slice = self.clip_model.dz[self.z_slice] 
             # self.actors['Z'] = self.rect_grid.slice(normal='z', origin=(0, 0, z_slice))
@@ -863,10 +870,13 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                         clim=self.cax,
                                                         scalars=self.use_scalar,
                                                         opacity=self.use_resolution,
-                                                        use_transparency=False)
+                                                        use_transparency=False,
+                                                        name='z_slice')
+        else:
+            self.vtk_widget.remove_actor(self.actors['Z'])
         self.update_plan_view()
         self.vtk_widget.update()
-        self.show_bounds()
+        # self.show_bounds()
 
     def generate_slice(self, normal='X'):
         ox = max(0, self.model.dx[self.x_clip[0]])
@@ -978,7 +988,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                         cmap=self.cmap,
                                                         clim=self.cax,
                                                         opacity=self.use_resolution,
-                                                        use_transparency=False)
+                                                        use_transparency=False,
+                                                        name='x_slice')
         if self.ySliceCheckbox.checkState():
             self.slices['Y'] = self.generate_slice('y')
             self.actors['Y'] = self.vtk_widget.add_mesh(self.slices['Y'],
@@ -986,7 +997,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                         cmap=self.cmap,
                                                         clim=self.cax,
                                                         opacity=self.use_resolution,
-                                                        use_transparency=False)
+                                                        use_transparency=False,
+                                                        name='y_slice')
         if self.zSliceCheckbox.checkState():
             self.slices['Z'] = self.generate_slice('z')
             self.actors['Z'] = self.vtk_widget.add_mesh(self.slices['Z'],
@@ -994,28 +1006,30 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                         cmap=self.cmap,
                                                         clim=self.cax,
                                                         opacity=self.use_resolution,
-                                                        use_transparency=False)
+                                                        use_transparency=False,
+                                                        name='z_slice')
         if len(self.transect_plot['easting']) > 1:
             self.generate_transect3D(redraw=False)
         # Checkbox for sites?
         if self.plot_locations:
             self.actors['stations'] = self.vtk_widget.add_mesh(self.plot_data['stations'],
                                                                style='points',
-                                                               color='white')
+                                                               color='white',
+                                                               name='stations')
         self.vtk_widget.update()
         self.show_bounds()
         if reset_camera:
             self.vtk_widget.reset_camera()
 
     def show_bounds(self):
-        pass
-        # self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
-        #                                   self.clip_model.dx[0], self.clip_model.dx[-1],
-        #                                   -self.clip_model.dz[-1], self.clip_model.dz[0]],
-        #                           xtitle='Easting (km)',
-        #                           ytitle='Northing (km)',
-        #                           ztitle='Depth (km)',
-        #                           font_size=10)
+        # pass
+        self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
+                                          self.clip_model.dx[0], self.clip_model.dx[-1],
+                                          -self.clip_model.dz[-1], self.clip_model.dz[0]],
+                                  xtitle='Easting (km)',
+                                  ytitle='Northing (km)',
+                                  ztitle='Depth (km)',
+                                  font_size=10)
 
     def view_xy(self):
         self.vtk_widget.view_xy()
@@ -1111,7 +1125,6 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         interp_vals = self.interpolator(query_points)
         # self.map.window['axes'][0].plot(qx, qy, 'k--')
         # self.canvas['2D'].draw()
-        # debug_print
         self.interp_vals = np.reshape(interp_vals, [len(qx), len(qz)])
         self.qx = qx
         self.qy = qy
@@ -1126,13 +1139,27 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         qp = np.vstack([self.transect_plot['easting'],
                         self.transect_plot['northing'],
                         np.zeros((len(self.transect_plot['easting'])))]).T
-        spline = pv.Spline(qp)
-        debug_print(spline, 'E:/my_modules/test.txt')
-        self.slices['transect'] = self.rect_grid.slice_along_line(spline).clip_box(invert=False, 
-                                                                                   bounds=spline.bounds[:4] +
-                                                                                          (-self.clip_model.dz[-1],
+        # line = pv.Line(pointa=qp[0, :], pointb=qp[1, :], resolution=10)
+        # for ii in range(len(qp[1:-1])):
+            # line = line.merge(pv.Line(pointa=qp[ii+1, :], pointb=qp[ii+2, :], resolution=10))
+        for ii in range(len(qp) - 1):
+            line = pv.Line(pointa=qp[ii, :], pointb=qp[ii+1, :], resolution=10)
+            if ii == 0:
+                self.slices['transect'] = self.rect_grid.slice_along_line(line).clip_box(invert=False,
+                                                                                         bounds=line.bounds[:4] +
+                                                                                         (-self.clip_model.dz[-1],
                                                                                            self.clip_model.dz[0]))
-        debug_print(self.slices['transect'], 'E:/my_modules/test.txt')
+            else:
+                self.slices['transect'].merge(self.rect_grid.slice_along_line(line).clip_box(invert=False,
+                                                                                             bounds=line.bounds[:4] +
+                                                                                           (-self.clip_model.dz[-1],
+                                                                                             self.clip_model.dz[0])),
+                                              merge_points=False)
+        # spline = pv.Spline(qp, 50)
+        # self.slices['transect'] = self.rect_grid.slice_along_line(line).clip_box(invert=False, 
+                                                                                 # bounds=line.bounds[:4] +
+                                                                                        # (-self.clip_model.dz[-1],
+                                                                                          # self.clip_model.dz[0]))
         # self.slices['transect'] = pv.PolyData(query_points, self.faces)
         self.plot_transect3D(redraw=redraw)
 
@@ -1165,14 +1192,15 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # if redraw and self.actors['transect']:
             
         if self.interpCheckbox.checkState():
-            self.vtk_widget.remove_actor(self.actors['transect'])
+            # self.vtk_widget.remove_actor(self.actors['transect'])
             # self.slices['transect'] = self.generate_slice('z')
             self.actors['transect'] = self.vtk_widget.add_mesh(self.slices['transect'],
                                                                style='surface',
                                                                # scalars=self.interp_vals,
                                                                # axis=0,
                                                                cmap=self.cmap,
-                                                               clim=self.cax)
+                                                               clim=self.cax,
+                                                               name='transect')
         else:
             self.vtk_widget.remove_actor(self.actors['transect'])
         if redraw:
