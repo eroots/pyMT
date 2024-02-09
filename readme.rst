@@ -20,32 +20,10 @@ Submodules:
 
 	tests - Contains modules used to test the various parts of the project. Not up to date.
 
-Installation:
-	All dependencies will be installed during this process, however if you are coming from a clean python installation, it may be best to manually install certain packages with complicated dependencies.
-	These include:
-
-	* pip
-	* numpy
-	* scipy
-	* matplotlib
-	* pyqt
-	* colorcet
-	* vtk
-	
-	Each of these can be installed manually using, e.g., conda install pip (assuming an Anaconda installation)
-	
-	After installing these, pyMT may be installed using the command 'python setup.py install' or 'python setup.py develop'
-
-Getting Started:
-	All of the GUIs (data_plot, mesh_designer, model_viewer) can now be accessed through one main window, which is launched using the command::
-
-		gateway_mt
-
-	This GUI is essentially just a table containing all the files needed for a series of datasets (where a dataset is any permutation of a list file, and inversion data/response/model files). Highlight a dataset and click the 'Data Plot', 'Mesh Designer', or 'Model Viewer' buttons to launch the relevant GUI with the highlighted dataset.
 
 Installation basics (tested method for new users)
 
-1) Install anaconda (or miniconda; skip this if you already have anaconda)
+1a) Install anaconda (or miniconda; skip this if you already have anaconda)
 
 2) Open anaconda prompt
 
@@ -61,10 +39,17 @@ Installation basics (tested method for new users)
 
 6) Navigate to wherever your working folder is and launch: gateway_mt
 
-Note: The dependence on natural-neighbor has been removed to improve the installation process. The default interpolation method for plan-view pseudosections is now based on scipy RBFInterpolator.
-If you prefer the natural neighbor interpolation, an updated version (compatible with the latest versions of python and numpy) can be installed via:
+Note: The dependence on natural-neighbor has been removed to improve the installation process. The default interpolation method for plan-view pseudosections is now based on the linear kernel of the scipy radial basis function interpolator (https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RBFInterpolator.html).
 
-	* pip install git+https://github.com/eroots/natural-neighbor-interpolation
+If you prefer the natural neighbor interpolation, an updated version (compatible with the latest versions of python and numpy) can be installed via::
+
+	pip install git+https://github.com/eroots/natural-neighbor-interpolation
 
 Note that the natural-neighbor package requires Microsoft Visual C++ Redistributables. These may already be installed, but on newer PCs you may have to first install Microsoft Visual Studio Build Tools (https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
 
+Getting Started:
+	All of the GUIs (data_plot, mesh_designer, model_viewer) can now be accessed through one main window, which is launched using the command::
+
+		gateway_mt
+
+	This GUI is essentially just a table containing all the files needed for a series of datasets (where a dataset is any permutation of a list file, and inversion data/response/model files). Highlight a dataset and click the 'Data Plot', 'Mesh Designer', or 'Model Viewer' buttons to launch the relevant GUI with the highlighted dataset.
