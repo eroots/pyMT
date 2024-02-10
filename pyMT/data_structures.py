@@ -210,9 +210,10 @@ class Dataset(object):
                     elif (period < 0.001 and (min_diff / period) > self.raw_data.low_tol) or \
                         (period > 0.001 and (min_diff / period) > self.raw_data.high_tol):
                         for comp in self.data.components:
+                            pass
                             self.data.sites[site].change_errmap(periods=period, mult=self.data.NO_PERIOD_MAP,
                                                                 comps=comp,
-                                                                multiplicative=True)
+                                                                multiplicative=False)
         else:
             print('Cannot reset dummy periods without both data and raw data')
 
