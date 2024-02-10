@@ -362,7 +362,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.Pseudosection_fill.currentIndexChanged.connect(self.update_map)
         self.pseudoFillType.currentIndexChanged.connect(self.update_map)
         self.nInterp.editingFinished.connect(self.update_map)
-        self.Interpolant.insertItems(0, ['Linear', 'Cubic', 'Nearest'])
+        self.Interpolant.insertItems(0, ['RBF-Linear', 'Linear', 'Cubic', 'Nearest'])
         if self.map.has_nn:
             self.Interpolant.insertItem(0, 'Natural')
             self.Interpolant.setCurrentIndex(0)
@@ -978,10 +978,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # Also there should be a mechanism that makes sure this is only redrawn if something changes
         self.x_lim = self.map.window['axes'][0].get_xlim()
         self.y_lim = self.map.window['axes'][0].get_ylim()
-        self.map.window['axes'][0].clear()
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
             self.map.window['colorbar'] = None
+        self.map.window['axes'][0].clear()
         # DEBUG
         # print('I am updating the map')
         if self.actionShow_JPEG.isChecked():

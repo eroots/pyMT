@@ -4,6 +4,7 @@ from matplotlib.colorbar import ColorbarBase
 from scipy.interpolate import griddata
 import matplotlib.patches as patches
 import matplotlib.colorbar as colorbar
+from scipy.interpolate import RBFInterpolator
 import pyMT.utils as utils
 from pyMT.IO import debug_print
 from pyMT.e_colours import colourmaps as cm
@@ -73,8 +74,10 @@ class format_model_coords(object):
         self.Y = Y
         self.use_log = use_log
         self.data_label = data_label
+        # print(self.X)
 
     def __call__(self, x, y):
+        print('called')
         # col = int(x + 0.5)
         # row = int(y + 0.5)
         # if col >=0 and col < numcols and row >=0 and row < numrows:
@@ -84,16 +87,22 @@ class format_model_coords(object):
                 x_idx = min(ix, len(self.X) - 1) - 1
                 break
             x_idx = len(self.X) - 2
+        # print('X: {} {}'.format(x, xx))
         for iy, yy in enumerate(self.Y):
             if yy > y:
                 y_idx = min(iy, len(self.Y) - 1) - 1
                 break
             y_idx = len(self.Y) - 2
+        # print('Y: {} {}'.format(y, yy))
         # x_idx = (np.abs(self.X - x + 0.05)).argmin() - 1
         # y_idx = (np.abs(self.Y - y + 0.05)).argmin() - 1
         # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
+        # print('Im trying Vals 1!')
         vals = np.array(self.im.get_array())
-        vals = np.reshape(vals, (len(self.Y) - 1, len(self.X) - 1))[y_idx, x_idx]
+        # print('Im trying Vals 2!')
+        # print([y_idx, x_idx])
+        vals = np.reshape(vals, (len(self.Y), len(self.X)))[y_idx, x_idx]
+        # print('Labels')
         if self.use_log:
             vals = 10 ** vals
         if self.data_label.lower() == 'resistivity':
@@ -109,6 +118,7 @@ class format_model_coords(object):
         # z = self.im.get_array()[x_idx * len(self.Y) + y_idx]
         # z = self.im.get_array()[y_idx * len(self.X) + x_idx]
         # z = self.im.get_array()[y_idx * len(self.Y) + x_idx]
+        # print('Im trying Returning!')
         return '\t'.join(['{}: {:>4.4g} {}',
                           '{}: {:>4.4g} {}\n',
                           '{}: {} {}']).format(self.x_label, utils.truncate(self.X[x_idx]), 'km',
@@ -217,7 +227,7 @@ class DataPlotManager(object):
         self.axes = []
 
     def redraw_axes(self):
-        # self.fig.clear()
+        self.fig.clear()
         self.axes = []
         self.tiling = self.gen_tiling()
         for ii in range(self.num_sites):
@@ -954,9 +964,9 @@ class MapView(object):
         min_x, max_x = (min_x - x_pad, max_x + x_pad)
         y_pad = (max_y - min_y) / self.padding_scale
         min_y, max_y = (min_y - y_pad, max_y + y_pad)
-        X = np.linspace(min_x, max_x, n_interp)
-        Y = np.linspace(min_y, max_y, n_interp)
-        grid_x, grid_y = np.meshgrid(X, Y)
+        x_flat = np.linspace(min_x, max_x, n_interp)
+        y_flat = np.linspace(min_y, max_y, n_interp)
+        grid_x, grid_y = np.meshgrid(x_flat, y_flat)
         if self.interpolant.lower() in ('linear', 'cubic', 'nearest'):
             gx, gy = np.mgrid[min_x:max_x:n_interp*1j, min_y:max_y:n_interp*1j]
             grid_vals = griddata(points[:,:2], vals, (gx, gy), method=self.interpolant)
@@ -964,8 +974,17 @@ class MapView(object):
             grid_ranges = [[min_x, max_x, n_interp * 1j],
                            [min_y, max_y, n_interp * 1j],
                            [0, 1, 1]]
-            grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))
-        return grid_vals, grid_x, grid_y
+            grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))                           
+        elif 'rbf' in self.interpolant.lower():
+            grid = np.array([grid_x, grid_y])
+            query_points = np.rollaxis(grid, 0, 3).reshape((grid.shape[1] * grid.shape[2], 2))
+            grid_vals = RBFInterpolator(points[:, :2],
+                                        vals,
+                                        kernel=self.interpolant.split('-')[1].lower(),
+                                        epsilon=1,
+                                        degree=3)(query_points).reshape((grid.shape[1], grid.shape[2])).T
+        
+        return grid_vals, grid_x, grid_y, x_flat, y_flat
 
     def plot_locations(self):
         # if not self.window['figure']:
@@ -1568,15 +1587,15 @@ class MapView(object):
         loc_x, loc_y = self.site_locations['all'][good_idx, 1], self.site_locations['all'][good_idx, 0]
         loc_z = np.zeros(loc_x.shape)
         points = np.transpose(np.array((loc_x, loc_y, loc_z)))
-        min_x, max_x = (min(loc_x), max(loc_x))
-        x_pad = (max_x - min_x) / self.padding_scale
-        min_x, max_x = (min_x - x_pad, max_x + x_pad)
-        min_y, max_y = (min(loc_y), max(loc_y))
-        y_pad = (max_y - min_y) / self.padding_scale
-        min_y, max_y = (min_y - y_pad, max_y + y_pad)
-        X = np.linspace(min_x, max_x, n_interp)
-        Y = np.linspace(min_y, max_y, n_interp)
-        grid_vals, grid_x, grid_y = self.interpolate(points, vals[good_idx], n_interp)
+        # min_x, max_x = (min(loc_x), max(loc_x))
+        # x_pad = (max_x - min_x) / self.padding_scale
+        # min_x, max_x = (min_x - x_pad, max_x + x_pad)
+        # min_y, max_y = (min(loc_y), max(loc_y))
+        # y_pad = (max_y - min_y) / self.padding_scale
+        # min_y, max_y = (min_y - y_pad, max_y + y_pad)
+        # X = np.linspace(min_x, max_x, n_interp)
+        # Y = np.linspace(min_y, max_y, n_interp)
+        grid_vals, grid_x, grid_y, x_flat, y_flat = self.interpolate(points, vals[good_idx], n_interp)
         if diff and 'rho' in fill_param.lower():
             cax = self.diff_cax
             fill_param = 'Log10 Difference'
@@ -1608,8 +1627,8 @@ class MapView(object):
         im = self.window['axes'][0].pcolor(grid_x, grid_y, grid_vals.T,
                                            cmap=self.cmap,
                                            vmin=cax[0], vmax=cax[1],
-                                           zorder=0,
-                                           shading='auto')
+                                           zorder=0)
+                                           # shading='auto')
         if self.window['colorbar'] and self.use_colourbar:
             self.window['colorbar'].remove()
             self.window['colorbar'] = self.window['figure'].colorbar(mappable=im)
@@ -1619,7 +1638,7 @@ class MapView(object):
                                               fontsize=18)
         self.set_axis_limits()
         self.window['axes'][0].format_coord = format_model_coords(im,
-                                              X=X, Y=Y,
+                                              X=x_flat, Y=y_flat,
                                               x_label='Easting', y_label='Northing',
                                               data_label=data_label,
                                               use_log=use_log)

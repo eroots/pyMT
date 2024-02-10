@@ -1024,7 +1024,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def show_bounds(self):
         # pass
-        print('Show bounds called')
+        # print('Show bounds called')
         self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
                                           self.clip_model.dx[0], self.clip_model.dx[-1],
                                           -self.clip_model.dz[-1], self.clip_model.dz[0]],
