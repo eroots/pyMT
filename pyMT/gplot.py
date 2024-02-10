@@ -74,10 +74,8 @@ class format_model_coords(object):
         self.Y = Y
         self.use_log = use_log
         self.data_label = data_label
-        # print(self.X)
 
     def __call__(self, x, y):
-        print('called')
         # col = int(x + 0.5)
         # row = int(y + 0.5)
         # if col >=0 and col < numcols and row >=0 and row < numrows:
@@ -87,22 +85,16 @@ class format_model_coords(object):
                 x_idx = min(ix, len(self.X) - 1) - 1
                 break
             x_idx = len(self.X) - 2
-        # print('X: {} {}'.format(x, xx))
         for iy, yy in enumerate(self.Y):
             if yy > y:
                 y_idx = min(iy, len(self.Y) - 1) - 1
                 break
             y_idx = len(self.Y) - 2
-        # print('Y: {} {}'.format(y, yy))
         # x_idx = (np.abs(self.X - x + 0.05)).argmin() - 1
         # y_idx = (np.abs(self.Y - y + 0.05)).argmin() - 1
         # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
-        # print('Im trying Vals 1!')
         vals = np.array(self.im.get_array())
-        # print('Im trying Vals 2!')
-        # print([y_idx, x_idx])
         vals = np.reshape(vals, (len(self.Y), len(self.X)))[y_idx, x_idx]
-        # print('Labels')
         if self.use_log:
             vals = 10 ** vals
         if self.data_label.lower() == 'resistivity':
@@ -118,7 +110,6 @@ class format_model_coords(object):
         # z = self.im.get_array()[x_idx * len(self.Y) + y_idx]
         # z = self.im.get_array()[y_idx * len(self.X) + x_idx]
         # z = self.im.get_array()[y_idx * len(self.Y) + x_idx]
-        # print('Im trying Returning!')
         return '\t'.join(['{}: {:>4.4g} {}',
                           '{}: {:>4.4g} {}\n',
                           '{}: {} {}']).format(self.x_label, utils.truncate(self.X[x_idx]), 'km',
@@ -982,7 +973,7 @@ class MapView(object):
                                         vals,
                                         kernel=self.interpolant.split('-')[1].lower(),
                                         epsilon=1,
-                                        degree=min(len(points), 3))(query_points).reshape((grid.shape[1], grid.shape[2])).T
+                                        degree=0)(query_points).reshape((grid.shape[1], grid.shape[2])).T
         
         return grid_vals, grid_x, grid_y, x_flat, y_flat
 
