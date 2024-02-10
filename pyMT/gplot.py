@@ -982,7 +982,7 @@ class MapView(object):
                                         vals,
                                         kernel=self.interpolant.split('-')[1].lower(),
                                         epsilon=1,
-                                        degree=3)(query_points).reshape((grid.shape[1], grid.shape[2])).T
+                                        degree=min(len(points), 3))(query_points).reshape((grid.shape[1], grid.shape[2])).T
         
         return grid_vals, grid_x, grid_y, x_flat, y_flat
 
