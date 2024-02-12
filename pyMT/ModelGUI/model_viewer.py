@@ -20,6 +20,8 @@ from copy import deepcopy
 import numpy as np
 import pyvista as pv
 pv.set_plot_theme('dark')
+pv.global_theme.font.size = 10
+pv.global_theme.font.family = 'arial'
 from pyvistaqt import QtInteractor
 import pyMT.data_structures as WSDS
 from pyMT.utils import sort_files, check_file
@@ -1025,13 +1027,23 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
     def show_bounds(self):
         # pass
         # print('Show bounds called')
-        self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
-                                          self.clip_model.dx[0], self.clip_model.dx[-1],
-                                          -self.clip_model.dz[-1], self.clip_model.dz[0]],
-                                  xtitle='Easting (km)',
-                                  ytitle='Northing (km)',
-                                  ztitle='Depth (km)',
-                                  font_size=10)
+        # print(self.clip_model.spatial_units)
+        # print(round(self.clip_model.dy[0], -1))
+        self.vtk_widget.show_bounds(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
+                                            self.clip_model.dx[0], self.clip_model.dx[-1],
+                                           -self.clip_model.dz[-1], self.clip_model.dz[0]],
+                                    axes_ranges=[round(self.clip_model.dy[0], -1), round(self.clip_model.dy[-1],-1),
+                                                 round(self.clip_model.dx[0], -1), round(self.clip_model.dx[-1],-1),
+                                                -round(self.clip_model.dz[-1], -1), round(self.clip_model.dz[0],-1)],
+                                    xtitle='Easting (km)',
+                                    ytitle='Northing (km)',
+                                    ztitle='Depth (km)',
+                                    font_family='arial',
+                                    grid=True,
+                                    location='outer',
+                                    use_3d_text=False)
+                                  # font_size=10)
+                                  # padding=0.1)
 
     def view_xy(self):
         self.vtk_widget.view_xy()

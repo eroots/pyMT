@@ -1571,7 +1571,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.toggleRaw.setCheckState(bool(self.dataset.raw_data.sites) * 2)
         self.toggleData.setCheckState(bool(self.dataset.data.sites) * 2)
         self.toggleResponse.setCheckState(bool(self.dataset.response.sites) * 2)
-        self.azimuthEdit.setValue(self.dataset.azimuth % 360)
+        self.azimuthEdit.setValue(int(self.dataset.azimuth % 360))
         self.azimuthEdit.valueChanged.connect(self.set_azimuth)
         self.removeSites.clicked.connect(self.remove_sites)
         self.addSites.clicked.connect(self.add_sites)
