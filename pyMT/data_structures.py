@@ -1604,7 +1604,7 @@ class Model(object):
             Convert model coordinates to UTM
             Usage: model.to_UTM(origin=None) where origin is (Easting, Northing)
         '''
-        print('in to_UTM')
+        # print('in to_UTM')
         if self.coord_system == 'local':
             if origin is not None:
                 self.origin = origin
@@ -1623,7 +1623,7 @@ class Model(object):
         return True
 
     def to_lambert(self, origin=None):
-        print('in to_lambert')
+        # print('in to_lambert')
         if self.coord_system == 'local':
             if origin is not None:
                 self.origin = origin

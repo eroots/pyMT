@@ -3,5 +3,9 @@ __pycache__/
 *.vtk
 *.pyc
 *.pyo
-docs/_build/*
+docs
+dist
+demo_files
 pyMT/scripts/crooked_model_slice.py
+pyMT/scripts/personal_use
+pyMT/scripts/test_outputs
