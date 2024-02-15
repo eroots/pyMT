@@ -210,9 +210,10 @@ class Dataset(object):
                     elif (period < 0.001 and (min_diff / period) > self.raw_data.low_tol) or \
                         (period > 0.001 and (min_diff / period) > self.raw_data.high_tol):
                         for comp in self.data.components:
+                            pass
                             self.data.sites[site].change_errmap(periods=period, mult=self.data.NO_PERIOD_MAP,
                                                                 comps=comp,
-                                                                multiplicative=True)
+                                                                multiplicative=False)
         else:
             print('Cannot reset dummy periods without both data and raw data')
 
@@ -1603,7 +1604,7 @@ class Model(object):
             Convert model coordinates to UTM
             Usage: model.to_UTM(origin=None) where origin is (Easting, Northing)
         '''
-        print('in to_UTM')
+        # print('in to_UTM')
         if self.coord_system == 'local':
             if origin is not None:
                 self.origin = origin
@@ -1622,7 +1623,7 @@ class Model(object):
         return True
 
     def to_lambert(self, origin=None):
-        print('in to_lambert')
+        # print('in to_lambert')
         if self.coord_system == 'local':
             if origin is not None:
                 self.origin = origin

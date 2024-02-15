@@ -1275,6 +1275,11 @@ def dms2dd(dms):
         return float(dms)
     return val
 
+def dd2dms(dd):
+    mult = -1 if dd < 0 else 1
+    mnt, sec = divmod(abs(dd) * 3600, 60)
+    deg, mnt = divmod(mnt, 60)
+    return mult * deg, mult * mnt, mult * sec
 
 def normalize(vals, lower=0, upper=1, explicit_bounds=False):
     if explicit_bounds:

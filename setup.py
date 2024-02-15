@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='pyMT',
-      version='0.102',
+      version='0.11',
       description='Tools and GUIs for MT data analysis and modelling',
       url='http://github.com/eroots/pyMT',
       author='Eric Roots',
@@ -32,7 +32,6 @@ setup(name='pyMT',
                         'scipy',
                         'colorcet',
                         'matplotlib',
-                        'naturalneighbor @ git+https://github.com/eroots/natural-neighbor-interpolation',
                         'pyproj',
                         'pyshp',
                         'pyvista',

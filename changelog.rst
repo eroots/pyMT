@@ -1,6 +1,18 @@
 Change Log
 ==========
 
+*12/02/24
+
+  * Code and installation process updated to work with the latest versions of the dependencies
+
+  * Removed natural-neighbor dependency to make fresh installs easier; will still work if nn is installed manually
+
+    * Default interpolator set to RBFIntpolator
+
+  * Removed '_r' colour maps options, replaced with an 'Invert Colourmap' option
+
+  * Fixed a bug which caused negative data error flags to be applied as real errors (only happened if you loaded a data_plot instance and immediately wrote out a data file)
+
 *19/01/24
 
   * Induction arrow plots in the map viewer now correctly display all legend items

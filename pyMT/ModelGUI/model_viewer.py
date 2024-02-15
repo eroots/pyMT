@@ -20,6 +20,8 @@ from copy import deepcopy
 import numpy as np
 import pyvista as pv
 pv.set_plot_theme('dark')
+pv.global_theme.font.size = 10
+pv.global_theme.font.family = 'arial'
 from pyvistaqt import QtInteractor
 import pyMT.data_structures as WSDS
 from pyMT.utils import sort_files, check_file
@@ -141,6 +143,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # add the pyvista interactor object
         self.vtk_widget = QtInteractor(self.frame3D)
         self.vtk_widget.background_color = 'paraview'
+        # self.vtk_widget.auto_update = 0
         vlayout3D.addWidget(self.vtk_widget)
         self.frame3D.setLayout(vlayout3D)
         self.pv_default_background = 'paraview'
@@ -606,7 +609,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             else:
                 self.isoPlot.setCheckState(0)
 
-        self.vtk_widget.update()
+        # self.vtk_widget.update()
         self.show_bounds()
 
     def show_mesh(self):
@@ -834,7 +837,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.update_2D_X()
         self.update_slice_indicators(direction='x', redraw=False)
         self.fig_2D.canvas.draw()
-        self.vtk_widget.update()
+        # self.vtk_widget.update()
         # self.show_bounds()
 
     def y_slice_change(self):
@@ -875,7 +878,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         else:
             self.vtk_widget.remove_actor(self.actors['Z'])
         self.update_plan_view()
-        self.vtk_widget.update()
+        # self.vtk_widget.update()
         # self.show_bounds()
 
     def generate_slice(self, normal='X'):
@@ -1016,38 +1019,49 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                                style='points',
                                                                color='white',
                                                                name='stations')
-        self.vtk_widget.update()
+        # self.vtk_widget.update()
         self.show_bounds()
         if reset_camera:
             self.vtk_widget.reset_camera()
 
     def show_bounds(self):
         # pass
-        self.vtk_widget.show_grid(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
-                                          self.clip_model.dx[0], self.clip_model.dx[-1],
-                                          -self.clip_model.dz[-1], self.clip_model.dz[0]],
-                                  xtitle='Easting (km)',
-                                  ytitle='Northing (km)',
-                                  ztitle='Depth (km)',
-                                  font_size=10)
+        # print('Show bounds called')
+        # print(self.clip_model.spatial_units)
+        # print(round(self.clip_model.dy[0], -1))
+        self.vtk_widget.show_bounds(bounds=[self.clip_model.dy[0], self.clip_model.dy[-1],
+                                            self.clip_model.dx[0], self.clip_model.dx[-1],
+                                           -self.clip_model.dz[-1], self.clip_model.dz[0]],
+                                    axes_ranges=[round(self.clip_model.dy[0], -1), round(self.clip_model.dy[-1],-1),
+                                                 round(self.clip_model.dx[0], -1), round(self.clip_model.dx[-1],-1),
+                                                -round(self.clip_model.dz[-1], -1), round(self.clip_model.dz[0],-1)],
+                                    xtitle='Easting (km)',
+                                    ytitle='Northing (km)',
+                                    ztitle='Depth (km)',
+                                    font_family='arial',
+                                    grid=True,
+                                    location='outer',
+                                    use_3d_text=False)
+                                  # font_size=10)
+                                  # padding=0.1)
 
     def view_xy(self):
         self.vtk_widget.view_xy()
         # self.vtk_widget.view_vector([0, 0, 1])
         # self.vtk_widget.view_xy()
-        self.vtk_widget.update()
+        # self.vtk_widget.update()
 
     def view_xz(self):
         self.vtk_widget.view_xz()
         # self.vtk_widget.view_vector([0, 0, 1])
         # self.vtk_widget.view_xy()
-        self.vtk_widget.update()
+        # self.vtk_widget.update()
 
     def view_yz(self):
         self.vtk_widget.view_yz()
         # self.vtk_widget.view_vector([0, 0, 1])
         # self.vtk_widget.view_xy()
-        self.vtk_widget.update()
+        # self.vtk_widget.update()
 
     def update_all(self, reset_camera=True):
         self.update_2D_X()
@@ -1154,7 +1168,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                                                              bounds=line.bounds[:4] +
                                                                                            (-self.clip_model.dz[-1],
                                                                                              self.clip_model.dz[0])),
-                                              merge_points=False)
+                                              merge_points=False,
+                                              inplace=True)
         # spline = pv.Spline(qp, 50)
         # self.slices['transect'] = self.rect_grid.slice_along_line(line).clip_box(invert=False, 
                                                                                  # bounds=line.bounds[:4] +
@@ -1204,7 +1219,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         else:
             self.vtk_widget.remove_actor(self.actors['transect'])
         if redraw:
-            self.vtk_widget.update()
+            # self.vtk_widget.update()
             self.show_bounds()
 
     def plot_transect_line(self, redraw=False):
@@ -1243,7 +1258,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                 self.plot_transect3D(redraw=True)
             else:
                 self.vtk_widget.remove_actor(self.actors['transect'])
-                self.vtk_widget.update()
+                # self.vtk_widget.update()
                 self.show_bounds()
         else:
             self.interpCheckbox.setCheckState(False)
