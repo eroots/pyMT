@@ -48,13 +48,13 @@ interp_freqs = [3.600000e+02, 3.000000e+02, 2.600000e+02, 2.200000e+02, 1.800000
 # edi_path = 'E:/phd/NextCloud/data/Regions/lalor/j2/from_Masoud/geotools_rotated/L192/fix/'
 # edi_path = 'E:/phd/NextCloud/data/Regions/samtex/j2/edis/'
 
-edi_path  = 'D:/atha22/'
-save_path = 'D:/atha22/impedances/'
+edi_path  = 'D:/Work/ATHA/Atha_21_processed_EDI/'
+save_path = 'D:/Work/ATHA/Atha_21_processed_EDI/impedances/'
 
 # edi_path = 'E:/phd/NextCloud/data/Regions/NACP/j2/fromJim/'
 # save_path = 'E:/phd/NextCloud/data/Regions/NACP/j2/fromJim/mtpy/'
-edi_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/'
-save_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
+# edi_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/'
+# save_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
 
 rotate_by = 0
 zero_azimuth = True
