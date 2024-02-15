@@ -88,6 +88,12 @@ def dms_to_dd(dms_string):
         seconds = float(seconds[:-1])
     return degrees + minutes / 60 + seconds / 3600
 
+def dd_to_dms(dd):
+    mult = -1 if dd < 0 else 1
+    mnt,sec = divmod(abs(dd)*3600, 60)
+    deg,mnt = divmod(mnt, 60)
+    return mult*deg, mnt, sec
+
 
 def generate_zmesh(min_depth=1, max_depth=500000, NZ=None):
     print('This function is depreciated.\n')

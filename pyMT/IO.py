@@ -594,6 +594,7 @@ def read_raw_data(site_names, datpath=''):
                       'TYR.EXP': [],
                       'TYI.EXP': [],
                       'TYVAR.EXP': [],
+                      'TROT': [],
                       'FREQ': [],
                       'INFO': [],
                       '=DEFINEMEAS': []}
@@ -618,14 +619,18 @@ def read_raw_data(site_names, datpath=''):
         def read_header(header):
             lat, lon, elev = 0, 0, 0
             for line in header:
-                if 'LAT' in line:
-                    lat = (utils.dms2dd(line.split('=')[1].strip()))
-                if 'LONG' in line:
-                    lon = (utils.dms2dd(line.split('=')[1].strip()))
-                elif 'LON' in line:  # Make exception if its spelt this way...
-                    lon = (utils.dms2dd(line.split('=')[1].strip()))
-                if 'ELEV' in line:
-                    elev = float(line.split('=')[1].strip())
+                try:
+                    if 'LAT' in line:
+                        lat = (utils.dms2dd(line.split('=')[1].strip()))
+                    if 'LONG' in line:
+                        lon = (utils.dms2dd(line.split('=')[1].strip()))
+                    elif 'LON' in line:  # Make exception if its spelt this way...
+                        lon = (utils.dms2dd(line.split('=')[1].strip()))
+                    if 'ELEV' in line:
+                        elev = float(line.split('=')[1].strip())
+                except ValueError:
+                    print('Error reading coordinates from header')
+                    lat, lon, elev = 0, 0, 0
             return lat, lon, elev
 
         def read_info(block):
@@ -662,21 +667,27 @@ def read_raw_data(site_names, datpath=''):
 
         def read_data_block(block):
             # print(block[0])
-            num_freqs = float(block[0].split('//')[1])
+            try:
+                num_freqs = float(block[0].split('//')[1])
+            except IndexError:
+                print('Number of freqs not specified in data block, proceeding anyways')
+                num_freqs = 0
             data = []
             for line in block[1:]:
                 for f in line.split():
                     data.append(np.nan_to_num(float(f.strip())))
-            if len(data) != num_freqs:
+            if num_freqs and (len(data) != num_freqs):
                 print('Number of frequencies does not match the given number')
                 print('Proceeding anyways...')
             return np.array(data)
 
         def extract_tensor_info(blocks):
+            z_azi = None # If neither TROT nor ZROT are specified, assume azi = 0
+            t_azi = None # If neither TROT nor ZROT are specified, assume azi = 0
             scaling_factor = 4 * np.pi / 10000
+
             for key in blocks.keys():
-                # print(key)
-                if (key[0] == 'Z' or key[0] == 'T') and key != 'ZROT':
+                if (key[0] == 'Z' or key[0] == 'T') and (key != 'ZROT' and key != 'TROT'):
                     if blocks[key]:
                         data_block = read_data_block(blocks[key])
                         if key[0] == 'Z':
@@ -690,20 +701,39 @@ def read_raw_data(site_names, datpath=''):
                             data.update({new_key: data_block * scaling_factor})
                         else:
                             data.update({new_key: data_block})
-                elif key == 'ZROT':
+                elif key == 'ZROT' and blocks[key]:
                     try:
                         data_block = read_data_block(blocks[key])
                     except IndexError:
                         print('Missing ZROT info, setting ZROT=0')
-                        azi = 0
+                        z_azi = 0
                         equal_rots = 1
                         continue    
                     if not np.all(data_block == data_block[1]):
-                        azi = data_block[0]
+                        z_azi = data_block[0]
                         equal_rots = 0
                     else:
-                        azi = data_block[0]
+                        z_azi = data_block[0]
                         equal_rots = 1
+                elif key == 'TROT' and blocks[key]:
+                    data_block = read_data_block(blocks[key])
+                    if not np.all(data_block == data_block[1]):
+                        t_azi = data_block[0]
+                        equal_rots = 0
+                    else:
+                        t_azi = data_block[0]
+                        equal_rots = 1
+            if z_azi == t_azi:
+                azi = z_azi
+            else:
+                if z_azi is None:
+                    print('Missing ZROT info, setting to TROT')
+                    azi = t_azi
+                elif t_azi is None:
+                    azi = z_azi
+                else:
+                    azi = 0
+                    equal_rots = 0
             # EDI format has ZxyR, ZxyI positive; ZyxR, ZyxI negative. This needs to be changed
             # EDI is generally +iwt sign convention. Note this can be specified in EDI files, but is not read anywhere here.
             try:
