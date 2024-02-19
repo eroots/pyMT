@@ -74,12 +74,14 @@ class format_model_coords(object):
         self.Y = Y
         self.use_log = use_log
         self.data_label = data_label
+        # print([X, Y])
 
     def __call__(self, x, y):
         # col = int(x + 0.5)
         # row = int(y + 0.5)
         # if col >=0 and col < numcols and row >=0 and row < numrows:
         # val = X[row, col]
+        # print([x, y])
         for ix, xx in enumerate(self.X):
             if xx > x:
                 x_idx = min(ix, len(self.X) - 1) - 1
@@ -94,7 +96,19 @@ class format_model_coords(object):
         # y_idx = (np.abs(self.Y - y + 0.05)).argmin() - 1
         # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
         vals = np.array(self.im.get_array())
-        vals = np.reshape(vals, (len(self.Y), len(self.X)))[y_idx, x_idx]
+        # print([vals.shape, len(self.Y), len(self.X), y_idx, x_idx])
+        # print([vals.size, self.X.size*self.Y.size])
+        # Image data coming from pseudosections may be a different shape than model data
+        # As model data passes cell edge locations, it will have +1 sizes
+        if vals.size == self.X.size * self.Y.size:
+            nx = self.X.size
+            ny = self.Y.size
+        else:
+            nx = self.X.size - 1
+            ny = self.Y.size - 1
+
+        vals = np.reshape(vals, (ny, nx))[y_idx, x_idx]
+
         if self.use_log:
             vals = 10 ** vals
         if self.data_label.lower() == 'resistivity':
@@ -105,6 +119,7 @@ class format_model_coords(object):
             self.data_units = 'km'
         else:
             self.data_units = ''
+        
         # z = vals[x_idx, y_idx]
         # z = self.im.get_array()[x_idx * len(self.X) + y_idx]
         # z = self.im.get_array()[x_idx * len(self.Y) + y_idx]
@@ -1691,7 +1706,9 @@ class MapView(object):
         # ax.set_xlabel('Easting (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
-                                              x_label='Easting', y_label='Northing')
+                                              x_label='Easting', y_label='Northing',
+                                              data_label='Resistivity',
+                                              use_log=True)
 
     def plot_x_slice(self, ax=None, x_slice=0, rho_axis='rho_x'):
         rho_axis = rho_axis.lower()

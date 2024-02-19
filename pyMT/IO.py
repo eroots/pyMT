@@ -639,14 +639,16 @@ def read_raw_data(site_names, datpath=''):
 
         def read_definemeas(block):
             lat, lon, elev = 0, 0, 0
+            # print('DEFINEMEAS')
             # print(block)
             for line in block:
                 if 'REFLAT' in line:
                     lat = (utils.dms2dd(line.split('=')[1].strip()))
-                if 'REFLONG' in line:
+                if ('REFLONG' in line) or ('REFLON' in line):
                     lon = (utils.dms2dd(line.split('=')[1].strip()))
                 if 'REFELEV' in line:
                     elev = float(line.split('=')[1].strip())
+            # print([lat, lon, elev])
             return lat, lon, elev
 
         def extract_location(blocks):
@@ -661,8 +663,10 @@ def read_raw_data(site_names, datpath=''):
             #     print('Elevations listed in HEAD, INFO and DEFINEMEAS do not match.')
             # print('Location information extracted from DEFINEMEAS block')
             lat, lon, elev = lat_define, lon_define, elev_define
+            # print([lat, lon, elev])
             if lat == lon == elev == 0:
                 lat, lon, elev = lat_head, lon_head, elev_head
+            # print([lat, lon, elev])
             return lat, lon, elev
 
         def read_data_block(block):
