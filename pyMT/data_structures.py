@@ -75,7 +75,7 @@ class Dataset(object):
     """
 
     def __init__(self, modelfile='', listfile='', datafile='',
-                 responsefile='', datpath=''):
+                 responsefile='', datpath='', edi_locs_from='definemeas'):
         """
         Summary
         Args:
@@ -90,7 +90,7 @@ class Dataset(object):
             self.raw_data = deepcopy(listfile)
             listfile = self.raw_data.listfile
         else:
-            self.raw_data = RawData(listfile=listfile, datpath=datpath)
+            self.raw_data = RawData(listfile=listfile, datpath=datpath, edi_locs_from=edi_locs_from)
         self.data = Data(listfile=listfile, datafile=datafile)
         self.model = Model(modelfile=modelfile)
         self.response = Data(listfile=listfile, datafile=responsefile)
@@ -2225,7 +2225,8 @@ class Site(object):
     def check_period_order(self):
         sorted_periods = np.sort(self.periods)
         if np.any(sorted_periods != self.periods):
-            print('Site {} periods not in order. Reordering them...'.format(self.name))
+            if np.any(sorted_periods != self.periods[::-1]):
+                print('Site {} periods not in order. Reordering them...'.format(self.name))
             sort_idx = np.argsort(self.periods)
             self.periods = sorted_periods
             for comp in self.components:
@@ -2861,7 +2862,7 @@ class RawData(object):
                            'TZXR', 'TZXI',
                            'TZYR', 'TZYI')
 
-    def __init__(self, listfile='', datpath=''):
+    def __init__(self, listfile='', datpath='', zero_azimuth=True, edi_locs_from='definemeas'):
         """Summary
 
         Args:
@@ -2873,7 +2874,7 @@ class RawData(object):
         self.datpath = datpath
         self.listfile = listfile
         if listfile:
-            self.__read__(listfile, datpath)
+            self.__read__(listfile, datpath, edi_locs_from=edi_locs_from)
             self.initialized = True
         else:
             self.sites = {}
@@ -2890,13 +2891,17 @@ class RawData(object):
         self.master_periods = self.master_period_list()
         self.narrow_periods = self.narrow_period_list()
         self._spatial_units = 'm'
-        azi = self.check_azi()
-        if azi:
+        self.original_azimuth = self.check_azi()
+        if self.original_azimuth and not zero_azimuth:
             # Note this may not be true if the EDI files have been rotated.
-            self.azimuth = azi
-            self.locations = utils.rotate_locs(self.locations, azi)
+            self.azimuth = self.original_azimuth
+            print('Rotating locations to match azimuth in EDIs')
+            self.locations = utils.rotate_locs(self.locations, self.original_azimuth)
         else:
             self.azimuth = 0
+            print('Rotating raw data to 0 degrees')
+            for site in self.site_names:
+                self.sites[site].rotate_data(azi=0)
         # for site_name in self.site_names:
         #     self.sites[site_name].rotate_data(azi=0)
 
@@ -2958,7 +2963,7 @@ class RawData(object):
     def NS(self):
         return len(self.site_names)
 
-    def __read__(self, listfile, datpath=''):
+    def __read__(self, listfile, datpath='', edi_locs_from='definemeas'):
         """Summary
 
         Args:
@@ -2969,7 +2974,7 @@ class RawData(object):
             TYPE: Description
         """
         self.site_names = IO.read_sites(listfile)
-        all_data = IO.read_raw_data(self.site_names, datpath)
+        all_data = IO.read_raw_data(self.site_names, datpath, edi_locs_from=edi_locs_from)
         self.sites = {}
         for site_name, site in all_data.items():
             try:

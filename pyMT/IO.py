@@ -487,7 +487,7 @@ def read_model(modelfile='', file_format='modem3d'):
         raise(WSFileError(ID='fnf', offender=modelfile))
 
 
-def read_raw_data(site_names, datpath=''):
+def read_raw_data(site_names, datpath='', locs_from='definemeas'):
     """Summary
 
     Args:
@@ -568,7 +568,7 @@ def read_raw_data(site_names, datpath=''):
         # For now I'm only concerned with reading impedances and tipper
         # I make some assumptions, that may have to be changed later:
         #   Rotation angles are all the same
-    def read_edi(file, long_origin=999):
+    def read_edi(file, long_origin=999, locs_from='definemeas'):
         # For now I'm only concerned with reading impedances and tipper
         # I make some assumptions, that may have to be changed later:
         #   Rotation angles are all the same
@@ -618,6 +618,7 @@ def read_raw_data(site_names, datpath=''):
 
         def read_header(header):
             lat, lon, elev = 0, 0, 0
+            header_error = False
             for line in header:
                 try:
                     if 'LAT' in line:
@@ -629,7 +630,7 @@ def read_raw_data(site_names, datpath=''):
                     if 'ELEV' in line:
                         elev = float(line.split('=')[1].strip())
                 except ValueError:
-                    print('Error reading coordinates from header')
+                    header_error = True
                     lat, lon, elev = 0, 0, 0
             return lat, lon, elev
 
@@ -639,21 +640,26 @@ def read_raw_data(site_names, datpath=''):
 
         def read_definemeas(block):
             lat, lon, elev = 0, 0, 0
+            def_error = False
             # print('DEFINEMEAS')
             # print(block)
             for line in block:
-                if 'REFLAT' in line:
-                    lat = (utils.dms2dd(line.split('=')[1].strip()))
-                if ('REFLONG' in line) or ('REFLON' in line):
-                    lon = (utils.dms2dd(line.split('=')[1].strip()))
-                if 'REFELEV' in line:
-                    elev = float(line.split('=')[1].strip())
+                try:
+                    if 'REFLAT' in line:
+                        lat = (utils.dms2dd(line.split('=')[1].strip()))
+                    if ('REFLONG' in line) or ('REFLON' in line):
+                        lon = (utils.dms2dd(line.split('=')[1].strip()))
+                    if 'REFELEV' in line:
+                        elev = float(line.split('=')[1].strip())
+                except ValueError:
+                    def_error = True
+                    lat, lon, elev = 0, 0, 0
             # print([lat, lon, elev])
             return lat, lon, elev
 
-        def extract_location(blocks):
-            lat_head, lon_head, elev_head = read_header(blocks['HEAD'])
-            lat_info, lon_info, elev_info = read_info(blocks['INFO'])
+        def extract_location(blocks, locs_from='definemeas'):
+            lat_head, lon_head, elev_head, header_error = read_header(blocks['HEAD'])
+            lat_info, lon_info, elev_info, def_error = read_info(blocks['INFO'])
             lat_define, lon_define, elev_define = read_definemeas(blocks['=DEFINEMEAS'])
             # if (lat_head != lat_info) or (lat_head != lat_define) or (lat_define != lat_info):
             #     print('Latitudes listed in HEAD, INFO and DEFINEMEAS do not match.')
@@ -662,12 +668,16 @@ def read_raw_data(site_names, datpath=''):
             # if (elev_head != elev_info) or (elev_head != elev_define) or (elev_define != elev_info):
             #     print('Elevations listed in HEAD, INFO and DEFINEMEAS do not match.')
             # print('Location information extracted from DEFINEMEAS block')
-            lat, lon, elev = lat_define, lon_define, elev_define
+            # lat, lon, elev = lat_define, lon_define, elev_define
             # print([lat, lon, elev])
-            if lat == lon == elev == 0:
-                lat, lon, elev = lat_head, lon_head, elev_head
+            if locs_from.lower() == 'definemeas':
+                return lat_define, lon_define, elev_define, def_error
+            elif locs_from.lower() == 'header':
+                return lat_head, lon_head, elev_head, header_error
+            # if lat == lon == elev == 0:
+                # lat, lon, elev = lat_head, lon_head, elev_head
             # print([lat, lon, elev])
-            return lat, lon, elev
+            
 
         def read_data_block(block):
             # print(block[0])
@@ -774,7 +784,10 @@ def read_raw_data(site_names, datpath=''):
                 # info is consistent
                 lines = f.readlines()
                 blocks = extract_blocks(lines)
-                Lat, Long, elev = extract_location(blocks)
+                Lat, Long, elev, loc_error = extract_location(blocks, locs_from=locs_from)
+                if loc_error:
+                    print('Error reading locations from {} as specified in file {}'.format(locs_from, file))
+                    print('Proceeding anyways')
                 if blocks['FREQ']:
                     frequencies = read_data_block(blocks['FREQ'])
                 else:
@@ -834,7 +847,7 @@ def read_raw_data(site_names, datpath=''):
             else:
                 file = ''.join([path, site, '.edi'])
             # try:
-            site_dict, long_origin = read_edi(file, long_origin)
+            site_dict, long_origin = read_edi(file, long_origin, locs_from=locs_from)
             site = site.replace('.edi', '')
             site = site.replace('.dat', '')
             siteData.update({site: site_dict})

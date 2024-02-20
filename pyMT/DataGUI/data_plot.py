@@ -1138,7 +1138,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     Main GUI window for data plotting and manipulation.
     """
 
-    def __init__(self, dataset_dict):
+    def __init__(self, dataset_dict, edi_locs_from='definemeas'):
         super(DataMain, self).__init__()
         self.fig_dpi = 300
         self.pick_tol = 0.05
@@ -1169,7 +1169,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                               datafile=files['data'],
                                               responsefile=files['response'],
                                               datpath=files['raw_path'],
-                                              modelfile=files['model'])
+                                              modelfile=files['model'],
+                                              edi_locs_from=edi_locs_from)
             azis = []
             message = 'Inconsistent azimuths found in data set {}.\n'.format(dname)
             if dataset.raw_data.sites:
@@ -1181,9 +1182,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
             if dataset.response.sites:
                 azis.append(dataset.response.azimuth)
                 message += 'Response: {}'.format(dataset.response.azimuth)
-            if dataset.raw_data.check_azi() is False:
-                message += '\nAzimuths not consistent in raw data (varies by EDI). Fix this before continuing! {}'.format(dataset.raw_data.check_azi())
-            if len(set(azis)) > 1 or dataset.raw_data.check_azi() is False:
+            if dataset.raw_data.original_azimuth is False:
+                message += '\nAzimuths not consistent in raw data (varies by EDI). Data has been rotated to 0 degrees'
+            if len(set(azis)) > 1 or dataset.raw_data.original_azimuth is False:
                 QtWidgets.QMessageBox.warning(self, 'Failed azimuth check', message)            
             if ii == 0:
                 self.stored_datasets = {dname: dataset}

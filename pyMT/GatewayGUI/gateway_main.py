@@ -323,7 +323,7 @@ class NewProject(QNewProject, Ui_NewProject):
             if (not any(list(active_ds.values()))) or (not active_ds):
                 QtWidgets.QMessageBox.warning(self, '', 'Selected data set is empty.')
                 return
-            dp_main = DataMain(dataset_dict=active_ds)
+            dp_main = DataMain(dataset_dict=active_ds, locs_from=self.get_locs_from())
             dp_main.setWindowIcon(QtGui.QIcon(data_plot_jpg))
             self.dp_windows.append(dp_main)
             # self.dp_windows.append(DataMain(dataset_dict=active_ds))
@@ -384,6 +384,12 @@ class NewProject(QNewProject, Ui_NewProject):
                 QtWidgets.QMessageBox.warning(self, 'File Not Found', e.message)
         else:
             QtWidgets.QMessageBox.warning(self, '', 'Either a model or data file (or both) must be available to use Mesh Designer!')
+
+    def get_locs_from(self):
+        if self.definemeasLocs.isChecked():
+            return 'definemeas'
+        elif self.headerLocs.isChecked():
+            return 'header'
 
 # class GatewayMain(QMainWindow, Ui_MainWindow):
 
