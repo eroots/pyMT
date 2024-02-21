@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1163</width>
+    <width>1161</width>
     <height>886</height>
    </rect>
   </property>
@@ -28,6 +28,27 @@
        <property name="text">
         <string>TextLabel</string>
        </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Site Locations from EDI Block:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="ediLocs">
+       <item>
+        <property name="text">
+         <string>DEFINEMEAS</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>HEAD</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>

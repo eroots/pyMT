@@ -44,6 +44,7 @@ class NewProject(QNewProject, Ui_NewProject):
         self.dp_windows = []
         self.model_windows = []
         self.md_windows = []
+        self.table_modified = False
         # self.dataset_index = 0
         self.file_to_index = {'dataset': 0, 'list': 1, 'data': 2, 'response': 3, 'model': 4, 'resolution': 5}
         self.index_to_file = {0: 'dataset', 1: 'list', 2: 'data', 3: 'response', 4: 'model', 5:'resolution'}
@@ -193,6 +194,7 @@ class NewProject(QNewProject, Ui_NewProject):
 
     # def modify_table_cell(self, item):
     def modify_table_cell(self, row, col):
+        self.table_modified = True
         item = self.datasetTable.item(row, col)
         if item:
             if item.column() == 0:
@@ -232,11 +234,12 @@ class NewProject(QNewProject, Ui_NewProject):
                                                   'model': dataset[4],
                                                   'resolution': dataset[5]}})
         self.write_project(all_datasets)
+        
 
-    def open_project(self):
+    def open_project(self)      :
         files_dict = None
         
-        if self.empty_table:
+        if self.empty_table or not self.table_modified:
             # continue
             pass
             # self.init_dataset_table(files_dict)
@@ -272,7 +275,7 @@ class NewProject(QNewProject, Ui_NewProject):
     def write_project(self, all_datasets):
         # Create / Modify should be one button, and if you choose a non-existant file it starts as we have so far, but if you choose an existing file
         # It loads it. That way project naming / loading happens immediately
-
+        
         project_file = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Project', self.project_path + self.project_name, 'pyMT Project Files (*.pymt);; All Files (*)')[0]
         # print(all_datasets)
         if project_file:
@@ -288,6 +291,7 @@ class NewProject(QNewProject, Ui_NewProject):
                         except KeyError:
                             pass
                 self.projectName.setText(os.path.basename(project_file))
+            self.table_modified = False
             # self.close()
             # if os.path.exists(project_file):
             #     pass
@@ -323,7 +327,7 @@ class NewProject(QNewProject, Ui_NewProject):
             if (not any(list(active_ds.values()))) or (not active_ds):
                 QtWidgets.QMessageBox.warning(self, '', 'Selected data set is empty.')
                 return
-            dp_main = DataMain(dataset_dict=active_ds, locs_from=self.get_locs_from())
+            dp_main = DataMain(dataset_dict=active_ds, edi_locs_from=self.get_locs_from())
             dp_main.setWindowIcon(QtGui.QIcon(data_plot_jpg))
             self.dp_windows.append(dp_main)
             # self.dp_windows.append(DataMain(dataset_dict=active_ds))
@@ -386,10 +390,11 @@ class NewProject(QNewProject, Ui_NewProject):
             QtWidgets.QMessageBox.warning(self, '', 'Either a model or data file (or both) must be available to use Mesh Designer!')
 
     def get_locs_from(self):
-        if self.definemeasLocs.isChecked():
-            return 'definemeas'
-        elif self.headerLocs.isChecked():
-            return 'header'
+        return self.ediLocs.currentText().lower()
+        # if self.definemeasLocs.currentText().lower() == 'definemeas':
+            # return 'definemeas'
+        # elif self.headerLocs.isChecked():
+            # return 'header'
 
 # class GatewayMain(QMainWindow, Ui_MainWindow):
 

@@ -487,7 +487,7 @@ def read_model(modelfile='', file_format='modem3d'):
         raise(WSFileError(ID='fnf', offender=modelfile))
 
 
-def read_raw_data(site_names, datpath='', locs_from='definemeas'):
+def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
     """Summary
 
     Args:
@@ -568,7 +568,7 @@ def read_raw_data(site_names, datpath='', locs_from='definemeas'):
         # For now I'm only concerned with reading impedances and tipper
         # I make some assumptions, that may have to be changed later:
         #   Rotation angles are all the same
-    def read_edi(file, long_origin=999, locs_from='definemeas'):
+    def read_edi(file, long_origin=999, edi_locs_from='definemeas'):
         # For now I'm only concerned with reading impedances and tipper
         # I make some assumptions, that may have to be changed later:
         #   Rotation angles are all the same
@@ -632,7 +632,7 @@ def read_raw_data(site_names, datpath='', locs_from='definemeas'):
                 except ValueError:
                     header_error = True
                     lat, lon, elev = 0, 0, 0
-            return lat, lon, elev
+            return lat, lon, elev, header_error
 
         def read_info(block):
             # print('Read info not implemented and returns only zeros')
@@ -655,12 +655,12 @@ def read_raw_data(site_names, datpath='', locs_from='definemeas'):
                     def_error = True
                     lat, lon, elev = 0, 0, 0
             # print([lat, lon, elev])
-            return lat, lon, elev
+            return lat, lon, elev, def_error
 
-        def extract_location(blocks, locs_from='definemeas'):
+        def extract_location(blocks, edi_locs_from='definemeas'):
             lat_head, lon_head, elev_head, header_error = read_header(blocks['HEAD'])
-            lat_info, lon_info, elev_info, def_error = read_info(blocks['INFO'])
-            lat_define, lon_define, elev_define = read_definemeas(blocks['=DEFINEMEAS'])
+            lat_info, lon_info, elev_info = read_info(blocks['INFO'])
+            lat_define, lon_define, elev_define, def_error = read_definemeas(blocks['=DEFINEMEAS'])
             # if (lat_head != lat_info) or (lat_head != lat_define) or (lat_define != lat_info):
             #     print('Latitudes listed in HEAD, INFO and DEFINEMEAS do not match.')
             # if (lon_head != lon_info) or (lon_head != lon_define) or (lon_define != lon_info):
@@ -670,9 +670,9 @@ def read_raw_data(site_names, datpath='', locs_from='definemeas'):
             # print('Location information extracted from DEFINEMEAS block')
             # lat, lon, elev = lat_define, lon_define, elev_define
             # print([lat, lon, elev])
-            if locs_from.lower() == 'definemeas':
+            if edi_locs_from.lower() == 'definemeas':
                 return lat_define, lon_define, elev_define, def_error
-            elif locs_from.lower() == 'header':
+            elif edi_locs_from.lower() == 'head':
                 return lat_head, lon_head, elev_head, header_error
             # if lat == lon == elev == 0:
                 # lat, lon, elev = lat_head, lon_head, elev_head
@@ -784,9 +784,9 @@ def read_raw_data(site_names, datpath='', locs_from='definemeas'):
                 # info is consistent
                 lines = f.readlines()
                 blocks = extract_blocks(lines)
-                Lat, Long, elev, loc_error = extract_location(blocks, locs_from=locs_from)
+                Lat, Long, elev, loc_error = extract_location(blocks, edi_locs_from=edi_locs_from)
                 if loc_error:
-                    print('Error reading locations from {} as specified in file {}'.format(locs_from, file))
+                    print('Error reading locations from {} as specified in file {}'.format(edi_locs_from, file))
                     print('Proceeding anyways')
                 if blocks['FREQ']:
                     frequencies = read_data_block(blocks['FREQ'])
@@ -847,7 +847,7 @@ def read_raw_data(site_names, datpath='', locs_from='definemeas'):
             else:
                 file = ''.join([path, site, '.edi'])
             # try:
-            site_dict, long_origin = read_edi(file, long_origin, locs_from=locs_from)
+            site_dict, long_origin = read_edi(file, long_origin, edi_locs_from=edi_locs_from)
             site = site.replace('.edi', '')
             site = site.replace('.dat', '')
             siteData.update({site: site_dict})

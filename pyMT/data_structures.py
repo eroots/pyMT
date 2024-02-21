@@ -1439,7 +1439,7 @@ class Model(object):
         if modelfile:
             mod, dim = IO.read_model(modelfile=modelfile, file_format=file_format)
             # Set up these first so update_vals isn't called
-            if file_format.lower() in ('em3dani', 'mt3dani') or mod.get('rho_y', []) != []:
+            if file_format.lower() in ('em3dani', 'mt3dani') or mod.get('rho_y', None) is not None:
                 self.rho_x = mod['rho_x']
                 self.rho_y = mod['rho_y']
                 self.rho_z = mod['rho_z']
@@ -2897,11 +2897,18 @@ class RawData(object):
             self.azimuth = self.original_azimuth
             print('Rotating locations to match azimuth in EDIs')
             self.locations = utils.rotate_locs(self.locations, self.original_azimuth)
-        else:
+        elif self.original_azimuth is False:
             self.azimuth = 0
-            print('Rotating raw data to 0 degrees')
+            print('EDI rotation is inconsistent. Rotating raw data to 0 degrees')
             for site in self.site_names:
                 self.sites[site].rotate_data(azi=0)
+        elif self.original_azimuth and zero_azimuth:
+            print('Rotating data to 0 degrees')
+            for site in self.site_names:
+                self.sites[site].rotate_data(azi=0)
+            self.azimuth = 0
+        else:
+            self.azimuth = 0
         # for site_name in self.site_names:
         #     self.sites[site_name].rotate_data(azi=0)
 
