@@ -13,6 +13,16 @@ Change Log
 
   * Fixed a bug which caused negative data error flags to be applied as real errors (only happened if you loaded a data_plot instance and immediately wrote out a data file)
 
+  * User can specify where to read location info from EDI files via a dropdown menu in gateway_mt.
+
+  * Removed some test scripts from the scripts folder
+
+    * Use cases and instructions for scripts will be added in a future update
+
+  * Default error floors have been lowered
+
+  * ztem_to_edi script has been added
+
 *19/01/24
 
   * Induction arrow plots in the map viewer now correctly display all legend items

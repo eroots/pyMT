@@ -698,7 +698,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
         def extract_tensor_info(blocks):
             z_azi = None # If neither TROT nor ZROT are specified, assume azi = 0
             t_azi = None # If neither TROT nor ZROT are specified, assume azi = 0
-            scaling_factor = 4 * np.pi / 10000
+            scaling_factor = {'Z': 4 * np.pi / 10000, 'T': 1}
 
             for key in blocks.keys():
                 if (key[0] == 'Z' or key[0] == 'T') and (key != 'ZROT' and key != 'TROT'):
@@ -709,12 +709,12 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
                         else:
                             new_key = ''.join(['TZ', key[1:3]])
                         if 'VAR' in key:
-                            errors.update({new_key[:-1] + 'R': data_block * scaling_factor})
-                            errors.update({new_key[:-1] + 'I': data_block * scaling_factor})
-                        elif 'Z' in key:
-                            data.update({new_key: data_block * scaling_factor})
-                        else:
-                            data.update({new_key: data_block})
+                            errors.update({new_key[:-1] + 'R': data_block * scaling_factor[key[0]]})
+                            errors.update({new_key[:-1] + 'I': data_block * scaling_factor[key[0]]})
+                        # elif 'Z' in key:
+                        data.update({new_key: data_block * scaling_factor[key[0]]})
+                        # else:
+                            # data.update({new_key: data_block})
                 elif key == 'ZROT' and blocks[key]:
                     try:
                         data_block = read_data_block(blocks[key])
@@ -1882,11 +1882,23 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         return sites, other_info
 
     if file_format.lower() == 'wsinv3dmt':
-        # wsinv and em3dani have the same extension type,, so try both.
+        # WSINV, em3dani, and ModEM may share the same .data file extension, so try them all
         try:
             return read_ws_data(datafile, site_names, invType)
         except ValueError:
+            pass
+        try:
             return read_em3dani(datafile, site_names)
+        except IndexError:
+            pass
+        try:
+            return read_modem_data(datafile, site_names, invType)
+        except ValueError:
+            print('Output format {} not recognized'.format(file_format))
+            raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
+                                                                        'wsinv3dmt',
+                                                                        'ModEM',
+                                                                        'em3dani'))    
     elif file_format.lower() == 'modem':
         return read_modem_data(datafile, site_names, invType)
     elif file_format.lower() == 'mare2dem':

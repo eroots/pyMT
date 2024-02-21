@@ -760,11 +760,11 @@ class Data(object):
         self.UTM_zone = None
         self._spatial_units = 'm'
         self.dimensionality = '3d'
-        self.error_floors = {'Off-Diagonal Impedance': 0.05,
-                             'Diagonal Impedance': 0.075,
-                             'Tipper': 0.05,
-                             'Rho': 0.05,
-                             'Phase': 0.03}
+        self.error_floors = {'Off-Diagonal Impedance': 0.03,
+                             'Diagonal Impedance': 0.03,
+                             'Tipper': 0.03,
+                             'Rho': 0.03,
+                             'Phase': 0.02}
         self._spatial_units = 'm'
         if not file_format or (file_format.lower() in [val.lower() for val in Data.IMPLEMENTED_FORMATS.keys()]):
             self.file_format = file_format
@@ -2081,11 +2081,11 @@ class Site(object):
         self.static_multiplier = 1
         self.minimum_error = 0.000005
         self.use_independent_errors = False
-        self.error_floors = {'Off-Diagonal Impedance': 0.075,
-                             'Diagonal Impedance': 0.075,
-                             'Tipper': 0.05,
-                             'Rho': 0.05,
-                             'Phase': 0.03}
+        self.error_floors = {'Off-Diagonal Impedance': 0.03,
+                             'Diagonal Impedance': 0.03,
+                             'Tipper': 0.03,
+                             'Rho': 0.03,
+                             'Phase': 0.02}
         self.file_format = file_format
         self.fields = fields
         self.phase_tensors = []
