@@ -8,4 +8,5 @@ pyshp
 pyvista
 pyvistaqt
 PyQt5
+pyqt5
 vtk

@@ -34,8 +34,13 @@ setup(name='pyMT',
                         'matplotlib',
                         'pyproj',
                         'pyshp',
+<<<<<<< HEAD
                         'pyvista',
                         'pyvistaqt',
                         'PyQt5',
+=======
+                        'pyvista==0.23',
+                        'pyqt5',
+>>>>>>> 490fb51 (Reverting)
                         'vtk'],
       include_package_data=True)
