@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+*28/02/24
+
+  * Changed list file reading so that the list will be read regardless of whether or not the first line specifies the number of sites
+
+  * Can now pass a single edi file as a list to be read
+
+  * Added script 'plot_edi.py' which can be called from anywhere and passed a single .edi file to plot the Rho, phase, and tipper data from.
+
 *12/02/24
 
   * Code and installation process updated to work with the latest versions of the dependencies
