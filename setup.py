@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='pyMT',
-      version='0.11',
+      version='0.11.1',
       description='Tools and GUIs for MT data analysis and modelling',
       url='http://github.com/eroots/pyMT',
       author='Eric Roots',
@@ -34,13 +34,8 @@ setup(name='pyMT',
                         'matplotlib',
                         'pyproj',
                         'pyshp',
-<<<<<<< HEAD
                         'pyvista',
                         'pyvistaqt',
                         'PyQt5',
-=======
-                        'pyvista==0.23',
-                        'pyqt5',
->>>>>>> 490fb51 (Reverting)
                         'vtk'],
       include_package_data=True)

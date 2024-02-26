@@ -9,7 +9,7 @@ Installation basics (tested method for new users)
 
 2) Open anaconda prompt
 
-3) Create an environment for pyMT, re-load a few dependencies::
+3) Create an environment for pyMT, pre-load a few dependencies::
 
 	conda create -n pymt python conda pip git setuptools
 

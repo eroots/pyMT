@@ -7,7 +7,7 @@ Change Log
 
   * Removed natural-neighbor dependency to make fresh installs easier; will still work if nn is installed manually
 
-    * Default interpolator set to RBFIntpolator
+    * Default interpolator set to RBF_Interpolator
 
   * Removed '_r' colour maps options, replaced with an 'Invert Colourmap' option
 

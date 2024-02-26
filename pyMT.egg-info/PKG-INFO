@@ -16,8 +16,6 @@ Requires-Dist: pyshp
 Requires-Dist: pyvista
 Requires-Dist: pyvistaqt
 Requires-Dist: PyQt5
-Requires-Dist: pyvista
-Requires-Dist: pyqt5
 Requires-Dist: vtk
 
 pyMT
