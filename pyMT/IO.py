@@ -709,8 +709,8 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
                         else:
                             new_key = ''.join(['TZ', key[1:3]])
                         if 'VAR' in key:
-                            errors.update({new_key[:-1] + 'R': data_block * scaling_factor[key[0]]})
-                            errors.update({new_key[:-1] + 'I': data_block * scaling_factor[key[0]]})
+                            errors.update({new_key[:-1] + 'R': abs(data_block) * scaling_factor[key[0]]})
+                            errors.update({new_key[:-1] + 'I': abs(data_block) * scaling_factor[key[0]]})
                         # elif 'Z' in key:
                         data.update({new_key: data_block * scaling_factor[key[0]]})
                         # else:
@@ -867,15 +867,24 @@ def read_sites(listfile):
     Returns:
         TYPE: Description
     """
+    # If the given file is just a single EDI, set the list to just that file
+    if listfile.endswith('.edi'):
+        return [os.path.basename(listfile).replace('.edi', '')]
     try:
         with open(listfile, 'r') as f:
-            ns = int(next(f))
+            # If the list doesn't have the number of stations, just read them anyways.
+            ns = next(f)
             site_names = list(filter(None, f.read().split('\n')))
+            try:
+                ns = int(ns)
+            except ValueError:
+                site_names.insert(0, ns.strip('.edi').strip('.dat').strip())
             site_names = [name.replace('.dat', '') for name in site_names]
             site_names = [name.replace('.edi', '') for name in site_names]
-            if ns != len(site_names):
-                raise(WSFileError(ID='int', offender=listfile,
-                                  extra='# Sites does not match length of list.'))
+
+            # if ns != len(site_names):
+            #     raise(WSFileError(ID='int', offender=listfile,
+            #                       extra='# Sites does not match length of list.'))
         return site_names
     except FileNotFoundError:
         raise(WSFileError('fnf', offender=listfile))
