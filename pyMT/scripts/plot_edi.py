@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import numpy as np
 import sys
+import os
 # from pyMT import gplot
 
 
@@ -53,7 +54,7 @@ plot_options = {'marker_dict': {'Rxy':  'o',
 								 'T': [-0.75, 0.75]}
 								 }
 
-def plot_site(site):
+def plot_site(site, save_fig=False):
 	to_plot = []
 	if 'ZXYR' in site.components:
 		to_plot.append('Rxy')	
@@ -78,7 +79,7 @@ def plot_site(site):
 			'phase': None,
 			'tzr': None,
 			'tzi': None}
-	fig = plt.figure()
+	fig = plt.figure(figsize=(10, 12))
 	bottom_plot = 'tzi'
 	top_plot = 'rho'
 	if len(to_plot) == 6:
@@ -155,16 +156,33 @@ def plot_site(site):
 				axes[comp].set_ylabel(r'Im {Tz}')
 			axes[comp].set_ylim(plot_options['y_limits']['T'])
 			axes[comp].set_xlim(plot_options['x_limits'])
-	for ax in axes.values():
+	for ax_name, ax in axes.items():
 		if ax:
 			ax.legend(loc='upper left')
+			if ax_name != bottom_plot:
+				ax.set_xticklabels([])
 	axes[bottom_plot].set_xlabel('Period (s)')
 	axes[top_plot].set_title(site.name)
-	plt.show()
+	if save_fig:
+		plt.savefig(site.name)
+		plt.close()
+	else:
+		plt.show()
+
+def main():
+	if sys.argv[1].lower() == 'all':
+		for site in os.listdir():
+			if site.endswith('.edi'):
+				data = DS.RawData(site)
+				plot_site(data.sites[data.site_names[0]], save_fig=True)
+	else:
+		data = DS.RawData(sys.argv[1])
+		plot_site(data.sites[data.site_names[0]], save_fig=False)
 
 
 if __name__ == '__main__':
+	main()
 	# file = 'E:/Work/Regions/ATHA/Atha21_emtf/zxx/10124_2021-09-15-222830/13_flipHy_SL1.edi'
-	data = DS.RawData(sys.argv[1])
+	
 	# data = DS.RawData(file)
-	plot_site(data.sites[data.site_names[0]])
+	

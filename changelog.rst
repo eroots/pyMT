@@ -7,7 +7,9 @@ Change Log
 
   * Can now pass a single edi file as a list to be read
 
-  * Added script 'plot_edi.py' which can be called from anywhere and passed a single .edi file to plot the Rho, phase, and tipper data from.
+  * Added script 'plot_edi' which can be called from anywhere and passed a single .edi file to plot the Rho, phase, and tipper data from.
+
+    * Can also pass 'all' to iterate over all the EDIs in a folder and save the plots to png files.
 
 *12/02/24
 
