@@ -28,7 +28,7 @@ def write_list(transect, lst, data_type):
         lst = [file for file in lst if file[-5] in ending]
     else:
         lst = [file for file in lst if file.endswith(('edi', '.dat'))]
-    with open(''.join([transect, suffix, '.lst']), 'w') as f:
+    with open('all'.join([transect, suffix, '.lst']), 'w') as f:
 
         f.write(str(len(lst)) + '\n')
         for file in lst:
@@ -36,11 +36,15 @@ def write_list(transect, lst, data_type):
 
 
 if __name__ == '__main__':
-    if sys.argv[1].lower() == 'simple':
+    try:
+        if sys.argv[1].lower() == 'simple':
+            suffix = ['']
+            data_types = ['']
+        else:
+            suffix = [sys.argv[1]]
+            data_types = ['']
+    except IndexError:
         suffix = ['']
-        data_types = ['']
-    else:
-        suffix = [sys.argv[1]]
         data_types = ['']
         # suffix = ['DRY', 'ATT', 'RRV', 'STU',
         #           'CHI', 'COB', 'GER', 'LAR',

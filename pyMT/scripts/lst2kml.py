@@ -9,10 +9,9 @@ from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
 # transects = ['litho_bb', 'litho_lmt', 'metal_earth', 'usarray']
-transects = ['churchill_MT']
+transects = ['atha22']
 # Path to the list file
-list_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
-dat_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
+list_path = 'E:/Work/Regions/ATHA/Atha22/all_edi/temp/'
 # list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/cullmantle_separated/'
 # dat_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/'
 # Name of the list file(s) - these would go with your list of transects above
@@ -44,7 +43,7 @@ for ii, lst in enumerate(lists):
         kml_save_file = ''.join([kml_save_path, data_type, transects[ii], '.kml'])
         csv_save_file = ''.join([csv_save_path, transects[ii]])
         shp_save_file = ''.join([shp_save_path, data_type, transects[ii], '.shp'])
-        data = WSDS.RawData(listfile=list_file, datpath=dat_path)
+        data = WSDS.RawData(listfile=list_file)
         if write_csv:
             with open(''.join([csv_save_file, data_type, '_latlong.csv']), 'w') as f:
                 print('Writing CSV for {}'.format(transects[ii]))
