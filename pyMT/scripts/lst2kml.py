@@ -12,12 +12,16 @@ from pyMT.WSExceptions import WSFileError
 transects = ['atha22']
 # Path to the list file
 list_path = 'E:/Work/Regions/ATHA/Atha22/all_edi/temp/'
+transects = ['atha21_temp']
+# Path to the list file
+list_path = 'D:/Work/ATHA/Atha_21_processed_EDI/impedances/'
+# dat_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
 # list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/cullmantle_separated/'
 # dat_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/'
 # Name of the list file(s) - these would go with your list of transects above
 # lists = ['allsites.lst']
 # lists = ['litho_bb.lst', 'litho_lmt.lst', 'metal_earth.lst', 'usarray.lst']
-lists = ['allsites.lst']
+lists = ['unique.lst']
 # Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
 # data_type = 'BB_'
 data_type = ''
@@ -27,7 +31,7 @@ data_type = ''
 # kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 # csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 shp_save_path = 'E:/phd/NextCloud/data/ArcMap/MT-locations/stations/'
-kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+kml_save_path = 'C:/Users/eroots/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 
 # Set to true or false depending on what you want written
@@ -47,7 +51,7 @@ for ii, lst in enumerate(lists):
         if write_csv:
             with open(''.join([csv_save_file, data_type, '_latlong.csv']), 'w') as f:
                 print('Writing CSV for {}'.format(transects[ii]))
-                f.write('ID, Longitude, Latitude, Elevation\n')
+                f.write('ID, Longitude, Latitude, Elevation/n')
                 for site in data.site_names:
                     f.write('{}, {:>10.5f}, {:>10.5f}, {:>5.5f}\n'.format(site,
                                                                           data.sites[site].locations['Long'],

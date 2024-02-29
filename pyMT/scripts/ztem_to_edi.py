@@ -30,7 +30,7 @@ import pyMT.data_structures as DS
 import pyMT.utils as utils
 from copy import deepcopy
 from datetime import datetime
-import pkg_resources
+# import pkg_resources
 
 
 def to_edi(site, out_file, info=None, header=None, mtsect=None, defs=None):
