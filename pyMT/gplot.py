@@ -163,6 +163,7 @@ class DataPlotManager(object):
         self.mec = 'k'
         self.markersize = 5
         self.edgewidth = 2
+        self.edge_scale = 0.25
         self.label_fontsize = 14
         # self.sites = None
         self.tiling = [0, 0]
@@ -425,7 +426,10 @@ class DataPlotManager(object):
             else:
                 max_y = self.max_ylim
             axrange = max_y - min_y
-            self.axes[axnum].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
+            try:
+                self.axes[axnum].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
+            except ValueError:
+                self.axes[axnum].set_ylim([-1, 1])
         # if axnum is None:
         #         axnum = range(0, len(self.axes))
         # if self.link_axes_bounds:
@@ -498,7 +502,7 @@ class DataPlotManager(object):
         edgewidth = 0
         if marker == 'oo':
             marker = 'o'
-            edgewidth = self.edgewidth
+            edgewidth = self.edge_scale * self.markersize
         if marker == '-':
             marker = ''
             linestyle = self.linestyle
@@ -530,6 +534,9 @@ class DataPlotManager(object):
             try:
                 if 'rho' in comp.lower():
                     toplot, e, log10_e = utils.compute_rho(site, calc_comp=comp, errtype=errtype)
+                    # If there is dummy Z data then det, ssq, and gav calculations may give INFs.
+                    if np.any(np.isinf(toplot)) or np.any(np.isnan(toplot)):
+                        raise KeyError
                     ind = np.where(toplot == 0)[0]  # np.where returns a tuple, take first element
                     if ind.size != 0:
                         print('{} has bad points at periods {}'.format(site.name, site.periods[ind]))
@@ -551,6 +558,9 @@ class DataPlotManager(object):
                         toplot = site.data[comp]
                         e = site.used_error[comp]
                     # Otherwise use the associated PT object
+                    # If the site doesn't have all the impedance components, plot no data
+                    if not set(site.IMPEDANCE_COMPONENTS).issubset(set(site.components)):
+                        raise KeyError
                     elif 'pt' in comp.lower():
                         toplot = np.array([getattr(site.phase_tensors[ii],
                                                    comp.upper())
@@ -577,9 +587,13 @@ class DataPlotManager(object):
                         except AttributeError:  # If plotting PTs, toplotErr will be None
                             toplotErr = None
                 elif 'bost' in comp.lower():
-                    toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
-                    toplot = np.log10(toplot)
-                    toplotErr = None
+                    # If the site doesn't have Z data, det calculations will fail
+                    try:
+                        toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
+                        toplot = np.log10(toplot)
+                        toplotErr = None
+                    except ValueError:
+                        raise KeyError
                 else:
                     toplot = site.data[comp]
                     if Err is not None:
@@ -703,6 +717,7 @@ class MapView(object):
         self.site_exterior = {'generic': 'k', 'active': 'k'}
         self.markersize = 5
         self.edgewidth = 2
+        self.edge_scale = 0.255
         self.image_opacity = 0.33
         self._coordinate_system = 'local'
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
@@ -934,14 +949,14 @@ class MapView(object):
             ax.set_xlabel(xlabel, fontsize=self.label_fontsize)
         else:
             if self.coordinate_system.lower() in ('utm', 'local', 'lambert'):
-                ax.set_xlabel('Easting (km)', fontsize=self.label_fontsize)
+                ax.set_xlabel('Easting ({})'.format(self.data.spatial_units), fontsize=self.label_fontsize)
             else:
                 ax.set_xlabel(r'Longitude ($^{\circ}$)', fontsize=self.label_fontsize)
         if ylabel:
             ax.set_ylabel(ylabel, fontsize=self.label_fontsize)
         else:
             if self.coordinate_system.lower() in ('utm', 'local', 'lambert'):
-                ax.set_ylabel('Northing (km)', fontsize=self.label_fontsize)
+                ax.set_ylabel('Northing ({})'.format(self.data.spatial_units), fontsize=self.label_fontsize)
             else:
                 ax.set_ylabel(r'Latitude ($^{\circ}$)', fontsize=self.label_fontsize)
 
@@ -999,7 +1014,8 @@ class MapView(object):
         marker_size = {'generic': [self.markersize ** 2], 'active': [self.markersize ** 2]}
         facecolour = {'generic': 'None', 'active': 'None'}
         edgecolour = deepcopy(self.site_exterior)
-        edgewidth = deepcopy(self.edgewidth)
+        # edgewidth = deepcopy(self.edgewidth)
+        edgewidth = self.markersize * self.edge_scale
         cmin, cmax = 1, 1
         if self.plot_rms:
             # marker = 'o'
@@ -1498,9 +1514,10 @@ class MapView(object):
             if 'rho' in fill_param.lower():
                 data_label = 'Resistivity'
                 use_log = True
+                use_sites = [site for site in data.site_names if set(('ZXYR', 'ZYXR')).issubset(set(data.sites[site].real_components))]
                 if '-' in fill_param:
                     val = []
-                    for site in data.site_names:
+                    for site in use_sites:
                         val.append(utils.compute_rho(data.sites[site], calc_comp='xy', errtype='none')[0][period_idx] -
                                    utils.compute_rho(data.sites[site], calc_comp='yx', errtype='none')[0][period_idx])
                         val[-1] = np.sign(val[-1])*np.log10(np.abs(val[-1]))
@@ -1510,43 +1527,49 @@ class MapView(object):
                 else:
                     vals.append([np.log10(utils.compute_rho(site=data.sites[site],
                                                             calc_comp=fill_param,
-                                                            errtype='none')[0][period_idx]) for site in data.site_names])
+                                                            errtype='none')[0][period_idx]) for site in use_sites])
                 # vals.append(temp_vals)
             elif 'pha' in fill_param.lower():
                 data_label = 'Phase'
                 use_log = False
+                use_sites = [site for site in data.site_names if set(('ZXYR', 'ZYXR')).issubset(set(data.sites[site].real_components))]
                 if '-' in fill_param:
                     vals.append([utils.compute_phase(data.sites[site], calc_comp='xy', errtype='none', wrap=1)[0][period_idx] -
-                                 utils.compute_phase(data.sites[site], calc_comp='yx', errtype='none', wrap=1)[0][period_idx] for site in data.site_names])
+                                 utils.compute_phase(data.sites[site], calc_comp='yx', errtype='none', wrap=1)[0][period_idx] for site in use_sites])
                 else:
                     vals.append([utils.compute_phase(site=data.sites[site],
                                                      calc_comp=fill_param,
                                                      errtype='none',
-                                                     wrap=1)[0][period_idx] for site in data.site_names])
+                                                     wrap=1)[0][period_idx] for site in use_sites])
             elif 'tip' in fill_param.lower():
                 data_label = 'Tipper Amplitude'
                 use_log = False
+                use_sites = [site for site in data.site_names if set(data.TIPPER_COMPONENTS).issubset(set(data.sites[site].real_components))]
                 vals.append([np.sqrt((data.sites[site].data['TZXR'][period_idx] ** 2 +
-                                     data.sites[site].data['TZYR'][period_idx] ** 2)) for site in data.site_names])
+                                     data.sites[site].data['TZYR'][period_idx] ** 2)) for site in use_sites])
             elif 'absbeta' in fill_param.lower():
                 data_label = 'Skew'
                 use_log = False
-                vals.append([abs(np.rad2deg(data.sites[site].phase_tensors[period_idx].beta)) for site in data.site_names])
+                use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
+                vals.append([abs(np.rad2deg(data.sites[site].phase_tensors[period_idx].beta)) for site in use_sites])
             elif 'beta' in fill_param.lower():
                 data_label = 'Skew'
                 use_log = False
-                vals.append([np.rad2deg(data.sites[site].phase_tensors[period_idx].beta) for site in data.site_names])
+                use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
+                vals.append([np.rad2deg(data.sites[site].phase_tensors[period_idx].beta) for site in use_sites])
             elif 'azimuth' in fill_param.lower():
                 data_label = 'Azimuth'
                 use_log = False
-                vals.append([np.rad2deg(data.sites[site].phase_tensors[period_idx].azimuth) for site in data.site_names])
+                use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
+                vals.append([np.rad2deg(data.sites[site].phase_tensors[period_idx].azimuth) for site in use_sites])
             elif 'bost' in fill_param.lower():
                 data_label = 'Depth'
                 use_log = True
-                # vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='phase', comp=fill_param, filter_width=1)[1][period_idx]) for site in data.site_names])
+                use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
+                # vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='phase', comp=fill_param, filter_width=1)[1][period_idx]) for site in use_sites])
                 if '-' in fill_param:
                     val = []
-                    for site in data.site_names:
+                    for site in use_sites:
                         val.append(utils.compute_bost1D(data.sites[site], method='bostick', comp='xy', filter_width=1)[1][period_idx] -
                                    utils.compute_bost1D(data.sites[site], method='bostick', comp='yx', filter_width=1)[1][period_idx])
                         val[-1] = np.sign(val[-1])*np.log10(np.abs(val[-1]))
@@ -1555,19 +1578,22 @@ class MapView(object):
                     # vals.append([(utils.compute_bost1D(data.sites[site], method='bostick', comp='xy', filter_width=1)[1][period_idx] -
                                   # utils.compute_bost1D(data.sites[site], method='bostick', comp='yx', filter_width=1)[1][period_idx]) for site in data.site_names])
                 else:
-                    vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='bostick', comp=fill_param, filter_width=1)[1][period_idx]) for site in data.site_names])
+                    vals.append([np.log10(utils.compute_bost1D(data.sites[site], method='bostick', comp=fill_param, filter_width=1)[1][period_idx]) for site in use_sites])
             elif 'pt_split' in fill_param.lower():
                 data_label = 'Phase Split'
                 use_log = False
-                vals.append([data.sites[site].phase_tensors[period_idx].phi_split_pt for site in data.site_names])
+                use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
+                vals.append([data.sites[site].phase_tensors[period_idx].phi_split_pt for site in use_sites])
             elif 'phi_min' in fill_param.lower():
                 data_label = 'Phase'
                 use_log = False
-                vals.append([np.rad2deg(np.arctan(data.sites[site].phase_tensors[period_idx].phi_min)) for site in data.site_names])
+                use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
+                vals.append([np.rad2deg(np.arctan(data.sites[site].phase_tensors[period_idx].phi_min)) for site in use_sites])
             elif 'phi_max' in fill_param.lower():
                 data_label = 'Phase'
                 use_log = False
-                vals.append([np.rad2deg(np.arctan(data.sites[site].phase_tensors[period_idx].phi_max)) for site in data.site_names])
+                use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
+                vals.append([np.rad2deg(np.arctan(data.sites[site].phase_tensors[period_idx].phi_max)) for site in use_sites])
         if len(vals) == 1:
             vals = np.array(vals[0])
             diff = False
@@ -1590,7 +1616,9 @@ class MapView(object):
             good_idx = vals < self.induction_cutoff
         else:
             good_idx = abs(vals) < 1e10
-        loc_x, loc_y = self.site_locations['all'][good_idx, 1], self.site_locations['all'][good_idx, 0]
+        loc_idx = [ii for ii, site in enumerate(data.site_names) if site in use_sites]
+        use_locations = self.site_locations['all'][loc_idx, :]
+        loc_x, loc_y = use_locations[good_idx, 1], use_locations[good_idx, 0]
         loc_z = np.zeros(loc_x.shape)
         points = np.transpose(np.array((loc_x, loc_y, loc_z)))
         # min_x, max_x = (min(loc_x), max(loc_x))
@@ -1645,7 +1673,8 @@ class MapView(object):
         self.set_axis_limits()
         self.window['axes'][0].format_coord = format_model_coords(im,
                                               X=x_flat, Y=y_flat,
-                                              x_label='Easting', y_label='Northing',
+                                              x_label='Easting ({})'.format(self.data.spatial_units),
+                                              y_label='Northing ({})'.format(self.data.spatial_units),
                                               data_label=data_label,
                                               use_log=use_log)
 
@@ -1706,7 +1735,8 @@ class MapView(object):
         # ax.set_xlabel('Easting (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
-                                              x_label='Easting', y_label='Northing',
+                                              x_label='Easting ({})'.format(self.model.spatial_units),
+                                              y_label='Northing ({})'.format(self.model.spatial_units),
                                               data_label='Resistivity',
                                               use_log=True)
 
@@ -1737,12 +1767,14 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        self.set_axis_labels(ax=ax, xlabel='Easting (km)', ylabel='Depth (km)')
+        self.set_axis_labels(ax=ax, xlabel='Easting ({})'.format(self.model.spatial_units),
+                                    ylabel='Depth ({})'.format(self.model.spatial_units))
         # ax.set_xlabel('Easting (km)', fontsize=self.label_fontsize)
         # ax.set_ylabel('Depth (km)', fontsize=self.label_fontsize)
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
-                                              x_label='Easting', y_label='Depth')
+                                              x_label='Easting ({})'.format(self.model.spatial_units),
+                                              y_label='Depth ({})'.format(self.model.spatial_units))
 
     def plot_y_slice(self, ax=None, y_slice=0, orientation='xz', rho_axis='rho_x'):
         rho_axis = rho_axis.lower()
@@ -1765,14 +1797,14 @@ class MapView(object):
             X = np.array(self.model.dx)
             Y = np.array(self.model.dz)
             to_plot = np.squeeze(np.log10(vals[:, y_slice, :])).T
-            x_label = 'Northing (km)'
-            y_label = 'Depth (km)'
+            x_label = 'Northing ({})'.format(self.model.spatial_units)
+            y_label = 'Depth ({})'.format(self.model.spatial_units)
         else:
             Y = np.array(self.model.dx)
             X = np.array(self.model.dz)
             to_plot = np.squeeze(np.log10(vals[:, y_slice, :]))
-            y_label = 'Northing (km)'
-            x_label = 'Depth (km)'
+            y_label = 'Northing ({})'.format(self.model.spatial_units)
+            x_label = 'Depth ({})'.format(self.model.spatial_units)
         im = ax.pcolormesh(X, Y, to_plot,
                            cmap=self.cmap,
                            vmin=cax[0], vmax=cax[1],

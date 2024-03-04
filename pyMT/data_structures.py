@@ -2163,6 +2163,10 @@ class Site(object):
             print('Units {} not understood'.format(units))
 
     @property
+    def real_components(self):
+        return [component for component in self.components if not np.all(self.errors[component] == self.REMOVE_FLAG)]
+
+    @property
     def NP(self):
         return len(self.periods)
 

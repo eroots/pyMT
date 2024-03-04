@@ -1,5 +1,6 @@
 [console_scripts]
 data_plot = pyMT.DataGUI.data_plot:main
+f2l = pyMT.scripts.f2l:main
 gateway_mt = pyMT.GatewayGUI.gateway_main:main
 mesh_designer = pyMT.ModelGUI.mesh_designer:main
 model_viewer = pyMT.ModelGUI.model_viewer:main

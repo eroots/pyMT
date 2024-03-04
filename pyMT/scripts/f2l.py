@@ -34,8 +34,7 @@ def write_list(transect, lst, data_type):
         for file in lst:
             f.write(file + '\n')
 
-
-if __name__ == '__main__':
+def main():
     try:
         if sys.argv[1].lower() == 'simple':
             suffix = ['']
@@ -54,3 +53,7 @@ if __name__ == '__main__':
         lst = search_dir(suff)
         for data_type in data_types:
             write_list(suff, lst, data_type)
+
+
+if __name__ == '__main__':
+    main()    
