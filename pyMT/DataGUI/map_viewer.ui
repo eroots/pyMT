@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1291</width>
-    <height>1131</height>
+    <width>1369</width>
+    <height>959</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,20 +39,20 @@
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
     <size>
-     <width>175</width>
-     <height>1038</height>
+     <width>200</width>
+     <height>908</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>175</width>
+     <width>200</width>
      <height>524287</height>
     </size>
    </property>
@@ -64,16 +64,6 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_4">
-     <item>
-      <widget class="QPushButton" name="DEBUG">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Debug Button</string>
-       </property>
-      </widget>
-     </item>
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
@@ -535,6 +525,12 @@
      </item>
      <item>
       <widget class="QLabel" name="periodLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>Period: </string>
        </property>
@@ -568,7 +564,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1291</width>
+     <width>1369</width>
      <height>26</height>
     </rect>
    </property>
@@ -663,8 +659,16 @@
     <property name="title">
      <string>Axis Options</string>
     </property>
+    <widget class="QMenu" name="menuSpatial_Units">
+     <property name="title">
+      <string>Spatial Units</string>
+     </property>
+     <addaction name="actionKilometers"/>
+     <addaction name="actionMeters"/>
+    </widget>
     <addaction name="actionEqualAspect"/>
     <addaction name="actionLockAxis"/>
+    <addaction name="menuSpatial_Units"/>
    </widget>
    <widget class="QMenu" name="menuJPEG">
     <property name="toolTip">
@@ -1035,6 +1039,25 @@
    </property>
    <property name="text">
     <string>Labels</string>
+   </property>
+  </action>
+  <action name="actionKilometers">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Kilometers</string>
+   </property>
+  </action>
+  <action name="actionMeters">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Meters</string>
    </property>
   </action>
  </widget>

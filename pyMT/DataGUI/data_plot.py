@@ -317,7 +317,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.connect_widgets()
 
     def connect_widgets(self):
-        self.DEBUG.clicked.connect(self.DEBUG_FUNC)
+        # self.DEBUG.clicked.connect(self.DEBUG_FUNC)
         #  Connect induction arrow toggles
         if self.map.dataset.data.inv_type in (3, 5):
             self.toggle_dataInduction.clicked.connect(self.update_map)
@@ -493,6 +493,12 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.action_coordLatlong.setActionGroup(self.groupCoords)
         self.action_coordLambert.setActionGroup(self.groupCoords)
         self.groupCoords.triggered.connect(self.coord_system)
+        # Spatial Units
+        self.unitsGroup = QtWidgets.QActionGroup(self)
+        self.unitsGroup.addAction(self.actionKilometers)
+        self.unitsGroup.addAction(self.actionMeters)
+        self.unitsGroup.setExclusive(True)
+        self.unitsGroup.triggered.connect(self.set_spatial_units)
         # Pseudosection options
         self.actionIncludeOutliers.triggered.connect(self.set_pseudosection_options)
         self.actionStandardDeviation.triggered.connect(self.set_pseudosection_std)
@@ -643,6 +649,16 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.site_fill = True
         else:
             self.map.site_fill = False
+        self.update_map()
+
+    def set_spatial_units(self):
+        # for ds in self.stored_datasets.values():
+        if self.actionKilometers.isChecked():
+                # ds.spatial_units = 'km'
+            self.map.dataset.spatial_units = 'km'
+        elif self.actionMeters.isChecked():
+                # ds.spatial_units = 'm'
+            self.map.dataset.spatial_units = 'm'
         self.update_map()
 
     def set_pt_axis_ratio(self):
@@ -963,6 +979,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.map.site_names = sites
         self.map._active_sites = active_sites
         self.map._generic_sites = list(set(self.map.site_names) - set(self.map.active_sites))
+        if self.actionKilometers.isChecked():
+            self.map.dataset.spatial_units = 'km'
+        elif self.actionMeters.isChecked():
+            self.map.dataset.spatial_units = 'm'
         self.map.site_locations['generic'] = self.map.get_locations(
             sites=self.map.generic_sites)
         self.map.site_locations['active'] = self.map.get_locations(
@@ -1044,6 +1064,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if 'None' in PT_toggles['data'] and not induction_toggles['data']:
             self.map.plot_locations()
         self.set_axis_settings()
+        self.set_axis_labels()
         self.canvas.draw()
 
     def set_axis_settings(self):
@@ -1104,9 +1125,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
 
     def get_PT_toggles(self):
         toggles = {'data': [], 'fill': 'Alpha'}
-        if self.toggle_dataPhaseTensor.checkState()and self.map.dataset.data.sites:
+        if self.toggle_dataPhaseTensor.checkState() and self.map.dataset.data.sites:
             toggles['data'].append('data')
-        if self.toggle_responsePhaseTensor.checkState()and self.map.dataset.response.sites:
+        if self.toggle_responsePhaseTensor.checkState() and self.map.dataset.response.sites:
             toggles['data'].append('response')
         if self.toggle_nonePhaseTensor.checkState() or not toggles['data']:
             toggles['data'].append('None')
@@ -1611,7 +1632,6 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.medianSize.setMaximum(min([site.NP for site in self.dataset.raw_data.sites.values()]))
         else:
             self.medianSize.setMaximum(self.dataset.data.NP)
-        self.LockAxes.clicked.connect(self.link_axes)
         #  Set up Inversion Type action group
         self.InversionTypeGroup = QtWidgets.QActionGroup(self)
         self.InversionTypeGroup.addAction(self.inv_type1)
