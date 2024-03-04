@@ -6,6 +6,7 @@ import copy
 import re
 import shapefile
 import datetime
+from collections import OrderedDict
 
 REMOVE_FLAG = 1234567
 
@@ -704,15 +705,17 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
                 if (key[0] == 'Z' or key[0] == 'T') and (key != 'ZROT' and key != 'TROT'):
                     if blocks[key]:
                         data_block = read_data_block(blocks[key])
-                        if key[0] == 'Z':
-                            new_key = key[:4]
-                        else:
-                            new_key = ''.join(['TZ', key[1:3]])
                         if 'VAR' in key:
                             errors.update({new_key[:-1] + 'R': abs(data_block) * scaling_factor[key[0]]})
                             errors.update({new_key[:-1] + 'I': abs(data_block) * scaling_factor[key[0]]})
-                        # elif 'Z' in key:
-                        data.update({new_key: data_block * scaling_factor[key[0]]})
+                        else:
+                            if key[0] == 'Z':
+                                new_key = key[:4]
+                            else:
+                                new_key = ''.join(['TZ', key[1:3]])
+                            
+                            # elif 'Z' in key:
+                            data.update({new_key: data_block * scaling_factor[key[0]]})
                         # else:
                             # data.update({new_key: data_block})
                 elif key == 'ZROT' and blocks[key]:
@@ -878,7 +881,7 @@ def read_sites(listfile):
             try:
                 ns = int(ns)
             except ValueError:
-                site_names.insert(0, ns.strip('.edi').strip('.dat').strip())
+                site_names.insert(0, ns.replace('.edi','').replace('.dat','').strip())
             site_names = [name.replace('.dat', '') for name in site_names]
             site_names = [name.replace('.edi', '') for name in site_names]
 
@@ -2061,6 +2064,184 @@ def verify_input(message, expected, default=None):
                     return expected(ret)
                 except ValueError:
                     print('Format error. Try again')
+
+def write_edi(site, out_file, info=None, header=None, mtsect=None, defs=None):
+    freqs = [round(1/x, 8) for x in site.periods]
+    NP = len(freqs)
+    scale_factor = 1 / (4 * np.pi / 10000)
+    lat_deg, lat_min, lat_sec = utils.dd2dms(site.locations['Lat'])
+    long_deg, long_min, long_sec = utils.dd2dms(site.locations['Long'])
+    default_header = OrderedDict([('ACQBY', '"eroots"'),
+                                  ('FILEBY',   '"pyMT"'),
+                                  ('FILEDATE', datetime.datetime.today().strftime('%m/%d/%y')),
+                                  ('LAT', '{:d}:{:d}:{:4.2f}'.format(int(lat_deg), int(lat_min), lat_sec)),
+                                  ('LONG', '{:d}:{:d}:{:4.2f}'.format(int(long_deg), int(long_min), long_sec)),
+                                  ('ELEV', 0),
+                                  ('STDVERS', '"SEG 1.0"'),
+                                  # ('PROGVERS', '"ztem2edi {}"'.format(pkg_resources.get_distribution('ztem2edi').version)),
+                                  ('COUNTRY', 'CANADA'),
+                                  ('EMPTY', 1.0e+32)])
+    default_info = OrderedDict([('MAXINFO', 999),
+                                ('SURVEY ID', '""')])
+
+    default_defs = OrderedDict([('MAXCHAN', 1),
+                                ('MAXRUN', 999),
+                                ('MAXMEAS', 9999),
+                                ('UNITS', 'M'),
+                                ('REFTYPE', 'CART'),
+                                ('REFLAT', '{:d}:{:d}:{:4.2f}'.format(int(lat_deg), int(lat_min), lat_sec)),
+                                ('REFLONG', '{:d}:{:d}:{:4.2f}'.format(int(long_deg), int(long_min), long_sec))])
+    default_mtsect = OrderedDict([('SECTID', '""'),
+                                  ('NFREQ', site.NP),
+                                  ('HX', '1.01'),
+                                  ('HY', '2.01'),
+                                  ('HZ', '3.01')])
+    if info:
+        for key, val in info.items():
+            default_info.update({key: val})
+    info = default_info
+    if header:
+        for key, val in header.items():
+            default_header.update({key: val})
+    header = default_header
+    if mtsect:
+      for key, val in mtsect.items():
+            default_mtsect.update({key: val})
+    mtsect = default_mtsect
+    if defs:
+      for key, val in defs.items():
+            default_defs.update({key: val})
+    defs = default_defs
+
+    # Write the file
+    with open(out_file, 'w') as f:
+        f.write('>HEAD\n')
+        for key, val in header.items():
+            f.write('{}={}\n'.format(key, val))
+        f.write('\n')
+        
+        f.write('>INFO\n')
+        for key, val in info.items():
+            f.write('{}={}\n'.format(key, val))
+        f.write('\n')
+
+        f.write('>=DEFINEMEAS\n')
+        for key, val in defs.items():
+            f.write('{}={}\n'.format(key, val))
+        f.write('\n')
+        
+        f.write('>=MTSECT\n')
+        for key, val in mtsect.items():
+            f.write('{}={}\n'.format(key, val))
+        f.write('\n')
+
+        f.write('>FREQ //{}\n'.format(NP))
+        for freq in freqs:
+            f.write('{:>14.4E}'.format(freq))
+        f.write('\n\n')
+
+        if set(site.IMPEDANCE_COMPONENTS).issubset(set(site.components)):
+            f.write('>ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>14.3f}'.format(0))
+            f.write('\n\n')
+
+            f.write('>ZXXR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.data['ZXXR'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZXXI ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(-1 * scale_factor * site.data['ZXXI'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZXX.VAR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.errors['ZXXR'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZYYR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.data['ZYYR'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZYYI ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(-1 * scale_factor * site.data['ZYYI'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZYY.VAR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.errors['ZYYR'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZXYR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.data['ZXYR'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZXYI ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(-1 * scale_factor * site.data['ZXYI'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZXY.VAR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.errors['ZXYR'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZYXR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.data['ZYXR'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZYXI ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(-1 * scale_factor * site.data['ZYXI'][ii]))
+            f.write('\n\n')
+
+            f.write('>ZYX.VAR ROT=ZROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(scale_factor * site.errors['ZYXR'][ii]))
+            f.write('\n\n')
+
+        if set(site.TIPPER_COMPONENTS).issubset(set(site.components)):
+            f.write('>TROT //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>14.3f}'.format(0))
+            f.write('\n\n')
+
+            f.write('>TXR.EXP //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(site.data['TZXR'][ii]))
+            f.write('\n\n')
+
+            f.write('>TXI.EXP //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(-1 * site.data['TZXI'][ii]))
+            f.write('\n\n')
+
+            f.write('>TYR.EXP //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(site.data['TZYR'][ii]))
+            f.write('\n\n')
+
+            f.write('>TYI.EXP //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(-1 * site.data['TZYI'][ii]))
+            f.write('\n\n')
+
+            f.write('>TXVAR.EXP //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(site.errors['TZXR']))
+            f.write('\n\n')
+            f.write('>TYVAR.EXP //{}\n'.format(NP))
+            for ii in range(NP):
+                f.write('{:>18.7E}'.format(site.errors['TZYR']))
+            f.write('\n\n')
+
+        f.write('>END')
 
 
 def write_covariance(file_name, NX, NY, NZ, exceptions=None, sigma_x=0.3, sigma_y=0.3, sigma_z=0.3, num_smooth=1):

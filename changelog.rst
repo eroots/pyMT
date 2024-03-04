@@ -11,6 +11,10 @@ Change Log
 
     * Can also pass 'all' to iterate over all the EDIs in a folder and save the plots to png files.
 
+  * Fixed pseudosection plotting to ignore dummy data
+
+  * Map view axis labels will now respect the set spatial units (km or m)
+
 *12/02/24
 
   * Code and installation process updated to work with the latest versions of the dependencies

@@ -45,7 +45,7 @@ All of the GUIs (data_plot, mesh_designer, model_viewer) can now be accessed thr
 
 		gateway_mt
 
-This GUI is essentially just a table containing all the files needed for a series of datasets (where a dataset is any permutation of a list file, and inversion data/response/model files). 
+This GUI is essentially just a table containing all the files needed for a series of datasets (where a dataset is any permutation of a list file, and inversion data/response/model files). The list file is the only one which you must create - it is a text file (with a .lst extension) containing the list of EDI or j-format files to be read. You can use the 'f2l' console script to create a list file containing all j-format and EDI files within a given directory.
 
 Double click a cell to manually type paths to relevant files, or highlight a data set (a row in the table) and click 'Browse' to select files. You may select multiple files and the program will attempt to sort them into the correct locations.
 
