@@ -757,7 +757,7 @@ class MapView(object):
         self.phase_error_tol = 30
         self.include_outliers = True
         self.allowed_std = 3
-        self.units = 'm'
+        self.spatial_units = 'm'
         self.label_fontsize = 12
         self.mesh = False
         self.lut = 16
@@ -914,6 +914,18 @@ class MapView(object):
     def set_locations(self):
         self.site_locations['generic'] = self.get_locations(sites=self.generic_sites)
         self.site_locations['active'] = self.get_locations(sites=self.active_sites)
+        self.site_locations['all'] = self.get_locations(sites=self.site_names)
+
+    def set_spatial_units(self, units):
+        # This should be refactored - spatial units don't need to be set across 4 different objects?
+        if units.lower() in ('m', 'km'):
+            self.spatial_units = units
+            self.dataset.spatial_units = units
+            if self.site_data['raw_data']:
+                self.site_data['raw_data'].spatial_units = units
+            if self.site_data['data']:
+                self.site_data['data'].spatial_units = units
+
 
     def get_locations(self, sites=None, coordinate_system=None, inquire_only=False):
         if not coordinate_system:
@@ -1673,8 +1685,8 @@ class MapView(object):
         self.set_axis_limits()
         self.window['axes'][0].format_coord = format_model_coords(im,
                                               X=x_flat, Y=y_flat,
-                                              x_label='Easting ({})'.format(self.data.spatial_units),
-                                              y_label='Northing ({})'.format(self.data.spatial_units),
+                                              x_label='Easting ({})'.format(self.spatial_units),
+                                              y_label='Northing ({})'.format(self.spatial_units),
                                               data_label=data_label,
                                               use_log=use_log)
 
@@ -1735,8 +1747,8 @@ class MapView(object):
         # ax.set_xlabel('Easting (km)')
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
-                                              x_label='Easting ({})'.format(self.model.spatial_units),
-                                              y_label='Northing ({})'.format(self.model.spatial_units),
+                                              x_label='Easting ({})'.format(self.spatial_units),
+                                              y_label='Northing ({})'.format(self.spatial_units),
                                               data_label='Resistivity',
                                               use_log=True)
 
@@ -1767,14 +1779,14 @@ class MapView(object):
                            zorder=0,
                            edgecolor=edgecolor,
                            linewidth=self.linewidth)
-        self.set_axis_labels(ax=ax, xlabel='Easting ({})'.format(self.model.spatial_units),
-                                    ylabel='Depth ({})'.format(self.model.spatial_units))
+        self.set_axis_labels(ax=ax, xlabel='Easting ({})'.format(self.spatial_units),
+                                    ylabel='Depth ({})'.format(self.spatial_units))
         # ax.set_xlabel('Easting (km)', fontsize=self.label_fontsize)
         # ax.set_ylabel('Depth (km)', fontsize=self.label_fontsize)
         ax.format_coord = format_model_coords(im,
                                               X=X, Y=Y,
-                                              x_label='Easting ({})'.format(self.model.spatial_units),
-                                              y_label='Depth ({})'.format(self.model.spatial_units))
+                                              x_label='Easting ({})'.format(self.spatial_units),
+                                              y_label='Depth ({})'.format(self.spatial_units))
 
     def plot_y_slice(self, ax=None, y_slice=0, orientation='xz', rho_axis='rho_x'):
         rho_axis = rho_axis.lower()

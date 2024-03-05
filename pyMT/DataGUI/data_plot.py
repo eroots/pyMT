@@ -655,10 +655,11 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # for ds in self.stored_datasets.values():
         if self.actionKilometers.isChecked():
                 # ds.spatial_units = 'km'
-            self.map.dataset.spatial_units = 'km'
+            self.map.set_spatial_units('km')
         elif self.actionMeters.isChecked():
                 # ds.spatial_units = 'm'
-            self.map.dataset.spatial_units = 'm'
+            self.map.set_spatial_units('m')
+        self.map.set_locations()
         self.update_map()
 
     def set_pt_axis_ratio(self):
@@ -1064,7 +1065,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if 'None' in PT_toggles['data'] and not induction_toggles['data']:
             self.map.plot_locations()
         self.set_axis_settings()
-        self.set_axis_labels()
+        self.map.set_axis_labels()
         self.canvas.draw()
 
     def set_axis_settings(self):
@@ -1632,6 +1633,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.medianSize.setMaximum(min([site.NP for site in self.dataset.raw_data.sites.values()]))
         else:
             self.medianSize.setMaximum(self.dataset.data.NP)
+        self.LockAxes.clicked.connect(self.link_axes)
         #  Set up Inversion Type action group
         self.InversionTypeGroup = QtWidgets.QActionGroup(self)
         self.InversionTypeGroup.addAction(self.inv_type1)

@@ -15,6 +15,8 @@ Change Log
 
   * Map view axis labels will now respect the set spatial units (km or m)
 
+    * Corresponding menu item added to switch between them
+
 *12/02/24
 
   * Code and installation process updated to work with the latest versions of the dependencies
