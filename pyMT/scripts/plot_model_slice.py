@@ -73,7 +73,7 @@ def normalize_resolution(model, resolution):
 def pcolorimage(ax, x=None, y=None, A=None, **kwargs):
     img = PcolorImage(ax, x, y, A, **kwargs)
     img.set_extent([x[0], x[-1], y[0], y[-1]])  # Have to add this or the fig won't save...
-    ax.images.append(img)
+    # ax.images.append(img)
     ax.set_xlim(left=x[0], right=x[-1])
     ax.set_ylim(bottom=y[0], top=y[-1])
     ax.autoscale_view(tight=True)
