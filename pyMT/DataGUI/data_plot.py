@@ -471,7 +471,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.planSlice.valueChanged.connect(self.update_map)
             self.planSlice.setMinimum(0)
             self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
-            if self.map.dataset.model.rho_y != []:
+            if getattr(self.map.dataset.model, 'rho_y', None) is not None:
                 self.rhoAxis.addItem('rho_x / rho_y')
                 self.rhoAxis.addItem('rho_x / rho_z')
                 self.rhoAxis.addItem('rho_y / rho_z')
