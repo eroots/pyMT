@@ -671,6 +671,12 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
             # print('Location information extracted from DEFINEMEAS block')
             # lat, lon, elev = lat_define, lon_define, elev_define
             # print([lat, lon, elev])
+            if ((lat_define == 0) or (lon_define == 0) and (edi_locs_from.lower() == 'definemeas')):
+                print('Definemeas locations not set. Using Header')
+                edi_locs_from = 'head'
+            if ((lat_head == 0) or (lon_head == 0) and (edi_locs_from.lower() == 'head')):
+                print('Header locations not set. Using Definemeas')
+                edi_locs_from = 'definemeas'
             if edi_locs_from.lower() == 'definemeas':
                 return lat_define, lon_define, elev_define, def_error
             elif edi_locs_from.lower() == 'head':
