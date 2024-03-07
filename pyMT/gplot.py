@@ -74,14 +74,12 @@ class format_model_coords(object):
         self.Y = Y
         self.use_log = use_log
         self.data_label = data_label
-        # print([X, Y])
 
     def __call__(self, x, y):
         # col = int(x + 0.5)
         # row = int(y + 0.5)
         # if col >=0 and col < numcols and row >=0 and row < numrows:
         # val = X[row, col]
-        # print([x, y])
         for ix, xx in enumerate(self.X):
             if xx > x:
                 x_idx = min(ix, len(self.X) - 1) - 1
@@ -96,8 +94,6 @@ class format_model_coords(object):
         # y_idx = (np.abs(self.Y - y + 0.05)).argmin() - 1
         # vals = np.reshape(self.im.get_array(), [len(self.X), len(self.Y)])
         vals = np.array(self.im.get_array())
-        # print([vals.shape, len(self.Y), len(self.X), y_idx, x_idx])
-        # print([vals.size, self.X.size*self.Y.size])
         # Image data coming from pseudosections may be a different shape than model data
         # As model data passes cell edge locations, it will have +1 sizes
         if vals.size == self.X.size * self.Y.size:
@@ -632,11 +628,6 @@ class DataPlotManager(object):
                                          mew=edgewidth, picker=3)
                                          # capsize=5)
                 else:
-                    # print(['Inside6', Type])
-                    # if Type == 'smoothed_data':
-                        # print(toplot)
-                        # print([marker, linestyle])
-                    # print(toplotErr)
                     artist = ax.errorbar(np.log10(periods), toplot, xerr=None,
                                          yerr=toplotErr, marker=use_marker,
                                          linestyle=linestyle, color=self.get_designated_colour(comp, ii),
@@ -864,27 +855,6 @@ class MapView(object):
                                                                                                  # coordinate_system='lambert',
                                                                                                  # inquire_only=True)))[1])
                     self.model.project_model(system=coordinate_system, origin=station_center - correction)
-                    # elif coordinate_system.lower() == 'latlong':
-                        # self.model.to_latlong()
-                    # else:
-                        # self.model.to_local()
-                    # print('Model center shifted to: {}'.format(self.model.center))
-                # if self.model != []:
-                #     print('Correction factor is: {}'.format(correction))
-                #     if coordinate_system.lower() == 'utm':
-                #         station_center = np.array(utils.center_locs(np.fliplr(self.site_locations['all']))[1])
-                #         print('Station center at: {}'.format(station_center))
-                #         self.model.to_UTM(origin=station_center - correction)
-                #     elif coordinate_system.lower() == 'lambert':
-                #         station_center = np.array(utils.center_locs(np.fliplr(self.site_locations['all']))[1])
-                #         print('Station center at: {}'.format(station_center))
-                #         self.model.to_lambert(origin=station_center - correction)
-                #     elif coordinate_system.lower() == 'latlong':
-                #         self.model.to_latlong()
-                #     else:
-                #         self.model.to_local()
-                #     print('Model center shifted to: {}'.format(self.model.center))
-                # self.plot_locations()
 
     def verify_coordinate_system(self, coordinate_system):
         if coordinate_system.lower() == 'local':
@@ -1020,9 +990,6 @@ class MapView(object):
         return grid_vals, grid_x, grid_y, x_flat, y_flat
 
     def plot_locations(self):
-        # if not self.window['figure']:
-        #     print('No figure to plot to...')
-        #     return
         marker_size = {'generic': [self.markersize ** 2], 'active': [self.markersize ** 2]}
         facecolour = {'generic': 'None', 'active': 'None'}
         edgecolour = deepcopy(self.site_exterior)
@@ -1339,17 +1306,24 @@ class MapView(object):
         scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
                         (np.max(Y_all) - np.min(Y_all)) ** 2)
         good_idx = []
+        bad_idx = []
         for ii, site_name in enumerate(self.site_names):
             site = self.site_data[data_type[0]].sites[site_name]
             if len(data_type) == 1:
                 if bostick_depth:
                     depths = utils.compute_bost1D(site=site, method='phase', comp='aav', filter_width=1)[1]
                     period_idx = np.argmin(abs(bostick_depth - depths))
-                tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
-                                                                                          fill_param,
-                                                                                          site=site,
-                                                                                          period_idx=period_idx)
-
+                # Make sure the site actually has phase tensor data
+                if (np.all(np.array([site.used_error[comp][period_idx] for comp in site.components]) == site.REMOVE_FLAG) or
+                    (not site.phase_tensors) or site.phase_tensors[period_idx].remove_flag):
+                    bad_idx.append(ii)
+                    continue
+                else:
+                    tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
+                                                                                              fill_param,
+                                                                                              site=site,
+                                                                                              period_idx=period_idx)
+                
                 # if ((phase_tensor.rhoxy_error / phase_tensor.rhoxy < self.rho_error_tol) and
                 #     (phase_tensor.rhoyx_error / phase_tensor.rhoyx < self.rho_error_tol) and
                 #     (phase_tensor.phasexy_error < self.phase_error_tol) and
@@ -1367,11 +1341,8 @@ class MapView(object):
                         phi_x, phi_y = self.resize_ellipse(azimuth, phi_max)
 
                     norm_x, norm_y = (phi_x, phi_y)
-                    # good_idx.append(ii)
-                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phaseyx_error, rhoyx_error))
                 else:
                     cont = 0
-                    # print('Site: {} Phase error: {}, Rho error {}'.format(site_name, phaseyx_error, rhoyx_error))
                     phi_x, phi_y = self.generate_ellipse(phi)
                     norm_x, norm_y = (phi_x, phi_y)
             else:
@@ -1448,6 +1419,17 @@ class MapView(object):
                                               rotation=270,
                                               labelpad=20,
                                               fontsize=18)
+
+        if bad_idx:
+            self.window['axes'][0].scatter(self.site_locations['all'][bad_idx, 1],
+                                           self.site_locations['all'][bad_idx, 0],
+                                           marker=self.site_marker,
+                                           s=self.markersize ** 2,
+                                           edgecolors=self.site_exterior['generic'],
+                                           linewidths=self.markersize * self.edge_scale,
+                                           # facecolors=facecolour,
+                                           c=self.site_interior,
+                                           zorder=9)
         self.set_axis_limits()
 
     @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str)
@@ -1464,10 +1446,13 @@ class MapView(object):
         scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
                         (np.max(Y_all) - np.min(Y_all)) ** 2)
         good_idx = []
+        bad_idx = []
         for ii, site_name in enumerate(self.site_names):
 
             site = self.site_data[data_type[0]].sites[site_name]
-            if np.all(np.array([site.used_error[comp][period_idx] for comp in site.components]) == site.REMOVE_FLAG):
+            if (np.all(np.array([site.used_error[comp][period_idx] for comp in site.components]) == site.REMOVE_FLAG) or
+                    (not site.phase_tensors) or site.phase_tensors[period_idx].remove_flag):
+                bad_idx.append(ii)
                 continue
             tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
                                                                                       fill_param,
@@ -1879,7 +1864,6 @@ class MapView(object):
                         # (np.max(np.log10(periods[0])) - np.log10(np.min(periods[1]))) ** 2)
         x_scale = (np.max(X) - np.min(X))
         y_scale = (np.log10(periods[1]) - np.log10(periods[0]))
-        # print([x_scale, y_scale])
         X_all, Y_all = [], []
         for ii, site_name in enumerate(sites):
             site = self.site_data[data_type].sites[site_name]
@@ -1948,9 +1932,7 @@ class MapView(object):
         x_min, x_max = min(X_all), max(X_all)
         y_min, y_max = min(Y_all), max(Y_all)
         xlim = [x_min - x_diff/10, x_max + x_diff/10]
-        ylim = [y_min - y_diff/10, y_max + y_diff/10]
-        # print([x_min, x_max, x_diff])
-        # print([y_min, y_max, y_diff])        
+        ylim = [y_min - y_diff/10, y_max + y_diff/10]      
         aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])
         self.set_axis_limits(bounds=xlim + ylim)
         self.window['axes'][0].set_aspect(aspect)
@@ -2055,8 +2037,6 @@ class MapView(object):
         y_diff = abs(max(Y_all) - min(Y_all))
         x_min, x_max = min(X_all), max(X_all)
         y_min, y_max = min(Y_all), max(Y_all)
-        # print([x_min, x_max, x_diff])
-        # print([y_min, y_max, y_diff])
         xlim = [x_min - x_diff/10, x_max + x_diff/10]
         ylim = [y_min - y_diff/10, y_max + y_diff/10]
         aspect = self.ellipse_VE * (xlim[1] - xlim[0]) / (ylim[1] - ylim[0])

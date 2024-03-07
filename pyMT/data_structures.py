@@ -3030,16 +3030,17 @@ class RawData(object):
                         self.sites[site].used_error[comp][ii] = self.sites[site].REMOVE_FLAG
 
 
-
-    def average_rho(self, fwidth=1):
+    def average_rho(self, fwidth=0.85, comp='det'):
         avg = []
+        all_avg = []
         for site in self.sites.values():
-            to_smooth = utils.compute_rho(site, calc_comp='det', errtype='none')[0]
+            to_smooth = utils.compute_rho(site, calc_comp=comp, errtype='none')[0]
             smoothed_data = utils.geotools_filter(np.log10(site.periods),
                                                   to_smooth,
                                                   fwidth=fwidth, use_log=True)
             avg.append(np.mean(smoothed_data))
-        return 10 ** np.nanmean(np.log10(avg)), avg
+            all_avg.append(smoothed_data)
+        return 10 ** np.nanmean(np.log10(avg)), avg, all_avg
 
     def remove_periods(self, site_dict):
         for site, periods in site_dict.items():
