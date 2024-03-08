@@ -979,6 +979,11 @@ class MapView(object):
                            [0, 1, 1]]
             grid_vals = np.squeeze(nn.griddata(points, vals, grid_ranges))                           
         elif 'rbf' in self.interpolant.lower():
+            # Fix any duplicate points first
+            # Rough hack, just add one centimeter to every point
+            if len(np.unique(points[:, :2])) != len(points[:, :2]):
+                for ii in range(len(points)):
+                    points[ii, :2] += ii / 100
             grid = np.array([grid_x, grid_y])
             query_points = np.rollaxis(grid, 0, 3).reshape((grid.shape[1] * grid.shape[2], 2))
             grid_vals = RBFInterpolator(points[:, :2],
