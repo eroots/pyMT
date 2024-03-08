@@ -380,10 +380,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.canvas['2D'].draw()
 
     def update_plan_title(self):
-        if self.depthLabelRange.isChecked():
+        if self.depthLabelCenter.isChecked():
             self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
                                                  ', Depth = '+'{:.3g}'.format((self.model.dz[self.z_slice]+self.model.dz[self.z_slice-1])/2)+' km', fontsize=self.map.label_fontsize)
-        elif self.depthLabelCenter.isChecked():
+        elif self.depthLabelRange.isChecked():
             self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
                                                  ', Depth = '+'{:.3g}'.format(self.model.dz[self.z_slice-1])+u'\u2013'+'{:.3g}'.format(self.model.dz[self.z_slice])+' km', fontsize=self.map.label_fontsize)
         self.canvas['2D'].draw()
