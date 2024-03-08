@@ -2866,7 +2866,7 @@ class RawData(object):
                            'TZXR', 'TZXI',
                            'TZYR', 'TZYI')
 
-    def __init__(self, listfile='', datpath='', zero_azimuth=True, edi_locs_from='definemeas'):
+    def __init__(self, listfile='', datpath='', zero_azimuth=True, edi_locs_from='definemeas', progress_bar=None):
         """Summary
 
         Args:
@@ -2878,7 +2878,7 @@ class RawData(object):
         self.datpath = datpath
         self.listfile = listfile
         if listfile:
-            self.__read__(listfile, datpath, edi_locs_from=edi_locs_from)
+            self.__read__(listfile, datpath, edi_locs_from=edi_locs_from, progress_bar=progress_bar)
             self.initialized = True
         else:
             self.sites = {}
@@ -2974,7 +2974,7 @@ class RawData(object):
     def NS(self):
         return len(self.site_names)
 
-    def __read__(self, listfile, datpath='', edi_locs_from='definemeas'):
+    def __read__(self, listfile, datpath='', edi_locs_from='definemeas', progress_bar=None):
         """Summary
 
         Args:
@@ -2985,10 +2985,16 @@ class RawData(object):
             TYPE: Description
         """
         self.site_names = IO.read_sites(listfile)
-        all_data = IO.read_raw_data(self.site_names, datpath, edi_locs_from=edi_locs_from)
+        all_data = IO.read_raw_data(self.site_names, datpath, 
+                                    edi_locs_from=edi_locs_from, progress_bar=progress_bar)
         self.sites = {}
+        cc = len(all_data)
         for site_name, site in all_data.items():
             try:
+                if progress_bar:
+                    progress_bar.setLabelText('Initializing sites...')
+                    progress_bar.setValue(cc)
+                    cc += 1
                 self.sites.update({site_name:
                                    Site(name=site_name,
                                         data=site['data'],
@@ -3019,6 +3025,9 @@ class RawData(object):
         self.locations = Data.get_locs(self)
         self.datpath = datpath
         self.listfile = listfile
+        if progress_bar:
+            progress_bar.setValue(progress_bar.maximum())
+
 
     def set_remove_flags(self):
         # Likely some other conditions here for flagging, but this is the one I need to handle now.
@@ -3094,6 +3103,8 @@ class RawData(object):
                          for name in sites])
         if mode.lower() == 'lambert':
             locs = np.fliplr(np.array(utils.to_lambert(locs[:, 0], locs[:, 1])).T)
+            if self.spatial_units == 'km':
+                locs = locs / 1000
         if azi != 0:
             locs = utils.rotate_locs(locs, azi)
         if mode.lower() == 'centered':

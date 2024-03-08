@@ -20,10 +20,11 @@ from copy import deepcopy
 import numpy as np
 import pyvista as pv
 pv.set_plot_theme('dark')
+pv.global_theme.allow_empty_mesh = True
 pv.global_theme.font.size = 10
 pv.global_theme.font.family = 'arial'
 from pyvistaqt import QtInteractor
-import pyMT.data_structures as WSDS
+import pyMT.data_structures as DS
 from pyMT.utils import sort_files, check_file
 import pyMT.e_colours.colourmaps as cm
 from pyMT.GUI_common import classes
@@ -47,6 +48,7 @@ except ImportError:
 
 
 path = ospath.dirname(ospath.realpath(__file__))
+
 with pkg_resources.path(resources, 'model_viewer.jpg') as p:
     model_viewer_jpg = str(p)
 # model_viewer_jpg = str(next(pkg_resources.path(resources, 'model_viewer.jpg').func(resources, 'model_viewer.jpg')))
@@ -95,25 +97,31 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # Add the model
         self.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
         if files.get('data', None):
-            self.dataset = WSDS.Dataset(modelfile=files['model'],
+            self.dataset = DS.Dataset(modelfile=files['model'],
                                         datafile=files['data'])
         elif files.get('response', None):
-            self.dataset = WSDS.Dataset(modelfile=files['model'],
+            self.dataset = DS.Dataset(modelfile=files['model'],
                                         datafile=files['response'])
         else:
-            self.dataset = WSDS.Dataset(modelfile=files['model'])
+            self.dataset = DS.Dataset(modelfile=files['model'])
             print('No data file given. Site locations will not be available.')
+        # If there is a list, get it but don't load it until needed
+        if files.get('list', None):
+            self.list_file = files['list']
+        else:
+            self.list_file = None
+        self.raw_data = None
         # try:
-            # self.dataset = WSDS.Dataset(modelfile=files['model'],
+            # self.dataset = DS.Dataset(modelfile=files['model'],
                                         # datafile=files['data'])
         # except KeyError:
-            # self.dataset = WSDS.Dataset(modelfile=files['model'])
+            # self.dataset = DS.Dataset(modelfile=files['model'])
         if self.dataset.model.dimensionality == '2d':
             # idx = np.argmin(abs(np.array(self.dataset.model.dy)))
             self.dataset.data.locations[:, 1] += self.dataset.model.dy[0] #sum(self.dataset.model.dy[:idx])
         if files.get('resolution', None):
             try:
-                self.resolution = WSDS.Model(files['resolution'])
+                self.resolution = DS.Model(files['resolution'])
                 self.use_resolution = 'Resolution'
             except ValueError:
                 with open(files['resolution'], 'r') as f:
@@ -152,6 +160,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         fileMenu = mainMenu.addMenu('File')
         self.colourMenu = classes.ColourMenu(self)
         mainMenu.addMenu(self.colourMenu)
+        self.coordinateMenu = classes.CoordinateMenu(self)
+        mainMenu.addMenu(self.coordinateMenu)
+        self.spatial_units = self.coordinateMenu.default_units
+        self.coordinate_system = self.coordinateMenu.default_system
         exitButton = QtWidgets.QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
         exitButton.triggered.connect(self.close)
@@ -385,7 +397,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                                  ', Depth = '+'{:.3g}'.format((self.model.dz[self.z_slice]+self.model.dz[self.z_slice-1])/2)+' km', fontsize=self.map.label_fontsize)
         elif self.depthLabelRange.isChecked():
             self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
-                                                 ', Depth = '+'{:.3g}'.format(self.model.dz[self.z_slice-1])+u'\u2013'+'{:.3g}'.format(self.model.dz[self.z_slice])+' km', fontsize=self.map.label_fontsize)
+                                                 ', Depth = '+'{:.3g} {}'.format(self.model.dz[self.z_slice-1])+u'\u2013'+'{:.3g}'.format(self.model.dz[self.z_slice], self.spatial_units),
+                                                  fontsize=self.map.label_fontsize)
         self.canvas['2D'].draw()
 
     def update_slice_indicators(self, direction='xy', redraw=True):
@@ -479,6 +492,13 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.colourMenu.lut.triggered.connect(self.set_lut)
         self.colourMenu.map.invert_cmap.triggered.connect(self.change_cmap)
         # self.colourMenu.all_maps[self.colourmap].setChecked(True)
+        # Coordinate options
+        self.coordinateMenu.systemGroup.triggered.connect(self.set_coordinate_system)
+        self.coordinateMenu.unitGroup.triggered.connect(self.set_spatial_units)
+        self.coordinateMenu.all_systems['LatLong'].setEnabled(False)
+        if not self.list_file:
+            self.coordinateMenu.all_systems['Lambert'].setEnabled(False)
+            self.coordinateMenu.all_systems['UTM'].setEnabled(False)
         # 2-D Plot options
         self.mesh_group.triggered.connect(self.show_mesh)
         self.depthTitles = QtWidgets.QActionGroup(self)
@@ -524,6 +544,42 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.rho_axis_group.setEnabled(False)
         else:
             self.rho_axis_group.triggered.connect(self.change_rho_axis)
+
+    def set_spatial_units(self):
+        self.spatial_units = self.coordinateMenu.unitGroup.checkedAction().text().lower()
+        self.dataset.spatial_units = self.spatial_units
+        self.model.spatial_units = self.spatial_units
+        self.clip_model.spatial_units = self.spatial_units
+        self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
+        self.map.set_locations()
+        self.locs_3D[:, 0] = self.dataset.data.locations[:, 1]
+        self.locs_3D[:, 1] = self.dataset.data.locations[:, 0]
+        camera = self.vtk_widget.camera_position
+        if self.spatial_units == 'km':
+            camera = [[x / 1000 for x in p1] for p1 in camera]        
+        else:
+            camera = [[x * 1000 for x in p1] for p1 in camera]        
+        self.update_all(reset_camera=False)
+        self.vtk_widget.camera_position = camera
+
+
+    def set_coordinate_system(self):
+        # Check to see if the list has been loaded already
+        if not self.raw_data:
+            # If not, load it
+            if self.list_file:
+                try:
+                    with open(self.list_file, 'r') as f:
+                        lines = f.readlines()
+                        num_files = len(lines)
+                    progress_bar = QtWidgets.QProgressDialog('Loading data...', 'Cancel', 0, (num_files-1)*2, self)
+                    QtGui.QGuiApplication.instance().processEvents()
+                    # progress_bar.setMinimumDuration(2000)
+                    self.raw_data = DS.RawData(listfile=self.list_file, progress_bar=progress_bar)
+
+                except FileNotFoundError:
+                    QtWidgets.QMessageBox.warning(self, '...', 'List file not found - Coordinate system cannot be changed.')
+
 
     def change_rho_axis(self):
         self.rho_axis = self.rho_axis_group.checkedAction().text().lower()
@@ -1035,9 +1091,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                     axes_ranges=[round(self.clip_model.dy[0], -1), round(self.clip_model.dy[-1],-1),
                                                  round(self.clip_model.dx[0], -1), round(self.clip_model.dx[-1],-1),
                                                 -round(self.clip_model.dz[-1], -1), round(self.clip_model.dz[0],-1)],
-                                    xtitle='Easting (km)',
-                                    ytitle='Northing (km)',
-                                    ztitle='Depth (km)',
+                                    xtitle='Easting ({})'.format(self.spatial_units),
+                                    ytitle='Northing ({})'.format(self.spatial_units),
+                                    ztitle='Depth ({})'.format(self.spatial_units),
                                     font_family='arial',
                                     grid=True,
                                     location='outer',
@@ -1197,8 +1253,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
                                              vmin=self.cax[0], vmax=self.cax[1],
                                              cmap=self.cmap)
         self.fig_transect.axes[0].invert_yaxis()
-        self.fig_transect.axes[0].set_xlabel('Linear Distance (km)')
-        self.fig_transect.axes[0].set_ylabel('Depth (km)')
+        self.fig_transect.axes[0].set_xlabel('Linear Distance ({})'.format(self.spatial_units))
+        self.fig_transect.axes[0].set_ylabel('Depth ({})'.format(self.spatial_units))
         self.canvas['transect'].draw()
         self.plot_transect_line()
         self.plot_transect_markers()
@@ -1272,12 +1328,12 @@ def main():
             return
     files = sort_files(files=files)
     # try:
-    #     data = WSDS.Data(datafile=files['dat'])
+    #     data = DS.Data(datafile=files['dat'])
     # except KeyError:
     #     print('No data file given. Site locations will not be available.')
     #     data = None
     try:
-        model = WSDS.Model(files['model'])
+        model = DS.Model(files['model'])
     except KeyError:
         print('Model must be specified')
         return

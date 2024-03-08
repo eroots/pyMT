@@ -488,7 +488,7 @@ def read_model(modelfile='', file_format='modem3d'):
         raise(WSFileError(ID='fnf', offender=modelfile))
 
 
-def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
+def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_bar=None):
     """Summary
 
     Args:
@@ -837,7 +837,10 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas'):
         path = './'
     all_dats = [file for file in os.listdir(path) if file.endswith('.dat')]
     # all_edi = [file for file in os.listdir(path) if file.endswith('.edi')]
-    for site in site_names:
+    for ii, site in enumerate(site_names):
+        if progress_bar:
+            progress_bar.setLabelText('Reading Data...')
+            progress_bar.setValue(ii)
         # Look for J-format files first
         # print(site)
         if ''.join([site, '.dat']) in all_dats:

@@ -241,6 +241,35 @@ class TwoInputDialog(QtWidgets.QDialog):
                 result = False
         return inputs, result
 
+class CoordinateMenu(QtWidgets.QMenu):
+    def __init__(self, parent=None):
+        super(QtWidgets.QMenu, self).__init__(parent)
+        self.default_units = 'km'
+        self.default_system = 'Local'
+        self.all_systems = {x: None for x in ('Local',
+                                              'Lambert',
+                                              'UTM',
+                                              'LatLong')}
+        self.all_units = {x: None for x in ('km',
+                                            'm')}
+        self.setTitle('Coordinate Options')
+        self.unitMenu = self.addMenu('Units')
+        self.unitGroup = QtWidgets.QActionGroup(self)
+        self.systemMenu = self.addMenu('Coordinate System')
+        self.systemGroup = QtWidgets.QActionGroup(self)
+        for item in self.all_systems.keys():
+            self.all_systems[item] = QtWidgets.QAction(item, parent, checkable=True)
+            self.systemMenu.addAction(self.all_systems[item])
+            self.systemGroup.addAction(self.all_systems[item])
+        for item in self.all_units.keys():
+            self.all_units[item] = QtWidgets.QAction(item, parent, checkable=True)
+            self.unitMenu.addAction(self.all_units[item])
+            self.unitGroup.addAction(self.all_units[item])
+        self.unitGroup.setExclusive(True)
+        self.systemGroup.setExclusive(True)
+        self.all_systems[self.default_system].setChecked(True)
+        self.all_units[self.default_units].setChecked(True)
+        
 
 class ColourMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
