@@ -1,11 +1,13 @@
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
-from PyQt5 import QtWidgets, Qt
+from PyQt5 import QtWidgets
 from PyQt5.uic import loadUiType
+from PyQt5.QtCore import QThread, pyqtSignal, QObject, pyqtSlot, Qt
 import pyMT.utils as utils
+from pyMT.data_structures import RawData, Model, Data
 import re
 import os
-
+import time
 
 path = os.path.dirname(os.path.realpath(__file__))
 UiPopupMain, QPopupWindow = loadUiType(os.path.join(path, 'saveFile.ui'))
@@ -241,6 +243,7 @@ class TwoInputDialog(QtWidgets.QDialog):
                 result = False
         return inputs, result
 
+
 class CoordinateMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
         super(QtWidgets.QMenu, self).__init__(parent)
@@ -317,6 +320,122 @@ class ColourMenu(QtWidgets.QMenu):
         inputs, ret = QtWidgets.QInputDialog.getInt(self, 'LUT', 'Number of Colour Intervals:', 
                                                     initial, 1, 1024, 2)
         return inputs, ret
+
+
+class IOWorker(QObject):
+    finished = pyqtSignal()
+    # raw_load = pyqtSignal()
+    # raw_init = pyqtSignal()
+    # data_load = pyqtSignal()
+    # data_init = pyqtSignal()
+    # response_load = pyqtSignal()
+    # response_init = pyqtSignal()
+    # model_load = pyqtSignal()
+    # model_init = pyqtSignal()
+    input_load = pyqtSignal(str)
+    input_init = pyqtSignal(str)
+    counter = pyqtSignal()
+
+    def __init__(self, file_dict):
+        super().__init__()
+        self.file_dict = file_dict
+        self.ret_val = {}
+
+    @pyqtSlot()
+    def proc_counter(self):  # A slot takes no params
+
+        for key, val in self.file_dict.items():
+            if key == 'list':
+                self.ret_val.update({'raw_data': RawData(listfile=self.file_dict['list'], progress_bar=self)})
+            elif key == 'data':
+                self.ret_val.update({'data': Data(datafile=self.file_dict['data'], progress_bar=self)})
+            elif key == 'model':
+                self.ret_val.update({'model': Model(modelfile=self.file_dict['model'], progress_bar=self)})
+        self.finished.emit()
+
+
+class PopUpProgress(QtWidgets.QWidget):
+
+    finished = pyqtSignal()
+
+    def __init__(self, file_dict):
+        super().__init__()
+        self.pbar = QtWidgets.QProgressBar(self)
+        self.pbar.setGeometry(30, 40, 500, 75)
+        self.pbar.setTextVisible(True)
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.addWidget(self.pbar)
+        self.setLayout(self.layout)
+        self.setGeometry(300, 300, 550, 100)
+        self.setWindowTitle('Progress Bar')
+        self.file_dict = file_dict
+        self.ret_val = 'Still Nothing'
+        self.counter = 0
+        self.set_maximum()
+        # self.show()
+
+        self.obj = IOWorker(file_dict=file_dict)
+        self.thread = QThread()
+        self.obj.counter.connect(self.on_count_changed)
+        self.obj.moveToThread(self.thread)
+        self.obj.finished.connect(self.quit_thread)
+        self.obj.input_load.connect(self.input_load)
+        self.obj.input_init.connect(self.input_init)
+        self.obj.finished.connect(self.close_bar)  # To hide the progress bar after the progress is completed
+        self.thread.started.connect(self.obj.proc_counter)
+        # self.thread.start()  # This was moved to start_progress
+
+    def input_init(self, input):
+        if input.lower() == 'raw':
+            self.currentMessage = 'Initializing RawData structure...'
+        elif input.lower() == 'model':
+            self.currentMessage = 'Initializing Model structure...'
+        elif input.lower() == 'data':
+            self.currentMessage = 'Initializing Data structure...'
+
+    def input_load(self, input):
+        if input.lower() == 'raw':
+            self.currentMessage = 'Loading raw data files...'
+        elif input.lower() == 'model':
+            self.currentMessage = 'Loading inversion model...'
+        elif input.lower() == 'data':
+            self.currentMessage = 'Loading inversion data...'
+
+    def set_maximum(self):
+        maximum = 0
+        for key, val in self.file_dict.items():
+            if key == 'list':
+                with open(self.file_dict['list'], 'r') as f:
+                    lines = f.readlines()
+                    maximum += len(lines)*2 - 2
+            elif key == 'data':
+                NS, NP = read_data_header(val)
+                maximum += NS
+            elif key == 'model':
+                maximum += 15
+
+        self.pbar.setMaximum(maximum)
+
+    def start_progress(self):  # To restart the progress every time
+        self.show()
+        self.thread.start()
+
+    def on_count_changed(self):
+        self.counter += 1
+        self.pbar.setValue(self.counter)
+        self.pbar.setFormat(self.currentMessage)
+        self.pbar.setAlignment(Qt.AlignCenter)
+
+    def close_bar(self):
+        self.ret_val = self.obj.ret_val
+        self.counter = 0
+        self.hide()
+
+    def quit_thread(self):
+        self.ret_val = self.obj.ret_val
+        self.thread.quit()
+        self.finished.emit()
+        self.close()
 
 
 class FileInputParser(object):

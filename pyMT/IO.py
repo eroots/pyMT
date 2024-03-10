@@ -839,8 +839,11 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
     # all_edi = [file for file in os.listdir(path) if file.endswith('.edi')]
     for ii, site in enumerate(site_names):
         if progress_bar:
-            progress_bar.setLabelText('Reading Data...')
-            progress_bar.setValue(ii)
+            if ii == 0:
+                progress_bar.input_load.emit('raw')
+            progress_bar.counter.emit()
+        #     progress_bar.setLabelText('Reading Data...')
+        #     progress_bar.setValue(ii)
         # Look for J-format files first
         # print(site)
         if ''.join([site, '.dat']) in all_dats:
@@ -1014,6 +1017,85 @@ def read_occam_response(respfile, data, sites):
                                                                  data[site]['periods'],
                                                                  'yx')
         return response
+
+
+def read_data_header(datafile=None, file_format=None):
+    # Just read whatever is necessary to get the number of sites, periods, components from the file
+
+    def read_ws_header(datafile):
+        with open(datafile, 'r') as f:
+            header = f.readline().strip().split()
+            NS, NP, NC, bg = [int(x) for x in header]
+        return NS, NP
+
+    def read_modem_header(datafile):
+        lines = []
+        with open(datafile, 'r') as f:
+            lines.append(f.readline().strip())
+            while True:
+                lines.append(f.readline().strip())
+                if lines[-1][0] not in ('#', '>'):
+                    break
+        NP, NS = [int(x) for x in lines[-2].split()[1:]]
+        return NS, NP
+
+    def read_em3dani_header(datafile):
+        pass
+
+    def read_mare2dem_header(datafile):
+        cc = 0
+        with open(datafile, 'r') as f:
+            while cc < 2:
+                line = f.readline()
+                if 'mt frequencies' in line.lower():
+                    NP = int(line.strip().split()[-1])
+                    cc += 1
+                if 'mt receivers' in line.lower():
+                    NS = int(line.strip().split()[-1])
+                    cc += 1
+        return NS, NP
+
+    ext = os.path.splitext(datafile)[1]
+    if not file_format:
+        if ext == '.emdata':
+            file_format = 'MARE2DEM'
+        elif ext == '.dat':
+            file_format = 'ModEM'
+        elif ext == '.adat' or ext == '.resp':
+            file_format = 'em3dani'
+        elif ext == '.data' or 'resp' in datafile:
+            file_format = 'WSINV3DMT'
+
+    if file_format.lower() == 'wsinv3dmt':
+        # WSINV, em3dani, and ModEM may share the same .data file extension, so try them all
+        try:
+            return read_ws_header(datafile)
+        except ValueError:
+            pass
+        try:
+            return read_em3dani_header(datafile)
+        except IndexError:
+            pass
+        try:
+            return read_modem_header(datafile)
+        except ValueError:
+            print('Output format {} not recognized'.format(file_format))
+            raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
+                                                                        'wsinv3dmt',
+                                                                        'ModEM',
+                                                                        'em3dani'))    
+    elif file_format.lower() == 'modem':
+        return read_modem_header(datafile)
+    elif file_format.lower() == 'mare2dem':
+        return read_mare2dem_header(datafile)
+    elif file_format.lower() == 'em3dani':
+        return read_em3dani_header(datafile)
+    else:
+        print('Output format {} not recognized'.format(file_format))
+        raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
+                                                                    'wsinv3dmt',
+                                                                    'ModEM',
+                                                                    'em3dani'))
 
 
 def read_data(datafile='', site_names='', file_format='modem', invType=None):

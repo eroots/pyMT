@@ -108,9 +108,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         # If there is a list, get it but don't load it until needed
         if files.get('list', None):
             self.list_file = files['list']
+            # self.progress_bar = classes.PopUpProgress()
         else:
             self.list_file = None
-        self.raw_data = None
+        self.raw_data_initalized = False
         # try:
             # self.dataset = DS.Dataset(modelfile=files['model'],
                                         # datafile=files['data'])
@@ -142,10 +143,6 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.model = self.dataset.model
         self.clip_model = deepcopy(self.model)
         self.clip_resolution = deepcopy(self.resolution)
-        # self.dataset.data.locations /= 1000
-        self.dataset.spatial_units = 'km'
-        self.model.spatial_units = 'km'
-        self.clip_model.spatial_units = 'km'
         # Make sure the frame fills the tab
         vlayout3D = QtWidgets.QVBoxLayout()
         # add the pyvista interactor object
@@ -164,6 +161,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         mainMenu.addMenu(self.coordinateMenu)
         self.spatial_units = self.coordinateMenu.default_units
         self.coordinate_system = self.coordinateMenu.default_system
+        self.spatial_units = self.coordinateMenu.default_units
+        self.dataset.spatial_units = self.spatial_units
+        self.model.spatial_units = self.spatial_units
+        self.clip_model.spatial_units = self.spatial_units
         exitButton = QtWidgets.QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
         exitButton.triggered.connect(self.close)
@@ -394,10 +395,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
     def update_plan_title(self):
         if self.depthLabelCenter.isChecked():
             self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
-                                                 ', Depth = '+'{:.3g}'.format((self.model.dz[self.z_slice]+self.model.dz[self.z_slice-1])/2)+' km', fontsize=self.map.label_fontsize)
+                                                 ', Depth = '+'{:.3g}'.format((self.model.dz[self.z_slice]+self.model.dz[self.z_slice-1])/2)+' {}'.format(self.spatial_units), fontsize=self.map.label_fontsize)
         elif self.depthLabelRange.isChecked():
             self.map.window['axes'][0].set_title('Layer ' + str(self.z_slice) +
-                                                 ', Depth = '+'{:.3g} {}'.format(self.model.dz[self.z_slice-1])+u'\u2013'+'{:.3g}'.format(self.model.dz[self.z_slice], self.spatial_units),
+                                                 ', Depth = '+'{:.3g}'.format(self.model.dz[self.z_slice-1])+u'\u2013'+'{:.3g} {}'.format(self.model.dz[self.z_slice], self.spatial_units),
                                                   fontsize=self.map.label_fontsize)
         self.canvas['2D'].draw()
 
@@ -493,7 +494,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.colourMenu.map.invert_cmap.triggered.connect(self.change_cmap)
         # self.colourMenu.all_maps[self.colourmap].setChecked(True)
         # Coordinate options
-        self.coordinateMenu.systemGroup.triggered.connect(self.set_coordinate_system)
+        self.coordinateMenu.systemGroup.triggered.connect(self.load_raw_data)
         self.coordinateMenu.unitGroup.triggered.connect(self.set_spatial_units)
         self.coordinateMenu.all_systems['LatLong'].setEnabled(False)
         if not self.list_file:
@@ -546,14 +547,16 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
             self.rho_axis_group.triggered.connect(self.change_rho_axis)
 
     def set_spatial_units(self):
+        if self.spatial_units == self.coordinateMenu.unitGroup.checkedAction().text().lower():
+            return
         self.spatial_units = self.coordinateMenu.unitGroup.checkedAction().text().lower()
         self.dataset.spatial_units = self.spatial_units
         self.model.spatial_units = self.spatial_units
         self.clip_model.spatial_units = self.spatial_units
         self.rect_grid = model_to_rectgrid(self.clip_model, self.clip_resolution, rho_axis=self.rho_axis)
         self.map.set_locations()
-        self.locs_3D[:, 0] = self.dataset.data.locations[:, 1]
-        self.locs_3D[:, 1] = self.dataset.data.locations[:, 0]
+        self.locs_3D[:, 0] = self.map.site_locations['all'][:, 1]
+        self.locs_3D[:, 1] = self.map.site_locations['all'][:, 0]
         camera = self.vtk_widget.camera_position
         if self.spatial_units == 'km':
             camera = [[x / 1000 for x in p1] for p1 in camera]        
@@ -563,23 +566,59 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.vtk_widget.camera_position = camera
 
 
-    def set_coordinate_system(self):
+    def load_raw_data(self):
         # Check to see if the list has been loaded already
-        if not self.raw_data:
+        if not self.raw_data_initalized:
             # If not, load it
             if self.list_file:
                 try:
-                    with open(self.list_file, 'r') as f:
-                        lines = f.readlines()
-                        num_files = len(lines)
-                    progress_bar = QtWidgets.QProgressDialog('Loading data...', 'Cancel', 0, (num_files-1)*2, self)
-                    QtGui.QGuiApplication.instance().processEvents()
-                    # progress_bar.setMinimumDuration(2000)
-                    self.raw_data = DS.RawData(listfile=self.list_file, progress_bar=progress_bar)
+                    self.popup = classes.PopUpProgress(file_dict={'list': self.list_file})
+                    self.popup.finished.connect(self.collect_from_popup)
+                    self.popup.start_progress()
 
                 except FileNotFoundError:
                     QtWidgets.QMessageBox.warning(self, '...', 'List file not found - Coordinate system cannot be changed.')
+        else:
+            self.set_coordinate_system()
 
+    def set_coordinate_system(self):
+        can_do = 1
+        coord_system = self.coordinateMenu.systemGroup.checkedAction().text().lower()
+        if coord_system == 'local':
+            if self.map.verify_coordinate_system('local'):
+                self.map.coordinate_system = 'local'
+        elif coord_system == 'utm':
+            if self.map.verify_coordinate_system('utm'):
+                self.map.coordinate_system = 'utm'
+            else:
+                can_do = 0
+        elif coord_system == 'latlong':
+            if self.map.verify_coordinate_system('latlong'):
+                self.map.coordinate_system = 'latlong'
+            else:
+                can_do = 0
+        elif coord_system == 'lambert':
+            if self.map.verify_coordinate_system('lambert'):
+                self.map.coordinate_system = 'lambert'
+            else:
+                can_do = 0
+        if can_do:
+            self.model = self.map.model
+            self.map.set_locations()
+            self.locs_3D[:, 0] = self.map.site_locations['all'][:, 1]
+            self.locs_3D[:, 1] = self.map.site_locations['all'][:, 0]
+            self.clip_volume()
+            self.vtk_widget.reset_camera()
+        else:
+            QtWidgets.QMessageBox.warning(self, '...', 'Unable to change coordinate system.')
+            self.coordinateMenu.all_systems['Local'].setChecked(True)
+
+    def collect_from_popup(self):
+        self.dataset.raw_data = self.popup.ret_val['raw_data']
+        self.raw_data_initalized = True
+        self.map.site_data['raw_data'] = self.dataset.raw_data
+        # QtWidgets.QMessageBox.warning(self, '...', 'Data collected successfully')
+        self.set_coordinate_system()
 
     def change_rho_axis(self):
         self.rho_axis = self.rho_axis_group.checkedAction().text().lower()

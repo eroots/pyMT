@@ -75,7 +75,7 @@ class Dataset(object):
     """
 
     def __init__(self, modelfile='', listfile='', datafile='',
-                 responsefile='', datpath='', edi_locs_from='definemeas'):
+                 responsefile='', datpath='', edi_locs_from='definemeas', progress_bar=None):
         """
         Summary
         Args:
@@ -90,10 +90,11 @@ class Dataset(object):
             self.raw_data = deepcopy(listfile)
             listfile = self.raw_data.listfile
         else:
-            self.raw_data = RawData(listfile=listfile, datpath=datpath, edi_locs_from=edi_locs_from)
-        self.data = Data(listfile=listfile, datafile=datafile)
-        self.model = Model(modelfile=modelfile)
-        self.response = Data(listfile=listfile, datafile=responsefile)
+            self.raw_data = RawData(listfile=listfile, datpath=datpath,
+                                   edi_locs_from=edi_locs_from, progress_bar=progress_bar)
+        self.data = Data(listfile=listfile, datafile=datafile, progress_bar=progress_bar)
+        self.model = Model(modelfile=modelfile, progress_bar=progress_bar)
+        self.response = Data(listfile=listfile, datafile=responsefile, progress_bar=progress_bar)
         self.smoothed_data = deepcopy(self.raw_data)
         self.rms = self.calculate_RMS()
         self._spatial_units = 'm'
@@ -739,7 +740,7 @@ class Data(object):
     NO_COMP_MAP = 9999
     MISSING_DATA_MAP = -9999
 
-    def __init__(self, datafile='', listfile='', file_format=None):
+    def __init__(self, datafile='', listfile='', file_format=None, progress_bar=None):
         """Summary
 
         Args:
@@ -773,7 +774,7 @@ class Data(object):
                   'Will attempt to determine file format from data file'.format(file_format))
             self.file_format = None
 
-        self.__read__(listfile=listfile, datafile=datafile)
+        self.__read__(listfile=listfile, datafile=datafile, progress_bar=progress_bar)
         if self.sites:
             self.components = self.sites[self.site_names[0]].components
             # self.locations = {site.name: site.locations for site in self.sites.values()}
@@ -795,7 +796,7 @@ class Data(object):
         #                                errors=1000,
         #                                errmap=site.NO_COMP_MAP)
 
-    def __read__(self, listfile='', datafile='', invType=None):
+    def __read__(self, listfile='', datafile='', invType=None, progress_bar=None):
         """Summary
 
         Args:
@@ -838,6 +839,14 @@ class Data(object):
             self.sites = {}
 
             for site_name, site in all_data.items():
+                cc = 0
+                if progress_bar:
+                    if cc == 0:
+                        progress_bar.input_init.emit('data')
+                        cc += 1
+                    progress_bar.counter.emit()
+                    cc += 1
+
                 self.sites.update({site_name:
                                    Site(name=site_name,
                                         data=site['data'],
@@ -1319,7 +1328,7 @@ class Model(object):
     AIR_EXCEPTION = 0
     OCEAN_EXCEPTION = 9
 
-    def __init__(self, modelfile='', covariance_file='', file_format='modem3d', data=None):
+    def __init__(self, modelfile='', covariance_file='', file_format='modem3d', data=None, progress_bar=None):
         self._xCS = []
         self._yCS = []
         self._zCS = []
@@ -2988,12 +2997,16 @@ class RawData(object):
         all_data = IO.read_raw_data(self.site_names, datpath, 
                                     edi_locs_from=edi_locs_from, progress_bar=progress_bar)
         self.sites = {}
-        cc = len(all_data)
+        cc = 0
         for site_name, site in all_data.items():
             try:
                 if progress_bar:
-                    progress_bar.setLabelText('Initializing sites...')
-                    progress_bar.setValue(cc)
+                    if cc == 0:
+                        progress_bar.input_init.emit('raw')
+                        cc += 1
+                    progress_bar.counter.emit()
+                #     progress_bar.setLabelText('Initializing sites...')
+                #     progress_bar.setValue(cc)
                     cc += 1
                 self.sites.update({site_name:
                                    Site(name=site_name,
@@ -3025,8 +3038,8 @@ class RawData(object):
         self.locations = Data.get_locs(self)
         self.datpath = datpath
         self.listfile = listfile
-        if progress_bar:
-            progress_bar.setValue(progress_bar.maximum())
+        # if progress_bar:
+        #     progress_bar.setValue(progress_bar.maximum())
 
 
     def set_remove_flags(self):
@@ -3096,7 +3109,7 @@ class RawData(object):
         elif mode.lower() in ('latlong', 'lambert'):
             X = 'Lat'
             Y = 'Long'
-        if sites is None:
+        if not sites:
             sites = self.site_names
         locs = np.array([[self.sites[name].locations[X],
                           self.sites[name].locations[Y]]
