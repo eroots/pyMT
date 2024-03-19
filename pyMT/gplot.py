@@ -310,25 +310,25 @@ class DataPlotManager(object):
         site_name = self.site_names[axnum]
         Max = -99999
         Min = 99999
-        for ii, Type in enumerate(['raw_data', 'data', 'response', '1d', 'smoothed_data']):
-            if self.sites[Type] != []:
-                # site = next(s for s in self.sites[Type] if s.name == self.site_names[axnum])
+        for ii, dType in enumerate(['raw_data', 'data', 'response', '1d', 'smoothed_data']):
+            if self.sites[dType] != []:
+                # site = next(s for s in self.sites[dType] if s.name == self.site_names[axnum])
                 try:
-                    site = self.sites[Type][axnum]
+                    site = self.sites[dType][axnum]
                 except IndexError:
                     site = None
-                if site is not None and self.toggles[Type]:
-                    if Type != '1d':
-                        self.axes[axnum], ma, mi, artist = self.plot_site(site, Type=Type,
+                if site is not None and self.toggles[dType]:
+                    if dType != '1d':
+                        self.axes[axnum], ma, mi, artist = self.plot_site(site, dType=dType,
                                                                           ax=self.axes[axnum])
                         Max = max(Max, ma)
                         Min = min(Min, mi)
-                        if axnum >= len(self.artist_ref[Type]):
-                            self.artist_ref[Type].append(artist)
+                        if axnum >= len(self.artist_ref[dType]):
+                            self.artist_ref[dType].append(artist)
                         else:
-                            self.artist_ref[Type][axnum] = artist
+                            self.artist_ref[dType][axnum] = artist
                     else:
-                        self.axes[axnum], ma, mi, artist = self.plot_site(self.site1D, Type='1d',
+                        self.axes[axnum], ma, mi, artist = self.plot_site(self.site1D, dType='1d',
                                                                           ax=self.axes[axnum])
         if axnum == 0:
             self.set_legend()
@@ -377,21 +377,21 @@ class DataPlotManager(object):
         Min = np.zeros([tiling[1] * tiling[0]])
         if not self.components:
             self.components = ['ZXYR']
-        for jj, Type in enumerate(['raw_data', 'data', 'response', '1d', 'smoothed_data']):  # plot raw first, if avail
-            if Type == '1d':
+        for jj, dType in enumerate(['raw_data', 'data', 'response', '1d', 'smoothed_data']):  # plot raw first, if avail
+            if dType == '1d':
                 pass
             else:
-                for ii, site in enumerate(self.sites[Type]):
+                for ii, site in enumerate(self.sites[dType]):
                     # xi is the row, yi is the column of the current axis.
-                    if site is not None and self.toggles[Type]:
+                    if site is not None and self.toggles[dType]:
                         self.axes[ii], ma, mi, artist = self.plot_site(site,
-                                                                       Type=Type, ax=self.axes[ii])
+                                                                       dType=dType, ax=self.axes[ii])
                         Max[ii] = max(Max[ii], ma)
                         Min[ii] = min(Min[ii], mi)
-                        if ii >= len(self.artist_ref[Type]):
-                            self.artist_ref[Type].append(artist)
+                        if ii >= len(self.artist_ref[dType]):
+                            self.artist_ref[dType].append(artist)
                         else:
-                            self.artist_ref[Type][ii] = artist
+                            self.artist_ref[dType][ii] = artist
                     if jj == 0:
                         self.set_labels(axnum=ii, site_name=site.name)
         self.set_bounds(Max=Max, Min=Min, axnum=list(range(ii + 1)))
@@ -426,6 +426,8 @@ class DataPlotManager(object):
                 self.axes[axnum].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
             except ValueError:
                 self.axes[axnum].set_ylim([-1, 1])
+            except TypeError:
+                self.axes[0].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
         # if axnum is None:
         #         axnum = range(0, len(self.axes))
         # if self.link_axes_bounds:
@@ -457,7 +459,7 @@ class DataPlotManager(object):
             self.axes[ax].set_ylim([y_bounds[0], y_bounds[1]])
             self.axes[ax].set_xlim([x_bounds[0], x_bounds[1]])
 
-    def plot_site(self, site, Type='Data', ax=None, ):
+    def plot_site(self, site, dType='Data', ax=None, ):
         """Summary
 
         Args:
@@ -469,7 +471,7 @@ class DataPlotManager(object):
             linestyle (str, optional): Description
 
         Returns:
-            TYPE: Description
+            dTYPE: Description
         """
         # Can I pass other keyword args through directly to plt?
         def pop_flagged_data(x, y, toplotErr, site, component):
@@ -494,7 +496,7 @@ class DataPlotManager(object):
         ma = []
         mi = []
         linestyle = ''
-        marker = self.marker[Type.lower()]
+        marker = self.marker[dType.lower()]
         edgewidth = 0
         if marker == 'oo':
             marker = 'o'
@@ -517,11 +519,11 @@ class DataPlotManager(object):
             Err = None
             toplotErr = None
             errtype = 'none'
-        if Type.lower() in response_types:
+        if dType.lower() in response_types:
             Err = None
             toplotErr = None
             errtype = 'none'
-        if Type.lower() not in self.which_errors:
+        if dType.lower() not in self.which_errors:
             Err = None
             toplotErr = None
             errtype = 'none'
@@ -539,14 +541,14 @@ class DataPlotManager(object):
                         print('Adjusting values, ignore them.')
                         toplot[ind] = np.max(toplot)
                     toplot = np.log10(toplot)
-                    if Type.lower() not in response_types and self.errors.lower() != 'none':
+                    if dType.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = log10_e
                 elif 'pha' in comp.lower():
                     toplot, e = utils.compute_phase(site,
                                                     calc_comp=comp,
                                                     errtype=errtype,
                                                     wrap=self.wrap_phase)
-                    if Type.lower() not in response_types and self.errors.lower() != 'none':
+                    if dType.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e
                 elif 'pt' in comp.lower() or 'phi' in comp.lower() or 'beta' in comp.lower() or 'azimuth' in comp.lower():
                     # If PTs are actually the inverted data, take them directly from the site
@@ -572,7 +574,7 @@ class DataPlotManager(object):
                                               comp.lower() + '_error', 0) # Default error of 0 until I implement errors for invariants
                                       for ii in range(site.NP)])
                     # Convert to degrees
-                    if Type.lower() not in response_types and self.errors.lower() != 'none':
+                    if dType.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e
                     else:
                         toplotErr = e * 0
@@ -638,8 +640,8 @@ class DataPlotManager(object):
                     ma.append(max(toplot))
                     mi.append(min(toplot))
                 else:
-                    if ((self.toggles['raw_data'] and Type.lower() == 'raw_data') or \
-                       (not self.toggles['raw_data'])) and (toplot != []):
+                    if ((self.toggles['raw_data'] and dType.lower() == 'raw_data') or \
+                       (not self.toggles['raw_data'])) and (toplot.size != 0):
                         # showdata = self.remove_outliers(site.periods, toplot)
                         showdata = utils.remove_outliers(toplot)
                         ma.append(max(showdata))
@@ -652,9 +654,9 @@ class DataPlotManager(object):
                 artist = ax.text(0, 0, 'No Data')
                 ma.append(0)
                 mi.append(0)
-            # if Type == 'data':
+            # if dType == 'data':
             #     ax.aname = 'data'
-            # elif Type == 'raw_data':
+            # elif dType == 'raw_data':
             #     ax.aname = 'raw_data'
         ax.format_coord = format_data_coords
         # ax.set_title(site.name)
