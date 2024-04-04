@@ -746,8 +746,14 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                     else:
                         t_azi = data_block[0]
                         equal_rots = 1
+                else:
+                    print('Missing ZROT info, setting ZROT=0')
+                    z_azi = 0
+                    equal_rots = 1
+                    continue    
             if z_azi == t_azi:
                 azi = z_azi
+                equal_rots = 1
             else:
                 if z_azi is None:
                     print('Missing ZROT info, setting to TROT')
