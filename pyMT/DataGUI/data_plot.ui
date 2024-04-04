@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1338</width>
-    <height>849</height>
+    <height>860</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDisplay_Options">
@@ -127,6 +127,7 @@
      <string>1D Modeling</string>
     </property>
     <addaction name="actionLaunchModeler"/>
+    <addaction name="actionLaunchStackedData"/>
    </widget>
    <addaction name="menuDisplay_Options"/>
    <addaction name="menuWrite"/>
@@ -1483,6 +1484,11 @@
   <action name="actionAzimuthLimits">
    <property name="text">
     <string>Azimuth</string>
+   </property>
+  </action>
+  <action name="actionLaunchStackedData">
+   <property name="text">
+    <string>Stacked Data Window</string>
    </property>
   </action>
  </widget>

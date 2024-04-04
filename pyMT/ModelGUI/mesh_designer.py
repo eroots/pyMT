@@ -2,13 +2,14 @@
 from matplotlib.widgets import Cursor
 import matplotlib.pyplot as plt
 import pyMT.utils as utils
-import pyMT.data_structures as WSDS
+import pyMT.data_structures as DS
 import numpy as np
 import copy
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtWidgets, QtGui
 from pyMT.GUI_common.common_functions import check_key_presses
 from pyMT.GUI_common.classes import FileDialog
+from pyMT.GUI_common.windows import InversionWindow
 from scipy.ndimage import gaussian_filter
 from pyMT.e_colours import colourmaps as cm
 from matplotlib.figure import Figure
@@ -47,9 +48,9 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         if data:
             if type(data) is str:
-                data = WSDS.Data(data)
-            self.site_locations = data.locations
-            self.data = data
+                dataset = DS.Dataset(datafile=data)
+            self.site_locations = dataset.data.locations
+            self.dataset = dataset
         else:
             self.site_locations = []
             self.regenMesh_2.setEnabled(False)
@@ -63,18 +64,19 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.site_marker = '+'
         self.markersize = 5
         self.site_interior = 'w'
-        self.colourmap = 'jet_plus'
+        self.colourmap = 'turbo'
         self.mesh_changable = True
+        self.modeling_window = None
         self.fig = Figure()
         self.key_presses = {'Control': False, 'Alt': False, 'Shift': False}
         # self.fig = plt.figure()
         self.cid = {'Mesh': []}
         if model:
             if type(model) is str:
-                model = WSDS.Model(model)
+                model = DS.Model(model)
         else:
             print('Generating initial model...')
-            model = WSDS.Model(data=data)
+            model = DS.Model(data=dataset.data)
         self.model = copy.deepcopy(model)
         self.file_dialog = FileDialog(self)
         self.revert_model = copy.deepcopy(model)
@@ -148,6 +150,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.actionMarker_Shape.triggered.connect(self.set_marker_shape)
         self.actionMarker_Size.triggered.connect(self.set_marker_size)
         self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
+        #
+        self.actionLaunch1DModeling.triggered.connect(self.launch_1d_window)
         
     @property
     def cmap(self):
@@ -175,6 +179,18 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         if ok_pressed and d != self.map.markersize:
             self.markersize = d
             self.redraw_pcolor()
+
+    def launch_1d_window(self):
+        if not self.modeling_window:
+            periods = self.dataset.data.periods
+            self.modeling_window = InversionWindow(dataset=self.dataset,
+                                                   parent=self)
+            # self.toggle1DResponse.setEnabled(True)
+            # self.toggle1DResponse.clicked.connect(self.plot_1D_response)
+            # self.dpm.site1D = self.modeling_window.site
+            # self.dpm.sites.update({'1d': [self.dpm.site1D] * len(self.dpm.sites['data'])})
+            # self.modeling_window.updated.connect(self.update_1D_response)
+        self.modeling_window.show()
 
     def set_marker_colour(self):
         colours = ['White', 'Black', 'Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
@@ -527,7 +543,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                                                      markersize=self.markersize)
             if self.annotate_sites:
                 for ii, (xx, yy) in enumerate(self.site_locations):
-                    self.plan_view.annotate(self.data.site_names[ii], (yy, xx))
+                    self.plan_view.annotate(self.dataset.data.site_names[ii], (yy, xx))
         if self.lock_aspect_ratio:
             self.plan_view.set_aspect('equal')
         else:
@@ -594,23 +610,23 @@ def main():
             return
     files = utils.sort_files(files=files)
     try:
-        data = WSDS.Data(datafile=files['data'])
+        dataset = DS.Dataset(datafile=files['data'])
     except KeyError:
         print('No data file given. Site locations will not be available.')
-        data = None
+        dataset = None
     try:
-        model = WSDS.Model(files['model'])
+        model = DS.Model(files['model'])
     except KeyError:
-        if data is None:
+        if dataset is None:
             print('One or more of <model_file> and <data_file> must be given!')
             return
         else:
             print('Generating initial model...')
-            model = WSDS.Model(data=data)
-            print([model.vals.shape, model.nx, model.ny, model.nz])
+            model = DS.Model(data=dataset.data)
+            # print([model.vals.shape, model.nx, model.ny, model.nz])
 
     app = QtWidgets.QApplication(sys.argv)
-    viewer = model_viewer_2d(model=model, data=data)
+    viewer = model_viewer_2d(model=model, dataset=dataset)
     viewer.setWindowIcon(QtGui.QIcon(mesh_designer_jpg))
     viewer.show()
     ret = app.exec_()

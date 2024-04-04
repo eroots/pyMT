@@ -2205,6 +2205,14 @@ class Site(object):
                         (self.data['ZXYR'] + 1j * self.data['ZXYI'] - self.data['ZYXR'] + 1j * self.data['ZYXI']))
         return skew
 
+    # How long do these take to compute? Should they be stored for later and recalculated as needed?
+    @property
+    def det_rho(self):
+        return utils.compute_rho(self, calc_comp='det', errtype='none')[0]
+
+    def ssq_rho(self):
+        return utils.compute_rho(self, calc_comp='ssq', errtype='none')[0]
+
     def validate_data(self):
         for component in self.components:
             if np.any(np.isnan(self.data[component])):

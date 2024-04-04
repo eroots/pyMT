@@ -150,6 +150,7 @@ def plot_site(site, save_fig=False):
 						         alpha=plot_options['alpha'][tp],
 						         label=tp)
 			axes[comp].set_xscale('log')
+			axes[comp].grid(True)
 			if comp.endswith('r'):
 				axes[comp].set_ylabel(r'Re {Tz}')
 			else:
