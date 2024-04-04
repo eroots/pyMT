@@ -108,7 +108,7 @@ class format_model_coords(object):
         if self.use_log:
             vals = 10 ** vals
         if self.data_label.lower() == 'resistivity':
-            self.data_units = 'ohm-m'
+            self.data_units = 'Ωm'
         elif self.data_label.lower() in ('phase', 'skew', 'azimuth'):
             self.data_units = 'Degrees'
         elif self.data_label.lower() == 'depth':
@@ -200,7 +200,7 @@ class DataPlotManager(object):
         # Might have to add a setter later if I want some way to plot RMS or something
         if self.components[0][0].upper() == 'Z':
             # units = 'mV/nT'
-            units = 'Ohm'
+            units = 'Ω'
         elif self.components[0][0].upper() == 'T':
             units = 'Unitless'
         elif self.components[0][0].upper() == 'R' or self.components[0][0:4].upper() == 'BOST':
