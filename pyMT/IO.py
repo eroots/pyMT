@@ -1990,6 +1990,32 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                       'dimensionality': '3d'}
         return sites, other_info
 
+    def read_gofem(datafile, site_names):
+        comp_dict = {'RealZxx': 'ZXXR',
+                     'ImagZxx': 'ZXXI',
+                     'RealZxy': 'ZXYR',
+                     'ImagZxy': 'ZXYI',
+                     'RealZyx': 'ZYXR',
+                     'ImagZyx': 'ZYXI',
+                     'RealZyy': 'ZYYR',
+                     'ImagZyy': 'ZYYI',
+                     'RealTzx': 'TZXR',
+                     'ImagTzx': 'TZXI',
+                     'RealTzy': 'TZYR',
+                     'ImagTzy': 'TZYI'}
+        try:
+            with open(datafile, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            raise(WSFileError(ID='fnf', offender=datafile)) from None
+
+        sites = {}
+        for line in lines:
+            go_comp, freq, plane, site_name, val, error_val = line.split()
+            comp = comp_dict[go_comp]
+            period = 1 / freq
+
+
     if file_format.lower() == 'wsinv3dmt':
         # WSINV, em3dani, and ModEM may share the same .data file extension, so try them all
         try:
@@ -2014,6 +2040,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         return read_mare2dem_data(datafile, site_names, invType)
     elif file_format.lower() == 'em3dani':
         return read_em3dani(datafile, site_names)
+    elif file_format.lower() == 'gofem':
+        return read_gofem(datafile, site_names)
     else:
         print('Output format {} not recognized'.format(file_format))
         raise WSFileError(ID='fmt', offender=file_format, expected=('mare2dem',
@@ -2907,6 +2935,36 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                     max(site.used_error[component[:-1] + 'R'][jj],
                                         site.used_error[component[:-1] + 'I'][jj])))
 
+    def write_gofem(data, out_file):
+        comp_dict = {'ZXXR': 'RealZxx',
+                     'ZXXI': 'ImagZxx',
+                     'ZXYR': 'RealZxy',
+                     'ZXYI': 'ImagZxy',
+                     'ZYXR': 'RealZyx',
+                     'ZYXI': 'ImagZyx',
+                     'ZYYR': 'RealZyy',
+                     'ZYYI': 'ImagZyy',
+                     'TZXR': 'RealTzx',
+                     'TZXI': 'ImagTzx',
+                     'TZYR': 'RealTzy',
+                     'TZYI': 'ImagTzy'}
+        with open(out_file, 'w') as f:
+            f.write('# DataType Frequency Source Receiver Value Error\n')
+            for ii, period in enumerate(data.periods):
+                for site_name in data.site_names:
+                    for comp in data.used_components:
+                        freq = 1 / period
+                        data_point = data.sites[site_name].data[comp][ii]
+                        error_point = abs(data.sites[site_name].used_error[comp][ii])
+                        if comp.lower().endswith('i'):
+                            data_point = -1 * data_point
+                        f.write('{} {:>12.6e} Plane_wave {} {:>12.6e} {:>12.6e}\n'.format(comp_dict[comp],
+                                                                                          freq,
+                                                                                          site_name,
+                                                                                          data_point,
+                                                                                          error_point))
+
+
     if file_format.lower() == 'wsinv3dmt':
         write_ws(data, outfile, to_write)
     elif file_format.lower() == 'modem':
@@ -2922,6 +2980,8 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
         write_occam(data, outfile)
     elif file_format.lower() == 'em3dani':
         write_em3dani(data, outfile)
+    elif file_format.lower() == 'gofem':
+        write_gofem(data, outfile)
     else:
         print('Output file format {} not recognized'.format(file_format))
 

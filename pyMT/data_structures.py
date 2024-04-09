@@ -558,6 +558,9 @@ class Dataset(object):
                 errors = data_site.used_error[comp]
                 all_misfits[isite, icomp, :] = (np.abs(response - data) / errors) ** 2
 
+        # Note that as a consequence of not all periods / comps / sites having the same number of values,
+        # the total rms as calculated here (which is the correct value) may not be the same as taking the nrms of all sites,
+        # components, or periods.
         all_misfits = np.ma.masked_array(all_misfits, flagged)
         total_RMS = np.sqrt(np.nanmean(all_misfits))
         comp_RMS['Total'] = total_RMS
@@ -667,7 +670,8 @@ class Data(object):
     IMPLEMENTED_FORMATS = {'MARE2DEM': '.emdata',
                            'WSINV3DMT': ['.data', '.resp'],
                            'ModEM': '.dat',
-                           'EM3DANI': ['.adat', '.resp']}
+                           'EM3DANI': ['.adat', '.resp'],
+                           'GoFEM': '.gdat'}
     INVERSION_TYPES = IO.INVERSION_TYPES
     REMOVE_FLAG = 1234567
     FLOAT_CAP = 1e10
@@ -823,6 +827,8 @@ class Data(object):
                     self.file_format = 'em3dani'
                 elif ext == '.data' or 'resp' in datafile:
                     self.file_format = 'WSINV3DMT'
+                elif ext == '.gdat':
+                    self.file_format = 'GoFEM'
                 else:
                     message = ('Acceptable formats are <Inversion Code> - <File Extension>:\n')
                     for code, ext in Data.IMPLEMENTED_FORMATS.items():
@@ -1319,6 +1325,14 @@ class Data(object):
     def calculate_PT_errors(self, n_realizations):
         for site in self.site_names:
             self.sites[site].calculate_PT_errors(n_realizations)
+
+    def average_rho(self, comp='ssq'):
+        avg_rho = None
+        rho = np.zeros((self.NP, self.NS))
+        for ii, site in enumerate(self.site_names):
+            site = self.sites[site]
+            rho[:, ii] = utils.compute_rho(site, calc_comp=comp, errtype='None')[0]
+        return rho, 10**np.nanmean(np.log10(rho), axis=1)
 
 class Model(object):
     """Summary

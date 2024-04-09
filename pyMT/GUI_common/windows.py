@@ -113,7 +113,7 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='ssq', errtype='None')[0]
             elif rho_type.lower() == 'determinant':
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='det', errtype='None')[0]
-            avg_rho = np.mean(np.log10(rho), axis=1)
+        avg_rho = np.mean(np.log10(rho), axis=1)
         if avg_rho is not None:
             self.axis.semilogx(self.dataset.data.periods, np.log10(rho),
                                        marker=self.markers['inverted'],
