@@ -673,7 +673,7 @@ class Data(object):
                            'EM3DANI': ['.adat', '.resp'],
                            'GoFEM': '.gdat'}
     INVERSION_TYPES = IO.INVERSION_TYPES
-    REMOVE_FLAG = 1234567
+    REMOVE_FLAG = IO.REMOVE_FLAG
     FLOAT_CAP = 1e10
     # INVERSION_TYPES = {1: ('ZXXR', 'ZXXI',  # 1-5 are WS formats
     #                        'ZXYR', 'ZXYI',
