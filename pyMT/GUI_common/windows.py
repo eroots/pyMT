@@ -15,6 +15,7 @@ path = os.path.dirname(os.path.realpath(__file__))
 UI_ModelingWindow, QModelingMain = loadUiType(os.path.join(path, '1D_modeling.ui'))
 UI_StackedDataWindow, QStackedDataMain = loadUiType(os.path.join(path, 'stacked_data.ui'))
 UI_InversionWindow, QInversionWindow = loadUiType(os.path.join(path, '1D_inversion.ui'))
+UI_InversionSettings, QInversionSettings = loadUiType(os.path.join(path, 'inversion_settings.ui'))
 
 # Allow simple 1D inversions?
 # Setting starting model to the 1D (from mesh_designer)
@@ -36,12 +37,36 @@ class InversionWindow(QInversionWindow, UI_InversionWindow):
                                              parent=parent,
                                              synthetic_response=self.modeling_window.site)
         self.dataDock.setWidget(self.data_window)
+        self.inversion_settings = InversionSettings(dataset=dataset,
+                                                    parent=parent,
+                                                    inversion_response=deepcopy(self.modeling_window.site))
 
 
     def update_data_window(self):
         self.data_window.synthetic_response = self.modeling_window.site
+        self.data_window.inversion_response = self.inversion_settings.site
         if self.data_window.checkResponse.checkState():
             self.data_window.plot_data()
+
+
+class InversionSettings(QInversionSettings, UI_InversionSettings):
+    def __init__(self, parent=None, dataset=None, inversion_response=None):
+
+
+        self.connect_widgets()
+
+
+    def connect_widgets(self):
+        self.actionAbout.triggered.connect(self.help_window)
+
+
+    def help_window(self):
+        msg = '1D Inversion of stacked (average) SSQ data.\n' +
+              'Note: This uses a stocastic optimization algortithm (see pycma).\n' +
+              'Results may not be replicable for low number of iterations.\n' +
+              
+
+
 
 class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
     
@@ -298,7 +323,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
     def plot_model(self):
         self.model_figure.clear()
         self.axis = self.model_figure.add_subplot(111)
-        depth = np.cumsum([0] + self.thickness + [100000])
+        depth = np.cumsum([0] + self.thickness + [500000])
         rho_x = self.rho_x + [self.hs] * 2
         rho_y = self.rho_y + [self.hs] * 2
         self.image = self.axis.step(np.log10(rho_x), depth, linestyle='-')

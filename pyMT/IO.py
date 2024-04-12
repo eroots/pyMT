@@ -1990,7 +1990,37 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                       'dimensionality': '3d'}
         return sites, other_info
 
-    def read_gofem(datafile, site_names):
+    def read_gofem_locations(receiver_file='', backup_path=None):
+        def read_file(receiver_file):
+            with open(receiver_file, 'r') as f:
+                lines = f.readlines()
+            return lines
+        read_attempt = 0
+        while True:
+            try:
+                lines = read_file(receiver_file)
+                break
+            except (FileNotFoundError, TypeError):
+                if read_attempt == 0:
+                    receiver_file = PATH_CONNECTOR.join([backup_path, 'receivers.csv'])
+                elif read_attempt == 1:
+                    receiver_file = PATH_CONNECTOR.join([backup_path, '..', 'receivers.csv'])
+                else:
+                    raise(WSFileError(ID='fnf', offender=receiver_file,
+                          extra='GoFEM Receiver file not found')) from None
+                read_attempt += 1
+        locations = {}
+        for line in lines:
+            dipole, site_name, num, X, Y, Z = line.split()
+            locations.update({site_name: {'Y': float(X),
+                                          'X': float(Y),
+                                          'elev': float(Z)}})
+        return locations
+
+
+    def read_gofem(data_file, receiver_file=None):
+
+        # This will need to be updated to allow phase tensor inversions later
         comp_dict = {'RealZxx': 'ZXXR',
                      'ImagZxx': 'ZXXI',
                      'RealZxy': 'ZXYR',
@@ -2004,17 +2034,88 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                      'RealTzy': 'TZYR',
                      'ImagTzy': 'TZYI'}
         try:
-            with open(datafile, 'r') as f:
+            with open(data_file, 'r') as f:
                 lines = f.readlines()
         except FileNotFoundError:
-            raise(WSFileError(ID='fnf', offender=datafile)) from None
+            raise(WSFileError(ID='fnf', offender=data_file)) from None
+        site_names = []
+        data = {}
+        errors = {}
+        freq_order = {}
+        all_freqs = []
+        used_comps = []
+        for line in lines:
+            if line[0] == '#':
+                continue
+            go_comp, freq, plane, site_name, val, error_val = [x.strip() for x in line.split()]
+            comp = comp_dict[go_comp]
+            used_comps.append(comp)
+            if site_name not in site_names:
+                site_names.append(site_name)
+                data.update({site_name: {comp : [] for comp in comp_dict.values()}})
+                errors.update({site_name: {comp : [] for comp in comp_dict.values()}})
+                freq_order.update({site_name: {comp : [] for comp in comp_dict.values()}})
+            all_freqs.append(float(freq))
+            data[site_name][comp_dict[go_comp]].append(float(val))
+            errors[site_name][comp_dict[go_comp]].append(float(error_val))
+            freq_order[site_name][comp_dict[go_comp]].append(float(freq))
+        # debug_print(all_freqs, 'debug.txt')
+        all_freqs = set(all_freqs)
+        # debug_print(all_freqs, 'debug.txt')
+        used_comps = set(used_comps)
+        # Make sure all the site data is set up properly
+        for site in site_names:
+            for comp in used_comps:
+                # Reset data to -iwt time dependence
+                if comp.endswith('I'):
+                    data[site][comp] = [-1*x for x in data[site][comp]]
+                # Check that the site has all required frequencies
+                if set(freq_order[site][comp]) != all_freqs:
+                    for freq in all_freqs:
+                        if freq not in freq_order[site][comp]:
+                            print('Infilling frequency {} at {}, {}'.format(site, comp))
+                            idx = np.argmin(abs(freq - freq_order[site][comp]))
+                            data[site][comp].append(data[site][comp][idx])
+                            errors[site][comp].append(REMOVE_FLAG)
+                            freq_order[site][comp].append(freq)
+                idx = np.argsort(freq_order[site][comp])
+                # Reorder the points (and reverse them to get them in period order)
+                data[site][comp] = np.array(data[site][comp])[idx][::-1]
+                errors[site][comp] = np.array(errors[site][comp])[idx][::-1]
+                freq_order[site][comp] = np.array(freq_order[site][comp])[idx][::-1]
+            unused_comps = [x for x in comp_dict.values() if x not in used_comps]
+            for comp in unused_comps:
+                del data[site][comp]
+                del errors[site][comp]
+                del freq_order[site][comp]
+        
+        periods = np.sort(np.array([1/x for x in list(all_freqs)]))
+        debug_print(periods, 'debug.txt')
+        try:
+            inv_type = [key for key in INVERSION_TYPES.keys() if set(used_comps) == set(INVERSION_TYPES[key])][0]
+        except IndexError:
+            msg = 'Components listed in {} are not yet a supported inversion type. Sorry ¯\\_(-_-)_/¯'.format(datafile)
+            raise(WSFileError(ID='int', offender=data_file, extra=msg))
 
         sites = {}
-        for line in lines:
-            go_comp, freq, plane, site_name, val, error_val = line.split()
-            comp = comp_dict[go_comp]
-            period = 1 / freq
-
+        backup_path = os.path.split(os.path.abspath(data_file))[0]
+        locations = read_gofem_locations(receiver_file=receiver_file, backup_path=backup_path)
+        for site in site_names:
+            sites.update({site: {
+                  'data': data[site],
+                  'errors': errors[site],
+                  'periods': periods,
+                  'locations': locations[site],
+                  'azimuth': 0,
+                  'errFloorZ': 0,
+                  'errFloorT': 0}
+                  })
+        other_info = {'inversion_type': inv_type,
+                      'site_names': site_names,
+                      'origin': (0, 0),
+                      'UTM_zone': None,
+                      'dimensionality': '3d'}
+        return sites, other_info
 
     if file_format.lower() == 'wsinv3dmt':
         # WSINV, em3dani, and ModEM may share the same .data file extension, so try them all
