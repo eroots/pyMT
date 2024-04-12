@@ -234,7 +234,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.planSlice.valueChanged.connect(self.update_map)
             self.planSlice.setMinimum(0)
             self.planSlice.setMaximum(self.map.dataset.model.nz - 1)
-            if getattr(self.map.dataset.model, 'rho_y', None):
+            if not self.map.dataset.model.isotropic:
                 self.rhoAxis.addItem('rho_x / rho_y')
                 self.rhoAxis.addItem('rho_x / rho_z')
                 self.rhoAxis.addItem('rho_y / rho_z')
