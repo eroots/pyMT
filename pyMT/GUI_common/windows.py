@@ -37,49 +37,109 @@ class InversionWindow(QInversionWindow, UI_InversionWindow):
                                              parent=parent,
                                              synthetic_response=self.modeling_window.site)
         self.dataDock.setWidget(self.data_window)
+        self.data_window.rho_updated.connect(self.update_data_obs)
         self.inversion_settings = InversionSettings(dataset=dataset,
                                                     parent=parent,
                                                     inversion_response=deepcopy(self.modeling_window.site))
-
+        self.inverseDock.setWidget(self.inversion_settings)
+        self.inversion_settings.updated.connect(self.update_inversion_results)
 
     def update_data_window(self):
         self.data_window.synthetic_response = self.modeling_window.site
-        self.data_window.inversion_response = self.inversion_settings.site
+        self.data_window.inversion_response = self.inverse_results['Response']
         if self.data_window.checkResponse.checkState():
             self.data_window.plot_data()
 
+    def update_model_window(self):
+        self.modeling_window.inverse_model = self.inverse_results['Model']
+
+    def update_inversion_results(self):
+        self.inverse_results = self.inversion_settings.results
+        self.update_data_window()
+        self.update_model_window()
+
+    def update_data_obs(self):
+        self.inversion_settings.data_obs = {'Rho': self.data_window.avg_rho,
+                                            'Periods': self.data_window.dataset.data.periods}
 
 class InversionSettings(QInversionSettings, UI_InversionSettings):
-    def __init__(self, parent=None, dataset=None, inversion_response=None):
+    updated = QtCore.pyqtSignal()
+    def __init__(self, parent=None, data_obs=None):
         super(InversionSettings, self).__init__()
+        # Accepts dataset as a dictionary with keys 'rho' 'phase' and 'periods'
+        # At minimum, one of 'rho' and 'phase' is needed along with 'periods'
+        # Currently only 'rho' inversion is implemented
         self.setupUi(self)
         self.connect_widgets()
+        self.results = None
+        self.data_obs = data_obs
+        self.inversion_response = inversion_response
 
 
     def connect_widgets(self):
         self.actionAbout.triggered.connect(self.help_window)
-
+        self.pushStartInversion.clicked.connect(self.start_inversion)        
 
     def help_window(self):
         msg =  '1D Inversion of stacked (average) SSQ data.\n'
         msg += 'Note: This uses a stocastic optimization algortithm (see pycma).\n'
         msg += 'Results may not be replicable for low number of iterations.\n'
-              
+        
+    def get_values(self):
+        self.half_space = self.halfspaceRho.value()
+        self.starting_resistivity = self.startingRho.value()
+        self.num_iters = self.numIteration.value()
+        self.minimum_thickness = self.minThickness.value()
+        self.maximum_depth = self.maxDepth.value()
+        self.num_layers = self.numLayers.value()
+        self.uncertainty = self.dataUncertainty.value()
+        self.minimum_rho = self.minRho.value()
+        self.maximum_rho = self.maxRho.value()
+        self.reg_param = self.regParam.value()
+        self.model_norm = self.modelNorm.value()
+        self.target_misfit = self.targetMisfit.value()
+        self.use_mantle_transition = self.checkMantleTransition.checkState()
+        self.dz = np.array([0] + list(np.logspace(self.minimum_thickness, self.maximum_depth, self.num_layers)))
 
+    def start_inversion(self):
+        self.get_values()
+        rho_initial = np.ones(shape=self.dz.shape) * self.starting_resistivity
+        if self.use_mantle_transition:
+            idx = np.argmin(self.dz - 410000)
+            rho_initial[idx:] = 20
+        m_best = np.logspace(4, 1, self.num_layers)
+        resp_best = np.logspace(4, 1, self.data_obs['Periods'].size)
+        rms = 1
+        # m_best, resp_best, rms = invert_1DMT(rho_obs=self.data_obs['Rho'],
+        #                                      err_obs=np.ones(self.data_obs['Rho']) * self.uncertainty,
+        #                                      periods=self.data_obs['Periods'],
+        #                                      hs=self.half_space,
+        #                                      rho_initial=rho_initial,
+        #                                      regpar=self.reg_param,
+        #                                      model_norm=self.model_norm,
+        #                                      data_norm=2, # Hard coded for now
+        #                                      rho_min=self.minimum_rho,
+        #                                      rho_max=self.maximum_rho,
+        #                                      target_misfit=self.target_misfit,
+        #                                      maxiter=self.num_iters)
+        self.results = {'Model': {'Rho': m_best, 'dz': self.dz},
+                        'Response': {'Rho': resp_best, 'Periods': self.data_obs['Periods']},
+                        'RMS': rms}
+        self.updated.emit()
 
 
 class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
-    
-    def __init__(self, dataset, synthetic_response=None, inverse_response=None, parent=None):
+    rho_updated = pyqtSignal()
+    def __init__(self, dataset, synthetic_response=None, inversion_response=None, parent=None):
         super(StackedDataWindow, self).__init__()
 
-        self.markers = {'inverted': 'o',
+        self.markers = {'inverted': '',
                         'raw':      'o',
                         'modeled': ''}
-        self.linestyle = {'inverted': '',
+        self.linestyle = {'inverted': '-',
                           'raw':      '',
                           'modeled': '--'}
-        self.colours = {'inverted': 'grey',
+        self.colours = {'inverted': 'k',
                         'raw':      'grey',
                         'modeled': 'r'}
 
@@ -87,6 +147,7 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
         self.parent = parent
         self.dataset = dataset
         self.synthetic_response = synthetic_response
+        self.inversion_response = inversion_response
         self.figure = Figure()
         self.period_range = np.log10([self.dataset.data.periods[0], self.dataset.data.periods[-1]])
         self.add_mpl(self.figure)
@@ -121,10 +182,13 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
         self.siteList.addItems(self.dataset.data.site_names)
         self.siteList.selectAll()
         self.siteList.itemSelectionChanged.connect(self.plot_data)
-        self.rhoType.currentIndexChanged.connect(self.plot_data)
+        self.rhoType.currentIndexChanged.connect(self.change_rho_type)
         self.yLimitsLower.valueChanged.connect(self.set_axis_limits)
         self.yLimitsUpper.valueChanged.connect(self.set_axis_limits)
 
+    def change_rho_type(self):
+        self.plot_data()
+        self.rho_updated.emit()
 
     def plot_data(self):
         self.figure.clear()
@@ -138,22 +202,28 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='ssq', errtype='None')[0]
             elif rho_type.lower() == 'determinant':
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='det', errtype='None')[0]
-        avg_rho = np.mean(np.log10(rho), axis=1)
+        self.avg_rho = np.mean(np.log10(rho), axis=1)
         if avg_rho is not None:
             self.axis.semilogx(self.dataset.data.periods, np.log10(rho),
+                                       marker=self.markers['raw'],
+                                       color=self.colours['raw'],
+                                       linestyle=self.linestyle['raw'], alpha=0.5)
+            self.axis.semilogx(self.dataset.data.periods, self.avg_rho,
+                                       marker=self.markers['raw'],
+                                       linestyle=self.linestyle['raw'],
+                                       color='r')
+            if self.checkResponse.checkState():
+                if self.synthetic_response is not None:
+                    rho_1D = utils.compute_rho(self.synthetic_response, calc_comp=rho_type.lower()[:3], errtype='None')[0]
+                    self.axis.semilogx(self.synthetic_response.periods, np.log10(rho_1D),
+                                       marker=self.markers['modeled'],
+                                       color=self.colours['modeled'],
+                                       linestyle=self.linestyle['modeled'])
+                if self.inversion_response is not None:
+                    self.axis.semilogx(self.inversion_response['Periods'], np.log10(self.inversion_response['Rho']),
                                        marker=self.markers['inverted'],
                                        color=self.colours['inverted'],
-                                       linestyle=self.linestyle['inverted'], alpha=0.5)
-            self.axis.semilogx(self.dataset.data.periods, avg_rho,
-                                       marker=self.markers['inverted'],
-                                       linestyle=self.linestyle['inverted'],
-                                       color='r')
-            if self.checkResponse.checkState() and self.synthetic_response:
-                rho_1D = utils.compute_rho(self.synthetic_response, calc_comp=rho_type.lower()[:3], errtype='None')[0]
-                self.axis.semilogx(self.synthetic_response.periods, np.log10(rho_1D),
-                                   marker=self.markers['modeled'],
-                                   color=self.colours['modeled'],
-                                   linestyle=self.linestyle['modeled'])
+                                       linestyle=self.linestyle['inverted'])
             self.set_axis_limits()
         self.canvas.draw()
 
