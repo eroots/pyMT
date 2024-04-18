@@ -356,12 +356,14 @@ class Dataset(object):
         return site_list
 
     def rotate_sites(self, azi=0):
-        print('Rotating Data')
+        
         self.azimuth = azi
         if self.has_dType('data'):
+            print('Rotating Data')
             self.data.rotate_sites(azi=azi)
             assert (self.azimuth % 360 == self.data.azimuth % 360)
         if self.has_dType('raw_data'):
+            print('Rotating RawData')
             self.raw_data.rotate_sites(azi=azi)
             assert ((self.azimuth % 360) == (self.raw_data.azimuth % 360))
         if self.has_dType('response'):
@@ -1156,7 +1158,8 @@ class Data(object):
         # locs = np.array([[self.sites[name].locations['X'],
         #                   self.sites[name].locations['Y']]
         #                  for name in site_list])
-        if azi % 360 != 0:
+        if ((azi % 360) != 0) and ((azi % 360) != self.azimuth):
+            print('{}, {}'.format(azi, self.azimuth))
             locs = utils.rotate_locs(locs, azi)
         ret_locs = []
         for site in site_list:
@@ -3057,7 +3060,8 @@ class RawData(object):
         if dummy_periods:
             self.remove_periods(site_dict=dummy_periods)
         self.set_remove_flags()
-        self.locations = Data.get_locs(self)
+        self.azimuth = 0
+        self.locations = self.get_locs()
         self.datpath = datpath
         self.listfile = listfile
         # if progress_bar:
@@ -3140,7 +3144,7 @@ class RawData(object):
             locs = np.fliplr(np.array(utils.to_lambert(locs[:, 0], locs[:, 1])).T)
             if self.spatial_units == 'km':
                 locs = locs / 1000
-        if azi != 0:
+        if (azi != 0) and (azi != self.azimuth):
             locs = utils.rotate_locs(locs, azi)
         if mode.lower() == 'centered':
             locs = utils.center_locs(locs)[0]

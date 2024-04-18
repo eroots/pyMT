@@ -909,6 +909,7 @@ class MapView(object):
             azi = self.site_data['data'].azimuth
             check_azi = self.site_data['data'].check_azi()
             locs = self.site_data['data'].get_locs(site_list=sites, azi=azi)
+            # print('{}, {}'.format(azi, check_azi))
         elif coordinate_system.lower() == 'utm':
             azi = self.site_data['raw_data'].azimuth
             check_azi = self.site_data['raw_data'].check_azi()
@@ -921,7 +922,7 @@ class MapView(object):
             azi = self.site_data['raw_data'].azimuth
             check_azi = self.site_data['raw_data'].check_azi()
             locs = self.site_data['raw_data'].get_locs(sites=sites, mode='latlong')
-        if azi % 360 != check_azi % 360:
+        if (azi % 360 != check_azi % 360):
             print('Rotating')
             locs = utils.rotate_locs(locs, azi)
         return locs

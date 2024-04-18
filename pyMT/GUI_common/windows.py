@@ -51,8 +51,8 @@ class InversionWindow(QInversionWindow, UI_InversionWindow):
 
 class InversionSettings(QInversionSettings, UI_InversionSettings):
     def __init__(self, parent=None, dataset=None, inversion_response=None):
-
-
+        super(InversionSettings, self).__init__()
+        self.setupUi(self)
         self.connect_widgets()
 
 
@@ -61,9 +61,9 @@ class InversionSettings(QInversionSettings, UI_InversionSettings):
 
 
     def help_window(self):
-        msg = '1D Inversion of stacked (average) SSQ data.\n' +
-              'Note: This uses a stocastic optimization algortithm (see pycma).\n' +
-              'Results may not be replicable for low number of iterations.\n' +
+        msg =  '1D Inversion of stacked (average) SSQ data.\n'
+        msg += 'Note: This uses a stocastic optimization algortithm (see pycma).\n'
+        msg += 'Results may not be replicable for low number of iterations.\n'
               
 
 

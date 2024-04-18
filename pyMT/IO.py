@@ -3057,6 +3057,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                         freq = 1 / period
                         data_point = data.sites[site_name].data[comp][ii]
                         error_point = abs(data.sites[site_name].used_error[comp][ii])
+                        # GoFEM doesn't like this with the tippers - should they not be multiplied by -1?
                         if comp.lower().endswith('i'):
                             data_point = -1 * data_point
                         f.write('{} {:>12.6e} Plane_wave {} {:>12.6e} {:>12.6e}\n'.format(comp_dict[comp],

@@ -774,10 +774,11 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if self.toggle_planView.checkState():
             self.map.plot_plan_view(z_slice=self.planSlice.value(), rho_axis=self.rhoAxis.currentText())
             depth = self.map.model.dz[self.planSlice.value()]
-            if depth < 1000:
-                depth = '{:0.6g} m'.format(depth)
-            else:
-                depth = '{:0.6g} km'.format(depth / 1000)
+            depth = '{:0.6g} {}'.format(depth, self.map.model.spatial_units)
+            # if depth < 1000:
+            #     depth = '{:0.6g} m'.format(depth)
+            # else:
+            #     depth = '{:0.6g} km'.format(depth / 1000)
             self.planDepth.setText(depth)
             self.toggle_responsePseudo.setCheckState(0)
             self.toggle_dataPseudo.setCheckState(0)
