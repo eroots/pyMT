@@ -39,5 +39,6 @@ setup(name='pyMT',
                         'pyvista',
                         'pyvistaqt',
                         'PyQt5',
-                        'vtk'],
+                        'vtk',
+                        'cma'],
       include_package_data=True)
