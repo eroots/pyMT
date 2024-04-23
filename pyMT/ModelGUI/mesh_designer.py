@@ -56,7 +56,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             self.regenMesh_2.setEnabled(False)
         self.path = path
         self.orientation = 'xy'
-        self.mesh_color = 'w'
+        self.mesh_color = 'k'
         self.x_slice = 0
         self.y_slice = 0
         self.z_slice = 0
@@ -64,7 +64,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.site_marker = '+'
         self.markersize = 5
         self.site_interior = 'w'
-        self.colourmap = 'turbo'
+        self.colourmap = 'bwr'
         self.mesh_changable = True
         self.modeling_window = None
         self.fig = Figure()
@@ -78,6 +78,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             print('Generating initial model...')
             model = DS.Model(data=dataset.data)
         self.model = copy.deepcopy(model)
+        self.dataset.model = self.model
         self.file_dialog = FileDialog(self)
         self.revert_model = copy.deepcopy(model)
         self.plan_view = self.fig.add_subplot(111)
@@ -91,11 +92,25 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         cursor = Cursor(self.plan_view, useblit=True, color='black', linewidth=2)
         self._widgets = [cursor]
         self.connect_mpl_events()
+        self.init_increase_factors()
         self.setup_widgets()
         self.init_decade_list()
         self.update_depth_list()
         # self.update_decade_list()
         self.initialized = True
+
+    def init_increase_factors(self):
+        self.minDepthFactor.setText(str(self.model.dz[1]))
+        self.maxDepthFactor.setText(str(self.model.dz[-1]))
+        for ix in range(1, self.increaseFactors.rowCount()):
+            for iy in range(0, self.increaseFactors.columnCount()):
+                self.increaseFactors.setItem(ix, iy, QtWidgets.QTableWidgetItem(''))
+        self.increaseFactors.setItem(0, 0, QtWidgets.QTableWidgetItem(str(round(10**(np.log10(float(self.minDepthFactor.text()))+2)))))
+        self.increaseFactors.setItem(1, 0, QtWidgets.QTableWidgetItem(str(round(10**(np.log10(float(self.maxDepthFactor.text())))))))
+        self.increaseFactors.setItem(0, 1, QtWidgets.QTableWidgetItem(str(1.1)))
+        self.increaseFactors.setItem(1, 1, QtWidgets.QTableWidgetItem(str(1.2)))
+        self.increaseFactors.setColumnWidth(0, 75)
+        self.increaseFactors.setColumnWidth(1, 50)
 
     def setup_widgets(self):
         self.minDepth.setText(str(self.model.dz[1]))
@@ -108,7 +123,12 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.removePad.clicked.connect(self.remove_pads)
         self.minDepth.editingFinished.connect(self.min_depth)
         self.maxDepth.editingFinished.connect(self.max_depth)
-        self.genDepths.clicked.connect(self.generate_depths)
+        self.genDepthsDecades.clicked.connect(self.generate_depths_decades)
+        self.genDepthsFactor.clicked.connect(self.generate_depths_factor)
+        self.minDepthFactor.editingFinished.connect(self.min_depth_factor)
+        self.maxDepthFactor.editingFinished.connect(self.max_depth_factor)
+        self.increaseFactors.itemChanged.connect(self.increase_factor_edit)
+
         self.minX.setText(str(min(self.model.xCS)))
         self.minY.setText(str(min(self.model.yCS)))
         self.maxX.setText(str(max(self.model.xCS)))
@@ -152,6 +172,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.actionMarker_Colour.triggered.connect(self.set_marker_colour)
         #
         self.actionLaunch1DModeling.triggered.connect(self.launch_1d_window)
+        #
+
         
     @property
     def cmap(self):
@@ -349,6 +371,95 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             self.messages.setText('Maximum depth cannot be less minimum depth!')
         self.update_decade_list(direction='bottom')
 
+    def min_depth_factor(self):
+        try:
+            min_depth = float(self.minDepthFactor.text())
+        except ValueError:
+            min_depth = self.model.dz[1]
+            self.minDepthFactor.setText(str(min_depth))
+        if min_depth >= float(self.maxDepthFactor.text()):
+            self.minDepthFactor.setText(str(0.001))
+            self.messages.setText('Minimum depth cannot exceed maximum depth!')
+        self.update_factor_table(location='top')
+
+    def max_depth_factor(self):
+        try:
+            max_depth = round(float(self.maxDepthFactor.text()))
+        except ValueError:
+            max_depth = self.model.dz[-1]
+            self.maxDepthFactor.setText(str(max_depth))
+        if max_depth <= float(self.minDepth.text()):
+            self.maxDepthFactor.setText(str(float(self.minDepth.text()) + 1000))
+            self.messages.setText('Maximum depth cannot be less minimum depth!')
+        self.update_factor_table(location='bottom')
+
+    def update_factor_table(self, location):
+        if location == 'bottom':
+            self.increaseFactors.setItem(self.increaseFactors.rowCount(), 0, QtWidgets.QTableWidgetItem(self.maxDepthFactor.text()))
+        elif location == 'top':
+            self.increaseFactors.setItem(0, 0, QtWidgets.QTableWidgetItem(self.minDepthFactor.text()))
+
+    def sort_increase_factors(self):
+        depths, factors = [], []
+        vals = []
+        for row in range(self.increaseFactors.rowCount()):
+            depths.append(self.increaseFactors.takeItem(row, 0))
+            factors.append(self.increaseFactors.takeItem(row, 1))
+            try:
+                vals.append(float(depths[row].text()))
+            except (ValueError, AttributeError):
+                num_rows = row
+                break
+        idx = np.argsort(vals)
+        for ii, row in enumerate(idx):
+            # print([row, depths[row].text()])
+            self.increaseFactors.setItem(ii, 0, depths[row])
+            self.increaseFactors.setItem(ii, 1, factors[row])
+
+    def increase_factor_edit(self, item):
+        self.increaseFactors.itemChanged.disconnect()
+        try:
+            row = item.row()
+            col = item.column()
+            val = float(item.text())
+        except ValueError:
+            # if col == 0:
+                # new_val = round((float(self.maxDepthFactor.text()) + float(self.minDepthFactor.text())) / 2)
+                # new_item = QtWidgets.QTableWidgetItem(str(new_val))
+            # elif col == 1:
+            new_item = QtWidgets.QTableWidgetItem('')
+            self.increaseFactors.setItem(row, col, new_item)
+            self.messages.setText('Values must be floats.')
+            self.increaseFactors.itemChanged.connect(self.increase_factor_edit)
+            return
+        if col == 0:
+            if val <= float(self.minDepthFactor.text()) or val > float(self.maxDepthFactor.text()):
+                new_val = round((float(self.maxDepthFactor.text()) + float(self.minDepthFactor.text())) / 2)
+                new_item = QtWidgets.QTableWidgetItem(str(new_val))
+                self.increaseFactors.setItem(row, 0, new_item)
+                self.messages.setText('Factor cutoff depths must be between the min and max depths.')
+            elif self.increaseFactors.item(row, 1) is None:
+                self.increaseFactors.setItem(row, 1, QtWidgets.QTableWidgetItem('1.1'))
+            elif self.increaseFactors.item(row, 1).text() == '':
+                self.increaseFactors.setItem(row, 1, QtWidgets.QTableWidgetItem('1.1'))
+        elif col == 1:
+            if val < 1 or val > 2:
+                new_item = QtWidgets.QTableWidgetItem('1.1')
+                self.increaseFactors.setItem(row, 1, new_item)
+                self.messages.setText('Factors should be between 1 and 2.')
+            elif self.increaseFactors.item(row, 0) is None:
+                new_val = round((float(self.maxDepthFactor.text()) + float(self.minDepthFactor.text())) / 2)
+                new_item = QtWidgets.QTableWidgetItem(str(new_val))
+                self.increaseFactors.setItem(row, 0, new_item)
+            elif self.increaseFactors.item(row, 0).text() == '':
+                new_val = round((float(self.maxDepthFactor.text()) + float(self.minDepthFactor.text())) / 2)
+                new_item = QtWidgets.QTableWidgetItem(str(new_val))
+                self.increaseFactors.setItem(row, 0, new_item)
+
+        self.sort_increase_factors()
+        self.increaseFactors.itemChanged.connect(self.increase_factor_edit)
+        
+
     def update_decade_list(self, direction=None):
         min_depth = float(self.minDepth.text())
         max_depth = float(self.maxDepth.text())
@@ -390,19 +501,15 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                           QtCore.Qt.ItemIsEnabled)
             self.zPerDecade.insertItem(idx, item)
 
-    def generate_depths(self):
+    def generate_depths_decades(self):
         min_depth = float(self.minDepth.text())
         max_depth = float(self.maxDepth.text())
         depths_per_decade = [float(self.zPerDecade.item(ii).text())
                              for ii in range(self.zPerDecade.count())]
-        if self.zUseDecades.isChecked():
-            self.model.generate_zmesh(min_depth=min_depth,
-                                                         max_depth= max_depth,
-                                                         decades=depths_per_decade)
-        elif self.zUseFactor.isChecked():
-            self.model.generate_zmesh(min_depth=min_depth,
-                                                         max_depth=max_depth,
-                                                         increase_factor=self.zIncreaseFactor.value())
+        # if self.zUseDecades.isChecked():
+        self.model.generate_zmesh(min_depth=min_depth,
+                                  max_depth= max_depth,
+                                  decades=depths_per_decade)
         ddz = np.diff(np.diff(self.model.dz[1:]))
         if any(ddz < 0):
             # idx = np.where(ddz)[0][0]
@@ -410,10 +517,49 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         else:
             self.messages.setText('Z mesh generation complete.')
         # self.model.generate_zmesh(min_depth, max_depth, depths_per_decade)
+        # Update the modeling window with the latest model depths
+        if self.modeling_window:
+            self.modeling_window.inversion_settings.model_3d = self.model
         self.update_depth_list()
         self.redraw_pcolor()
 
         # print(ddz)
+
+    def test_table_item(self, item):
+        if item is None:
+            return True
+        elif item.text() == '':
+            return True
+        else:
+            return False
+
+    def generate_depths_factor(self):
+        try:
+            min_depth = float(self.minDepthFactor.text())
+            max_depth = float(self.maxDepthFactor.text())
+            depths, factors = [], []
+            for row in range(self.increaseFactors.rowCount()):
+                depths.append(float(self.increaseFactors.item(row, 0).text()))
+                factors.append(float(self.increaseFactors.item(row, 1).text()))
+        except (ValueError, AttributeError):
+            if len(depths) == len(factors):
+                pass
+            else:
+                self.messages.setText('Make sure the depths / factors are fully specified!')
+                return
+        factors = [x for _, x in sorted(zip(depths, factors))]
+        depths = sorted(depths)
+        self.model.generate_zmesh(min_depth=min_depth,
+                                  max_depth=max_depth,
+                                  increase_factor=[factors, depths])
+        ddz = np.diff(np.diff(self.model.dz[1:]))
+        if any(ddz < 0):
+            # idx = np.where(ddz)[0][0]
+            self.messages.setText('Warning!\n Second derivative of depths is not always positive.')
+        else:
+            self.messages.setText('Z mesh generation complete.')
+        self.update_depth_list()
+        self.redraw_pcolor()
 
     def update_depth_list(self):
         self.depthList.setRowCount(self.model.nz)
@@ -481,6 +627,15 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
 
     def write_model(self):
         # model_file, ret = self.file_dialog.write_file(ext='.model', label='Output Model')
+        if self.modeling_window:
+            if self.modeling_window.inversion_settings.results:
+                ret = QtWidgets.QMessageBox.question(self, 'Import 1D?', 'Import 1D inversion result onto 3D starting model?',
+                                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                     QtWidgets.QMessageBox.No)
+                if ret == QtWidgets.QMessageBox.Yes:
+                    model_1D = self.modeling_window.inversion_settings.results['Model']
+                    self.model.import_1D(model_1D['Rho'], model_1D['dz'])
+
         model_file, ret = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Model', self.path,
                                                              'Model Files (*.model *.rho);; All Files (*)')[:2]
         if ret:

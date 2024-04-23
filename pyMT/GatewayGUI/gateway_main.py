@@ -356,12 +356,18 @@ class NewProject(QNewProject, Ui_NewProject):
             try:
                 mv_main = ModelWindow(files=ds)
                 mv_main.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
+                mv_main.closed.connect(self.close_mv)
                 self.model_windows.append(mv_main)
                 self.model_windows[-1].show()
             except WSFileError as e:
                 QtWidgets.QMessageBox.warning(self, 'File Not Found', e.message)
         else:
             QtWidgets.QMessageBox.warning(self, '', 'A model must be available in the selected data set to use Model Viewer!')
+
+    def close_mv(self, mv):
+        mv.close()
+        self.model_windows.remove(mv)
+
 
     def launch_mesh_designer(self):
         if len(self.dataset_index()) == 0:

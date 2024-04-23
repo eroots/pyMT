@@ -36,7 +36,7 @@ from scipy.interpolate import RegularGridInterpolator as RGI
 # from PyQt5 import QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 # from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -90,6 +90,7 @@ def model_to_rectgrid(model, resolution=None, rho_axis='rho_x'):
 
 
 class ModelWindow(QModelWindow, UI_ModelWindow):
+    closed = QtCore.pyqtSignal(QModelWindow)
     def __init__(self, files, parent=None):
         super(ModelWindow, self).__init__()
         self.setupUi(self)
@@ -167,7 +168,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.clip_model.spatial_units = self.spatial_units
         exitButton = QtWidgets.QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
-        exitButton.triggered.connect(self.close)
+        exitButton.triggered.connect(self.closeEvent)
         fileMenu.addAction(exitButton)
         self.mesh_group = QtWidgets.QActionGroup(self)
         self.mesh_group.addAction(self.meshOn)
@@ -244,6 +245,12 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.update_2D_X()
         self.update_2D_Y()
         self.update_2D_colorbar()
+
+    def closeEvent(self, event):
+        # super().closeEvent(event)
+        # self.vtk_widget.Finalize()
+        self.close()
+        self.closed.emit(self)
 
     @property
     def x_slice(self):

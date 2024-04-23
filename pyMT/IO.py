@@ -3279,6 +3279,8 @@ def write_model(model, outfile, file_format='modem', use_anisotropy=False, use_l
                         vals = np.nan_to_num(vals)
                     else:
                         vals = getattr(model, param[pp], model.vals)
+                        if vals == []:
+                            vals = np.zeros(shape=model.vals.shape)
                         if pp < 3:
                             vals = np.log(vals)
                 else:

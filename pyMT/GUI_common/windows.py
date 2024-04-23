@@ -7,6 +7,7 @@ from PyQt5.uic import loadUiType
 from PyQt5 import QtWidgets, QtCore
 import pyMT.utils as utils
 from pyMT.GUI_common.classes import TwoInputDialog
+from pyMT.modelling_1D import invert_1DMT
 import os
 from copy import deepcopy
 
@@ -30,41 +31,88 @@ class InversionWindow(QInversionWindow, UI_InversionWindow):
         if dataset:
             dummy_site = dataset.data.sites[dataset.data.site_names[0]]
         self.modeling_window = ModelingMain(dummy_site=dummy_site,
-                                             parent=parent)
+                                            parent=self,
+                                            inverse_model=None)
         self.syntheticDock.setWidget(self.modeling_window)
-        self.modeling_window.updated.connect(self.update_data_window)
+        self.synthetic_results = {'rho_x': self.modeling_window.rho_x,
+                                  'rho_y': self.modeling_window.rho_y,
+                                  'depth': [0] + list(np.cumsum(self.modeling_window.thickness))}
+
+        self.modeling_window.updated.connect(self.update_synthetic)
         self.data_window = StackedDataWindow(dataset=dataset,
-                                             parent=parent,
+                                             parent=self,
                                              synthetic_response=self.modeling_window.site)
         self.dataDock.setWidget(self.data_window)
         self.data_window.rho_updated.connect(self.update_data_obs)
-        self.inversion_settings = InversionSettings(dataset=dataset,
-                                                    parent=parent,
-                                                    inversion_response=deepcopy(self.modeling_window.site))
+        self.inversion_settings = InversionSettings(data_obs=dataset.data,
+                                                    mode=self.data_window.rho_type,
+                                                    parent=self,
+                                                    model_3d=dataset.model)
+        self.inverse_results = None
+                                                    
         self.inverseDock.setWidget(self.inversion_settings)
         self.inversion_settings.updated.connect(self.update_inversion_results)
 
-    def update_data_window(self):
+        self.actionWriteInverse.triggered.connect(self.write_inverse_model)
+        self.actionWriteSynthetic.triggered.connect(self.write_synthetic_model)
+
+    def write_inverse_model(self):
+        if self.inverse_results:
+            save_file = QtWidgets.QFileDialog.getSaveFileName(self,
+                                                              'Save 1D Inverse',
+                                                              None, 'CSV (*.csv);; All Files (*)')[0]
+            if save_file:
+                rho = self.inverse_results['Model']['Rho']
+                dz = self.inverse_results['Model']['dz']
+                with open(save_file, 'w') as f:
+                    for (r, d) in zip(rho, dz):
+                        f.write('{:>12.2f},{:12.2f}\n'.format(d, r))                    
+
+
+    def write_synthetic_model(self):
+        if self.synthetic_results:
+            save_file = QtWidgets.QFileDialog.getSaveFileName(self,
+                                                              'Save Synthetic Model',
+                                                               None, 'CSV (*.csv);; All Files (*)')[0]
+            if save_file:
+                rho_x = self.synthetic_results['rho_x']
+                rho_y = self.synthetic_results['rho_y']
+                dz = self.synthetic_results['depth']
+                with open(save_file, 'w') as f:
+                    for (rx, ry, d) in zip(rho_x, rho_y, dz):
+                        f.write('{:>12.2f},{:12.2f}\n'.format(d, rx, ry))     
+
+    def update_synthetic(self):
+        self.synthetic_results = {'rho_x': self.modeling_window.rho_x,
+                                  'rho_y': self.modeling_window.rho_y,
+                                  'depth': [0] + list(np.cumsum(self.modeling_window.thickness))}
         self.data_window.synthetic_response = self.modeling_window.site
-        self.data_window.inversion_response = self.inverse_results['Response']
-        if self.data_window.checkResponse.checkState():
-            self.data_window.plot_data()
+        self.update_data_window()
+
+    def update_data_window(self):
+        # self.data_window.synthetic_response = self.modeling_window.site
+        # self.data_window.inversion_response = self.inverse_results['Response']
+        # if self.data_window.checkResponse.checkState():
+        self.data_window.plot_data()
 
     def update_model_window(self):
+        self.data_window.inversion_response = self.inverse_results['Response']
         self.modeling_window.inverse_model = self.inverse_results['Model']
+        self.modeling_window.plot_model()
 
     def update_inversion_results(self):
         self.inverse_results = self.inversion_settings.results
+        self.data_window.inversion_response = self.inverse_results['Response']
         self.update_data_window()
         self.update_model_window()
 
     def update_data_obs(self):
-        self.inversion_settings.data_obs = {'Rho': self.data_window.avg_rho,
-                                            'Periods': self.data_window.dataset.data.periods}
+        self.inversion_settings.data_obs = self.data_window.dataset.data
+        self.inversion_settings.mode = self.data_window.rho_type[:3].lower()
 
 class InversionSettings(QInversionSettings, UI_InversionSettings):
     updated = QtCore.pyqtSignal()
-    def __init__(self, parent=None, data_obs=None):
+    def __init__(self, parent=None, data_obs=None, mode='ssq', model_3d=None):
         super(InversionSettings, self).__init__()
         # Accepts dataset as a dictionary with keys 'rho' 'phase' and 'periods'
         # At minimum, one of 'rho' and 'phase' is needed along with 'periods'
@@ -73,7 +121,8 @@ class InversionSettings(QInversionSettings, UI_InversionSettings):
         self.connect_widgets()
         self.results = None
         self.data_obs = data_obs
-        self.inversion_response = inversion_response
+        self.mode = mode
+        self.model_3d = model_3d
 
 
     def connect_widgets(self):
@@ -81,12 +130,13 @@ class InversionSettings(QInversionSettings, UI_InversionSettings):
         self.pushStartInversion.clicked.connect(self.start_inversion)        
 
     def help_window(self):
-        msg =  '1D Inversion of stacked (average) SSQ data.\n'
+        msg =  '1D Inversion of stacked (average) data.\n'
         msg += 'Note: This uses a stocastic optimization algortithm (see pycma).\n'
         msg += 'Results may not be replicable for low number of iterations.\n'
+        QtWidgets.QMessageBox.information(self, 'About', msg)
         
     def get_values(self):
-        self.half_space = self.halfspaceRho.value()
+        self.halfspace_resistivity = self.startingRho.value()
         self.starting_resistivity = self.startingRho.value()
         self.num_iters = self.numIteration.value()
         self.minimum_thickness = self.minThickness.value()
@@ -99,37 +149,42 @@ class InversionSettings(QInversionSettings, UI_InversionSettings):
         self.model_norm = self.modelNorm.value()
         self.target_misfit = self.targetMisfit.value()
         self.use_mantle_transition = self.checkMantleTransition.checkState()
-        self.dz = np.array([0] + list(np.logspace(self.minimum_thickness, self.maximum_depth, self.num_layers)))
+        if self.check3DLayers.checkState() and self.model_3d is not None:
+            self.dz = self.model_3d.dz
+        else:
+            self.dz = [0] + list(np.logspace(np.log10(self.minimum_thickness), np.log10(self.maximum_depth), self.num_layers))
 
     def start_inversion(self):
         self.get_values()
-        rho_initial = np.ones(shape=self.dz.shape) * self.starting_resistivity
         if self.use_mantle_transition:
-            idx = np.argmin(self.dz - 410000)
-            rho_initial[idx:] = 20
-        m_best = np.logspace(4, 1, self.num_layers)
-        resp_best = np.logspace(4, 1, self.data_obs['Periods'].size)
-        rms = 1
-        # m_best, resp_best, rms = invert_1DMT(rho_obs=self.data_obs['Rho'],
-        #                                      err_obs=np.ones(self.data_obs['Rho']) * self.uncertainty,
-        #                                      periods=self.data_obs['Periods'],
-        #                                      hs=self.half_space,
-        #                                      rho_initial=rho_initial,
-        #                                      regpar=self.reg_param,
-        #                                      model_norm=self.model_norm,
-        #                                      data_norm=2, # Hard coded for now
-        #                                      rho_min=self.minimum_rho,
-        #                                      rho_max=self.maximum_rho,
-        #                                      target_misfit=self.target_misfit,
-        #                                      maxiter=self.num_iters)
-        self.results = {'Model': {'Rho': m_best, 'dz': self.dz},
-                        'Response': {'Rho': resp_best, 'Periods': self.data_obs['Periods']},
-                        'RMS': rms}
+            self.halfspace_resistivity = 20
+            self.dz = [0] + list(np.logspace(np.log10(self.minimum_thickness), np.log10(self.maximum_depth), self.num_layers))
+        else:
+            idx = self.num_layers - 1
+        self.dz = self.dz + [self.dz[-1] + 500000]
+        rho_initial = np.ones(shape=len(self.dz)) * self.starting_resistivity
+        rho_initial[-2:] = self.halfspace_resistivity
+        
+        m_best, rhoa_best, z_best, rms = invert_1DMT(data=self.data_obs,
+                                                              uncertainty=self.uncertainty,
+                                                              rho_initial=rho_initial,
+                                                              dz=self.dz,
+                                                              mode=self.mode,
+                                                              regpar=self.reg_param,
+                                                              model_norm=self.model_norm,
+                                                              data_norm=2, # Hard coded for now
+                                                              rho_min=self.minimum_rho,
+                                                              rho_max=self.maximum_rho,
+                                                              target_misfit=self.target_misfit,
+                                                              maxiter=self.num_iters,
+                                                              mantle_transition=self.use_mantle_transition)
+        self.results = {'Model': {'Rho': m_best, 'dz': np.array(self.dz)},
+                        'Response': {'Rho': rhoa_best, 'Periods': self.data_obs.periods, 'RMS': rms}}
         self.updated.emit()
 
 
 class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
-    rho_updated = pyqtSignal()
+    rho_updated = QtCore.pyqtSignal()
     def __init__(self, dataset, synthetic_response=None, inversion_response=None, parent=None):
         super(StackedDataWindow, self).__init__()
 
@@ -193,17 +248,17 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
     def plot_data(self):
         self.figure.clear()
         self.axis = self.figure.add_subplot(111)
-        rho_type = self.rhoType.itemText(self.rhoType.currentIndex())
-        avg_rho = None
+        self.rho_type = self.rhoType.itemText(self.rhoType.currentIndex())
+        self.avg_rho = None
         rho = np.zeros((self.dataset.data.NP, len(self.siteList.selectedItems())))
         for ii, site_item in enumerate(self.siteList.selectedItems()):
             site = site_item.text()
-            if rho_type.lower() == 'ssq':
+            if self.rho_type.lower() == 'ssq':
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='ssq', errtype='None')[0]
-            elif rho_type.lower() == 'determinant':
+            elif self.rho_type.lower() == 'determinant':
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='det', errtype='None')[0]
         self.avg_rho = np.mean(np.log10(rho), axis=1)
-        if avg_rho is not None:
+        if self.avg_rho is not None:
             self.axis.semilogx(self.dataset.data.periods, np.log10(rho),
                                        marker=self.markers['raw'],
                                        color=self.colours['raw'],
@@ -214,7 +269,7 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
                                        color='r')
             if self.checkResponse.checkState():
                 if self.synthetic_response is not None:
-                    rho_1D = utils.compute_rho(self.synthetic_response, calc_comp=rho_type.lower()[:3], errtype='None')[0]
+                    rho_1D = utils.compute_rho(self.synthetic_response, calc_comp=self.rho_type.lower()[:3], errtype='None')[0]
                     self.axis.semilogx(self.synthetic_response.periods, np.log10(rho_1D),
                                        marker=self.markers['modeled'],
                                        color=self.colours['modeled'],
@@ -224,6 +279,7 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
                                        marker=self.markers['inverted'],
                                        color=self.colours['inverted'],
                                        linestyle=self.linestyle['inverted'])
+                    self.axis.set_title('RMS: {:4.2f}'.format(self.inversion_response['RMS']))
             self.set_axis_limits()
         self.canvas.draw()
 
@@ -236,7 +292,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
 
     updated = QtCore.pyqtSignal()
 
-    def __init__(self, dummy_site=None, parent=None):
+    def __init__(self, dummy_site=None, parent=None, inverse_model=None):
         super(ModelingMain, self).__init__()
 
         self.setupUi(self)
@@ -249,6 +305,7 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         self.default_thickness = 10
         self.depth_lim = [0, 100]
         self.rho_lim = [1, 4]
+        self.inverse_model = inverse_model
         if dummy_site:
             self.period_range = np.log10([dummy_site.periods[0], dummy_site.periods[-1]])
         else:
@@ -393,11 +450,15 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
     def plot_model(self):
         self.model_figure.clear()
         self.axis = self.model_figure.add_subplot(111)
-        depth = np.cumsum([0] + self.thickness + [500000])
+        depth = np.cumsum([0] + self.thickness + [500])
+        max_depth = depth[-1] - 400
         rho_x = self.rho_x + [self.hs] * 2
         rho_y = self.rho_y + [self.hs] * 2
-        self.image = self.axis.step(np.log10(rho_x), depth, linestyle='-')
-        self.image = self.axis.step(np.log10(rho_y), depth, linestyle='--')
+        self.image = self.axis.step(np.log10(rho_x), depth, color='b', linestyle='-', label='Synth. X')
+        self.image = self.axis.step(np.log10(rho_y), depth, color='r', linestyle='--', label='Synth. Y')
+        if self.inverse_model:
+            self.image = self.axis.step(np.log10(self.inverse_model['Rho']), self.inverse_model['dz']/1000, color='k', linestyle='-', label='Inv.')
+            max_depth = max([self.inverse_model['dz'][-1]/1000, max_depth])
         # self.axis.set_ylim([0, self.max_plot_depth])
         self.axis.set_ylabel('Depth (km)')
         self.axis.set_xlabel('Rho (Ωm)')
@@ -406,8 +467,9 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         if self.lockYAxis.checkState():
             self.axis.set_ylim(self.depth_lim)
         else:
-            self.axis.set_ylim([0, 100])
+            self.axis.set_ylim([0, max_depth])
         self.axis.invert_yaxis()
+        self.axis.legend()
         self.canvas.draw()
 
     def calculate_response(self):

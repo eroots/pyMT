@@ -1332,9 +1332,12 @@ class Data(object):
     def average_rho(self, comp='ssq'):
         avg_rho = None
         rho = np.zeros((self.NP, self.NS))
-        for ii, site in enumerate(self.site_names):
-            site = self.sites[site]
+        for ii, site_name in enumerate(self.site_names):
+            site = self.sites[site_name]
             rho[:, ii] = utils.compute_rho(site, calc_comp=comp, errtype='None')[0]
+            idx = np.where(site.used_error['ZXYR'] == self.REMOVE_FLAG)
+            for jj in idx:
+                rho[jj, ii] = np.nan
         return rho, 10**np.nanmean(np.log10(rho), axis=1)
 
 class Model(object):
@@ -1372,7 +1375,7 @@ class Model(object):
             y_size = np.max((y_size, 1000))
             self.generate_mesh(site_locs=data.locations, regular=True, min_x=x_size, min_y=y_size,
                                num_pads=5, pad_mult=1.2)
-            self.generate_zmesh(min_depth=1, max_depth=500000, num_layers=60)
+            self.generate_zmesh(min_depth=1, max_depth=500000, increase_factor=1.2)
             self.update_vals()
         if covariance_file:
             self.read_covariance(covariance_file)
@@ -1461,9 +1464,32 @@ class Model(object):
         self.yCS = [1] * 60
         self.zCS = [1] * 60
 
+    def import_1D(self, model_1D, dz):
+        # centers_3D = utils.edge2center(self.dz)
+        # centers_1D = utils.edge2center(dz)
+        # IO.debug_print(dz, 'debug.log')
+        # IO.debug_print([len(centers_1D), len(model_1D)], 'debug.log')
+        new_vals = np.interp(self.dz, dz, model_1D,
+                             left=model_1D[0], right=model_1D[-1])
+        for zz, val in enumerate(new_vals[:-1]):
+            self.vals[:,:,zz] = val
+        # cc = 0
+        # try:
+        #     for ii, p in enumerate(centers_3D):
+        #         while True:
+        #             if p <= centers_1D[cc]:
+        #                 self.vals[:,:,ii] = model_1D[cc]
+        #                 break
+        #             else:
+        #                 cc += 1
+        # except IndexError:
+        #     self.vals[:,:, ii:] = model_1D[-1]
+
+
     def __read__(self, modelfile='', file_format='modem3d'):
         if modelfile:
             mod, dim = IO.read_model(modelfile=modelfile, file_format=file_format)
+            self.file_name = modelfile
             # Set up these first so update_vals isn't called
             if file_format.lower() in ('em3dani', 'mt3dani') or mod.get('rho_y', None) is not None:
                 self.rho_x = mod['rho_x']
@@ -1777,13 +1803,15 @@ class Model(object):
             
             counter = 0
             depths = [min_depth]
+            print(depths)
+            print(max_depth)
             while depths[-1] <= max_depth:
-                if increase_factor < 1.05:
-                    increase_factor = 1.05
+                if increase_factors[counter] < 1.05:
+                    increase_factors[counter] = 1.05
                     print('Increase factor cannot be less than 1.05')
                 depths.append(depths[-1] * increase_factors[min(counter, len(increase_factors) - 1)])
-                if depths[-1] > depth_cutoffs[min(counter, len(increase_factors) - 1)]:
-                    counter += 1
+                if depths[-1] > depth_cutoffs[counter]:
+                    counter = min(counter + 1, len(increase_factors) - 1)
             # Make sure that the new depths starts with 0
             depths.insert(0, 0)
             return depths

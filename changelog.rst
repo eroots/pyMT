@@ -1,6 +1,18 @@
 Change Log
 ==========
 
+*22/04/24
+
+  * Added UI components to mesh_designer to allow z-mesh to be specified by a series of increase factors and cutoff depths
+
+  * Added a 'Stacked Data Window' which displays the SSQ or Determinant apparent resistivities for all sites as well as their average
+
+    * Accessible through the 1D Modelling menu option in data_plot and mesh_designer
+
+    * From within mesh_designer, you can perform manual syntethic modelling or 1D inversion of the average SSQ / Det data to obtain (and export) a 1D starting model
+
+  * Fixed an issue where opening a data set with model_viewer twice would cause rendering problems.
+
 *28/02/24
 
   * Changed list file reading so that the list will be read regardless of whether or not the first line specifies the number of sites

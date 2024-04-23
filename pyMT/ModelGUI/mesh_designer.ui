@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>1358</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWrite_Model">
@@ -133,7 +133,7 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>300</width>
+     <width>350</width>
      <height>524287</height>
     </size>
    </property>
@@ -145,6 +145,27 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_3">
+     <item row="2" column="0">
+      <widget class="QLabel" name="nyLabel">
+       <property name="text">
+        <string>NY:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="nzLabel">
+       <property name="text">
+        <string>NZ:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="nxLabel">
+       <property name="text">
+        <string>NX: </string>
+       </property>
+      </widget>
+     </item>
      <item row="4" column="0">
       <widget class="QToolBox" name="toolBox">
        <property name="sizePolicy">
@@ -161,8 +182,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>282</width>
-          <height>667</height>
+          <width>328</width>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -325,222 +346,274 @@
              <rect>
               <x>10</x>
               <y>220</y>
-              <width>251</width>
-              <height>341</height>
+              <width>298</width>
+              <height>311</height>
              </rect>
             </property>
             <property name="title">
              <string>Z Mesh</string>
             </property>
-            <widget class="QPushButton" name="genDepths">
-             <property name="geometry">
-              <rect>
-               <x>120</x>
-               <y>220</y>
-               <width>111</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Generate Depths</string>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_6">
-             <property name="geometry">
-              <rect>
-               <x>126</x>
-               <y>28</y>
-               <width>121</width>
-               <height>16</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>First Depth (meters)</string>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_8">
-             <property name="geometry">
-              <rect>
-               <x>12</x>
-               <y>28</y>
-               <width>107</width>
-               <height>16</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Depths Per Decade</string>
-             </property>
-            </widget>
-            <widget class="QLineEdit" name="maxDepth">
-             <property name="geometry">
-              <rect>
-               <x>120</x>
-               <y>100</y>
-               <width>111</width>
-               <height>22</height>
-              </rect>
-             </property>
-            </widget>
-            <widget class="QListWidget" name="zPerDecade">
-             <property name="geometry">
-              <rect>
-               <x>12</x>
-               <y>50</y>
-               <width>91</width>
-               <height>151</height>
-              </rect>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-              </font>
-             </property>
-            </widget>
-            <widget class="QLineEdit" name="minDepth">
-             <property name="geometry">
-              <rect>
-               <x>120</x>
-               <y>51</y>
-               <width>111</width>
-               <height>22</height>
-              </rect>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_7">
-             <property name="geometry">
-              <rect>
-               <x>120</x>
-               <y>80</y>
-               <width>121</width>
-               <height>16</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Last Depth (meters)</string>
-             </property>
-            </widget>
-            <widget class="QGroupBox" name="groupBox_3">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>260</y>
-               <width>231</width>
-               <height>71</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>Messages</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_2">
-              <item row="0" column="0">
-               <widget class="QLabel" name="messages">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
+            <layout class="QGridLayout" name="gridLayout_7">
+             <item row="1" column="0">
+              <widget class="QGroupBox" name="groupBox_3">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>100</height>
+                </size>
+               </property>
+               <property name="title">
+                <string>Messages</string>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_2">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="messages">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QTabWidget" name="tabWidget">
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>300</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="currentIndex">
+                <number>1</number>
+               </property>
+               <widget class="QWidget" name="tab">
+                <attribute name="title">
+                 <string>By Decade</string>
+                </attribute>
+                <layout class="QGridLayout" name="gridLayout_6" rowstretch="5,0,0,0,0,0" columnstretch="5,0,0">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <item row="3" column="1">
+                  <widget class="QListWidget" name="zPerDecade">
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLabel" name="label_6">
+                   <property name="text">
+                    <string>Depths / Decade</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="2">
+                  <layout class="QVBoxLayout" name="verticalLayout">
+                   <item>
+                    <widget class="QLabel" name="label_7">
+                     <property name="text">
+                      <string>Min. Depth (m)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="minDepth"/>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_8">
+                     <property name="text">
+                      <string>Max. Depth (m)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="maxDepth"/>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="genDepthsDecades">
+                     <property name="text">
+                      <string>Generate Depths</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
                </widget>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QRadioButton" name="zUseDecades">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>210</y>
-               <width>82</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Use Decades</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-            <widget class="QRadioButton" name="zUseFactor">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>230</y>
-               <width>82</width>
-               <height>17</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Use Factor</string>
-             </property>
-             <property name="checked">
-              <bool>false</bool>
-             </property>
-            </widget>
-            <widget class="QLabel" name="label_19">
-             <property name="geometry">
-              <rect>
-               <x>130</x>
-               <y>140</y>
-               <width>81</width>
-               <height>16</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Increase Factor</string>
-             </property>
-            </widget>
-            <widget class="QDoubleSpinBox" name="zIncreaseFactor">
-             <property name="geometry">
-              <rect>
-               <x>130</x>
-               <y>160</y>
-               <width>62</width>
-               <height>22</height>
-              </rect>
-             </property>
-             <property name="minimum">
-              <double>1.050000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>10.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.050000000000000</double>
-             </property>
-             <property name="value">
-              <double>1.200000000000000</double>
-             </property>
-            </widget>
+               <widget class="QWidget" name="tab_2">
+                <attribute name="title">
+                 <string>By Increase Factor</string>
+                </attribute>
+                <layout class="QGridLayout" name="gridLayout_8">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <item row="1" column="1">
+                  <layout class="QVBoxLayout" name="verticalLayout_3">
+                   <item>
+                    <widget class="QLabel" name="label_17">
+                     <property name="text">
+                      <string>Min. Depth (m)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="minDepthFactor"/>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_18">
+                     <property name="text">
+                      <string>Max. Depth (m)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="maxDepthFactor"/>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="genDepthsFactor">
+                     <property name="maximumSize">
+                      <size>
+                       <width>150</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Generate Depths</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item row="0" column="0" colspan="2">
+                  <widget class="QLabel" name="label_16">
+                   <property name="text">
+                    <string>Depth Cutoff / Increase Factors</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QTableWidget" name="increaseFactors">
+                   <property name="minimumSize">
+                    <size>
+                     <width>150</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>300</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string extracomment="Specify a set of cutoff depths and increase factors. Layer thicknesses will increase by these factors up to each the corresponding depth."/>
+                   </property>
+                   <property name="lineWidth">
+                    <number>1</number>
+                   </property>
+                   <property name="horizontalScrollBarPolicy">
+                    <enum>Qt::ScrollBarAlwaysOff</enum>
+                   </property>
+                   <property name="sizeAdjustPolicy">
+                    <enum>QAbstractScrollArea::AdjustToContents</enum>
+                   </property>
+                   <property name="editTriggers">
+                    <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::CurrentChanged|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+                   </property>
+                   <property name="alternatingRowColors">
+                    <bool>false</bool>
+                   </property>
+                   <property name="selectionMode">
+                    <enum>QAbstractItemView::SingleSelection</enum>
+                   </property>
+                   <property name="showGrid">
+                    <bool>true</bool>
+                   </property>
+                   <property name="gridStyle">
+                    <enum>Qt::SolidLine</enum>
+                   </property>
+                   <property name="sortingEnabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="rowCount">
+                    <number>5</number>
+                   </property>
+                   <property name="columnCount">
+                    <number>2</number>
+                   </property>
+                   <attribute name="horizontalHeaderVisible">
+                    <bool>false</bool>
+                   </attribute>
+                   <attribute name="horizontalHeaderHighlightSections">
+                    <bool>true</bool>
+                   </attribute>
+                   <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+                    <bool>false</bool>
+                   </attribute>
+                   <attribute name="verticalHeaderVisible">
+                    <bool>false</bool>
+                   </attribute>
+                   <row/>
+                   <row/>
+                   <row/>
+                   <row/>
+                   <row/>
+                   <column>
+                    <property name="text">
+                     <string>Depth</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Factor</string>
+                    </property>
+                   </column>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
+             </item>
+            </layout>
            </widget>
            <widget class="QLabel" name="label_9">
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>560</y>
+              <y>540</y>
               <width>131</width>
               <height>16</height>
              </rect>
@@ -553,7 +626,7 @@
             <property name="geometry">
              <rect>
               <x>10</x>
-              <y>580</y>
+              <y>570</y>
               <width>113</width>
               <height>20</height>
              </rect>
@@ -563,7 +636,7 @@
             <property name="geometry">
              <rect>
               <x>130</x>
-              <y>580</y>
+              <y>570</y>
               <width>111</width>
               <height>23</height>
              </rect>
@@ -581,8 +654,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>89</height>
+          <width>328</width>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -606,8 +679,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>98</width>
-          <height>28</height>
+          <width>328</width>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -689,8 +762,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>201</width>
-          <height>230</height>
+          <width>328</width>
+          <height>621</height>
          </rect>
         </property>
         <attribute name="label">
@@ -846,27 +919,6 @@
        </widget>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="nxLabel">
-       <property name="text">
-        <string>NX: </string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="nzLabel">
-       <property name="text">
-        <string>NZ:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="nyLabel">
-       <property name="text">
-        <string>NY:</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </widget>
   </widget>
@@ -912,6 +964,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>jet_r</string>
    </property>
@@ -921,7 +976,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>jetplus</string>
@@ -929,6 +984,9 @@
   </action>
   <action name="actionBwr">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -971,6 +1029,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Black</string>
    </property>
@@ -980,7 +1041,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>White</string>

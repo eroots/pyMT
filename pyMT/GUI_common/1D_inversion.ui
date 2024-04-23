@@ -28,9 +28,17 @@
      <x>0</x>
      <y>0</y>
      <width>985</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionWriteInverse"/>
+    <addaction name="actionWriteSynthetic"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dataDock">
@@ -78,6 +86,16 @@
    </attribute>
    <widget class="QWidget" name="inverseContents"/>
   </widget>
+  <action name="actionWriteInverse">
+   <property name="text">
+    <string>Write Inverse Model</string>
+   </property>
+  </action>
+  <action name="actionWriteSynthetic">
+   <property name="text">
+    <string>Write Synthetic Model</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

@@ -971,7 +971,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             if dataset.raw_data.original_azimuth is False:
                 message += '\nAzimuths not consistent in raw data (varies by EDI). Data has been rotated to 0 degrees'
             if len(set(azis)) > 1 or dataset.raw_data.original_azimuth is False:
-                QtWidgets.QMessageBox.warning(self, 'Failed azimuth check', message)            
+                QtWidgets.QMessageBox.warning(self, 'Failed azimuth check', message)
             if ii == 0:
                 self.stored_datasets = {dname: dataset}
                 self.dataset = dataset
