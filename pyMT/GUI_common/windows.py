@@ -80,7 +80,7 @@ class InversionWindow(QInversionWindow, UI_InversionWindow):
                 dz = self.synthetic_results['depth']
                 with open(save_file, 'w') as f:
                     for (rx, ry, d) in zip(rho_x, rho_y, dz):
-                        f.write('{:>12.2f},{:12.2f}\n'.format(d, rx, ry))     
+                        f.write('{:>12.2f},{:12.2f}\n'.format(d*1000, rx, ry))     
 
     def update_synthetic(self):
         self.synthetic_results = {'rho_x': self.modeling_window.rho_x,
