@@ -9,9 +9,10 @@ from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtWidgets, QtGui
 from pyMT.GUI_common.common_functions import check_key_presses
 from pyMT.GUI_common.classes import FileDialog
-from pyMT.GUI_common.windows import InversionWindow
+from pyMT.GUI_common.windows import Modeling1D
 from scipy.ndimage import gaussian_filter
 from pyMT.e_colours import colourmaps as cm
+from pyMT.IO import debug_print
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -94,6 +95,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.connect_mpl_events()
         self.init_increase_factors()
         self.setup_widgets()
+        self.data_info_labels()
         self.init_decade_list()
         self.update_depth_list()
         # self.update_decade_list()
@@ -115,7 +117,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
     def setup_widgets(self):
         self.minDepth.setText(str(self.model.dz[1]))
         self.maxDepth.setText(str(self.model.dz[-1]))
-        self.writeModel.triggered.connect(self.write_model)
+        self.writeModEM.triggered.connect(self.write_modem)
+        self.writeMT3DANI.triggered.connect(self.write_mt3dani)
         self.saveProgress.triggered.connect(self.save_progress)
         self.revertProgress.triggered.connect(self.revert_progress)
         self.regenMesh_2.clicked.connect(self.regenerate_mesh)
@@ -134,11 +137,11 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.maxX.setText(str(max(self.model.xCS)))
         self.maxY.setText(str(max(self.model.yCS)))
         if self.model.is_half_space():
-            self.bgRho.setText(str(self.model.vals[0, 0, 0]))
+            self.bgRho.setValue(self.model.vals[0, 0, 0])
         else:
-            self.bgRho.setText('2500')
-        self.background_resistivity = float(self.bgRho.text())
-        self.bgRho.editingFinished.connect(self.validate_background_rho)
+            self.bgRho.setValue(2500)
+        self.background_resistivity = float(self.bgRho.value())
+        self.bgRho.valueChanged.connect(self.validate_background_rho)
         self.setBackgroundRho.clicked.connect(self.set_background_rho)
         # View page
         self.xSlice.valueChanged.connect(self.validate_x_slice)
@@ -173,7 +176,11 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         #
         self.actionLaunch1DModeling.triggered.connect(self.launch_1d_window)
         #
-
+        self.write_group = QtWidgets.QButtonGroup()
+        self.write_group.addButton(self.use_halfspace, 1)
+        self.write_group.addButton(self.use_1D_inverse, 2)
+        self.write_group.addButton(self.use_1D_synthetic, 3)
+        self.use_halfspace.setCheckState(2)
         
     @property
     def cmap(self):
@@ -205,14 +212,16 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
     def launch_1d_window(self):
         if not self.modeling_window:
             periods = self.dataset.data.periods
-            self.modeling_window = InversionWindow(dataset=self.dataset,
-                                                   parent=self)
+            self.modeling_window = Modeling1D(dataset=self.dataset,
+                                              parent=self)
             # self.toggle1DResponse.setEnabled(True)
             # self.toggle1DResponse.clicked.connect(self.plot_1D_response)
             # self.dpm.site1D = self.modeling_window.site
             # self.dpm.sites.update({'1d': [self.dpm.site1D] * len(self.dpm.sites['data'])})
             # self.modeling_window.updated.connect(self.update_1D_response)
         self.modeling_window.show()
+        self.use_1D_inverse.setEnabled(True)
+        self.use_1D_synthetic.setEnabled(True)
 
     def set_marker_colour(self):
         colours = ['White', 'Black', 'Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
@@ -295,7 +304,7 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
 
     def validate_background_rho(self):
         try:
-            self.background_resistivity = float(self.bgRho.text())
+            self.background_resistivity = float(self.bgRho.value())
         except ValueError:
             self.messages.setText('Background resistivity must be numeric')
             self.bgRho.setText(str(self.background_resistivity))
@@ -342,12 +351,33 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
                 self.model.vals[:, :, :] = self.background_resistivity
             else:
                 return
+        self.model.rho_x = self.model.vals
         self.redraw_pcolor()
 
     def update_dimension_labels(self):
         self.nxLabel.setText(' : '.join(['NX', str(self.model.nx)]))
         self.nyLabel.setText(' : '.join(['NY', str(self.model.ny)]))
         self.nzLabel.setText(' : '.join(['NZ', str(self.model.nz)]))
+
+    def data_info_labels(self):
+        locations = self.dataset.data.locations
+        avg = 0
+        for ii in range(self.dataset.data.NS):
+            mask = np.ones(shape=locations.shape, dtype=int)
+            mask[ii, :] = 0
+            avg += np.min(np.sqrt(np.sum((locations[mask] - locations[ii, :])**2, axis=1)))
+        avg = avg / (self.dataset.data.NS)
+        self.spacingLabel.setText('Avg. Station Spacing: {:<8.1f}'.format(avg / 1000))
+        min_avg = 0
+        max_avg = 0
+        for site in self.dataset.data.site_names:
+            rho, depth = utils.compute_bost1D(self.dataset.data.sites[site], filter_width=0.75)[:2]
+            min_avg += depth[0]
+            max_avg += depth[-1]
+        min_avg = (min_avg / self.dataset.data.NS)
+        max_avg = (max_avg / self.dataset.data.NS)
+        self.minBostLabel.setText('Min. Bostick Depth: {:<8.1f}'.format(min_avg))
+        self.maxBostLabel.setText('Max. Bostick Depth: {:<8.1f}'.format(max_avg))
 
     def min_depth(self):
         try:
@@ -378,9 +408,9 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             min_depth = self.model.dz[1]
             self.minDepthFactor.setText(str(min_depth))
         if min_depth >= float(self.maxDepthFactor.text()):
-            self.minDepthFactor.setText(str(0.001))
+            self.minDepthFactor.setText(str(1))
             self.messages.setText('Minimum depth cannot exceed maximum depth!')
-        self.update_factor_table(location='top')
+        self.update_factor_table()
 
     def max_depth_factor(self):
         try:
@@ -391,13 +421,25 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         if max_depth <= float(self.minDepth.text()):
             self.maxDepthFactor.setText(str(float(self.minDepth.text()) + 1000))
             self.messages.setText('Maximum depth cannot be less minimum depth!')
-        self.update_factor_table(location='bottom')
+        self.update_factor_table()
 
-    def update_factor_table(self, location):
-        if location == 'bottom':
-            self.increaseFactors.setItem(self.increaseFactors.rowCount(), 0, QtWidgets.QTableWidgetItem(self.maxDepthFactor.text()))
-        elif location == 'top':
-            self.increaseFactors.setItem(0, 0, QtWidgets.QTableWidgetItem(self.minDepthFactor.text()))
+    def update_factor_table(self):
+        min_depth = float(self.minDepthFactor.text())
+        max_depth = float(self.maxDepthFactor.text())
+        for row in range(self.increaseFactors.rowCount()):
+            item = self.increaseFactors.item(row, 0)
+            try:
+                depth = float(item.text())
+                if depth <= min_depth:
+                    self.increaseFactors.setItem(row, 0, QtWidgets.QTableWidgetItem(str(min_depth + 1)))
+                elif depth > max_depth:
+                    self.increaseFactors.setItem(row, 0, QtWidgets.QTableWidgetItem(str(max_depth)))
+            except (AttributeError, ValueError):
+                continue
+        # if location == 'bottom':
+        #     self.increaseFactors.setItem(self.increaseFactors.rowCount(), 0, QtWidgets.QTableWidgetItem(self.maxDepthFactor.text()))
+        # elif location == 'top':
+        #     self.increaseFactors.setItem(0, 0, QtWidgets.QTableWidgetItem(self.minDepthFactor.text()))
 
     def sort_increase_factors(self):
         depths, factors = [], []
@@ -625,24 +667,74 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
     def save_progress(self):
         self.revert_model = copy.deepcopy(self.model)
 
-    def write_model(self):
+    def write_modem(self):
+        self.write_model(write_anisotropic=False)
+
+    def write_mt3dani(self):
+        self.write_model(write_anisotropic=True)
+
+    def write_model(self, write_anisotropic=False):
         # model_file, ret = self.file_dialog.write_file(ext='.model', label='Output Model')
         if self.modeling_window:
-            if self.modeling_window.inversion_settings.results:
-                ret = QtWidgets.QMessageBox.question(self, 'Import 1D?', 'Import 1D inversion result onto 3D starting model?',
-                                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                     QtWidgets.QMessageBox.No)
-                if ret == QtWidgets.QMessageBox.Yes:
+            if self.use_1D_inverse.checkState():
+                if self.modeling_window.inversion_settings.results:
                     model_1D = self.modeling_window.inversion_settings.results['Model']
                     self.model.import_1D(model_1D['Rho'], model_1D['dz'])
-
+                else:
+                    ret = QtWidgets.QMessageBox.question(self, 'Write', 'No 1D inverse model is available; Write halfspace?',
+                                                         QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                         QtWidgets.QMessageBox.No)
+                    if ret == QtWidgets.QMessageBox.Yes:
+                        self.use_halfspace.setCheckState(2)
+                    else:
+                        return
+            elif self.use_1D_synthetic.checkState():
+                if self.modeling_window.synthetic_results:
+                    model_1D = self.modeling_window.synthetic_results
+                    if (model_1D['rho_x'] != model_1D['rho_y']):
+                        if  not write_anisotropic:
+                            ret = QtWidgets.QMessageBox.question(self, 'Write', 'Synthetic model is anisotropy - use only rho_x?',
+                                                             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                             QtWidgets.QMessageBox.No)
+                            if ret == QtWidgets.QMessageBox.Yes:
+                                self.model.import_1D(rho_x=model_1D['rho_x'], rho_y=model_1D['rho_y'], dz=model_1D['depth'])
+                            else:
+                                return
+                    else:
+                        if model_1D['rho_x']:
+                            debug_print(model_1D['rho_x'], 'debug.log')
+                            debug_print(model_1D['depth'], 'debug.log')
+                            self.model.import_1D(rho_x=model_1D['rho_x'], dz=model_1D['depth'])
+                        else:
+                            self.background_resistivity = self.modeling_window.synthetic_window.hs
+                            self.bgRho.setValue(self.background_resistivity)
+                            self.set_background_rho()
+                else:
+                    ret = QtWidgets.QMessageBox.question(self, 'Write', 'No 1D synthetic model is available; Write halfspace?',
+                                                         QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                         QtWidgets.QMessageBox.No)
+                    if ret == QtWidgets.QMessageBox.Yes:
+                        self.use_halfspace.setCheckState(2)
+                    else:
+                        return
+                    # model_1D = self.modeling_window.synthetic_results
+        if self.use_halfspace.checkState():
+            self.set_background_rho()
+        if write_anisotropic:
+            format_string = 'Model Files (*.zani);; All Files (*)'
+        else:
+            format_string = 'Model Files (*.model *.rho);; All Files (*)'
         model_file, ret = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Model', self.path,
-                                                             'Model Files (*.model *.rho);; All Files (*)')[:2]
+                                                             format_string)[:2]
         if ret:
             cov_file, ret = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Covariance', self.path,
                                                              'Covariance Files (*.cov);; All Files (*)')[:2]
             # cov_file, ret = self.file_dialog.write_file(ext='.cov', label='Output Covariance')
-            self.model.write(model_file)
+            if write_anisotropic:
+                file_format = 'mt3dani'
+            else:
+                file_format = 'modem'
+            self.model.write(model_file, use_anisotropy=write_anisotropic, file_format=file_format)
             if ret:
                 self.model.write_covariance(cov_file)
 

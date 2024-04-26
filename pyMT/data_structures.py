@@ -1460,30 +1460,25 @@ class Model(object):
         self._zCS = [1] * 60
         self.vals = np.zeros((60, 60, 60)) + self.background_resistivity
         self.rho_x = np.zeros((60, 60, 60)) + self.background_resistivity
+        self.rho_y, self.rho_z = [], []
+        self.dip, self.slant, self.strike = [], [], []
         self.xCS = [1] * 60
         self.yCS = [1] * 60
         self.zCS = [1] * 60
 
-    def import_1D(self, model_1D, dz):
-        # centers_3D = utils.edge2center(self.dz)
-        # centers_1D = utils.edge2center(dz)
-        # IO.debug_print(dz, 'debug.log')
-        # IO.debug_print([len(centers_1D), len(model_1D)], 'debug.log')
-        new_vals = np.interp(self.dz, dz, model_1D,
-                             left=model_1D[0], right=model_1D[-1])
+    def import_1D(self, rho_x, dz, rho_y=None):
+        new_vals = np.interp(self.dz, dz, rho_x,
+                             left=rho_x[0], right=rho_x[-1])
         for zz, val in enumerate(new_vals[:-1]):
             self.vals[:,:,zz] = val
-        # cc = 0
-        # try:
-        #     for ii, p in enumerate(centers_3D):
-        #         while True:
-        #             if p <= centers_1D[cc]:
-        #                 self.vals[:,:,ii] = model_1D[cc]
-        #                 break
-        #             else:
-        #                 cc += 1
-        # except IndexError:
-        #     self.vals[:,:, ii:] = model_1D[-1]
+        self.rho_x = self.vals
+        if rho_y:
+            new_vals = np.intert(self.dz, dz, rho_y, left=rho_y[0], right=rho_y[-1])
+            self.rho_y = self.rho_x
+            self.rho_z = self.rho_x
+            self.dip, self.slant, self.strike = [np.zeros(shape=self.vals.shape)] * 3
+            for zz, val in enumerate(new_vals[:-1]):
+                self.rho_y[:, :, zz] = val
 
 
     def __read__(self, modelfile='', file_format='modem3d'):
@@ -2025,6 +2020,17 @@ class Model(object):
     def write(self, outfile, file_format='modem', use_log=True, use_resistivity=True, use_anisotropy=False, n_param=3):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
+        if use_anisotropy:
+            if self.rho_y == []:
+                self.rho_y = self.rho_x
+            if self.rho_z == []:
+                self.rho_z = self.rho_x
+            if self.slant == []:
+                self.slant = np.zeros(shape=self.vals.shape)
+            if self.dip == []:
+                self.dip = np.zeros(shape=self.vals.shape)
+            if self.strike == []:
+                self.strike = np.zeros(shape=self.vals.shape)
         IO.write_model(self, outfile,
                        file_format=file_format,
                        use_log=use_log,

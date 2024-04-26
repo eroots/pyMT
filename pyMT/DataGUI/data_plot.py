@@ -38,7 +38,7 @@ import os
 from pyMT import gplot, utils, data_structures
 from pyMT import resources
 from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser, MyPopupDialog
-from pyMT.GUI_common.windows import StackedDataWindow, ModelingMain
+from pyMT.GUI_common.windows import StackedDataWindow, SyntheticWindow
 from pyMT.IO import debug_print
 from copy import deepcopy
 try:

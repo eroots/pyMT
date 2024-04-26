@@ -300,6 +300,7 @@ class NewProject(QNewProject, Ui_NewProject):
         if len(self.dataset_index()) == 1:
             fnames = QtWidgets.QFileDialog.getOpenFileNames(self, 'Browse Files',
                                                            self.current_dir,
+                                                           'All Files (*.rho *.model *.zani *.dat *.gdat *.data *.resp *.lst *.reso);;' +\
                                                            'ModEM Files (*.rho *.model *.dat *.lst *.reso *.data *.resp);;' +\
                                                            'EM3DANI Files (*.mod *.dat *.adat *.resp *.lst);;' +\
                                                            'MT3DANI Files (*.ani *.zani *.dat);; All Files (*)')[0]
@@ -365,9 +366,9 @@ class NewProject(QNewProject, Ui_NewProject):
             QtWidgets.QMessageBox.warning(self, '', 'A model must be available in the selected data set to use Model Viewer!')
 
     def close_mv(self, mv):
-        mv.close()
-        self.model_windows.remove(mv)
-
+        pass
+        # self.model_windows.remove(mv)
+        # mv.close()
 
     def launch_mesh_designer(self):
         if len(self.dataset_index()) == 0:

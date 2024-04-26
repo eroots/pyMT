@@ -58,14 +58,21 @@
      <x>0</x>
      <y>0</y>
      <width>1358</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWrite_Model">
     <property name="title">
      <string>Save / Revert</string>
     </property>
-    <addaction name="writeModel"/>
+    <widget class="QMenu" name="menuWrite_Model_2">
+     <property name="title">
+      <string>Write Model</string>
+     </property>
+     <addaction name="writeModEM"/>
+     <addaction name="writeMT3DANI"/>
+    </widget>
+    <addaction name="menuWrite_Model_2"/>
     <addaction name="saveProgress"/>
     <addaction name="revertProgress"/>
    </widget>
@@ -145,28 +152,53 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_3">
-     <item row="2" column="0">
-      <widget class="QLabel" name="nyLabel">
-       <property name="text">
-        <string>NY:</string>
-       </property>
-      </widget>
+     <item row="6" column="0">
+      <layout class="QGridLayout" name="gridLayout_12">
+       <item row="0" column="0">
+        <widget class="QLabel" name="nxLabel">
+         <property name="text">
+          <string>NX: </string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="nzLabel">
+         <property name="text">
+          <string>NZ:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="nyLabel">
+         <property name="text">
+          <string>NY:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="minBostLabel">
+         <property name="text">
+          <string>Min. Bostick Depth:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="spacingLabel">
+         <property name="text">
+          <string>Avg. Station Spacing:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="maxBostLabel">
+         <property name="text">
+          <string>Max. Bostick Depth:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="nzLabel">
-       <property name="text">
-        <string>NZ:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="nxLabel">
-       <property name="text">
-        <string>NX: </string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
+     <item row="8" column="0">
       <widget class="QToolBox" name="toolBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -182,8 +214,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>328</width>
-          <height>621</height>
+          <width>332</width>
+          <height>665</height>
          </rect>
         </property>
         <attribute name="label">
@@ -406,7 +438,7 @@
                 <attribute name="title">
                  <string>By Decade</string>
                 </attribute>
-                <layout class="QGridLayout" name="gridLayout_6" rowstretch="5,0,0,0,0,0" columnstretch="5,0,0">
+                <layout class="QGridLayout" name="gridLayout_6" rowstretch="5,0,0,0" columnstretch="5,0,0">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -534,7 +566,7 @@
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>300</width>
+                     <width>200</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -619,31 +651,76 @@
              </rect>
             </property>
             <property name="text">
-             <string>Background Resistivity</string>
+             <string>Starting Model</string>
             </property>
            </widget>
-           <widget class="QLineEdit" name="bgRho">
+           <widget class="QWidget" name="gridLayoutWidget">
             <property name="geometry">
              <rect>
-              <x>10</x>
-              <y>570</y>
-              <width>113</width>
-              <height>20</height>
+              <x>0</x>
+              <y>560</y>
+              <width>307</width>
+              <height>81</height>
              </rect>
             </property>
-           </widget>
-           <widget class="QPushButton" name="setBackgroundRho">
-            <property name="geometry">
-             <rect>
-              <x>130</x>
-              <y>570</y>
-              <width>111</width>
-              <height>23</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Set Background</string>
-            </property>
+            <layout class="QGridLayout" name="gridLayout_9">
+             <property name="horizontalSpacing">
+              <number>6</number>
+             </property>
+             <item row="1" column="2">
+              <widget class="QPushButton" name="setBackgroundRho">
+               <property name="text">
+                <string>Set Background</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QCheckBox" name="use_1D_synthetic">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Use 1D Synthetic</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QCheckBox" name="use_1D_inverse">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Use 1D Inverse</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="bgRho">
+               <property name="decimals">
+                <number>1</number>
+               </property>
+               <property name="minimum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>1000000.000000000000000</double>
+               </property>
+               <property name="value">
+                <double>2500.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QCheckBox" name="use_halfspace">
+               <property name="text">
+                <string>Use Halfspace</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </widget>
          </item>
@@ -654,8 +731,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>328</width>
-          <height>621</height>
+          <width>332</width>
+          <height>665</height>
          </rect>
         </property>
         <attribute name="label">
@@ -679,8 +756,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>328</width>
-          <height>621</height>
+          <width>332</width>
+          <height>665</height>
          </rect>
         </property>
         <attribute name="label">
@@ -762,8 +839,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>328</width>
-          <height>621</height>
+          <width>332</width>
+          <height>665</height>
          </rect>
         </property>
         <attribute name="label">
@@ -922,11 +999,6 @@
     </layout>
    </widget>
   </widget>
-  <action name="writeModel">
-   <property name="text">
-    <string>Write Model</string>
-   </property>
-  </action>
   <action name="regenMesh">
    <property name="text">
     <string>Regenerate mesh</string>
@@ -1081,6 +1153,16 @@
   <action name="actionLaunch1DModeling">
    <property name="text">
     <string>Launch Window</string>
+   </property>
+  </action>
+  <action name="writeModEM">
+   <property name="text">
+    <string>Write ModEM</string>
+   </property>
+  </action>
+  <action name="writeMT3DANI">
+   <property name="text">
+    <string>Write MT3DANI (anisotropic)</string>
    </property>
   </action>
  </widget>

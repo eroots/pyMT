@@ -28,17 +28,17 @@
      <x>0</x>
      <y>0</y>
      <width>985</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menuWrite">
     <property name="title">
-     <string>File</string>
+     <string>Write</string>
     </property>
     <addaction name="actionWriteInverse"/>
     <addaction name="actionWriteSynthetic"/>
    </widget>
-   <addaction name="menuFile"/>
+   <addaction name="menuWrite"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dataDock">
@@ -47,6 +47,9 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
     <string>Stacked Data</string>
@@ -63,6 +66,9 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
    <property name="windowTitle">
     <string>Synthetic Modelling</string>
    </property>
@@ -78,6 +84,9 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
    <property name="windowTitle">
     <string>1D Inversion</string>
    </property>
@@ -88,12 +97,12 @@
   </widget>
   <action name="actionWriteInverse">
    <property name="text">
-    <string>Write Inverse Model</string>
+    <string>Write Inverse</string>
    </property>
   </action>
   <action name="actionWriteSynthetic">
    <property name="text">
-    <string>Write Synthetic Model</string>
+    <string>Write Synthetic</string>
    </property>
   </action>
  </widget>

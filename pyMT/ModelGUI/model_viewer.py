@@ -166,10 +166,10 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.dataset.spatial_units = self.spatial_units
         self.model.spatial_units = self.spatial_units
         self.clip_model.spatial_units = self.spatial_units
-        exitButton = QtWidgets.QAction('Exit', self)
-        exitButton.setShortcut('Ctrl+Q')
-        exitButton.triggered.connect(self.closeEvent)
-        fileMenu.addAction(exitButton)
+        self.exitButton = QtWidgets.QAction('Exit', self)
+        self.exitButton.setShortcut('Ctrl+Q')
+        self.exitButton.triggered.connect(self.closeEvent)
+        fileMenu.addAction(self.exitButton)
         self.mesh_group = QtWidgets.QActionGroup(self)
         self.mesh_group.addAction(self.meshOn)
         self.mesh_group.addAction(self.meshOff)
@@ -248,9 +248,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def closeEvent(self, event):
         # super().closeEvent(event)
-        # self.vtk_widget.Finalize()
-        self.close()
+        self.vtk_widget.Finalize()
         self.closed.emit(self)
+        self.close()
 
     @property
     def x_slice(self):

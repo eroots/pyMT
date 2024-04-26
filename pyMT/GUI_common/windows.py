@@ -13,9 +13,9 @@ from copy import deepcopy
 
 
 path = os.path.dirname(os.path.realpath(__file__))
-UI_ModelingWindow, QModelingMain = loadUiType(os.path.join(path, '1D_modeling.ui'))
+UI_SyntheticWindow, QSyntheticWindow = loadUiType(os.path.join(path, '1D_synthetic.ui'))
 UI_StackedDataWindow, QStackedDataMain = loadUiType(os.path.join(path, 'stacked_data.ui'))
-UI_InversionWindow, QInversionWindow = loadUiType(os.path.join(path, '1D_inversion.ui'))
+UI_Modeling1D, QModeling1D = loadUiType(os.path.join(path, '1D_modeling.ui'))
 UI_InversionSettings, QInversionSettings = loadUiType(os.path.join(path, 'inversion_settings.ui'))
 
 # Allow simple 1D inversions?
@@ -24,24 +24,24 @@ UI_InversionSettings, QInversionSettings = loadUiType(os.path.join(path, 'invers
 # How feasible is it to borrow / write a 1D inversion scheme?
 # Mesh designer still needs to get the common colour menu added
 
-class InversionWindow(QInversionWindow, UI_InversionWindow):
+class Modeling1D(QModeling1D, UI_Modeling1D):
     def __init__(self, parent=None, dataset=None):
-        super(InversionWindow, self).__init__()
+        super(Modeling1D, self).__init__()
         self.setupUi(self)
         if dataset:
             dummy_site = dataset.data.sites[dataset.data.site_names[0]]
-        self.modeling_window = ModelingMain(dummy_site=dummy_site,
+        self.synthetic_window = SyntheticWindow(dummy_site=dummy_site,
                                             parent=self,
                                             inverse_model=None)
-        self.syntheticDock.setWidget(self.modeling_window)
-        self.synthetic_results = {'rho_x': self.modeling_window.rho_x,
-                                  'rho_y': self.modeling_window.rho_y,
-                                  'depth': [0] + list(np.cumsum(self.modeling_window.thickness))}
+        self.syntheticDock.setWidget(self.synthetic_window)
+        self.synthetic_results = {'rho_x': self.synthetic_window.rho_x + [self.synthetic_window.hs],
+                                  'rho_y': self.synthetic_window.rho_y + [self.synthetic_window.hs],
+                                  'depth': [0] + list(np.cumsum(self.synthetic_window.thickness))}
 
-        self.modeling_window.updated.connect(self.update_synthetic)
+        self.synthetic_window.updated.connect(self.update_synthetic)
         self.data_window = StackedDataWindow(dataset=dataset,
                                              parent=self,
-                                             synthetic_response=self.modeling_window.site)
+                                             synthetic_response=self.synthetic_window.site)
         self.dataDock.setWidget(self.data_window)
         self.data_window.rho_updated.connect(self.update_data_obs)
         self.inversion_settings = InversionSettings(data_obs=dataset.data,
@@ -80,25 +80,25 @@ class InversionWindow(QInversionWindow, UI_InversionWindow):
                 dz = self.synthetic_results['depth']
                 with open(save_file, 'w') as f:
                     for (rx, ry, d) in zip(rho_x, rho_y, dz):
-                        f.write('{:>12.2f},{:12.2f}\n'.format(d*1000, rx, ry))     
+                        f.write('{:>12.2f},{:12.2f}\n'.format(d, rx, ry))     
 
     def update_synthetic(self):
-        self.synthetic_results = {'rho_x': self.modeling_window.rho_x,
-                                  'rho_y': self.modeling_window.rho_y,
-                                  'depth': [0] + list(np.cumsum(self.modeling_window.thickness))}
-        self.data_window.synthetic_response = self.modeling_window.site
+        self.synthetic_results = {'rho_x': self.synthetic_window.rho_x  + [self.synthetic_window.hs],
+                                  'rho_y': self.synthetic_window.rho_y  + [self.synthetic_window.hs],
+                                  'depth': [0] + list(np.cumsum(self.synthetic_window.thickness)*1000)}
+        self.data_window.synthetic_response = self.synthetic_window.site
         self.update_data_window()
 
     def update_data_window(self):
-        # self.data_window.synthetic_response = self.modeling_window.site
+        # self.data_window.synthetic_response = self.synthetic_window.site
         # self.data_window.inversion_response = self.inverse_results['Response']
         # if self.data_window.checkResponse.checkState():
         self.data_window.plot_data()
 
     def update_model_window(self):
         self.data_window.inversion_response = self.inverse_results['Response']
-        self.modeling_window.inverse_model = self.inverse_results['Model']
-        self.modeling_window.plot_model()
+        self.synthetic_window.inverse_model = self.inverse_results['Model']
+        self.synthetic_window.plot_model()
 
     def update_inversion_results(self):
         self.inverse_results = self.inversion_settings.results
@@ -257,43 +257,46 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='ssq', errtype='None')[0]
             elif self.rho_type.lower() == 'determinant':
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='det', errtype='None')[0]
-        self.avg_rho = np.mean(np.log10(rho), axis=1)
+        self.avg_rho = 10**np.mean(np.log10(rho), axis=1)
         if self.avg_rho is not None:
-            self.axis.semilogx(self.dataset.data.periods, np.log10(rho),
+            self.axis.loglog(self.dataset.data.periods, (rho),
                                        marker=self.markers['raw'],
                                        color=self.colours['raw'],
                                        linestyle=self.linestyle['raw'], alpha=0.5)
-            self.axis.semilogx(self.dataset.data.periods, self.avg_rho,
+            self.axis.loglog(self.dataset.data.periods, self.avg_rho,
                                        marker=self.markers['raw'],
                                        linestyle=self.linestyle['raw'],
                                        color='r')
             if self.checkResponse.checkState():
                 if self.synthetic_response is not None:
                     rho_1D = utils.compute_rho(self.synthetic_response, calc_comp=self.rho_type.lower()[:3], errtype='None')[0]
-                    self.axis.semilogx(self.synthetic_response.periods, np.log10(rho_1D),
+                    self.axis.loglog(self.synthetic_response.periods, (rho_1D),
                                        marker=self.markers['modeled'],
                                        color=self.colours['modeled'],
                                        linestyle=self.linestyle['modeled'])
                 if self.inversion_response is not None:
-                    self.axis.semilogx(self.inversion_response['Periods'], np.log10(self.inversion_response['Rho']),
+                    self.axis.loglog(self.inversion_response['Periods'], (self.inversion_response['Rho']),
                                        marker=self.markers['inverted'],
                                        color=self.colours['inverted'],
                                        linestyle=self.linestyle['inverted'])
                     self.axis.set_title('RMS: {:4.2f}'.format(self.inversion_response['RMS']))
-            self.set_axis_limits()
+        
+        self.axis.set_ylabel('Apparent Resistivity (Ωm)')
+        self.axis.set_xlabel('Period (s)')  
+        self.set_axis_limits()
         self.canvas.draw()
 
     def set_axis_limits(self):
-        self.axis.set_ylim([self.yLimitsLower.value(), self.yLimitsUpper.value()])
+        self.axis.set_ylim([10**self.yLimitsLower.value(), 10**self.yLimitsUpper.value()])
         self.canvas.draw()
 
 
-class ModelingMain(QModelingMain, UI_ModelingWindow):
+class SyntheticWindow(QSyntheticWindow, UI_SyntheticWindow):
 
     updated = QtCore.pyqtSignal()
 
     def __init__(self, dummy_site=None, parent=None, inverse_model=None):
-        super(ModelingMain, self).__init__()
+        super(SyntheticWindow, self).__init__()
 
         self.setupUi(self)
         self.parent = parent
@@ -454,14 +457,14 @@ class ModelingMain(QModelingMain, UI_ModelingWindow):
         max_depth = depth[-1] - 400
         rho_x = self.rho_x + [self.hs] * 2
         rho_y = self.rho_y + [self.hs] * 2
-        self.image = self.axis.step(np.log10(rho_x), depth, color='b', linestyle='-', label='Synth. X')
-        self.image = self.axis.step(np.log10(rho_y), depth, color='r', linestyle='--', label='Synth. Y')
+        self.image = self.axis.step(np.log10(rho_x), depth, color='b', linestyle='-', label='Syn. RhoX')
+        self.image = self.axis.step(np.log10(rho_y), depth, color='r', linestyle='--', label='Syn. RhoY')
         if self.inverse_model:
             self.image = self.axis.step(np.log10(self.inverse_model['Rho']), self.inverse_model['dz']/1000, color='k', linestyle='-', label='Inv.')
             max_depth = max([self.inverse_model['dz'][-1]/1000, max_depth])
         # self.axis.set_ylim([0, self.max_plot_depth])
         self.axis.set_ylabel('Depth (km)')
-        self.axis.set_xlabel('Rho (Ωm)')
+        self.axis.set_xlabel('Log10 Rho (Ωm)')
         if self.lockXAxis.checkState():
             self.axis.set_xlim(self.rho_lim)
         if self.lockYAxis.checkState():
