@@ -166,18 +166,18 @@ class InversionSettings(QInversionSettings, UI_InversionSettings):
         rho_initial[-2:] = self.halfspace_resistivity
         
         m_best, rhoa_best, z_best, rms = invert_1DMT(data=self.data_obs,
-                                                              uncertainty=self.uncertainty,
-                                                              rho_initial=rho_initial,
-                                                              dz=self.dz,
-                                                              mode=self.mode,
-                                                              regpar=self.reg_param,
-                                                              model_norm=self.model_norm,
-                                                              data_norm=2, # Hard coded for now
-                                                              rho_min=self.minimum_rho,
-                                                              rho_max=self.maximum_rho,
-                                                              target_misfit=self.target_misfit,
-                                                              maxiter=self.num_iters,
-                                                              mantle_transition=self.use_mantle_transition)
+                                                     uncertainty=self.uncertainty,
+                                                     rho_initial=rho_initial,
+                                                     dz=self.dz,
+                                                     mode=self.mode,
+                                                     regpar=self.reg_param,
+                                                     model_norm=self.model_norm,
+                                                     data_norm=2, # Hard coded for now
+                                                     rho_min=self.minimum_rho,
+                                                     rho_max=self.maximum_rho,
+                                                     target_misfit=self.target_misfit,
+                                                     maxiter=self.num_iters,
+                                                     mantle_transition=self.use_mantle_transition)
         self.results = {'Model': {'Rho': m_best, 'dz': np.array(self.dz)},
                         'Response': {'Rho': rhoa_best, 'Periods': self.data_obs.periods, 'RMS': rms}}
         self.updated.emit()
@@ -257,7 +257,9 @@ class StackedDataWindow(QStackedDataMain, UI_StackedDataWindow):
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='ssq', errtype='None')[0]
             elif self.rho_type.lower() == 'determinant':
                 rho[:, ii] = utils.compute_rho(self.dataset.data.sites[site], calc_comp='det', errtype='None')[0]
-        self.avg_rho = 10**np.mean(np.log10(rho), axis=1)
+            idx = self.dataset.data.sites[site].used_error['ZXYR'] == self.dataset.data.REMOVE_FLAG
+            rho[idx, ii] = np.nan
+        self.avg_rho = 10**np.nanmean(np.log10(rho), axis=1)
         if self.avg_rho is not None:
             self.axis.loglog(self.dataset.data.periods, (rho),
                                        marker=self.markers['raw'],
