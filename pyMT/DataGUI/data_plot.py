@@ -38,7 +38,7 @@ import os
 from pyMT import gplot, utils, data_structures
 from pyMT import resources
 from pyMT.GUI_common.classes import FileDialog, ColourMenu, TwoInputDialog, FileInputParser, MyPopupDialog
-from pyMT.GUI_common.windows import StackedDataWindow, SyntheticWindow
+from pyMT.GUI_common.windows import Modeling1D
 from pyMT.IO import debug_print
 from copy import deepcopy
 try:
@@ -997,40 +997,56 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.map_view = MapMain(dataset=self.dataset,
                                 active_sites=self.site_names,
                                 sites=self.dataset.data.site_names)
-        self.modeling_window = []
-        self.stacked_data_window = []
+        self.modeling_window = None
+        self.stacked_data_window = None
+        self.synthetic_window = None
 
         self.set_nparam_labels()
 
-    def launch_modeler(self):
+    def launch_1D_window(self):
         if not self.modeling_window:
-            periods = self.dataset.data.periods
-            self.modeling_window = ModelingMain(dummy_site=self.dataset.data.sites[self.dataset.data.site_names[0]],
-                                                parent=self)
+            # periods = self.dataset.data.periods
+            self.modeling_window = Modeling1D(dataset=self.dataset)
             self.toggle1DResponse.setEnabled(True)
             self.toggle1DResponse.clicked.connect(self.plot_1D_response)
-            self.dpm.site1D = self.modeling_window.site
+            self.dpm.site1D = self.modeling_window.synthetic_window.site
             self.dpm.sites.update({'1d': [self.dpm.site1D] * len(self.dpm.sites['data'])})
-            self.modeling_window.updated.connect(self.update_1D_response)
-        self.modeling_window.show()
+            self.modeling_window.synthetic_window.updated.connect(self.update_1D_response)
 
-    def launch_stacked_data(self):
-        if not self.stacked_data_window:
-            self.stacked_data_window = StackedDataWindow(dataset=self.dataset,
-                                                         synthetic_response=self.dpm.site1D,
-                                                         parent=self)
-        self.stacked_data_window.show()
+            self.stacked_data_window = self.modeling_window.data_window
+            self.synthetic_window = self.modeling_window.synthetic_window
+        self.modeling_window.show()
+       
+
+    # def launch_modeler(self):
+    #     if not self.modeling_window:
+    #         periods = self.dataset.data.periods
+    #         self.modeling_window = ModelingMain(dummy_site=self.dataset.data.sites[self.dataset.data.site_names[0]],
+    #                                             parent=self)
+    #         self.toggle1DResponse.setEnabled(True)
+    #         self.toggle1DResponse.clicked.connect(self.plot_1D_response)
+    #         self.dpm.site1D = self.modeling_window.site
+    #         self.dpm.sites.update({'1d': [self.dpm.site1D] * len(self.dpm.sites['data'])})
+    #         self.modeling_window.updated.connect(self.update_1D_response)
+    #     self.modeling_window.show()
+
+    # def launch_stacked_data(self):
+    #     if not self.stacked_data_window:
+    #         self.stacked_data_window = StackedDataWindow(dataset=self.dataset,
+    #                                                      synthetic_response=self.dpm.site1D,
+    #                                                      parent=self)
+    #     self.stacked_data_window.show()
 
     def update_1D_response(self):
         if self.stacked_data_window:
-            self.stacked_data_window.synthetic_response = self.modeling_window.site
+            self.stacked_data_window.synthetic_response = self.synthetic_window.site
             if self.stacked_data_window.checkResponse.checkState():
                 self.stacked_data_window.plot_data()
         if self.dpm.toggles['1d']:
             self.update_dpm()
 
     def plot_1D_response(self, event):
-        if self.modeling_window.Z is not []:
+        if self.synthetic_window.Z is not []:
             self.dpm.toggles['1d'] = event
             self.update_dpm()
         else:
@@ -1461,8 +1477,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
         self.plotFlaggedData.clicked.connect(self.plot_flagged_data)
 
-        self.actionLaunchModeler.triggered.connect(self.launch_modeler)
-        self.actionLaunchStackedData.triggered.connect(self.launch_stacked_data)
+        self.actionLaunch1DModeling.triggered.connect(self.launch_1D_window)
+        # self.actionLaunchModeler.triggered.connect(self.launch_modeler)
+        # self.actionLaunchStackedData.triggered.connect(self.launch_stacked_data)
 
     def set_plotted_errors(self):
         self.dpm.which_errors = []
