@@ -2073,9 +2073,14 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                 if set(freq_order[site][comp]) != all_freqs:
                     for freq in all_freqs:
                         if freq not in freq_order[site][comp]:
-                            print('Infilling frequency {} at {}, {}'.format(site, comp))
-                            idx = np.argmin(abs(freq - freq_order[site][comp]))
-                            data[site][comp].append(data[site][comp][idx])
+                            print('Infilling frequency {} at {}, {}'.format(freq, site, comp))
+                            try:
+                                idx = np.argmin(abs(freq - np.array(freq_order[site][comp])))
+                                data[site][comp].append(data[site][comp][idx])
+                            except ValueError:
+                                # In the case where the site is completely missing a component (likely tipper)
+                                # Infill with small value
+                                data[site][comp].append(0.00001)
                             errors[site][comp].append(REMOVE_FLAG)
                             freq_order[site][comp].append(freq)
                 idx = np.argsort(freq_order[site][comp])
