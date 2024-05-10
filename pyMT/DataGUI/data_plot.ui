@@ -204,13 +204,13 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
          <string>Data Selection</string>
         </attribute>
-        <widget class="QCheckBox" name="select_points_button">
+        <widget class="QCheckBox" name="selectPoints">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -232,8 +232,8 @@
          </property>
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>180</y>
+           <x>40</x>
+           <y>220</y>
            <width>93</width>
            <height>28</height>
           </rect>
@@ -245,8 +245,8 @@
         <widget class="QLabel" name="label_2">
          <property name="geometry">
           <rect>
-           <x>120</x>
-           <y>160</y>
+           <x>610</x>
+           <y>110</y>
            <width>53</width>
            <height>16</height>
           </rect>
@@ -261,7 +261,7 @@
            <x>190</x>
            <y>20</y>
            <width>151</width>
-           <height>192</height>
+           <height>241</height>
           </rect>
          </property>
          <property name="statusTip">
@@ -303,7 +303,7 @@
            <x>420</x>
            <y>20</y>
            <width>151</width>
-           <height>192</height>
+           <height>241</height>
           </rect>
          </property>
          <property name="toolTip">
@@ -354,8 +354,8 @@
         <widget class="QComboBox" name="currentDataset">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>110</y>
+           <x>30</x>
+           <y>150</y>
            <width>111</width>
            <height>22</height>
           </rect>
@@ -367,8 +367,8 @@
         <widget class="QLabel" name="label_8">
          <property name="geometry">
           <rect>
-           <x>20</x>
-           <y>90</y>
+           <x>40</x>
+           <y>130</y>
            <width>101</width>
            <height>16</height>
           </rect>
@@ -380,8 +380,8 @@
         <widget class="QPushButton" name="printPeriods">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>140</y>
+           <x>40</x>
+           <y>180</y>
            <width>93</width>
            <height>28</height>
           </rect>
@@ -396,8 +396,8 @@
         <widget class="QLabel" name="label">
          <property name="geometry">
           <rect>
-           <x>40</x>
-           <y>40</y>
+           <x>60</x>
+           <y>80</y>
            <width>71</width>
            <height>16</height>
           </rect>
@@ -409,8 +409,8 @@
         <widget class="QComboBox" name="sortSites">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>60</y>
+           <x>30</x>
+           <y>100</y>
            <width>111</width>
            <height>22</height>
           </rect>
@@ -457,7 +457,7 @@
            <x>730</x>
            <y>10</y>
            <width>511</width>
-           <height>201</height>
+           <height>251</height>
           </rect>
          </property>
          <property name="readOnly">
@@ -470,8 +470,8 @@
         <widget class="QSpinBox" name="azimuthEdit">
          <property name="geometry">
           <rect>
-           <x>120</x>
-           <y>180</y>
+           <x>610</x>
+           <y>130</y>
            <width>51</width>
            <height>22</height>
           </rect>
@@ -484,6 +484,22 @@
          </property>
          <property name="maximum">
           <number>359</number>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="selectFlagged">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>30</y>
+           <width>151</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string extracomment="Select points on plotted data to flag (remove) it from the written data file. Removes all related components to the selected points (i.e., all impedance components if Z, Rhoa, or phase is plotted, or all tipper components if tipper is selected)"/>
+         </property>
+         <property name="text">
+          <string>Flag (Remove) Data</string>
          </property>
         </widget>
        </widget>

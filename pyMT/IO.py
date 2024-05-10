@@ -2078,8 +2078,11 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                     for freq in all_freqs:
                         if freq not in freq_order[site][comp]:
                             print('Infilling frequency {} at {}, {}'.format(freq, site, comp))
-                            idx = np.argmin(abs(freq - np.array(freq_order[site][comp])))
-                            data[site][comp].append(data[site][comp][idx])
+                            try:
+                                idx = np.argmin(abs(freq - np.array(freq_order[site][comp])))
+                                data[site][comp].append(data[site][comp][idx])
+                            except ValueError:
+                                data[site][comp].append(0.00001)
                             errors[site][comp].append(REMOVE_FLAG)
                             freq_order[site][comp].append(freq)
                 idx = np.argsort(freq_order[site][comp])
@@ -3053,6 +3056,8 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                      'TZXI': 'ImagTzx',
                      'TZYR': 'RealTzy',
                      'TZYI': 'ImagTzy'}
+        print('Flagged data removed from gofem data file')
+        msg_written = 0
         with open(out_file, 'w') as f:
             f.write('# DataType Frequency Source Receiver Value Error\n')
             for ii, period in enumerate(data.periods):
@@ -3062,13 +3067,20 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                         data_point = data.sites[site_name].data[comp][ii]
                         error_point = abs(data.sites[site_name].used_error[comp][ii])
                         # GoFEM doesn't like this with the tippers - should they not be multiplied by -1?
-                        if comp.lower().startswith('z') and comp.lower().endswith('i'):
+                        # if comp.lower().startswith('z') and comp.lower().endswith('i'):
+                        if comp.lower().endswith('i'):
                             data_point = -1 * data_point
-                        f.write('{} {:>12.6e} Plane_wave {} {:>12.6e} {:>12.6e}\n'.format(comp_dict[comp],
-                                                                                          freq,
-                                                                                          site_name,
-                                                                                          data_point,
-                                                                                          error_point))
+                        
+                        if error_point != data.REMOVE_FLAG:
+                            f.write('{} {:>12.6e} Plane_wave {} {:>12.6e} {:>12.6e}\n'.format(comp_dict[comp],
+                                                                                              freq,
+                                                                                              site_name,
+                                                                                              data_point,
+                                                                                              error_point))
+                        else:
+                            if not msg_written:
+                                print('Flagged data removed from gofem data file')
+                                msg_written = 1
 
 
     if file_format.lower() == 'wsinv3dmt':

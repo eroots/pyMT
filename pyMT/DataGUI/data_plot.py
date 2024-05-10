@@ -1372,8 +1372,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.dpm.components = [self.dataset.data.components[0]]
 
     def setup_widgets(self):
-        self.select_points_button.clicked.connect(self.select_points)
-        self.select_points = False
+        # self.mplInteractGroup = QtWidgets.QButtonGroup()
+        # self.mplInteractGroup.addButton(self.selectPoints)
+        # self.mplInteractGroup.addButton(self.selectFlagged)
+        self.selectPoints.clicked.connect(self.select_points)
+        self.selectFlagged.clicked.connect(self.select_flagged_data)
+        self.select_points_state = False
         # self.error_table.itemChanged.connect(self.change_errmap)
         self.error_tree.itemDoubleClicked.connect(self.edit_error_tree)
         self.BackButton.clicked.connect(self.Back)
@@ -2523,11 +2527,21 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.mplvl.addWidget(self.toolbar)
 
     def select_points(self):
-        self.select_points = not(self.select_points)
-        if not self.select_points:
+        # self.select_points_state = not(self.select_points_state)
+        if self.selectFlagged.checkState() and self.selectPoints.checkState():
+            self.selectFlagged.setCheckState(False)
+        if not self.selectPoints.checkState():
             self.canvas.mpl_disconnect(self.cid['DataSelect'])
         else:
             self.cid['DataSelect'] = self.canvas.mpl_connect('pick_event', self.onpick)
+
+    def select_flagged_data(self):
+        if self.selectFlagged.checkState() and self.selectPoints.checkState():
+            self.selectPoints.setCheckState(False)
+        if not self.selectFlagged.checkState():
+            self.canvas.mpl_disconnect(self.cid['DataSelect'])
+        else:
+            self.cid['DataSelect'] = self.canvas.mpl_connect('pick_event', self.onpick_flagged)
 
     def onclick(self, event):
         if event.button == 1:
@@ -2539,7 +2553,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         ax_index = next(ii for ii, ax in enumerate(self.dpm.axes) if ax == event.inaxes)
         if self.dpm.axes[ax_index].lines[2].contains(event):
             print('Yep, thats a point')
-        if self.select_points:
+        if self.selectPoints.checkState():
             print(event.xdata, event.ydata)
 
     def onpick(self, pick_event):
@@ -2616,6 +2630,70 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 self.update_map_data()
                 self.set_nparam_labels()
 
+    def onpick_flagged(self, pick_event):
+        """
+        Adds (on left click) or removes (on right click) periods from the data part of the dataset.
+        Needs to be fixed so that the error tree is updated when a period is added. This should only
+        add the new period, rather than do a full re-write of the tree.
+        """
+        # Due to a bug with mpl, if you pick an axis that has a legend outside, it double picks.
+        event = pick_event.mouseevent
+        ax_index = next(ii for ii, ax in enumerate(self.dpm.axes) if ax == event.inaxes)
+        site_name = self.dpm.site_names[ax_index]
+        ind = pick_event.ind[0]
+        # period = 10 ** xdata
+        isdata = False
+        israw = False
+        raw_site = self.dataset.raw_data.sites[site_name]
+        data_site = self.dataset.data.sites[site_name]
+        try:
+            mec = pick_event.artist.properties()['markeredgewidth']
+        except KeyError as e:
+            if self.DEBUG:
+                print(e.msg)
+            return
+        linestyle = pick_event.artist.properties()['linestyle']
+        if linestyle == self.dpm.marker['response']:
+            if self.DEBUG:
+                print('No action for response click.')
+            return
+        if mec == 0:
+            israw = True
+        if mec > 0:
+            isdata = True
+        if israw:
+            if self.DEBUG:
+                print('No action defined for raw data')
+            return
+        period = float(data_site.periods[ind])
+        # npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
+        p_idx =np.argmin(abs(data_site.periods - period))
+        # npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
+        comps = self.dpm.components
+        if comps[0][0].lower().startswith('t'):
+            use_comps = self.dataset.data.TIPPER_COMPONENTS
+        else:
+            use_comps = self.dataset.data.IMPEDANCE_COMPONENTS
+        if event.button == 1:        
+            for comp in use_comps:
+                    self.dataset.data.sites[site_name].used_error[comp][p_idx] = self.dataset.data.REMOVE_FLAG
+        
+            self.update_dpm(updated_sites=self.dpm.site_names,
+                                updated_comp=self.dataset.data.components)
+            self.update_map_data()
+            self.set_nparam_labels()
+        if event.button == 2:
+            if self.DEBUG:
+                print('No action set for middle button press')
+            return
+
+        if event.button == 3:
+            for comp in use_comps:
+                self.dataset.data.sites[site_name].used_error[comp][p_idx] = self.dataset.data.sites[site_name].errors[comp][p_idx]
+            self.update_dpm()
+            self.update_map_data()
+            self.set_nparam_labels()
+
     def disconnect_mpl_events(self):
         for key in self.cid.keys():
             # try:
@@ -2623,9 +2701,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
 
     def connect_mpl_events(self):
         # Can change this later if I want to add something for clicking an axis and not a point
-        if self.select_points:
+        if self.selectPoints.checkState():
             # self.cid['DataSelect'] = self.canvas.mpl_connect('button_press_event', self.onclick)
             self.cid['DataSelect'] = self.canvas.mpl_connect('pick_event', self.onpick)
+        elif self.selectFlagged.checkState():
+            self.cid['DataSelect'] = self.canvas.mpl_connect('pick_event', self.onpick_flagged)
 
 
 class MyTableModel(QtCore.QAbstractTableModel):
