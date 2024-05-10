@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1358</width>
-    <height>913</height>
+    <height>965</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>1358</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWrite_Model">
@@ -214,8 +214,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>332</width>
-          <height>665</height>
+          <width>328</width>
+          <height>671</height>
          </rect>
         </property>
         <attribute name="label">
@@ -386,6 +386,12 @@
              <string>Z Mesh</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_7">
+             <property name="leftMargin">
+              <number>6</number>
+             </property>
+             <property name="rightMargin">
+              <number>5</number>
+             </property>
              <item row="1" column="0">
               <widget class="QGroupBox" name="groupBox_3">
                <property name="sizePolicy">
@@ -659,7 +665,7 @@
              <rect>
               <x>0</x>
               <y>560</y>
-              <width>307</width>
+              <width>357</width>
               <height>81</height>
              </rect>
             </property>
@@ -731,8 +737,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>332</width>
-          <height>665</height>
+          <width>328</width>
+          <height>671</height>
          </rect>
         </property>
         <attribute name="label">
@@ -756,8 +762,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>332</width>
-          <height>665</height>
+          <width>328</width>
+          <height>671</height>
          </rect>
         </property>
         <attribute name="label">
@@ -839,8 +845,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>332</width>
-          <height>665</height>
+          <width>328</width>
+          <height>671</height>
          </rect>
         </property>
         <attribute name="label">

@@ -363,11 +363,12 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         locations = self.dataset.data.locations
         avg = 0
         for ii in range(self.dataset.data.NS):
-            mask = np.ones(shape=locations.shape, dtype=int)
-            mask[ii, :] = 0
-            avg += np.min(np.sqrt(np.sum((locations[mask] - locations[ii, :])**2, axis=1)))
+            mask = np.zeros(shape=locations.shape, dtype=int)
+            mask[ii, :] = 1
+            ma_array = np.ma.masked_array(locations, mask=mask)
+            avg += np.min(np.sqrt(np.sum((ma_array - locations[ii, :])**2, axis=1)))
         avg = avg / (self.dataset.data.NS)
-        self.spacingLabel.setText('Avg. Station Spacing: {:<8.1f}'.format(avg / 1000))
+        self.spacingLabel.setText('Avg. Station Spacing:{:>8.1f} km'.format(avg / 1000))
         min_avg = 0
         max_avg = 0
         for site in self.dataset.data.site_names:
@@ -376,8 +377,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
             max_avg += depth[-1]
         min_avg = (min_avg / self.dataset.data.NS)
         max_avg = (max_avg / self.dataset.data.NS)
-        self.minBostLabel.setText('Min. Bostick Depth: {:<8.1f}'.format(min_avg))
-        self.maxBostLabel.setText('Max. Bostick Depth: {:<8.1f}'.format(max_avg))
+        self.minBostLabel.setText('Avg. Min N-B Depth:{:>10.1f} km'.format(min_avg))
+        self.maxBostLabel.setText('Avg. Max N-B Depth:{:>9.1f} km'.format(max_avg))
 
     def min_depth(self):
         try:

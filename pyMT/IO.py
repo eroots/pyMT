@@ -706,12 +706,13 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
             z_azi = None # If neither TROT nor ZROT are specified, assume azi = 0
             t_azi = None # If neither TROT nor ZROT are specified, assume azi = 0
             scaling_factor = {'Z': 4 * np.pi / 10000, 'T': 1}
-
             for key in blocks.keys():
+                # key = key.strip()
                 if (key[0] == 'Z' or key[0] == 'T') and (key != 'ZROT' and key != 'TROT'):
                     if blocks[key]:
                         data_block = read_data_block(blocks[key])
                         if 'VAR' in key:
+                            new_key = key[:4]
                             errors.update({new_key[:-1] + 'R': abs(data_block) * scaling_factor[key[0]]})
                             errors.update({new_key[:-1] + 'I': abs(data_block) * scaling_factor[key[0]]})
                         else:
@@ -783,8 +784,11 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                 try:
                     assert(errors[component].shape == data[component].shape)
                 except KeyError:
+                    # print(component)
+                    # print(errors.keys())
                     if component.lower().startswith('z'):
-                        errors.update({component: data[component] * 0.05})
+                        print('Reseting errors for {}'.format(component))
+                        errors.update({component: np.abs(data[component]) * 0.05})
                     else:
                         errors.update({component: np.ones(data[component].shape) * 0.03})
                     error_flag = 1
@@ -2095,7 +2099,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                 del freq_order[site][comp]
         
         periods = np.sort(np.array([1/x for x in list(all_freqs)]))
-        debug_print(periods, 'debug.txt')
+        # debug_print(periods, 'debug.txt')
         try:
             inv_type = [key for key in INVERSION_TYPES.keys() if set(used_comps) == set(INVERSION_TYPES[key])][0]
         except IndexError:
@@ -3063,7 +3067,7 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                         data_point = data.sites[site_name].data[comp][ii]
                         error_point = abs(data.sites[site_name].used_error[comp][ii])
                         # GoFEM doesn't like this with the tippers - should they not be multiplied by -1?
-                        if comp.lower().endswith('i'):
+                        if comp.lower().startswith('z') and comp.lower().endswith('i'):
                             data_point = -1 * data_point
                         f.write('{} {:>12.6e} Plane_wave {} {:>12.6e} {:>12.6e}\n'.format(comp_dict[comp],
                                                                                           freq,
