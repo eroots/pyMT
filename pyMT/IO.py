@@ -2082,6 +2082,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                                 idx = np.argmin(abs(freq - np.array(freq_order[site][comp])))
                                 data[site][comp].append(data[site][comp][idx])
                             except ValueError:
+                                # In the case where the site is completely missing a component (likely tipper)
+                                # Infill with small value
                                 data[site][comp].append(0.00001)
                             errors[site][comp].append(REMOVE_FLAG)
                             freq_order[site][comp].append(freq)
@@ -2298,7 +2300,7 @@ def verify_input(message, expected, default=None):
                 except ValueError:
                     print('Format error. Try again')
 
-def write_edi(site, out_file, info=None, header=None, mtsect=None, defs=None):
+def write_edi(site, out_file, info=None, header=None, mtsect=None, definemeas=None):
     freqs = [round(1/x, 8) for x in site.periods]
     NP = len(freqs)
     scale_factor = 1 / (4 * np.pi / 10000)
@@ -2341,10 +2343,10 @@ def write_edi(site, out_file, info=None, header=None, mtsect=None, defs=None):
       for key, val in mtsect.items():
             default_mtsect.update({key: val})
     mtsect = default_mtsect
-    if defs:
-      for key, val in defs.items():
+    if definemeas:
+      for key, val in definemeas.items():
             default_defs.update({key: val})
-    defs = default_defs
+    definemeas = default_defs
 
     # Write the file
     with open(out_file, 'w') as f:
@@ -2359,7 +2361,7 @@ def write_edi(site, out_file, info=None, header=None, mtsect=None, defs=None):
         f.write('\n')
 
         f.write('>=DEFINEMEAS\n')
-        for key, val in defs.items():
+        for key, val in definemeas.items():
             f.write('{}={}\n'.format(key, val))
         f.write('\n')
         
@@ -2467,11 +2469,11 @@ def write_edi(site, out_file, info=None, header=None, mtsect=None, defs=None):
 
             f.write('>TXVAR.EXP //{}\n'.format(NP))
             for ii in range(NP):
-                f.write('{:>18.7E}'.format(site.errors['TZXR']))
+                f.write('{:>18.7E}'.format(site.errors['TZXR'][ii]))
             f.write('\n\n')
             f.write('>TYVAR.EXP //{}\n'.format(NP))
             for ii in range(NP):
-                f.write('{:>18.7E}'.format(site.errors['TZYR']))
+                f.write('{:>18.7E}'.format(site.errors['TZYR'][ii]))
             f.write('\n\n')
 
         f.write('>END')
@@ -3100,6 +3102,11 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
         write_em3dani(data, outfile)
     elif file_format.lower() == 'gofem':
         write_gofem(data, outfile)
+    elif file_format.lower() == 'edi':
+        path = outfile
+        for site in data.site_names:
+            outfile = PATH_CONNECTOR.join([path, site + '.edi'])
+            write_edi(data.sites[site], out_file=outfile)
     else:
         print('Output file format {} not recognized'.format(file_format))
 

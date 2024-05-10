@@ -39,7 +39,7 @@ class CustomToolbar(NavigationToolbar):
 
 
 class model_viewer_2d(QMainWindow, Ui_MainWindow):
-    def __init__(self, model, data=None, path='./'):
+    def __init__(self, model, dataset=None, path='./'):
         super(model_viewer_2d, self).__init__()
         """
         Shows a given array in a 2d-viewer.
@@ -47,14 +47,15 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         x,y coordinters are optional.
         """
         self.setupUi(self)
-        if data:
-            if type(data) is str:
-                dataset = DS.Dataset(datafile=data)
+        if dataset:
+            if type(dataset) is str:
+                dataset = DS.Dataset(datafile=dataset)
             self.site_locations = dataset.data.locations
             self.dataset = dataset
         else:
             self.site_locations = []
             self.regenMesh_2.setEnabled(False)
+            self.dataset = DS.Dataset()
         self.path = path
         self.orientation = 'xy'
         self.mesh_color = 'k'
@@ -95,7 +96,8 @@ class model_viewer_2d(QMainWindow, Ui_MainWindow):
         self.connect_mpl_events()
         self.init_increase_factors()
         self.setup_widgets()
-        self.data_info_labels()
+        if self.dataset.data.site_names:
+            self.data_info_labels()
         self.init_decade_list()
         self.update_depth_list()
         # self.update_decade_list()

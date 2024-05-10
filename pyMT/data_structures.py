@@ -878,6 +878,50 @@ class Data(object):
         if invType:
             self.inv_type = invType
 
+    def generate_synthetic_data(self, site_locations, periods=None, site_names=None, inv_type=5):
+        ###
+        # Generates dummy synthetic data based on station locations
+        NS = site_locations.shape[0]
+        if not periods:
+            periods = np.logspace(-2, 3, 60)
+        NP = len(periods)
+        if not site_names:
+            site_names = ['site_{}'.format(ii) for ii in range(NS)]
+
+        data = {comp: np.zeros(NP) + 0.0001 for comp in self.INVERSION_TYPES[inv_type]}
+        errors = {comp: np.zeros(NP) + 1 for comp in self.INVERSION_TYPES[inv_type]}
+        lon, lat = utils.generic_projection(site_locations[:, 0],
+                                            site_locations[:, 1],
+                                            from_proj='lambert',
+                                            to_proj='latlong')
+        for ii, site in enumerate(site_names):
+            
+            locs = {'X': site_locations[ii, 0],
+                    'Y': site_locations[ii, 1],
+                    'elev': 0,
+                    'Lat': lat[ii],
+                    'Long': lon[ii]}
+            self.sites.update({site:
+                               Site(name=site,
+                               data=data,
+                               errors=errors,
+                               errmap=None,
+                               periods=periods,
+                               locations=locs,
+                               azimuth=0,
+                               errfloorZ=0.05,
+                               errfloorT=0.05,
+                               solve_static=0,
+                               file_format=None,
+                               fields=None)})
+        self.periods = periods
+        self.site_names = site_names
+        self.locations = site_locations
+        self.inv_type = inv_type
+        self.origin = (0, 0)
+        self.UTM_zone = '16N'
+        self.dimensionality = '3d'
+
     @property
     def spatial_units(self):
         return self._spatial_units
@@ -1839,7 +1883,16 @@ class Model(object):
             # print('Mesh generation not setup for non-half-spaces. Converting to half space...')
             self.vals = np.zeros((self.nx, self.ny, self.nz)) + self.background_resistivity
         else:
-            self.vals = utils.regrid_model(self, x_mesh, y_mesh, self.dz)
+            if self.isotropic:
+                self.vals = utils.regrid_model(self, x_mesh, y_mesh, self.dz)
+                self.rho_x = self.vals
+            else:
+                self.rho_x = utils.regrid_model(self, x_mesh, y_mesh, self.dz, rho_axis='rho_x')
+                self.rho_y = utils.regrid_model(self, x_mesh, y_mesh, self.dz, rho_axis='rho_y')
+                self.rho_z = utils.regrid_model(self, x_mesh, y_mesh, self.dz, rho_axis='rho_z')
+                self.strike = np.zeros(self.rho_x.shape)
+                self.dip = np.zeros(self.rho_x.shape)
+                self.slant = np.zeros(self.rho_x.shape)
         self.dx = x_mesh
         self.dy = y_mesh
         # self.dy = ymesh

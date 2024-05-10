@@ -60,7 +60,6 @@ UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
 
 
 # 
-# ========================= #
 class MapMain(QMapViewMain, UI_MapViewWindow):
 
     def __init__(self, dataset, sites, active_sites):
@@ -1422,7 +1421,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.showOutliers.clicked.connect(self.toggle_outliers)
         self.outlierThreshold.editingFinished.connect(self.set_outlier_threshold)
         #  Set up the menu items
-        self.actionList_File.triggered.connect(self.WriteList)
+        self.actionList_File.triggered.connect(self.write_list)
         # self.actionData_File.triggered.connect(self.WriteData)
         self.actionWriteWSINV3DMT.triggered.connect(self.write_wsinv3dmt)
         self.actionWriteModEM.triggered.connect(self.write_ModEM)
@@ -2111,10 +2110,13 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.toggleResponse.setCheckState(0)
 
     def write_wsinv3dmt(self):
-        self.WriteData(file_format='WSINV3DMT')
+        self.write_data(file_format='WSINV3DMT')
 
     def write_ModEM(self):
-        self.WriteData(file_format='ModEM')
+        self.write_data(file_format='ModEM')
+
+    def write_gofem(self):
+        self.write_data(file_format='gofem')
 
     def check_inv_type(self):
         if self.inv_type1.isChecked():
@@ -2136,7 +2138,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         else:
             return self.dataset.data.inv_type
 
-    def WriteData(self, file_format='WSINV3DMT'):
+    def write_data(self, file_format='WSINV3DMT'):
         inv_type = self.check_inv_type()
         if not set(self.dataset.data.INVERSION_TYPES[inv_type]).issubset(self.dataset.data.components):
             reply = QtWidgets.QMessageBox.question(self, 'Message',
@@ -2162,7 +2164,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                    'Site order has changed. Write new list?',
                                                    QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
             if reply == QtWidgets.QMessageBox.Yes:
-                self.WriteList()
+                self.write_list()
         while keep_going:
             outfile, ret = MyPopupDialog.get_file(label='Enter data file')
             if not ret or not outfile:
@@ -2198,7 +2200,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     self.dataset.write_data(outfile=outfile, overwrite=True, file_format=file_format, write_removed=write_removed)
                     break
 
-    def WriteList(self):
+    def write_list(self):
         keep_going = True
         while keep_going:
             outfile, ret = MyPopupDialog.get_file(label='Enter list file')

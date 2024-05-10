@@ -134,10 +134,15 @@ class NewProject(QNewProject, Ui_NewProject):
             name, ext = os.path.splitext(file)
             if ext in ('.rho', '.model', '.mod', '.zani', '.ani'):
                 ret_dict.update({'model': file})
-            elif ext in ('.dat', '.data', '.adat'):
+            elif ext in ('.dat', '.data', '.adat', '.gdat'):
                 with open(file, 'r') as f:
                     line = f.readline()
-                if 'response' in line:
+                if ext == '.gdat':
+                    if line.startswith('#'):
+                        ret_dict.update({'data': file})
+                    else:
+                        ret_dict.update({'response': file})
+                elif 'response' in line:
                     ret_dict.update({'response': file})
                 else:
                     ret_dict.update({'data': file})
@@ -387,7 +392,7 @@ class NewProject(QNewProject, Ui_NewProject):
                 if ds[key] and not os.path.isabs(ds[key]):
                     ds[key] = self.project_path + '/' + ds[key]
             try:
-                md_main = MeshDesigner(model=model, data=data, path=self.project_path)
+                md_main = MeshDesigner(model=model, dataset=data, path=self.project_path)
                 md_main.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
                 self.md_windows.append(md_main)
                 self.md_windows[-1].show()

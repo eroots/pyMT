@@ -170,7 +170,7 @@ class DataPlotManager(object):
         self.min_ylim = None
         self.max_ylim = None
         self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1],
-                            'tipper': [-1, 1], 'beta': [-10, 10], 'azimuth': [-90, 90]}
+                            'tipper': [-1, 1], 'beta': [-10, 10], 'azimuth': [-90, 90], 'skew': [-10, 10]}
         self.artist_ref = {'raw_data': [], 'data': [], 'response': [], '1d': [], 'smoothed_data': []}
         self.y_labels = {'rho': 'Log10 App. Rho',
                          'zxx': 'Impedance', 'zxy': 'Impedance', 'zyx': 'Impedance', 'zyy': 'Impedance',

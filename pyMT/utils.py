@@ -1054,7 +1054,11 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
     # coefs = np.polyfit(np.log10(periods), np.log10(rho), 4)
     # f = np.poly1d(coefs)
     # rhofit = 10 ** f(np.log10(periods))
-    rhofit = geotools_filter(periods, rho, fwidth=filter_width)
+    if rho:
+        rhofit = geotools_filter(periods, rho, fwidth=filter_width)
+    else:
+        print('No valid data points for bost1D.')
+        return [0], [0], [0], [0]
     log_rho = np.log10(rhofit)
     log_freq = np.log10(1 / periods)
     depth = np.sqrt(rhofit * periods / (2 * np.pi * MU)) / 1000
@@ -1306,7 +1310,17 @@ def normalize_range(vals, lower_range=0, upper_range=1, lower_norm=0, upper_norm
     return norm_vals
 
 
-def regrid_model(mod, new_x, new_y, new_z):
+def regrid_model(mod, new_x, new_y, new_z, rho_axis=None):
+    if not rho_axis:
+        vals = mod.vals
+    elif rho_axis.lower() == 'rho_x':
+        vals = mod.rho_x
+    elif rho_axis.lower() == 'rho_y':
+        vals = mod.rho_y
+    elif rho_axis.lower() == 'rho_z':
+        vals = mod.rho_z
+    else:
+        vals = mod.vals
     x, y, z = (edge2center(arr) for arr in (mod.dx, mod.dy, mod.dz))
     X, Y, Z = (edge2center(arr) for arr in (new_x, new_y, new_z))
     X_grid, Y_grid, Z_grid = np.meshgrid(X, Y, Z)
@@ -1316,7 +1330,7 @@ def regrid_model(mod, new_x, new_y, new_z):
     #                   (X_grid, Y_grid, Z_grid),
     #                   method='nearest')
     interp = RGI((y, x, z),
-                 np.transpose(mod.vals, [1, 0, 2]),
+                 np.transpose(vals, [1, 0, 2]),
                  method='nearest', bounds_error=False, fill_value=mod.background_resistivity)
     query_points = np.array((Y_grid, X_grid, Z_grid)).T
     new_vals = interp(query_points)
