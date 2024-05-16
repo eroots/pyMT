@@ -1054,7 +1054,7 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
     # coefs = np.polyfit(np.log10(periods), np.log10(rho), 4)
     # f = np.poly1d(coefs)
     # rhofit = 10 ** f(np.log10(periods))
-    if rho:
+    if len(rho) != 0:
         rhofit = geotools_filter(periods, rho, fwidth=filter_width)
     else:
         print('No valid data points for bost1D.')
@@ -1289,7 +1289,7 @@ def dd2dms(dd):
     mult = -1 if dd < 0 else 1
     mnt, sec = divmod(abs(dd) * 3600, 60)
     deg, mnt = divmod(mnt, 60)
-    return mult * deg, mult * mnt, mult * sec
+    return mult * deg, mnt, sec
 
 def normalize(vals, lower=0, upper=1, explicit_bounds=False):
     if explicit_bounds:

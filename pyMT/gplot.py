@@ -557,9 +557,8 @@ class DataPlotManager(object):
                         e = site.used_error[comp]
                     # Otherwise use the associated PT object
                     # If the site doesn't have all the impedance components, plot no data
-                    if not set(site.IMPEDANCE_COMPONENTS).issubset(set(site.components)):
-                        raise KeyError
-                    elif 'pt' in comp.lower():
+                    
+                    if 'pt' in comp.lower():
                         toplot = np.array([getattr(site.phase_tensors[ii],
                                                    comp.upper())
                                            for ii in range(site.NP)])
@@ -567,12 +566,17 @@ class DataPlotManager(object):
                                               comp.upper() + '_error')
                                       for ii in range(site.NP)])
                     else:
-                        toplot = np.array([getattr(site.phase_tensors[ii],
-                                                   comp.lower())
-                                           for ii in range(site.NP)])
-                        e = np.array([getattr(site.phase_tensors[ii],
-                                              comp.lower() + '_error', 0) # Default error of 0 until I implement errors for invariants
-                                      for ii in range(site.NP)])
+                        try:
+                            toplot = np.array([getattr(site.phase_tensors[ii],
+                                                       comp.lower())
+                                               for ii in range(site.NP)])
+                            e = np.array([getattr(site.phase_tensors[ii],
+                                                  comp.lower() + '_error', 0) # Default error of 0 until I implement errors for invariants
+                                          for ii in range(site.NP)])
+                        except AttributeError:
+                            # If the PT object doesn't exist, raise a KeyError (missing impedance components, so no data)
+                            raise KeyError
+
                     # Convert to degrees
                     if dType.lower() not in response_types and self.errors.lower() != 'none':
                         toplotErr = e

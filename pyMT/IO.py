@@ -1282,13 +1282,16 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                     period = float(line[0])
                     # periods.append(float(line[0]))
                     site_name = line[1]
+                    lat, lon = [float(x) for x in line[2:4]]
                     X, Y, Z = [float(x) for x in line[4:7]]
                     if site_name not in site_data.keys():
                         site_data.update({site_name: {}})
                         site_error.update({site_name: {}})
                         site_locations.update({site_name: {'X': [],
                                                            'Y': [],
-                                                           'elev': []}})
+                                                           'elev': [],
+                                                           'Lat': lat,
+                                                           'Long': lon}})
                         site_periods.update({site_name: []})
 
                     if site_name not in new_site_names:
@@ -2009,6 +2012,10 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                     receiver_file = PATH_CONNECTOR.join([backup_path, 'receivers.csv'])
                 elif read_attempt == 1:
                     receiver_file = PATH_CONNECTOR.join([backup_path, '..', 'receivers.csv'])
+                elif read_attempt == 2:
+                    receiver_file = PATH_CONNECTOR.join([backup_path, 'receivers_projected.csv'])
+                elif read_attempt == 3:
+                    receiver_file = PATH_CONNECTOR.join([backup_path, '../', 'receivers_projected.csv'])
                 else:
                     raise(WSFileError(ID='fnf', offender=receiver_file,
                           extra='GoFEM Receiver file not found')) from None
@@ -2016,8 +2023,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         locations = {}
         for line in lines:
             dipole, site_name, num, X, Y, Z = line.split()
-            locations.update({site_name: {'Y': float(X),
-                                          'X': float(Y),
+            locations.update({site_name: {'X': float(X),
+                                          'Y': float(Y),
                                           'elev': float(Z)}})
         return locations
 
@@ -2036,7 +2043,11 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                      'RealTzx': 'TZXR',
                      'ImagTzx': 'TZXI',
                      'RealTzy': 'TZYR',
-                     'ImagTzy': 'TZYI'}
+                     'ImagTzy': 'TZYI',
+                     'PTxx'   : 'PTYY',
+                     'PTxy'   : 'PTYX',
+                     'PTyx'   : 'PTXY',
+                     'PTyy'   : 'PTXX'}
         try:
             with open(data_file, 'r') as f:
                 lines = f.readlines()
@@ -2104,6 +2115,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             inv_type = [key for key in INVERSION_TYPES.keys() if set(used_comps) == set(INVERSION_TYPES[key])][0]
         except IndexError:
             msg = 'Components listed in {} are not yet a supported inversion type. Sorry ¯\\_(-_-)_/¯'.format(datafile)
+            msg += '\nListed components are: {}'.format(used_comps)
             raise(WSFileError(ID='int', offender=data_file, extra=msg))
 
         sites = {}
@@ -3057,7 +3069,11 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                      'TZXR': 'RealTzx',
                      'TZXI': 'ImagTzx',
                      'TZYR': 'RealTzy',
-                     'TZYI': 'ImagTzy'}
+                     'TZYI': 'ImagTzy',
+                     'PTXX': 'PTyy',
+                     'PTXY': 'PTyx',
+                     'PTYX': 'PTxy',
+                     'PTYY': 'PTxx',}
         print('Flagged data removed from gofem data file')
         msg_written = 0
         with open(out_file, 'w') as f:
