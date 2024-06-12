@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+*11/06/24
+
+  * Added GoFEM data file writing
+
+  * Added individual data point (per period, per site) flagging within data_plot
+
 *22/04/24
 
   * Added UI components to mesh_designer to allow z-mesh to be specified by a series of increase factors and cutoff depths

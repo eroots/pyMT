@@ -3100,6 +3100,12 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                 print('Flagged data removed from gofem data file')
                                 msg_written = 1
 
+        path = os.path.split(out_file)[0]
+        with open(PATH_CONNECTOR.join([path, 'frequencies']), 'w') as f:
+            for period in data.periods:
+                freq = 1 / period
+                f.write('{:12.6e}\n'.format(freq))
+
 
     if file_format.lower() == 'wsinv3dmt':
         write_ws(data, outfile, to_write)

@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='pyMT',
-      version='0.11.1',
+      version='0.11.2',
       description='Tools and GUIs for MT data analysis and modelling',
       url='http://github.com/eroots/pyMT',
       author='Eric Roots',
