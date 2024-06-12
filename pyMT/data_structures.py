@@ -1141,8 +1141,8 @@ class Data(object):
         units = deepcopy(self.spatial_units)
         self.spatial_units = 'm'
         IO.write_data(data=self, outfile=outfile,
-                         to_write=to_write, file_format=file_format,
-                         use_elevation=use_elevation)
+                      to_write=to_write, file_format=file_format,
+                      use_elevation=use_elevation)
         if write_removed:
             if outfile.endswith('.dat'):
                 new_out = outfile.replace('.dat', '_removed.dat')
@@ -2161,7 +2161,7 @@ class Site(object):
     OUTLIER_FLAG = -999
     NO_PERIOD_FLAG = -9999
     NO_COMP_FLAG = -99999
-    REMOVE_FLAG = 1234567
+    REMOVE_FLAG = IO.REMOVE_FLAG
     FLOAT_CAP = 1e10
 
     def __init__(self, data={}, name='', periods=None, locations={},
@@ -3432,8 +3432,8 @@ class PhaseTensor(object):
             self.form_tensors(Z)
             self.set_phase_tensor(self.calculate_phase_tensor())
             if remove_flag:
-                self.phi_error = np.array(((1234567, 1234567),
-                                           (1234567, 1234567)))
+                self.phi_error = np.array(((IO.REMOVE_FLAG, IO.REMOVE_FLAG),
+                                           (IO.REMOVE_FLAG, IO.REMOVE_FLAG)))
             elif calculate_errors:
                 self.calculate_errors()
             else:

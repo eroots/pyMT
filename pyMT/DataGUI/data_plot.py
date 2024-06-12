@@ -1425,6 +1425,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.actionData_File.triggered.connect(self.WriteData)
         self.actionWriteWSINV3DMT.triggered.connect(self.write_wsinv3dmt)
         self.actionWriteModEM.triggered.connect(self.write_ModEM)
+        self.actionWriteGoFEM.triggered.connect(self.write_gofem)
         self.writeCurrentPlot.triggered.connect(self.write_current_plot)
         self.writeAllPlots.triggered.connect(self.write_all_plots)
         self.actionPhase_Wrap.triggered.connect(self.set_phase_wrap)
@@ -2166,7 +2167,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
             if reply == QtWidgets.QMessageBox.Yes:
                 self.write_list()
         while keep_going:
-            outfile, ret = MyPopupDialog.get_file(label='Enter data file')
+            # outfile, ret = MyPopupDialog.get_file(label='Enter data file')
+            outfile, ret = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Data', '',
+                                                                 'Data Files (*.dat *.gdat *.data);; All Files (*)')
             if not ret or not outfile:
                 break
             if ret and outfile:
@@ -2174,6 +2177,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
                     outfile = utils.check_extention(outfile, expected='data')
                 elif file_format.lower() == 'modem':
                     outfile = utils.check_extention(outfile, expected='dat')
+                elif file_format.lower() == 'gofem':
+                    outfile = utils.check_extention(outfile, expected='gdat')
                 write_removed = False
                 if file_format.lower() == 'modem' and self.dataset.data.has_flagged_data:
                     reply = QtWidgets.QMessageBox.question(self, 'Message',
@@ -2669,7 +2674,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             return
         period = float(data_site.periods[ind])
         # npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
-        p_idx =np.argmin(abs(data_site.periods - period))
+        p_idx = np.argmin(abs(data_site.periods - period))
         # npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
         comps = self.dpm.components
         if comps[0][0].lower().startswith('t'):
