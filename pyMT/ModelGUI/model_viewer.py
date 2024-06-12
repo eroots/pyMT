@@ -248,7 +248,7 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
 
     def closeEvent(self, event):
         # super().closeEvent(event)
-        self.vtk_widget.Finalize()
+        # self.vtk_widget.Finalize()
         self.closed.emit(self)
         self.close()
 

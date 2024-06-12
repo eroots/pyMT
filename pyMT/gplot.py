@@ -558,7 +558,7 @@ class DataPlotManager(object):
                     # Otherwise use the associated PT object
                     # If the site doesn't have all the impedance components, plot no data
                     
-                    if 'pt' in comp.lower():
+                    elif 'pt' in comp.lower():
                         toplot = np.array([getattr(site.phase_tensors[ii],
                                                    comp.upper())
                                            for ii in range(site.NP)])

@@ -509,7 +509,7 @@ class Dataset(object):
                         # error_map[ii] =  np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))
                     # self.data.sites[site].errmap[comp] = error_map
                     self.smoothed_data.sites[site].data.update({comp: smoothed_data2})
-                    self.smoothed_data.sites[site].used_error.update({comp: smoothed_data2 * 0.05})
+                    self.smoothed_data.sites[site].used_error.update({comp: abs(smoothed_data2 * 0.05)})
                 if comp not in self.smoothed_data.sites[site].components:
                     self.smoothed_data.sites[site].components.append(comp)
             if comp[0].lower() == 'p':
@@ -2673,6 +2673,7 @@ class Site(object):
                 self.errors[comp] = np.delete(self.errors[comp], ind)
                 self.errmap[comp] = np.delete(self.errmap[comp], ind)
                 self.used_error[comp] = np.delete(self.used_error[comp], ind)
+                self.flags[comp] = np.delete(self.flags[comp], ind)
 
     def add_component(self, data, errors=0.05, errmap=1):
         """
