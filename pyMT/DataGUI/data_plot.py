@@ -1366,7 +1366,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
                                                 dTypes=self.dTypes)
         self.dpm.sites.update({'1d': []})
         self.dpm.sites.update({'smoothed_data': []})
-        self.dpm.scale = self.scalingBox.currentText()
+        # self.dpm.scale = self.scalingBox.currentText()
+        if self.actionSqrtScaling.isChecked():
+            self.dpm.scale = 'sqrt(periods)'
+        elif self.actionLogScaling.isChecked():
+            self.dpm.scale = 'log10'
         if 'ZXYR' not in self.dataset.data.components:
             self.dpm.components = [self.dataset.data.components[0]]
 
@@ -1388,7 +1392,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.toggleRaw.clicked.connect(self.toggle_raw)
         self.toggleData.clicked.connect(self.toggle_data)
         self.toggleResponse.clicked.connect(self.toggle_response)
-        self.scalingBox.currentIndexChanged.connect(self.change_scaling)
+        # self.scalingBox.currentIndexChanged.connect(self.change_scaling)
         self.DEBUG_BUTTON.clicked.connect(self.DEBUG_METHOD)
         self.printPeriods.clicked.connect(self.print_periods)
         self.toggleRaw.setCheckState(bool(self.dataset.raw_data.sites) * 2)
@@ -1407,8 +1411,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.currentDataset.addItems([dsets for dsets in self.stored_datasets.keys()])
         self.currentDataset.currentIndexChanged.connect(self.change_dataset)
         self.siteList.addItems(self.dataset.data.site_names)
-        self.numSubplots.setText(str(len(self.site_names)))
-        self.numSubplots.editingFinished.connect(self.num_subplots)
+        self.numSubplots.setValue((len(self.site_names)))
+        self.numSubplots.valueChanged.connect(self.num_subplots)
         # self.dataErrRadio.toggled.connect(self.dummy_update_dpm)
         # self.usedErrRadio.toggled.connect(self.dummy_update_dpm)
         # self.noErrRadio.toggled.connect(self.dummy_update_dpm)
@@ -1454,6 +1458,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.ptActionGroup.addAction(self.actionUnitless)
         self.ptActionGroup.setExclusive(True)
         self.ptActionGroup.triggered.connect(self.change_pt_units)        
+        # Scaling factors for Z
+        self.zScaleActionGroup = QtWidgets.QActionGroup(self)
+        self.zScaleActionGroup.addAction(self.actionSqrtScaling)
+        self.zScaleActionGroup.addAction(self.actionLogScaling)
+        self.zScaleActionGroup.setExclusive(True)
+        self.zScaleActionGroup.triggered.connect(self.change_scaling)
         # self.actionDegrees.changed.connect(self.dummy_update_dpm)
         # self.actionUnitless.changed.connect(self.dummy_update_dpm)
         # Super hacky axis limits setters. Fix this at some point
@@ -1744,7 +1754,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.update_dpm()
 
         self.expand_tree_nodes(to_expand=self.site_names, expand=True)
-        self.numSubplots.setText(str(len(sites_to_add)))
+        self.numSubplots.setValue((len(sites_to_add)))
         self.map_view.map.active_sites = self.site_names
         for annotation in self.map_view.map.actors['annotation']:
             annotation.remove()
@@ -1857,10 +1867,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.error_tree.itemChanged.connect(self.post_edit_error)
 
     def num_subplots(self):
-        text = self.numSubplots.text()
-        numplots = utils.validate_input(text, int)
-        if numplots is False:
-            self.numSubplots.setText(str(self.dpm.num_sites))
+        # text = self.numSubplots.text()
+        # numplots = utils.validate_input(text, int)
+        numplots = self.numSubplots.value()
+        if not numplots:
+            self.numSubplots.setValue(self.dpm.num_sites)
             return
         current_num = self.dpm.num_sites
         if numplots != current_num:
@@ -2051,7 +2062,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.map_view.update_map()
 
     def change_scaling(self, index):
-        self.dpm.scale = self.scalingBox.itemText(index).lower()
+        if self.actionSqrtScaling.isChecked():
+            self.dpm.scale = 'sqrt(periods)'
+        elif self.actionLogScaling.isChecked():
+            self.dpm.scale = 'log10'
+        # self.dpm.scale = self.scalingBox.itemText(index).lower()
         self.update_dpm()
         for axnum, site_name in enumerate(self.site_names):
             cols = self.dpm.tiling[1]
@@ -2309,6 +2324,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if self.dpm.link_axes_bounds is True:
             limits = self.dpm.ax_lim_dict[self.get_component_fullname()]
             self.dpm.link_axes(y_bounds=limits)
+        self.dpm.set_axis_scales()
         self.dpm.fig.canvas.draw()
         # print(time.time() - t)
 

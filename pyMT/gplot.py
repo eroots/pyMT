@@ -172,10 +172,10 @@ class DataPlotManager(object):
         self.ax_lim_dict = {'rho': [0, 5], 'phase': [0, 120], 'impedance': [-1, 1],
                             'tipper': [-1, 1], 'beta': [-10, 10], 'azimuth': [-90, 90], 'skew': [-10, 10]}
         self.artist_ref = {'raw_data': [], 'data': [], 'response': [], '1d': [], 'smoothed_data': []}
-        self.y_labels = {'rho': 'Log10 App. Rho',
+        self.y_labels = {'rho': r'$Log_{10} Rho_{a}$',
                          'zxx': 'Impedance', 'zxy': 'Impedance', 'zyx': 'Impedance', 'zyy': 'Impedance',
                          'tzx': 'Magnitude', 'tzy': 'Magnitude',
-                         'bos': 'Apparent Resistivity',
+                         'bos': r'$Log_{10} Rho_{a}$',
                          'ptx': 'Phase', 'pty': 'Phase', 'phi': 'Phase', 'pha': 'Phase',
                          'bet': 'Skew',
                          'azi': 'Azimuth'}
@@ -201,18 +201,19 @@ class DataPlotManager(object):
         if self.components[0][0].upper() == 'Z':
             # units = 'mV/nT'
             units = 'Ω'
+            if self.scale.lower() == 'periods':
+                units = ''.join(['s*', units])
+            elif self.scale.lower() == 'sqrt(periods)':
+                units = ''.join([r'$\sqrt{s}$*', units])
+            elif self.scale.lower() == 'log10':
+                units = ''.join([r'$Log_{10}$', units])
         elif self.components[0][0].upper() == 'T':
             units = 'Unitless'
         elif self.components[0][0].upper() == 'R' or self.components[0][0:4].upper() == 'BOST':
             units = r'${\Omega}$-m'
         elif self.components[0][0].upper() == 'P' or self.components[0][0:4].upper() in ('BETA', 'AZIM'):
             units = 'Degrees'
-        if self.scale.lower() == 'periods' and not any(
-                sub in self.components[0].lower() for sub in ('rho', 'pha')):
-            units = ''.join(['s*', units])
-        elif self.scale.lower() == 'sqrt(periods)' and not any(
-                sub in self.components[0].lower() for sub in ('rho', 'pha', 'bost')):
-            units = ''.join([r'$\sqrt{s}$*', units])
+        
         return units
 
     def get_designated_colour(self, component, ii):
@@ -335,6 +336,7 @@ class DataPlotManager(object):
         self.set_bounds(Max=Max, Min=Min, axnum=axnum)
         # self.set_bounds(axnum=axnum)
         self.set_labels(axnum, site_name)
+        self.set_axis_scales()
         # self.fig.canvas.draw()
 
     def set_legend(self):
@@ -356,9 +358,9 @@ class DataPlotManager(object):
                 self.y_labels[self.components[0][0:3].lower()], self.units), fontsize=self.label_fontsize)
         if axnum + 1 > cols * (rows - 1):
             if 'bost' in self.components[0].lower():
-                self.axes[axnum].set_xlabel('log10 Depth (km)', fontsize=self.label_fontsize)
+                self.axes[axnum].set_xlabel(r'$Log_{10}$ Depth (km)', fontsize=self.label_fontsize)
             else:
-                self.axes[axnum].set_xlabel('log10 of Period (s)', fontsize=self.label_fontsize)
+                self.axes[axnum].set_xlabel(r'$Log_{10} Period (s)', fontsize=self.label_fontsize)
 
     def plot_data(self, sites=None):
         # print('Don''t use this method anymore, use draw_all instead')
@@ -397,7 +399,16 @@ class DataPlotManager(object):
         self.set_bounds(Max=Max, Min=Min, axnum=list(range(ii + 1)))
         # self.set_bounds(axnum=list(range(ii + 1)))
         self.set_legend()
+        self.set_axis_scales()
         # plt.show()
+
+    @property
+    def log10_yscale(self):
+        if (self.scale.lower() == 'log10' and self.components[0].lower().startswith('z')) or \
+           (any(map(self.components[0].lower().__contains__, ('rho', 'bost')))):
+           return True
+        else:
+           return False
 
     def set_bounds(self, Max, Min, axnum=None):
         try:
@@ -422,12 +433,18 @@ class DataPlotManager(object):
             else:
                 max_y = self.max_ylim
             axrange = max_y - min_y
+            if self.log10_yscale:
+                y1 = 10**(np.log10(min_y) - 1)
+                y2 = 10**(np.log10(max_y) + 1)
+            else:
+                y1 = min_y - axrange / 4
+                y2 = max_y + axrange / 4
             try:
-                self.axes[axnum].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
+                self.axes[axnum].set_ylim([y1, y2])
             except ValueError:
                 self.axes[axnum].set_ylim([-1, 1])
             except TypeError:
-                self.axes[0].set_ylim([min_y - axrange / 4, max_y + axrange / 4])
+                self.axes[0].set_ylim([y1, y2])
         # if axnum is None:
         #         axnum = range(0, len(self.axes))
         # if self.link_axes_bounds:
@@ -453,6 +470,8 @@ class DataPlotManager(object):
                         max([ax.get_ybound()[1] for ax in self.axes]))
         # x_axrange = x_bounds[1] - x_bounds[0]
         # y_axrange = y_bounds[1] - y_bounds[0]
+        if self.log10_yscale:
+                y_bounds = [10**x for x in y_bounds]
         for ax in axnum:
             self.axes[ax].set_xmargin(self.axis_padding)
             self.axes[ax].set_ymargin(self.axis_padding)
@@ -540,9 +559,10 @@ class DataPlotManager(object):
                         print('{} has bad points at periods {}'.format(site.name, site.periods[ind]))
                         print('Adjusting values, ignore them.')
                         toplot[ind] = np.max(toplot)
-                    toplot = np.log10(toplot)
+                    # toplot = np.log10(toplot)
                     if dType.lower() not in response_types and self.errors.lower() != 'none':
-                        toplotErr = log10_e
+                        # toplotErr = log10_e
+                        toplotErr = e
                 elif 'pha' in comp.lower():
                     toplot, e = utils.compute_phase(site,
                                                     calc_comp=comp,
@@ -592,7 +612,7 @@ class DataPlotManager(object):
                     # If the site doesn't have Z data, det calculations will fail
                     try:
                         toplot, depth = utils.compute_bost1D(site, comp=comp)[:2]
-                        toplot = np.log10(toplot)
+                        # toplot = np.log10(toplot)
                         toplotErr = None
                     except ValueError:
                         raise KeyError
@@ -600,14 +620,19 @@ class DataPlotManager(object):
                     toplot = site.data[comp]
                     if Err is not None:
                         toplotErr = Err[comp]
-                    if self.scale == 'sqrt(periods)':
-                        toplot = toplot * np.sqrt(site.periods)
-                        if Err:
-                            toplotErr = Err[comp] * np.sqrt(site.periods)
-                    elif self.scale == 'periods':
-                        toplot = toplot * site.periods
-                        if Err:
-                            toplotErr = Err[comp] * site.periods
+                    if not comp.lower().startswith('t'):
+                        if self.scale == 'sqrt(periods)':
+                            toplot = toplot * np.sqrt(site.periods)
+                            if Err:
+                                toplotErr = Err[comp] * np.sqrt(site.periods)
+                        elif self.scale == 'periods':
+                            toplot = toplot * site.periods
+                            if Err:
+                                toplotErr = Err[comp] * site.periods
+                        elif self.scale.lower() == 'log10':
+                            toplot = np.abs(toplot)
+                            if Err:
+                                toplotErr = np.abs(Err[comp])
                 periods = site.periods
                 if not self.plot_flagged_data:
                     if 'bost' in comp.lower():
@@ -662,9 +687,15 @@ class DataPlotManager(object):
             #     ax.aname = 'data'
             # elif dType == 'raw_data':
             #     ax.aname = 'raw_data'
+        self.set_axis_scales()
         ax.format_coord = format_data_coords
         # ax.set_title(site.name)
         return ax, max(ma), min(mi), artist
+
+    def set_axis_scales(self):
+        if self.log10_yscale:
+            for axnum in range(len(self.site_names)):
+                self.axes[axnum].set_yscale('log')
 
     def remove_outliers(self, periods, data):
         expected = utils.geotools_filter(periods, data, fwidth=self.outlier_thresh)
