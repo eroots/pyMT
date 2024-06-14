@@ -360,7 +360,7 @@ class DataPlotManager(object):
             if 'bost' in self.components[0].lower():
                 self.axes[axnum].set_xlabel(r'$Log_{10}$ Depth (km)', fontsize=self.label_fontsize)
             else:
-                self.axes[axnum].set_xlabel(r'$Log_{10} Period (s)', fontsize=self.label_fontsize)
+                self.axes[axnum].set_xlabel(r'$Log_{10}$ Period (s)', fontsize=self.label_fontsize)
 
     def plot_data(self, sites=None):
         # print('Don''t use this method anymore, use draw_all instead')

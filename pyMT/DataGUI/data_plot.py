@@ -1260,7 +1260,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         for ii in range(max_len):
             self.comp_table.verticalHeader().setSectionResizeMode(ii,
                                                                   QtWidgets.QHeaderView.ResizeToContents)
-        self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        # self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         # col_width = sum([self.comp_table.columnWidth(ii) for ii, header in enumerate(header)])
         # self.comp_table.setFixedWidth(col_width + 50)
         # self.comp_table.resizeColumnsToContents()

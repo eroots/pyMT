@@ -54,6 +54,10 @@ class NewProject(QNewProject, Ui_NewProject):
         ret = self.open_project()
         if not ret:
             self.init_dataset_table()
+        self.datasetTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        # self.datasetTable.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        # self.datasetTable.horizontalHeader().setStretchLastSection(True)
+        # self.datasetTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.add_dataset()
 
     # @property
