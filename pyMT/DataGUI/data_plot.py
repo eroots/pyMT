@@ -57,6 +57,7 @@ Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
 UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
 # UI_ModelingWindow, QModelingMain = loadUiType(os.path.join(path, '1D_modeling.ui'))
 
+# Attempt to ensure that the GUI scales with the users resolution and magnification settings
 # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
 # 
@@ -1260,7 +1261,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         for ii in range(max_len):
             self.comp_table.verticalHeader().setSectionResizeMode(ii,
                                                                   QtWidgets.QHeaderView.ResizeToContents)
-        # self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         # col_width = sum([self.comp_table.columnWidth(ii) for ii, header in enumerate(header)])
         # self.comp_table.setFixedWidth(col_width + 50)
         # self.comp_table.resizeColumnsToContents()
@@ -1683,8 +1684,9 @@ class DataMain(QMainWindow, Ui_MainWindow):
         mult = float(self.mult.text())
         median_window = int(self.medianSize.text())
         threshold = float(self.threshold.text())
+        smooth_by = self.regSmoothBy.currentText().lower()
         # print([fwidth, mult])
-        self.dataset.regulate_errors(multiplier=mult, fwidth=fwidth, median_window=median_window, threshold=threshold)
+        self.dataset.regulate_errors(multiplier=mult, fwidth=fwidth, median_window=median_window, threshold=threshold, smooth_by=smooth_by)
         print('Updating error tree...')
         self.update_error_tree()
         print('Done!')

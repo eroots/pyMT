@@ -713,7 +713,7 @@ def compute_rho(site, calc_comp=None, errtype='none'):
     """Summary
     Computes apparent resistivity from impedance data for a given site.
     Args:
-        site (Site): wsinv3dmt.data_structures Site object containing impedance data to be converted
+        site (Site): pyMT.data_structures Site object containing impedance data to be converted
         calc_comp (string, optional): Type of apparent resistivity to calculate.
         (Rxx, Rxy, Ryy, Ryx, Rdet {Default})
 

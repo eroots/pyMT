@@ -438,7 +438,7 @@ class Dataset(object):
                 return
             self.response.locations = self.response.get_locs()
 
-    def regulate_errors(self, multiplier=2.5, fwidth=1, median_window=11, threshold=1):
+    def regulate_errors(self, multiplier=2.5, fwidth=1, median_window=11, threshold=1, smooth_by='z'):
         use_log = False
         # self.smoothed_data = deepcopy(self.raw_data)
         for site in self.raw_data.site_names:
@@ -450,9 +450,13 @@ class Dataset(object):
                     scale = np.ones(raw_site.periods.shape)
                     try:
                         if comp[0].lower() == 'z':
-                            scale = np.sqrt(raw_site.periods)
-                            to_smooth = deepcopy(raw_site.data[comp])
-                            data_comp = data_site.data[comp]
+                            if smooth_by == 'z':
+                                scale = np.sqrt(raw_site.periods)
+                                to_smooth = deepcopy(raw_site.data[comp])
+                                data_comp = data_site.data[comp]
+                            elif smooth_by == 'rho':
+                                to_smooth = np.log10(utils.compute_rho(raw_site, calc_comp=comp[1:3].lower(), errtype='none'))[0]
+                                data_comp = np.log10(utils.compute_rho(data_site, calc_comp=comp[1:3].lower(), errtype='none'))[0]
                         elif comp[0].lower() == 't':
                             to_smooth = deepcopy(raw_site.data[comp])
                             data_comp = data_site.data[comp]
@@ -488,15 +492,23 @@ class Dataset(object):
                                                           to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
                     smoothed_data2 = smoothed_data / scale
-                    
+                    if comp[0].lower() == 'z' and smooth_by == 'rho':
+                        MU = 4 * np.pi * 1e-7
+                        C = 2 * raw_site.periods / (MU * 2 * np.pi)
+                        smoothed_data2 = np.sqrt(10**smoothed_data2 / C)
                     for ii, p in enumerate(data_site.periods):
                         ind = np.argmin(abs(raw_site.periods - p))
-                        if comp[0].lower() == 'z':
+                        if comp[0].lower() == 'z' and smooth_by == 'z':
                             scale = np.sqrt(p)
                         else:
                             scale = 1
                         max_error = multiplier * abs(scale * data_comp[ii] -
                                                      smoothed_data[ind]) / scale
+                        if comp[0].lower() == 'z' and smooth_by == 'rho':
+                            dR = max_error
+                            c = 1 / C[ind]
+                            max_error = ((10**smoothed_data[ind] * np.log(10) * c / (2*np.sqrt(10**smoothed_data[ind])))) * dR
+                            # max_error = np.sqrt((10 ** dR) / C[ind])
                         # if comp[0].lower() == 'p':
                         #     max_error = np.tan(np.deg2rad(max_error))
                         # error_map[ii] = min([data_site.errmap[comp][ii],
