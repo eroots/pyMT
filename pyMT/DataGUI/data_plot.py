@@ -57,7 +57,7 @@ Ui_MainWindow, QMainWindow = loadUiType(os.path.join(path, 'data_plot.ui'))
 UI_MapViewWindow, QMapViewMain = loadUiType(os.path.join(path, 'map_viewer.ui'))
 # UI_ModelingWindow, QModelingMain = loadUiType(os.path.join(path, '1D_modeling.ui'))
 
-
+# os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
 # 
 class MapMain(QMapViewMain, UI_MapViewWindow):
