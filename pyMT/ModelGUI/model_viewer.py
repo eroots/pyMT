@@ -94,7 +94,8 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
     def __init__(self, files, parent=None):
         super(ModelWindow, self).__init__()
         self.setupUi(self)
-
+        # This is needed to ensure the window gets deleted, and doesn't trigger a doom loop with the VTK window trying to update itself after closure
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         # Add the model
         self.setWindowTitle('Model Viewer - {}'.format(ospath.abspath(files['model'])))
         if files.get('data', None):
@@ -246,11 +247,40 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.update_2D_Y()
         self.update_2D_colorbar()
 
+    # def closeEvent(self, event):
+    #     # super().closeEvent(event)
+        
+    #     print('Close event triggered')     
+        
+    #     if event.spontaneous():
+    #         print(event.spontaneous())
+    #         print('Ignoring')
+    #         event.ignore()
+    #         self.force_close()
+
+    #         # return
+    #         # self.close()
+    #     if event:
+    #         print('Finalizing qt')
+    #         # self.vtk_widget.Finalize()
+    #         print('Done.')
+    #         event.accept()
+    #         print('Accepted')
+    #     else:
+    #         print('Closing again')
+    #         self.close()
+    #     # event.accept()
+    #     # self.closed.emit(self)
+
     def closeEvent(self, event):
-        # super().closeEvent(event)
-        # self.vtk_widget.Finalize()
-        self.closed.emit(self)
         self.close()
+
+    # def exit_triggered(self):
+    #     self.close()
+
+    # def force_close(self):
+    #     print('Triggering exit button')
+    #     self.exitButton.trigger()
 
     @property
     def x_slice(self):

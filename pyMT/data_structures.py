@@ -1983,23 +1983,23 @@ class Model(object):
             self.update_vals(axis=2, index=mod_idx, new_vals=new_vals)
 
     def split_cells(self):
-        dx_orig = deepcopy(model.dx)
-        dy_orig = deepcopy(model.dy)
+        dx_orig = deepcopy(self.model.dx)
+        dy_orig = deepcopy(self.model.dy)
         dx_insert = []
         dy_insert = []
-        for ii, x in enumerate(model.dx[:-1]):
-            dx_insert.append((model.dx[ii], model.dx[ii + 1]) / 2)
-        for ii, y in enumerate(model.dy[:-1]):
-            dy_insert.append((model.dy[ii], model.dy[ii + 1]) / 2)
+        for ii, x in enumerate(self.model.dx[:-1]):
+            dx_insert.append((self.model.dx[ii], self.model.dx[ii + 1]) / 2)
+        for ii, y in enumerate(self.model.dy[:-1]):
+            dy_insert.append((self.model.dy[ii], self.model.dy[ii + 1]) / 2)
         cc = 0
         for ii, y in enumerate(dy_orig[:-1]):
             cc += 1
-            model.dy_insert(cc, dy_insert[ii])
+            self.model.dy_insert(cc, dy_insert[ii])
             cc += 1
         cc = 0
         for ii, x in enumerate(dx_orig[:-1]):
             cc += 1
-            model.dx_insert(cc, dx_insert[ii])
+            self.model.dx_insert(cc, dx_insert[ii])
             cc += 1
 # start Properties
 

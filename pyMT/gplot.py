@@ -672,7 +672,7 @@ class DataPlotManager(object):
                     if ((self.toggles['raw_data'] and dType.lower() == 'raw_data') or \
                        (not self.toggles['raw_data'])) and (toplot.size != 0):
                         # showdata = self.remove_outliers(site.periods, toplot)
-                        showdata = utils.remove_outliers(toplot)
+                        showdata = utils.remove_outliers(toplot, threshold=self.outlier_thresh)
                         ma.append(max(showdata))
                         mi.append(min(showdata))
                     else:
