@@ -497,6 +497,7 @@ class Dataset(object):
                         C = 2 * raw_site.periods / (MU * 2 * np.pi)
                         smoothed_data2 = np.sqrt(10**smoothed_data2 / C)
                     for ii, p in enumerate(data_site.periods):
+                        # If the period is flagged, skip it.
                         ind = np.argmin(abs(raw_site.periods - p))
                         if comp[0].lower() == 'z' and smooth_by == 'z':
                             scale = np.sqrt(p)
@@ -513,8 +514,9 @@ class Dataset(object):
                         #     max_error = np.tan(np.deg2rad(max_error))
                         # error_map[ii] = min([data_site.errmap[comp][ii],
                         # np.ceil(max_error / (np.sqrt(p) * data_site.errors[comp][ii]))])
-                        if not (self.data.sites[site].errors[comp][ii] == self.data.REMOVE_FLAG or \
-                                self.data.sites[site].used_error[comp][ii] == self.data.REMOVE_FLAG):
+                        # if not (self.data.sites[site].errors[comp][ii] == self.data.REMOVE_FLAG or \
+                                # self.data.sites[site].used_error[comp][ii] == self.data.REMOVE_FLAG):
+                        if data_site.errors[comp][ii] != data_site.REMOVE_FLAG and data_site.used_error[comp][ii] != data_site.REMOVE_FLAG:
                             self.data.sites[site].errors[comp][ii] = max_error
                             self.data.sites[site].used_error[comp][ii] = max_error
                             self.data.sites[site].errmap[comp][ii] = 1
@@ -2380,6 +2382,7 @@ class Site(object):
                 idx = np.where
                 self.used_error[comp + 'R'] = deepcopy(error)
                 self.used_error[comp + 'I'] = deepcopy(error)
+                error = np.maximum(self.errors[comp + 'R'], self.errors[comp + 'I'])
                 self.errors[comp + 'R'] = deepcopy(error)
                 self.errors[comp + 'I'] = deepcopy(error)
 
@@ -2529,7 +2532,7 @@ class Site(object):
                     self.error_floors[key] = error_floors
         floor_errors = self.calculate_error_floor(self.error_floors)
         for component in self.components:
-            idx = self.errors[component] == self.REMOVE_FLAG
+            idx = self.used_error[component] == self.REMOVE_FLAG
             new_errors = np.maximum.reduce([floor_errors[component],
                                             self.errors[component] * self.errmap[component]])
             self.used_error[component] = deepcopy(new_errors)
@@ -2623,6 +2626,7 @@ class Site(object):
         errors = site.errors
         used_errors = site.used_error
         errmap = site.errmap
+        flags = site.flags
         if errors is None:
             errors = 0.05
         if errmap is None:
@@ -2637,6 +2641,7 @@ class Site(object):
         new_errors = {comp: utils.np2list(self.errors[comp]) for comp in self.components}
         new_used_errors = {comp: utils.np2list(self.used_error[comp]) for comp in self.components}
         new_errmap = {comp: utils.np2list(self.errmap[comp]) for comp in self.components}
+        new_flags = {comp: utils.np2list(self.flags[comp]) for comp in self.components}
         for comp in self.components:
             for ii, period in enumerate(new_periods):
                 ind = [jj for jj, val in enumerate(current_periods) if val > period]
@@ -2648,6 +2653,7 @@ class Site(object):
                 new_errors[comp].insert(ind - shift, errors[comp][ii])
                 new_used_errors[comp].insert(ind - shift, used_errors[comp][ii])
                 new_errmap[comp].insert(ind - shift, errmap[comp][ii])
+                new_flags[comp].insert(ind - shift, flags[comp][ii])
                 if period not in current_periods:
                     self.phase_tensors.insert(ind, site.phase_tensors[ii])
                     self.CART.insert(ind, site.CART[ii])
@@ -2657,6 +2663,7 @@ class Site(object):
         self.errors = {comp: utils.list2np(new_errors[comp]) for comp in self.components}
         self.used_error = {comp: utils.list2np(new_used_errors[comp]) for comp in self.components}
         self.errmap = {comp: utils.list2np(new_errmap[comp]) for comp in self.components}
+        self.flags = {comp: utils.list2np(new_flags[comp]) for comp in self.components}
         self.periods = utils.list2np(utils.truncate(current_periods))
         self.apply_error_floor()
 

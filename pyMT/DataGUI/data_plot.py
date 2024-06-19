@@ -1261,11 +1261,10 @@ class DataMain(QMainWindow, Ui_MainWindow):
         for ii in range(max_len):
             self.comp_table.verticalHeader().setSectionResizeMode(ii,
                                                                   QtWidgets.QHeaderView.ResizeToContents)
-        self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
-        # col_width = sum([self.comp_table.columnWidth(ii) for ii, header in enumerate(header)])
-        # self.comp_table.setFixedWidth(col_width + 50)
-        # self.comp_table.resizeColumnsToContents()
-        # self.comp_table.resizeRowsToContents()
+        # This will take away the scroll bar and make sure the table expands to contents
+        # It also makes the dock bigger than it needs to be, so I've disabled it.
+        # self.comp_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+
 
     def update_comp_list(self):
         # Not used anymore
@@ -2555,6 +2554,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.select_points_state = not(self.select_points_state)
         if self.selectFlagged.checkState() and self.selectPoints.checkState():
             self.selectFlagged.setCheckState(False)
+            self.canvas.mpl_disconnect(self.cid['DataSelect'])
         if not self.selectPoints.checkState():
             self.canvas.mpl_disconnect(self.cid['DataSelect'])
         else:
@@ -2563,6 +2563,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
     def select_flagged_data(self):
         if self.selectFlagged.checkState() and self.selectPoints.checkState():
             self.selectPoints.setCheckState(False)
+            self.canvas.mpl_disconnect(self.cid['DataSelect'])
         if not self.selectFlagged.checkState():
             self.canvas.mpl_disconnect(self.cid['DataSelect'])
         else:
@@ -2588,6 +2589,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         add the new period, rather than do a full re-write of the tree.
         """
         # Due to a bug with mpl, if you pick an axis that has a legend outside, it double picks.
+        
         event = pick_event.mouseevent
         ax_index = next(ii for ii, ax in enumerate(self.dpm.axes) if ax == event.inaxes)
         site_name = self.dpm.site_names[ax_index]
@@ -2597,7 +2599,11 @@ class DataMain(QMainWindow, Ui_MainWindow):
         israw = False
         raw_site = self.dataset.raw_data.sites[site_name]
         data_site = self.dataset.data.sites[site_name]
-        mec = pick_event.artist.properties()['markeredgewidth']
+        try:
+            mec = pick_event.artist.properties()['markeredgewidth']
+        except KeyError:
+            self.debugInfo.append('KeyError\n')
+            return
         linestyle = pick_event.artist.properties()['linestyle']
         if linestyle == self.dpm.marker['response']:
             if self.DEBUG:
@@ -2651,6 +2657,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
                 npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
                 self.dataset.data.remove_periods(periods=period)
                 print('Removing period {}, freq {}'.format(period, 1 / period))
+                self.debugInfo.append('Removing period {}, freq {}\n'.format(period, 1 / period))
                 self.update_dpm()
                 self.update_map_data()
                 self.set_nparam_labels()
@@ -2662,6 +2669,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         add the new period, rather than do a full re-write of the tree.
         """
         # Due to a bug with mpl, if you pick an axis that has a legend outside, it double picks.
+        
         event = pick_event.mouseevent
         ax_index = next(ii for ii, ax in enumerate(self.dpm.axes) if ax == event.inaxes)
         site_name = self.dpm.site_names[ax_index]
@@ -2675,12 +2683,12 @@ class DataMain(QMainWindow, Ui_MainWindow):
             mec = pick_event.artist.properties()['markeredgewidth']
         except KeyError as e:
             if self.DEBUG:
-                print(e.msg)
+                self.debugInfo.append(e.msg)
             return
         linestyle = pick_event.artist.properties()['linestyle']
         if linestyle == self.dpm.marker['response']:
             if self.DEBUG:
-                print('No action for response click.')
+                self.debugInfo.append('No action for response click.')
             return
         if mec == 0:
             israw = True
@@ -2688,7 +2696,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             isdata = True
         if israw:
             if self.DEBUG:
-                print('No action defined for raw data')
+                self.debugInfo.append('No action defined for raw data')
             return
         period = float(data_site.periods[ind])
         # npd = data_site.periods[np.argmin(abs(data_site.periods - period))]
@@ -2701,7 +2709,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             use_comps = self.dataset.data.IMPEDANCE_COMPONENTS
         if event.button == 1:        
             for comp in use_comps:
-                    self.dataset.data.sites[site_name].used_error[comp][p_idx] = self.dataset.data.REMOVE_FLAG
+                self.dataset.data.sites[site_name].used_error[comp][p_idx] = self.dataset.data.REMOVE_FLAG
         
             self.update_dpm(updated_sites=self.dpm.site_names,
                                 updated_comp=self.dataset.data.components)

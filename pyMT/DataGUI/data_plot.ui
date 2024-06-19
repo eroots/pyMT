@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>1673</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDisplay_Options">
@@ -152,13 +152,13 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>1437</width>
+     <width>1245</width>
      <height>352</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>524287</width>
+     <width>3000</width>
      <height>1500</height>
     </size>
    </property>
@@ -225,7 +225,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Data">
         <attribute name="title">
@@ -371,12 +371,12 @@
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="DEBUG_BUTTON">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
+                <widget class="QLabel" name="label_2">
                  <property name="text">
-                  <string>DEBUG</string>
+                  <string>Azimuth</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -439,12 +439,12 @@
              <item row="6" column="1">
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <item>
-                <widget class="QLabel" name="label_2">
-                 <property name="text">
-                  <string>Azimuth</string>
+                <widget class="QPushButton" name="DEBUG_BUTTON">
+                 <property name="enabled">
+                  <bool>false</bool>
                  </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                 <property name="text">
+                  <string>DEBUG</string>
                  </property>
                 </widget>
                </item>
@@ -891,7 +891,7 @@
                <double>0.100000000000000</double>
               </property>
               <property name="value">
-               <double>1.000000000000000</double>
+               <double>0.800000000000000</double>
               </property>
              </widget>
             </item>
@@ -911,7 +911,7 @@
                <double>0.100000000000000</double>
               </property>
               <property name="value">
-               <double>2.000000000000000</double>
+               <double>1.200000000000000</double>
               </property>
              </widget>
             </item>
@@ -961,6 +961,34 @@
                <string>Reset to Error Floor</string>
               </property>
              </widget>
+            </item>
+            <item row="8" column="2">
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>Smooth by:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="regSmoothBy">
+                <property name="statusTip">
+                 <string>Choose which data to use when calculating regulated errors.</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Z</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Rho</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>
@@ -1047,7 +1075,7 @@
           </widget>
          </item>
          <item row="0" column="3">
-          <layout class="QGridLayout" name="gridLayout_19" rowstretch="0,0,0,0">
+          <layout class="QGridLayout" name="gridLayout_19" rowstretch="0">
            <property name="sizeConstraint">
             <enum>QLayout::SetDefaultConstraint</enum>
            </property>

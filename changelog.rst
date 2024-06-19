@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+*18/06/24
+
+  * Better data flagging (removal options)
+
+    * Manually flagged data will now persist through other error manipulation operations (e.g., regulate errors no longer resets flagging)
+
+  * Tried to fix issues of text / button size when going to a monitor with different resolutions and/or scaling factors
+
 *11/06/24
 
   * Added GoFEM data file writing

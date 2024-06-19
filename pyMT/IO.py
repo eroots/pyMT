@@ -596,6 +596,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                       'TYI.EXP': [],
                       'TYVAR.EXP': [],
                       'TROT': [],
+                      'TROT.EXP': [],
                       'FREQ': [],
                       'INFO': [],
                       '=DEFINEMEAS': []}
@@ -708,7 +709,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
             scaling_factor = {'Z': 4 * np.pi / 10000, 'T': 1}
             for key in blocks.keys():
                 # key = key.strip()
-                if (key[0] == 'Z' or key[0] == 'T') and (key != 'ZROT' and key != 'TROT'):
+                if (key[0] == 'Z' or key[0] == 'T') and (key != 'ZROT' and (key != 'TROT' and key != 'TROT.EXP')):
                     if blocks[key]:
                         data_block = read_data_block(blocks[key])
                         if 'VAR' in key:
@@ -739,7 +740,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                     else:
                         z_azi = data_block[0]
                         equal_rots = 1
-                elif key == 'TROT' and blocks[key]:
+                elif (key == 'TROT' or key == 'TROT.EXP') and blocks[key]:
                     data_block = read_data_block(blocks[key])
                     if not np.all(data_block == data_block[1]):
                         t_azi = data_block[0]
@@ -2454,7 +2455,7 @@ def write_edi(site, out_file, info=None, header=None, mtsect=None, definemeas=No
             f.write('\n\n')
 
         if set(site.TIPPER_COMPONENTS).issubset(set(site.components)):
-            f.write('>TROT //{}\n'.format(NP))
+            f.write('>TROT.EXP //{}\n'.format(NP))
             for ii in range(NP):
                 f.write('{:>14.3f}'.format(0))
             f.write('\n\n')

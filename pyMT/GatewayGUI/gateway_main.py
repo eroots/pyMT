@@ -1,3 +1,6 @@
+import os
+os.environ['QT_SCREEN_SCALE_FACTOR'] = '1'
+os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
 from PyQt5.uic import loadUiType
 from PyQt5 import QtWidgets, QtCore, QtGui
 from pyMT.GUI_common.classes import FileInputParser
@@ -5,7 +8,7 @@ from pyMT.DataGUI.data_plot import DataMain
 from pyMT.ModelGUI.model_viewer import ModelWindow
 from pyMT.ModelGUI.mesh_designer import model_viewer_2d as MeshDesigner
 import sys
-import os
+
 try:
     import importlib.resources as pkg_resources
 except ImportError:
