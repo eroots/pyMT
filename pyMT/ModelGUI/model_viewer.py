@@ -169,7 +169,9 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
         self.clip_model.spatial_units = self.spatial_units
         self.exitButton = QtWidgets.QAction('Exit', self)
         self.exitButton.setShortcut('Ctrl+Q')
-        self.exitButton.triggered.connect(self.closeEvent)
+        # Trigger close instead of closeEvent.
+        # Triggering close calls closeEvent but with the proper input (QCloseEvent)
+        self.exitButton.triggered.connect(self.close)
         fileMenu.addAction(self.exitButton)
         self.mesh_group = QtWidgets.QActionGroup(self)
         self.mesh_group.addAction(self.meshOn)
@@ -273,14 +275,11 @@ class ModelWindow(QModelWindow, UI_ModelWindow):
     #     # self.closed.emit(self)
 
     def closeEvent(self, event):
+        # This setup seems to work for both File -> exit, ctrl+Q, and X click exits
+        # Seems to also finally work for having multiple windows open and / or closing and reopening a window
+        super().closeEvent(event)
+        self.vtk_widget.Finalize()
         self.close()
-
-    # def exit_triggered(self):
-    #     self.close()
-
-    # def force_close(self):
-    #     print('Triggering exit button')
-    #     self.exitButton.trigger()
 
     @property
     def x_slice(self):

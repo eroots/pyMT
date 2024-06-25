@@ -5,3 +5,4 @@ gateway_mt = pyMT.GatewayGUI.gateway_main:main
 mesh_designer = pyMT.ModelGUI.mesh_designer:main
 model_viewer = pyMT.ModelGUI.model_viewer:main
 plot_edi = pyMT.scripts.plot_edi:main
+to_vtk = pyMT.scripts.to_vtk:main

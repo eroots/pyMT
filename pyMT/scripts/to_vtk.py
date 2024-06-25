@@ -160,7 +160,7 @@ def get_inputs():
     return args
 
 
-if __name__ == '__main__':
+def main():
     try:
         args = get_inputs()
     except KeyboardInterrupt:
@@ -168,3 +168,8 @@ if __name__ == '__main__':
     else:
         # print(args)
         to_vtk(**args)
+
+if __name__ == '__main__':
+
+    main()
+    

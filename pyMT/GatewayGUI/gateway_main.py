@@ -369,6 +369,7 @@ class NewProject(QNewProject, Ui_NewProject):
             try:
                 mv_main = ModelWindow(files=ds)
                 mv_main.setWindowIcon(QtGui.QIcon(model_viewer_jpg))
+                mv_main.show()
                 mv_main.closed.connect(self.close_mv)
                 self.model_windows.append(mv_main)
                 self.model_windows[-1].show()

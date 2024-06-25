@@ -8,3 +8,4 @@ pyvista
 pyvistaqt
 PyQt5
 vtk
+cma
