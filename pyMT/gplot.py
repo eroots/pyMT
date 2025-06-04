@@ -1938,10 +1938,12 @@ class MapView(object):
         fill_vals = np.array(fill_vals)
         lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
-        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'phi_split_z', 'phi_split_pt', 'dimensionality') and pt_type in ('phi', 'phi_a'):
+        if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'absbeta', 'beta', 'phi_split', 'phi_split_z', 'phi_split_pt', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
-        if fill_param in ['alpha', 'azimuth', 'beta']:
+        if fill_param in ['alpha', 'azimuth', 'absbeta', 'beta']:
             fill_vals = np.rad2deg(fill_vals)
+        if 'abs' in fill_param:
+            fill_vals = np.abs(fill_vals)
         fill_vals[fill_vals > upper] = upper
         fill_vals[fill_vals < lower] = lower
         norm_vals = utils.normalize_range(fill_vals,

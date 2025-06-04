@@ -1,4 +1,4 @@
-from scipy.interpolate import interp1d, interp2d
+from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 from matplotlib import colors, cm
 import numpy as np
 from pyMT.e_colours.utils import rgb2hls, hls2rgb
@@ -17,8 +17,11 @@ def jet_plus(N=64):
                      [0, 0.2, 1]))
     [X, Y] = np.meshgrid(np.arange(3), np.arange(N))
     idx = [0, round(N / 2) - 1, N - 1]
-    f = interp2d(np.arange(3), idx, cmap)
-    cmap = f(np.arange(3), np.arange(N))
+    # f = interp2d(np.arange(3), idx, cmap)
+    # f = RegularGridInterpolator(np.array(np.arange(3), idx), cmap)
+    # cmap = f(np.arange(3), np.arange(N))
+    f = interp1d(idx, cmap)
+    cmap = f(np.arange(N)).T
     hls = rgb2hls(cmap)
     hls[:, 1] = np.linspace(0.5, 0.4, N)
     jet_plus = hls2rgb(hls)
@@ -32,8 +35,11 @@ def jet_plus_r(N=64):
                      [0, 0.2, 1]))
     [X, Y] = np.meshgrid(np.arange(3), np.arange(N))
     idx = [0, round(N / 2) - 1, N - 1]
-    f = interp2d(np.arange(3), idx, cmap)
-    cmap = f(np.arange(3), np.arange(N))
+    # f = interp2d(np.arange(3), idx, cmap)
+    # f = RegularGridInterpolator(np.array(np.arange(3), idx), cmap)
+    # cmap = f(np.arange(3), np.arange(N))
+    f = interp1d(idx, cmap)
+    cmap = f(np.arange(N)).T
     hls = rgb2hls(cmap)
     hls[:, 1] = np.linspace(0.5, 0.4, N)
     jet_plus = colors.ListedColormap(hls2rgb(np.flip(hls, 0)), 'jet_plus_r')

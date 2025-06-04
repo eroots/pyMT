@@ -488,6 +488,8 @@ class Dataset(object):
                     #             else:
                     #                 to_smooth[ii] = to_smooth[where[np.argmin(np.abs(ii - where))]]
                     to_smooth = utils.remove_outliers(to_smooth, size=median_window, threshold=threshold)
+                    # print(site)
+                    # print(to_smooth.shape)
                     smoothed_data = utils.geotools_filter(np.log10(raw_site.periods),
                                                           to_smooth,
                                                           fwidth=fwidth, use_log=use_log)
@@ -3350,6 +3352,7 @@ class RawData(object):
             periods = utils.closest_periods(wanted_p=logp, available_p=periods)
         ret_sites = {}
         for site in sites.values():
+            # print(site.name)
             ret_sites.update({site.name: site.get_data(periods=periods, components=components,
                                                        lTol=self.low_tol, hTol=self.high_tol)})
         return ret_sites

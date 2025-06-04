@@ -1035,7 +1035,7 @@ def geotools_filter(x, y, fwidth=1, use_log=True):
                 FILTER = max(min((hfwidth - abs(X[ii] - X[jj]) / hfwidth), 1), 0)
                 WTSUM += FILTER * score[jj]
                 point += FILTER * score[jj] * Y[jj]
-        ret_y[ii] = (point / WTSUM) * (max_y - min_y) + min_y
+        ret_y[ii] = (point / (max(WTSUM, 0.0001))) * (max_y - min_y) + min_y
     if use_log:
         ret_y = 10 ** ret_y
     return ret_y

@@ -28,7 +28,7 @@ do_hs = True
 colors = ['b','r','c','g','y','m']
 ii = 0
 # for sig1 in [0.001, 0.0001, 0.00001]:
-for sig1 in [0.001]:
+for sig1 in [0.0001]:
     for sig2 in [10, 1, 0.1]:
     # for sig2 in [10]:
         if do_archies:
@@ -66,6 +66,6 @@ plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 secax.set_yticklabels(secax.get_yticklabels(), fontsize=14)
 secax.set_ylabel(r'Resistivity ($\Omega$m)', fontsize=16, rotation=-90, labelpad=10)
-fig.savefig('E:/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/EditFigures/feature_tests/archies-HS_host1000_zoom.png',
-            dpi=300)
+# fig.savefig('E:/phd/NextCloud/Documents/ME_Transects/Swayze_paper/RoughFigures/EditFigures/feature_tests/archies-HS_host1000_zoom.png',
+#             dpi=300)
 plt.show()

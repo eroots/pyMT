@@ -1236,7 +1236,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         if 'PTXX' in all_comps['PhsTensor']:
             self.calculatePtErrors.clicked.connect(self.calculate_PT_errors)
         else:
-            self.calculate_PT_errors.setEnabled(False)
+            self.calculatePtErrors.setEnabled(False)
         # If none of the Impedance if's above triggered, remove all the associated headers
         # Will have to change this if we ever do Rho / Phase inversion
         # header = ['Impedance', 'Rho', 'Phase', 'Bostick', 'PhsTensor']
@@ -2602,7 +2602,8 @@ class DataMain(QMainWindow, Ui_MainWindow):
         try:
             mec = pick_event.artist.properties()['markeredgewidth']
         except KeyError:
-            self.debugInfo.append('KeyError\n')
+            if self.DEBUG:
+                self.debugInfo.append('KeyError\n')
             return
         linestyle = pick_event.artist.properties()['linestyle']
         if linestyle == self.dpm.marker['response']:

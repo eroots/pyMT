@@ -9,29 +9,29 @@ from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
 # transects = ['litho_bb', 'litho_lmt', 'metal_earth', 'usarray']
-transects = ['atha22']
+transects = ['atha']
 # Path to the list file
-list_path = 'E:/Work/Regions/ATHA/Atha22/all_edi/temp/'
-transects = ['atha21_temp']
+list_path = 'E:/Work/sync/Regions/Norway/GoFEM/data/edi_interpolated/'
+transects = ['norway']
 # Path to the list file
-list_path = 'D:/Work/ATHA/Atha_21_processed_EDI/impedances/'
+# list_path = 'D:/Work/ATHA/Atha_21_processed_EDI/impedances/'
 # dat_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
 # list_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/cullmantle_separated/'
 # dat_path = 'E:/phd/Nextcloud/data/Regions/MetalEarth/wst/j2/mantle/fullrun/'
 # Name of the list file(s) - these would go with your list of transects above
 # lists = ['allsites.lst']
 # lists = ['litho_bb.lst', 'litho_lmt.lst', 'metal_earth.lst', 'usarray.lst']
-lists = ['unique.lst']
+lists = ['allall.lst']
 # Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
 # data_type = 'BB_'
 data_type = ''
 
 # Set the paths you want things to be saved to
 # shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/wst_cullmantle/'
-# kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 # csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 shp_save_path = 'E:/phd/NextCloud/data/ArcMap/MT-locations/stations/'
-kml_save_path = 'C:/Users/eroots/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+# kml_save_path = 'C:/Users/eroots/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 
 # Set to true or false depending on what you want written
