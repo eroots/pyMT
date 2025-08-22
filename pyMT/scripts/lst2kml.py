@@ -9,10 +9,11 @@ from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
 # transects = ['litho_bb', 'litho_lmt', 'metal_earth', 'usarray']
-transects = ['atha']
+transects = ['atha_mcarthir']
 # Path to the list file
-list_path = 'E:/Work/sync/Regions/Norway/GoFEM/data/edi_interpolated/'
-transects = ['norway']
+# list_path = 'E:/Work/sync/Regions/Norway/GoFEM/data/edi_interpolated/'
+list_path = 'E:/Work/sync/Regions/ATHA/gofem/edi_interpolated/mcarthur/'
+transects = ['mcarthur']
 # Path to the list file
 # list_path = 'D:/Work/ATHA/Atha_21_processed_EDI/impedances/'
 # dat_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
@@ -37,9 +38,9 @@ csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 # Set to true or false depending on what you want written
 write_kml = True
 write_csv = False
-write_shp = False
+write_shp = True
 # Whatever your UTM zone is
-UTM = 15
+UTM = 13
 
 for ii, lst in enumerate(lists):
     try:

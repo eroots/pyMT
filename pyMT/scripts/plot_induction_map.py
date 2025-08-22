@@ -14,30 +14,35 @@ cmap = cm.jet()
 
 if __name__ == '__main__':
     # local_path = 'C:/Users/eroots'
-    local_path = 'E:/phd/Nextcloud/'
+    # local_path = 'E:/phd/Nextcloud/'
+    local_path = 'E:/Work/sync/'
     # filename = local_path + 'data/Regions/MetalEarth/AG/AG_plotset.dat'
     # listfile = local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
-    filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_flagged.dat'
-    listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
-    respfile = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
-    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/data/inds/resp/'
+    # filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_flagged.dat'
+    # listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
+    # respfile = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/anisotropic/wstZK_ani_lastIter.dat'
+    # out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst-mantle/data/inds/resp/'
+    listfile = local_path + 'Regions/undercover/j2/allall.lst'
+    filename = local_path + 'Regions/undercover/und_plotset.dat'
+    out_path = local_path + 'Documents/undercover/roughFigs/ind_plots/'
+    respfile = ''
     # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
     # jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
-    jpg_file_name = ''
-    out_file = 'wst_inds_'
+    jpg_file_name = local_path + 'Regions/undercover/UND_boundaries.jpg'
+    out_file = 'und_inds_'
     ext = ['.png', '.svg']
-    dpi = 150
-    padding = 20
+    dpi = 300
+    padding = 10000
     save_fig = 1
     bostick_depth = None
     cutoff_distance = 3500
     remove_close_sites = 0
     arrow_types = ['R']
-    data_type = ['response']
+    data_type = ['data']
     normalize = False
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
@@ -61,10 +66,11 @@ if __name__ == '__main__':
         data.remove_sites(sites=rm_sites)
         raw.remove_sites(sites=rm_sites)
         response.remove_sites(sites=rm_sites)
-    raw.locations = raw.get_locs(mode='lambert')
+    # raw.locations = raw.get_locs(mode='lambert')
+    raw.locations = raw.get_locs(mode='UTM')
     data.locations = raw.locations
     response.locations = raw.locations
-    data.reset_errors() # Just to unflag the BB stations so their induction arrows are included
+    # data.reset_errors() # Just to unflag the BB stations so their induction arrows are included
     
     # for ii in range(len(raw.locations)):
     #     lon, lat = utils.project((raw.locations[ii, 1], raw.locations[ii, 0]), zone=17, letter='U')[2:]
@@ -117,12 +123,15 @@ if __name__ == '__main__':
             first_time = 1
         # period = data.sites[data.site_names[0]].periods[ii]
         period = data.periods[ii]
-        # if period < 1:
-        #     period = -1 / period
+        if period < 1:
+            period = -1 / period
+            period_suffix = '_f'
+        else:
+            period_suffix = '_p'
         period = str(int(period))
         if jpg_file_name:
             MV.plot_image(im, extents)
-        MV.plot_induction_arrows(data_type=data_type, normalize=normalize, period_idx=ii, arrow_type=arrow_types)
+        MV.plot_induction_arrows(data_type=data_type, normalize=normalize, period_idx=ii, arrow_type=arrow_types, arrow_convention='parkinson')
         MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - padding,
                                    max(data.locations[:, 1]) + padding,
                                    min(data.locations[:, 0]) - padding,

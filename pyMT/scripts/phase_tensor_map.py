@@ -2,6 +2,7 @@ import numpy as np
 import pyMT.data_structures as WSDS
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+import matplotlib.ticker as ticker
 from pyMT.e_colours import colourmaps as cm
 import pyMT.utils as utils
 import pyMT.gplot as gplot
@@ -10,6 +11,14 @@ from scipy.spatial.distance import euclidean
 
 
 cmap = cm.jet()
+
+
+
+def custom_formatter_x(x_val, pos):
+    return f'{x_val/1000:3.0f}'  # Set to KM
+
+def custom_formatter_y(y_val, pos):
+    return f'{y_val/1000:4.0f}'  # Set to KM
 
 
 def normalize_ellipse(phi):
@@ -67,27 +76,33 @@ def plot_ellipse(data, fill_param):
 
 if __name__ == '__main__':
     # local_path = 'C:/Users/eroots'
-    local_path = 'E:/phd/Nextcloud/'
+    # local_path = 'E:/phd/Nextcloud/'
+    local_path = 'E:/Work/sync/'
     # filename = local_path + 'data/Regions/MetalEarth/AG/AG_plotset.dat'
     # listfile = local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
-    filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
-    listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
-    out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/pt_only/phi2/'
+    # filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
+    # listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
+    listfile = local_path + 'Regions/undercover/j2/allall.lst'
+    filename = local_path + 'Regions/undercover/und_plotset.dat'
+    out_path = local_path + 'Documents/undercover/roughFigs/PT_plots/'
+    # out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/pt_only/phi2/'
     # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
     # jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
-    jpg_file_name = ''
-    out_file = 'wst_PT-phi2_'
+    jpg_file_name = local_path + 'Regions/undercover/UND_boundaries.jpg'
+    out_file = 'UND_PT-phi2_'
     ext = ['.png', '.svg']
-    dpi = 150
-    padding = 20
+    dpi = 300
+    padding = 10000
     save_fig = 1
     bostick_depth = None
     cutoff_distance = 3500
     remove_close_sites = 0
+    label_fontsize = 16
+    tick_fontsize  = 14
     # fill_param = ['phi_2', 'beta']
     # fill_param = ['phi_split_pt', None]
     fill_param = ['phi_2', None]
@@ -111,7 +126,7 @@ if __name__ == '__main__':
         # rm_sites = [site for site in data.site_names[2:]]
         data.remove_sites(sites=rm_sites)
         raw.remove_sites(sites=rm_sites)
-    raw.locations = raw.get_locs(mode='lambert')
+    raw.locations = raw.get_locs(mode='UTM')
     data.locations = raw.locations
     # for ii in range(len(raw.locations)):
     #     lon, lat = utils.project((raw.locations[ii, 1], raw.locations[ii, 0]), zone=17, letter='U')[2:]
@@ -136,7 +151,7 @@ if __name__ == '__main__':
     MV = gplot.MapView(fig=fig)
     MV.window['figure'] = fig
     MV.window['axes'] = [ax]
-    MV.colourmap = 'turbo'
+    MV.colourmap = 'turbo_r'
     MV.phase_cax = [30, 90]
     MV.skew_cax = [-15, 15]
     MV.diff_cax = [-40, 40]
@@ -172,8 +187,11 @@ if __name__ == '__main__':
             first_time = 1
         # period = data.sites[data.site_names[0]].periods[ii]
         period = data.periods[ii]
-        # if period < 1:
-        #     period = -1 / period
+        if period < 1:
+            period = -1 / period
+            period_suffix = '_f'
+        else:
+            period_suffix = '_p'
         period = str(int(period))
         if jpg_file_name:
             MV.plot_image(im, extents)
@@ -216,8 +234,11 @@ if __name__ == '__main__':
                                    min(data.locations[:, 0]) - padding,
                                    max(data.locations[:, 0]) + padding])
         MV.window['axes'][0].set_aspect(1)
-        MV.window['axes'][0].set_xlabel('Easting (m)', fontsize=14)
-        MV.window['axes'][0].set_ylabel('Northing (m)', fontsize=14)
+        MV.window['axes'][0].xaxis.set_major_formatter(ticker.FuncFormatter(custom_formatter_x))
+        MV.window['axes'][0].yaxis.set_major_formatter(ticker.FuncFormatter(custom_formatter_y))
+        MV.window['axes'][0].set_xlabel('Easting (km)', fontsize=label_fontsize)
+        MV.window['axes'][0].set_ylabel('Northing (km)', fontsize=label_fontsize)
+        MV.window['axes'][0].tick_params(axis='both', which='major', labelsize=tick_fontsize)
         if not two_param:
             label = MV.get_label(fill_param[0])
             MV.window['colorbar'].set_label(label + r' ($^{\circ}$)',
@@ -259,7 +280,7 @@ if __name__ == '__main__':
         # ells, vals, norm_vals = plot_ellipse(data, fill_param='phi_max')
         if save_fig:
             for file_format in ext:
-                plt.savefig(out_path + out_file + 'idx' + str(ii) + '_p' + period + file_format, dpi=dpi,
+                plt.savefig(out_path + out_file + 'idx' + str(ii) + period_suffix + period + file_format, dpi=dpi,
                             transparent=True)
             plt.close('all')
             MV.window['colorbar'] = None

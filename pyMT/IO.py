@@ -730,7 +730,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                     try:
                         data_block = read_data_block(blocks[key])
                     except IndexError:
-                        print('Missing ZROT info, setting ZROT=0')
+                        # print('Missing ZROT info, setting ZROT=0')
                         z_azi = 0
                         equal_rots = 1
                         continue    
@@ -749,7 +749,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                         t_azi = data_block[0]
                         equal_rots = 1
                 else:
-                    print('Missing ZROT info, setting ZROT=0')
+                    # print('Missing ZROT info, setting ZROT=0')
                     z_azi = 0
                     equal_rots = 1
                     continue    
@@ -758,7 +758,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                 equal_rots = 1
             else:
                 if z_azi is None:
-                    print('Missing ZROT info, setting to TROT')
+                    # print('Missing ZROT info, setting to TROT')
                     azi = t_azi
                 elif t_azi is None:
                     azi = z_azi

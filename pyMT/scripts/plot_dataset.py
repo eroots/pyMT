@@ -22,9 +22,15 @@ from matplotlib.backends.backend_pdf import PdfPages
 # datafile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\New\wst0_5\wst0Inv_Final.data'
 # respfile = r'C:\Users\eric\Documents\MATLAB\MATLAB\Inversion\Regions\wst\New\wst0_5\wst0Final_resp.00'
 
-listfile = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\j2\dry5_3.lst'
-datafile = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\dry5\dry5_3.dat'
-respfile = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\dry5\dry5_3_lastIter.dat'
+# listfile = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\j2\dry5_3.lst'
+# datafile = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\dry5\dry5_3.dat'
+# respfile = r'C:\Users\eric\phd\ownCloud\data\Regions\MetalEarth\dryden\dry5\dry5_3_lastIter.dat'
+# listfile = 'E:/Work/sync/Regions/ATHA/gofem/edi_interpolated/allall.lst'
+# datafile = r'E:/Work/sync/Regions/ATHA/gofem/model6/atha5_gofem-ZK_rm-sites.gdat'
+# respfile = r'E:/Work/sync/Regions/ATHA/gofem/model6/ZK2/inv_data_42.gdat'
+listfile = 'E:/Work/sync/Regions/ATHA/gofem/edi_interpolated/atha_mcarthur/allall.lst'
+datafile = r'E:/Work/sync/Regions/ATHA/gofem/model6/wMcArthur/atha6-wMcArthur_ZK-MA-only.gdat'
+respfile = r'E:/Work/sync/Regions/ATHA/gofem/model6/wMcArthur/MA-only/ZK/inv_data_12.gdat'
 dataset = WSDS.Dataset(listfile=listfile, responsefile=respfile, datafile=datafile)
 
 fig = plt.figure(figsize=(26, 15))
@@ -46,26 +52,33 @@ components = {'diag': ('ZXXR', 'ZXXI', 'ZYYR', 'ZYYI'),
               'tipper': ('TZXR', 'TZXI', 'TZYR', 'TZYI')}
 # dpm.components = ('ZXYR', 'ZXYI', 'ZYXR', 'ZYXI')
 # dpm.components = ('ZXXR', 'ZXXI', 'ZYYR', 'ZYYI')
-out_path = r'C:/Users/eric/phd/ownCloud/data/Regions/MetalEarth/dryden/'
-dpm.components = ['RhoXY', 'RhoYX', 'RhoXX', 'RhoYY']
+out_path = 'E:/work/sync/Documents/ATHA/NRCAN_0001/'
+# dpm.components = ['RhoXY', 'RhoYX', 'RhoXX', 'RhoYY']
 dpm.show_outliers = False
 dpm.markersize = 8
 dpm.outlier_thresh = 3
 dpm.wrap = True
-sites_per_page = 9
-with PdfPages(''.join([out_path, 'Dryden-pha.pdf'])) as pdf:
-    for comps in ['rho']:
+dpm.plot_flagged_data = False
+sites_per_page = 6
+
+for comps in components.keys():
+# for comps in ['tipper']:
+    with PdfPages(''.join([out_path, 'atha_McArthur-{}.pdf'.format(comps)])) as pdf:
         # for comps in ['tipper']:
         # dpm.components = components[comps]
-        dpm.components = ['PhaXY', 'PhaYX']
+        dpm.components = components[comps]
         for ii in range(0, len(dataset.data.site_names), sites_per_page):
             if comps == 'tipper':
                 dpm.scale = 'none'
+                limits = [-0.75, 0.75]
+                
             else:
                 dpm.scale = 'sqrt(periods)'
             sites = dataset.data.site_names[ii:ii + sites_per_page]
             dpm.sites = dataset.get_sites(site_names=sites, dTypes='all')
             dpm.plot_data()
+            if comps == 'tipper':
+                dpm.link_axes(y_bounds=limits)
             # dpm.fig.savefig(''.join([comps, '_misfit', str(ii), '.pdf']), bbox_inches='tight', dpi=1000)
             pdf.savefig()
             # plt.close()
