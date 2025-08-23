@@ -3187,6 +3187,7 @@ class RawData(object):
             for comp in self.sites[site].components:
                 for ii in range(self.sites[site].NP):
                     if self.sites[site].data[comp][ii] == -9999 or self.sites[site].data[comp][ii] > 1e3:
+                    if (self.sites[site].data[comp][ii] == -9999) or (self.sites[site].data[comp][ii] > 1e10):
                         self.sites[site].errors[comp][ii] = self.sites[site].REMOVE_FLAG
                         self.sites[site].used_error[comp][ii] = self.sites[site].REMOVE_FLAG
 
@@ -3837,7 +3838,7 @@ class CART(PhaseTensor):
             v, d = np.linalg.eig(PT_phi_new)
             eigs = d[1, 1], d[0, 0]
         else:
-            eigs = [np.NaN, np.NaN]
+            eigs = [np.nan, np.nan]
         maxind = np.argmax(np.abs(eigs))
         minind = np.argmin(np.abs(eigs))
         tensor_max = eigs[maxind]
@@ -3920,7 +3921,7 @@ class CART(PhaseTensor):
                 v, d = np.linalg.eig(PT_phi_new)
                 eigs = v[1], v[0]
             else:
-                eigs = [np.NaN, np.NaN]
+                eigs = [np.nan, np.nan]
             maxind = np.argmax(np.abs(eigs))
             minind = np.argmin(np.abs(eigs))
             phi_max = eigs[maxind]

@@ -767,7 +767,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.window['colorbar'] = None
         self.map.window['axes'][0].clear()
         # DEBUG
-        # print('I am updating the map')
+        
         if self.actionShow_JPEG.isChecked():
             self.map.plot_image(image=self.background_image['image'],
                                extents=self.background_image['extent'])
@@ -1758,7 +1758,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.numSubplots.setValue((len(sites_to_add)))
         self.map_view.map.active_sites = self.site_names
         for annotation in self.map_view.map.actors['annotation']:
-            annotation.remove()
+            # annotation.remove()
             del annotation
         self.map_view.map.actors['annotation'] = []
         # del self.map_view.map.actors['annotation']
@@ -2253,6 +2253,19 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # self.draw_map()
 
     def back_or_forward_button(self, shift):
+        # This used to work for an older version of matplotlib
+        # In 3.10.3, removing the annotation in this way resulted in an error
+        # for annotation in self.map_view.map.actors['annotation']:
+        #     annotation.remove()
+        #     # self.map_view.map.window['axes'][0].texts.remove(annotation)
+        #     del annotation
+        #     # print('I am removing the artists')
+        # 
+        # In matplotlib 3.10.3, you can do this instead
+        # It seems to have the same effect, but hasn't been thoroughly tested
+        for annotation in self.map_view.map.window['axes'][0].texts:
+            annotation.remove()
+
         self.collapse_tree_nodes(to_collapse=self.dpm.site_names)
         self.site_names = self.shift_site_names(shift=shift)
         # If the sites haven't changed
@@ -2266,9 +2279,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # DEBUG
         # print(self.site_names)
         self.map_view.map.active_sites = self.site_names
-        for annotation in self.map_view.map.actors['annotation']:
-            annotation.remove()
-            del annotation
+
         self.map_view.map.actors['annotation'] = []
         # del self.map_view.map.actors['annotation']
         self.map_view.x_lim = self.map_view.map.window['axes'][0].get_xlim()
