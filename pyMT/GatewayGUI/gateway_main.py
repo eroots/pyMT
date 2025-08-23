@@ -349,7 +349,7 @@ class NewProject(QNewProject, Ui_NewProject):
         except WSFileError as e:
             QtWidgets.QMessageBox.warning(self, 'File Not Found', e.message)
         except IndexError as e:
-            QtWidgets.QMessageBox.warning(self, 'Internal IndexError', 'Double check the number of sites in the list file matches that in the data file.')
+            QtWidgets.QMessageBox.warning(self, 'Internal IndexError', str(e))
 
     def launch_model_viewer(self):
         if len(self.dataset_index()) == 0:

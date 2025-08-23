@@ -477,16 +477,20 @@ class Dataset(object):
                     # Replace insane values with the nearest non-insane value
                     to_smooth *= scale
                     # Old method of outlier detection, based on just removing huge values
-                    # idx = np.abs(to_smooth) <= 10 * np.median(np.abs(to_smooth) + 0.000001)
-                    # if not np.all(idx):
-                    #     # print([site, comp])
-                    #     where = np.argwhere(idx)
-                    #     for ii in range(len(idx)):
-                    #         if not idx[ii]:
-                    #             if ii == 0:
-                    #                 to_smooth[0] = to_smooth[np.argmax(idx)]
-                    #             else:
-                    #                 to_smooth[ii] = to_smooth[where[np.argmin(np.abs(ii - where))]]
+                    # For K, the 'insane' values are really just those larger than 1
+                    if comp.lower().startswith('t'): 
+                        idx = np.abs(to_smooth) < 1.5
+                    else:
+                        idx = np.abs(to_smooth) <= 10 * np.median(np.abs(to_smooth) + 0.000001)
+                    if not np.all(idx):
+                        # print([site, comp])
+                        where = np.argwhere(idx)
+                        for ii in range(len(idx)):
+                            if not idx[ii]:
+                                if ii == 0:
+                                    to_smooth[0] = to_smooth[np.argmax(idx)]
+                                else:
+                                    to_smooth[ii] = to_smooth[where[np.argmin(np.abs(ii - where))]]
                     to_smooth = utils.remove_outliers(to_smooth, size=median_window, threshold=threshold)
                     # print(site)
                     # print(to_smooth.shape)
@@ -3182,7 +3186,7 @@ class RawData(object):
         for site in self.site_names:
             for comp in self.sites[site].components:
                 for ii in range(self.sites[site].NP):
-                    if self.sites[site].data[comp][ii] == -9999:
+                    if self.sites[site].data[comp][ii] == -9999 or self.sites[site].data[comp][ii] > 1e3:
                         self.sites[site].errors[comp][ii] = self.sites[site].REMOVE_FLAG
                         self.sites[site].used_error[comp][ii] = self.sites[site].REMOVE_FLAG
 

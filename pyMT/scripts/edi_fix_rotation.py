@@ -1,6 +1,7 @@
 # from mtpy.core.mt import MT
 import matplotlib.pyplot as plt
 import mtpy.core.mt as mt
+import mtpy.core.edi as edi
 import numpy as np
 import os
 
@@ -69,7 +70,8 @@ non_uniform = []
 bad_sites = []
 for ii, file in enumerate(edi_files):
 	try:
-		mt_obj = mt.MT(edi_path + file)
+		# mt_obj = mt.MT(edi_path + file)
+		mt_obj = edi.Edi(edi_path + file)
 	except ValueError:
 		bad_sites.append(file)
 		continue
@@ -97,10 +99,13 @@ for ii, file in enumerate(edi_files):
 							      longitude_format='LONG',
 							      new_Z_obj=mt_z, new_Tipper_obj=mt_k)
 		else:
-			mt_obj.write_mt_file(save_dir=save_path,
-								 fn_basename=file,
-								 latlon_format='dms',
-								 longitude_format='LONG')
+			# mt_obj.write_mt_file(save_dir=save_path,
+			# 					 fn_basename=file,
+			# 					 latlon_format='dms',
+			# 					 longitude_format='LONG')
+			mt_obj.write_edi_file(new_edi_fn=save_path+file,
+								  latlon_format='dms',
+							      longitude_format='LONG')
 
 
 # plt.scatter(lons, lats, c=median_strike)

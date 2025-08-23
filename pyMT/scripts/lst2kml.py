@@ -14,6 +14,8 @@ transects = ['atha_mcarthir']
 # list_path = 'E:/Work/sync/Regions/Norway/GoFEM/data/edi_interpolated/'
 list_path = 'E:/Work/sync/Regions/ATHA/gofem/edi_interpolated/mcarthur/'
 transects = ['mcarthur']
+list_path = r'C:/Users/eroots/phd/Nextcloud/data/Regions/MSH/MSH-EDI_2022-23/MSH_EDI_trueN/impedances/'
+transects = ['msh-T2']
 # Path to the list file
 # list_path = 'D:/Work/ATHA/Atha_21_processed_EDI/impedances/'
 # dat_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
@@ -29,7 +31,8 @@ data_type = ''
 
 # Set the paths you want things to be saved to
 # shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/wst_cullmantle/'
-kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+# kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+kml_save_path = 'C:/Users/eroots/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 # csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 shp_save_path = 'E:/phd/NextCloud/data/ArcMap/MT-locations/stations/'
 # kml_save_path = 'C:/Users/eroots/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
