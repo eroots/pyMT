@@ -3186,8 +3186,7 @@ class RawData(object):
         for site in self.site_names:
             for comp in self.sites[site].components:
                 for ii in range(self.sites[site].NP):
-                    if self.sites[site].data[comp][ii] == -9999 or self.sites[site].data[comp][ii] > 1e3:
-                    if (self.sites[site].data[comp][ii] == -9999) or (self.sites[site].data[comp][ii] > 1e10):
+                    if (self.sites[site].data[comp][ii] == -9999 or self.sites[site].data[comp][ii] > 1e5):
                         self.sites[site].errors[comp][ii] = self.sites[site].REMOVE_FLAG
                         self.sites[site].used_error[comp][ii] = self.sites[site].REMOVE_FLAG
 
