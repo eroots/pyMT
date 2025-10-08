@@ -174,86 +174,90 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="PhaseTensor_fill">
-          <property name="currentText">
-           <string>Alpha</string>
-          </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <property name="text">
-            <string>Alpha</string>
-           </property>
+           <widget class="QComboBox" name="PhaseTensor_fill">
+            <property name="currentText">
+             <string>Alpha</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>Alpha</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Dimensionality</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Beta</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_1</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_2</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_3</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_max</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_min</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>det_Phi</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Azimuth</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Lambda</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Delta</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_split</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_split_Z</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Phi_split_PT</string>
+             </property>
+            </item>
+           </widget>
           </item>
-          <item>
-           <property name="text">
-            <string>Dimensionality</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Beta</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_2</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_3</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_max</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_min</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>det_Phi</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Azimuth</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Lambda</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Delta</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_split</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_split_Z</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Phi_split_PT</string>
-           </property>
-          </item>
-         </widget>
+         </layout>
         </item>
         <item>
          <widget class="QComboBox" name="Bar_fill">
@@ -337,6 +341,50 @@
           </item>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Difference Definition</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="PTDifference">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets how the difference between phase tensors is defined&lt;/p&gt;&lt;p&gt;Booker (2014):     Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt; - Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Hill (2015, 2020): Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1 &lt;/span&gt;- Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;/Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt;&lt;span style=&quot; vertical-align:super;&quot;&gt;1/2&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Heise (2009):      I - 0.5(Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; vertical-align:super;&quot;&gt;-1&lt;/span&gt;Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt;+Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt;Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; vertical-align:super;&quot;&gt;-1&lt;/span&gt;)&lt;/p&gt;&lt;p&gt;Castro: Ellipse is Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;, fill parameters are Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;-Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Roots_1:             2*I - 0.5(Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; vertical-align:super;&quot;&gt;-1&lt;/span&gt;Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt;+Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt;Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; vertical-align:super;&quot;&gt;-1&lt;/span&gt;)&lt;/p&gt;&lt;p&gt;Roots_2:             I - (Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;1&lt;/span&gt; - Φ&lt;span style=&quot; vertical-align:sub;&quot;&gt;2&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <item>
+           <property name="text">
+            <string>Booker</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Hill</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Heise</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Castro</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Roots_1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Roots_2</string>
+           </property>
+          </item>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -415,31 +463,35 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="Pseudosection_fill">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <property name="text">
-            <string>XY</string>
-           </property>
+           <widget class="QComboBox" name="Pseudosection_fill">
+            <item>
+             <property name="text">
+              <string>XY</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>YX</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Det</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>XY-YX</string>
+             </property>
+            </item>
+           </widget>
           </item>
           <item>
-           <property name="text">
-            <string>YX</string>
-           </property>
+           <widget class="QComboBox" name="Interpolant"/>
           </item>
-          <item>
-           <property name="text">
-            <string>Det</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>XY-YX</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="Interpolant"/>
+         </layout>
         </item>
         <item>
          <widget class="QLabel" name="label_2">
@@ -565,7 +617,7 @@
      <x>0</x>
      <y>0</y>
      <width>1369</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPoint_options">
@@ -611,6 +663,7 @@
      <addaction name="actionPTPhaseErrorTolerance"/>
      <addaction name="menuRotation_Axis_Definition"/>
      <addaction name="actionMinimumAxisRatio"/>
+     <addaction name="actionDeltaScalingFactor"/>
     </widget>
     <widget class="QMenu" name="menuInduction_Arrows">
      <property name="enabled">
@@ -669,6 +722,7 @@
     <addaction name="actionEqualAspect"/>
     <addaction name="actionLockAxis"/>
     <addaction name="menuSpatial_Units"/>
+    <addaction name="actionFontSettings"/>
    </widget>
    <widget class="QMenu" name="menuJPEG">
     <property name="toolTip">
@@ -866,6 +920,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Equal Aspect Ratio</string>
    </property>
@@ -878,6 +935,9 @@
   <action name="actionLockAxis">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Lock Axis Limits</string>
@@ -1058,6 +1118,70 @@
    </property>
    <property name="text">
     <string>Meters</string>
+   </property>
+  </action>
+  <action name="actionFontSettings">
+   <property name="text">
+    <string>Font Settings</string>
+   </property>
+  </action>
+  <action name="actionPtDiffBooker">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Booker (2014)</string>
+   </property>
+  </action>
+  <action name="actionPtDiffHill">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Hill (2014, 2020)</string>
+   </property>
+  </action>
+  <action name="actionPtDiffHeise">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Heise (2009)</string>
+   </property>
+  </action>
+  <action name="actionPtDiffCastro">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Castro</string>
+   </property>
+  </action>
+  <action name="actionPtDiffRoots_1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Roots_1</string>
+   </property>
+  </action>
+  <action name="actionPtDiffRoots_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Roots_2</string>
+   </property>
+  </action>
+  <action name="actionDeltaScalingFactor">
+   <property name="text">
+    <string>Delta Scaling Factor</string>
    </property>
   </action>
  </widget>

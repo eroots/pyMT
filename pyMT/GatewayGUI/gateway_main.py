@@ -348,6 +348,7 @@ class NewProject(QNewProject, Ui_NewProject):
             # print({key: ds_dict[key] for key in self.dataset_index})
         except WSFileError as e:
             QtWidgets.QMessageBox.warning(self, 'File Not Found', e.message)
+            # raise e
         except IndexError as e:
             QtWidgets.QMessageBox.warning(self, 'Internal IndexError', str(e))
 

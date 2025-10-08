@@ -822,7 +822,10 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                     pass
                     # print('Errors not properly specified in {}.'.format(file))
                     # print('Setting offending component errors to floor values.')
+                # try:    
                 Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
+                # except ZeroDivisionError:
+                #     Y, X, long_origin = Long, Lat, 999
                 location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
                 site_dict = {'data': data,
                              'errors': errors,
@@ -2766,6 +2769,9 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                     X, Y, Z = (data.locations[ii, 0],
                                                data.locations[ii, 1],
                                                0)
+                                if data.spatial_units == 'km':
+                                    X = X * 1000
+                                    Y = Y * 1000
                                 # X, Y, Z = (data.locations[ii, 0],
                                 #            data.locations[ii, 1],
                                 #            site.locations.get('elev', 0))

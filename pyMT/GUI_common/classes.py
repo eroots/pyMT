@@ -212,13 +212,13 @@ class TwoInputDialog(QtWidgets.QDialog):
         label2 = QtWidgets.QLabel(label_2, self)
         hbox = QtWidgets.QHBoxLayout()
         self.setLayout(hbox)
-        hbox.addWidget(label1)
-        hbox.addWidget(label2)
         self.value_1 = initial_1
         self.value_2 = initial_2
         self.line_edit1 = QtWidgets.QLineEdit(initial_1)
         self.line_edit2 = QtWidgets.QLineEdit(initial_2)
+        hbox.addWidget(label1)
         hbox.addWidget(self.line_edit1)
+        hbox.addWidget(label2)
         hbox.addWidget(self.line_edit2)
         buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel,
                                              self)
@@ -239,7 +239,7 @@ class TwoInputDialog(QtWidgets.QDialog):
             try:
                 result = [expected(x) for x in inputs]
             except ValueError:
-                QtWidgets.QMessageBox.warning(self, '...', 'Inputs not valid. Must be {}'.format(expected))
+                QtWidgets.QMessageBox.warning(dialog, '...', 'Inputs not valid. Must be {}'.format(expected))
                 result = False
         return inputs, result
 
@@ -273,6 +273,49 @@ class CoordinateMenu(QtWidgets.QMenu):
         self.all_systems[self.default_system].setChecked(True)
         self.all_units[self.default_units].setChecked(True)
         
+class SpinBoxDialog(QtWidgets.QDialog):
+    def __init__(self, title, box_labels, box_init, box_increment, box_range, parent=None):
+        super(QtWidgets.QDialog, self).__init__(parent)
+        self.setWindowTitle(title)
+        hbox = QtWidgets.QHBoxLayout()
+        self.setLayout(hbox)
+        self.spinboxes = []
+        # Assume all the inputs have the same length, otherwise this will obviously break
+        if not isinstance(box_labels, list):
+            box_labels = [box_labels]
+            box_init = [box_init]
+            box_increment = [box_increment]
+            box_range = [box_range]
+        for ii, label in enumerate(box_labels):
+            hbox.addWidget(QtWidgets.QLabel(label))
+            self.spinboxes.append(QtWidgets.QDoubleSpinBox())
+            self.spinboxes[ii].setRange(box_range[ii][0], box_range[ii][1])
+            spinbox.setDecimals(1)
+            spinbox.setSingleStep(box_increment[ii])
+            spinbox.setValue(box_init[ii])
+            hbox.addWidget(spinbox)
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel,
+                                             self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        hbox.addWidget(buttons)
+
+    def inputs(self):
+        values = [x.Value() for x in self.spinboxes]
+        return values
+
+    @staticmethod
+    def get_inputs(title, box_labels, box_init, box_increment, box_range, parent=None, expected=None):
+        dialog = SpinBoxDialog(title, box_labels, box_init, box_increment, box_range, parent)
+        result = dialog.exec_()
+        inputs = dialog.inputs()
+        if expected:
+            try:
+                result = [expected(x) for x in inputs]
+            except ValueError:
+                QtWidgets.QMessageBox.warning(self, '...', 'Inputs not valid. Must be {}'.format(expected))
+                result = False
+        return inputs, result
 
 class ColourMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):

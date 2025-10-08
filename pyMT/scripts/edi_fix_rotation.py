@@ -58,8 +58,11 @@ import os
 # edi_path  = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/UND-wDeclination/'
 # save_path = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/UND-rotated/'
 
-edi_path = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/UND-rotated/'
-save_path = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/UND-rotated/rot-scrubbed/'
+# edi_path = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/UND-rotated/'
+# save_path = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/UND-rotated/rot-scrubbed/'
+
+edi_path = 'G:/Other computers/My Computer/sync/Regions/MSH/MSH-EDI_2022-23/MSH-EDI-2023/'
+save_path = 'G:/Other computers/My Computer/sync/Regions/MSH/MSH-EDI_2022-23/MSH-EDI-2023/impedances/'
 
 # edi_path = 'E:/phd/NextCloud/data/Regions/NACP/j2/fromJim/'
 # save_path = 'E:/phd/NextCloud/data/Regions/NACP/j2/fromJim/mtpy/'
@@ -68,7 +71,7 @@ save_path = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/UND-rotat
 
 rotate_by = 0
 zero_azimuth = False
-scrub_rotation = True
+scrub_rotation = False
 interp_data = False
 # edi_files = ['plc002.edi']
 # Uncomment next line to run it over all EDIs in the folder

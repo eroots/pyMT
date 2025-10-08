@@ -100,6 +100,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.toggle_nonePhaseTensor.clicked.connect(self.none_phase_tensor)
             self.PhaseTensor_fill.currentIndexChanged.connect(self.update_map)
             self.Bar_fill.currentIndexChanged.connect(self.update_map)
+            self.PTDifference.currentIndexChanged.connect(self.pt_diff_definition)
             self.phaseTensorType.addItem('Φ')
             self.phaseTensorType.addItem('Φₐ')
             self.phaseTensorType.addItem('Uₐ')
@@ -112,6 +113,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.PhaseTensor_fill.setEnabled(False)
             self.Bar_fill.setEnabled(False)
             self.phaseTensorType.setEnabled(False)
+            self.PTDifference.setEnabled(False)
             self.pseudoFillType.removeItem(self.pseudoFillType.findText('Beta'))
             self.pseudoFillType.removeItem(self.pseudoFillType.findText('Abs. Beta'))
             self.pseudoFillType.removeItem(self.pseudoFillType.findText('PT Azimuth'))
@@ -150,6 +152,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.phase_limits = self.colourMenu.limits.addAction('Phase')
         self.colourMenu.phase_split_limits = self.colourMenu.limits.addAction('Phase Splits')
         self.colourMenu.difference_limits = self.colourMenu.limits.addAction('Difference')
+        self.colourMenu.delta_limits = self.colourMenu.limits.addAction('Delta')
         self.colourMenu.skew_limits = self.colourMenu.limits.addAction('Skew')
         self.colourMenu.tipper_limits = self.colourMenu.limits.addAction('Tipper')
         self.colourMenu.rms_limits = self.colourMenu.limits.addAction('RMS')
@@ -160,6 +163,7 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.colourMenu.rho_limits.triggered.connect(self.set_rho_cax)
         self.colourMenu.aniso_limits.triggered.connect(self.set_aniso_cax)
         self.colourMenu.phase_limits.triggered.connect(self.set_phase_cax)
+        self.colourMenu.delta_limits.triggered.connect(self.set_delta_cax)
         self.colourMenu.phase_split_limits.triggered.connect(self.set_phase_split_cax)
         self.colourMenu.difference_limits.triggered.connect(self.set_difference_cax)
         self.colourMenu.tipper_limits.triggered.connect(self.set_tipper_cax)
@@ -205,13 +209,21 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # Phase Tensor Options
         self.actionPhaseTensorScale.triggered.connect(self.set_pt_scale)
         self.actionMinimumAxisRatio.triggered.connect(self.set_pt_axis_ratio)
-        # self.groupPhiSplit = QtWidgets.QActionGroup(self)
-        # self.actionPhiSplitPT.setActionGroup(self.groupPhiSplit)
-        # self.actionPhiSplitZ.setActionGroup(self.groupPhiSplit)
-        # self.groupPhiSplit.triggered.connect(self.set_phi_split)
         self.actionPTPhaseErrorTolerance.triggered.connect(self.set_pt_phase_error_tol)
         self.actionPTRhoErrorTolerance.triggered.connect(self.set_pt_rho_error_tol)
         self.actionEqualAspect.triggered.connect(self.update_map)
+        self.actionDeltaScalingFactor.triggered.connect(self.set_delta_scale)
+        # Set up the phase tensor difference definition
+        # self.ptDiffActionGroup = QtWidgets.QActionGroup(self)
+        # self.ptDiffActionGroup.addAction(self.actionPtDiffBooker)
+        # self.ptDiffActionGroup.addAction(self.actionPtDiffHill)
+        # self.ptDiffActionGroup.addAction(self.actionPtDiffHeise)
+        # self.ptDiffActionGroup.addAction(self.actionPtDiffCastro)
+        # self.ptDiffActionGroup.addAction(self.actionPtDiffRoots_1)
+        # self.ptDiffActionGroup.addAction(self.actionPtDiffRoots_2)
+        # self.ptDiffActionGroup.setExclusive(True)
+        # self.ptDiffActionGroup.triggered.connect(self.pt_diff_definition)
+        
         # Induction Arrow Options
         self.actionInductionScale.triggered.connect(self.set_induction_scale)
         self.actionInductionErrorTolerance.triggered.connect(self.set_induction_error_tol)
@@ -262,6 +274,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         self.unitsGroup.addAction(self.actionMeters)
         self.unitsGroup.setExclusive(True)
         self.unitsGroup.triggered.connect(self.set_spatial_units)
+        # Hook up the font size menu
+        self.actionFontSettings.triggered.connect(self.set_fontsize)
         # Pseudosection options
         self.actionIncludeOutliers.triggered.connect(self.set_pseudosection_options)
         self.actionStandardDeviation.triggered.connect(self.set_pseudosection_std)
@@ -380,6 +394,8 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                     y2 = float(f.readline())
                 x2 = x1 + xsize * im.shape[1]
                 y1 = y2 + ysize * im.shape[0]
+                if self.map.spatial_units == 'km':
+                    x1, x2, y1, y2 = [x/1000 for x in [x1, x2, y1, y2]]
                 self.background_image['image'] = im
                 self.background_image['extent'] = [x1, x2, y1, y2]
                 self.actionShow_JPEG.setChecked(True)
@@ -422,8 +438,21 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         elif self.actionMeters.isChecked():
                 # ds.spatial_units = 'm'
             self.map.set_spatial_units('m')
+            # self.background_image['extent'] = [x*1000 for x in self.background_image['extent']]
         self.map.set_locations()
         self.update_map()
+
+    def set_fontsize(self):
+        values, ret = TwoInputDialog.get_inputs(label_1='Tick Label Size',
+                                                label_2='Axes Label Size',
+                                                initial_1=str(self.map.tick_fontsize),
+                                                initial_2=str(self.map.label_fontsize),
+                                                parent=self,
+                                                expected=float)
+        if ret:
+            self.map.tick_fontsize = values[0]
+            self.map.label_fontsize = values[1]
+            self.update_map()
 
     def set_pt_axis_ratio(self):
         d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
@@ -433,6 +462,17 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                                          0.01, 1, 2)
         if ok_pressed:
             self.map.min_pt_ratio = d
+            if not self.toggle_nonePhaseTensor.isChecked():
+                self.update_map()
+
+    def set_delta_scale(self):
+        d, ok_pressed = QtWidgets.QInputDialog.getDouble(self,
+                                                         'Scale',
+                                                         'Value:',
+                                                         self.map.pt_delta_scale,
+                                                         0.01, 100, 2)
+        if ok_pressed:
+            self.map.pt_delta_scale = d
             if not self.toggle_nonePhaseTensor.isChecked():
                 self.update_map()
 
@@ -501,6 +541,36 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.phase_error_tol = d
             if not self.toggle_nonePhaseTensor.isChecked():
                 self.update_map()
+
+    def pt_diff_definition(self):
+        # if self.actionPtDiffBooker.isChecked():
+        #     self.map.pt_difference_definition = 'Booker'
+        # if self.actionPtDiffHill.isChecked():
+        #     self.map.pt_difference_definition = 'Hill'
+        # if self.actionPtDiffHeise.isChecked():
+        #     self.map.pt_difference_definition = 'Heise'
+        # if self.actionPtDiffCastro.isChecked():
+        #     self.map.pt_difference_definition = 'Castro'
+        # if self.actionPtDiffRoots_1.isChecked():
+        #     self.map.pt_difference_definition = 'Roots_1'
+        # if self.actionPtDiffRoots_2.isChecked():
+        #     self.map.pt_difference_definition = 'Roots_2'
+        index = self.PTDifference.currentIndex()
+        definition = self.PTDifference.itemText(index)
+        if definition == 'Booker':
+            self.map.pt_difference_definition = 'Booker'
+        elif definition == 'Hill':
+            self.map.pt_difference_definition = 'Hill'
+        elif definition == 'Heise':
+            self.map.pt_difference_definition = 'Heise'
+        elif definition == 'Castro':
+            self.map.pt_difference_definition = 'Castro'
+        elif definition == 'Roots_1':
+            self.map.pt_difference_definition = 'Roots_1'
+        elif definition == 'Roots_2':
+            self.map.pt_difference_definition = 'Roots_2'
+        if self.toggle_dataPhaseTensor.isChecked() and self.toggle_responsePhaseTensor.isChecked():
+            self.update_map()
 
     def set_annotations(self):
         if self.actionAnnotate_All.isChecked():
@@ -647,7 +717,13 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         if limits is not None and limits != self.map.phase_cax:
             self.map.phase_cax = limits
             self.update_map()
-    
+
+    def set_delta_cax(self):
+        limits = self.set_cax(self.map.delta_cax[0], self.map.delta_cax[1])
+        if limits is not None and limits != self.map.delta_cax:
+            self.map.delta_cax = limits
+            self.update_map()
+
     def set_phase_split_cax(self):
         limits = self.set_cax(self.map.phase_split_cax[0], self.map.phase_split_cax[1])
         if limits is not None and limits != self.map.phase_split_cax:
@@ -760,11 +836,15 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
         # This should be changed to just destroy and redraw whatever features are needed
         # print(self.map.site_locations['generic'])
         # Also there should be a mechanism that makes sure this is only redrawn if something changes
+        cb_slot = 1
         self.x_lim = self.map.window['axes'][0].get_xlim()
         self.y_lim = self.map.window['axes'][0].get_ylim()
         if self.map.window['colorbar']:
             self.map.window['colorbar'].remove()
             self.map.window['colorbar'] = None
+        if self.map.window['colorbar_twin']:
+            self.map.window['colorbar_twin'].remove()
+            self.map.window['colorbar_twin'] = None
         self.map.window['axes'][0].clear()
         # DEBUG
         
@@ -772,13 +852,10 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.plot_image(image=self.background_image['image'],
                                extents=self.background_image['extent'])
         if self.toggle_planView.checkState():
-            self.map.plot_plan_view(z_slice=self.planSlice.value(), rho_axis=self.rhoAxis.currentText())
+            self.map.plot_plan_view(z_slice=self.planSlice.value(), rho_axis=self.rhoAxis.currentText(), cb_slot=0)#, cb_slot=cb_slot)
+            # cb_slot += 1
             depth = self.map.model.dz[self.planSlice.value()]
             depth = '{:0.6g} {}'.format(depth, self.map.model.spatial_units)
-            # if depth < 1000:
-            #     depth = '{:0.6g} m'.format(depth)
-            # else:
-            #     depth = '{:0.6g} km'.format(depth / 1000)
             self.planDepth.setText(depth)
             self.toggle_responsePseudo.setCheckState(0)
             self.toggle_dataPseudo.setCheckState(0)
@@ -790,7 +867,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
             self.map.plan_pseudosection(data_type=pseudosection_toggles['data'],
                                         fill_param=fill_param,
                                         period_idx=self.active_period,
-                                        n_interp=self.nInterp.value())
+                                        n_interp=self.nInterp.value(),
+                                        cb_slot=cb_slot)
+            cb_slot += 1
         self.map.plot_rms = self.plotRMS.checkState()
         # self.map.plot_locations()
         self.map.plot_annotate()
@@ -803,12 +882,17 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                        fill_param=PT_toggles['fill'],
                                        period_idx=self.active_period,
                                        pt_type=self.PT_type,
-                                       bostick_depth=0)
+                                       bostick_depth=0,
+                                       cb_slot=cb_slot)
+            cb_slot += 1
+            # Because the characteristics of a subtracted PT are not predictable, don't draw a bar if you're doing subtracted PTs
             if bar_fill != PT_toggles['fill'] and len(PT_toggles['data']) == 1:
                 self.map.plot_phase_bar(data_type=PT_toggles['data'],
                                         fill_param=bar_fill,
                                         period_idx=self.active_period,
-                                        pt_type=self.PT_type)
+                                        pt_type=self.PT_type,
+                                        cb_slot=cb_slot)
+                cb_slot += 1
         induction_toggles = self.get_induction_toggles()
         if induction_toggles['data']:
             if self.arrowType.itemText(self.arrowType.currentIndex()).lower() == 'real':
@@ -827,7 +911,9 @@ class MapMain(QMapViewMain, UI_MapViewWindow):
                                            arrow_type=arrowType,
                                            arrow_convention=arrow_convention)
         if 'None' in PT_toggles['data'] and not induction_toggles['data']:
-            self.map.plot_locations()
+            self.map.plot_locations(cb_slot=cb_slot)
+        # if self.map.window['colorbar']:
+        #     self.map.window['colorbar'].ax.tick_params(labelsize=self.map.cb_fontsize)
         self.set_axis_settings()
         self.map.set_axis_labels()
         self.canvas.draw()
@@ -1457,7 +1543,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         self.ptActionGroup.addAction(self.actionDegrees)
         self.ptActionGroup.addAction(self.actionUnitless)
         self.ptActionGroup.setExclusive(True)
-        self.ptActionGroup.triggered.connect(self.change_pt_units)        
+        self.ptActionGroup.triggered.connect(self.change_pt_units)  
         # Scaling factors for Z
         self.zScaleActionGroup = QtWidgets.QActionGroup(self)
         self.zScaleActionGroup.addAction(self.actionSqrtScaling)
@@ -1592,6 +1678,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
             self.dpm.pt_units = 'unitless'
         if set(self.dpm.components).issubset(set(self.dataset.data.PHASE_TENSOR_COMPONENTS)):
             self.update_dpm()
+
 
     def reset_errors(self):
         self.dataset.data.reset_errors()
@@ -1910,7 +1997,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # that 6 sites are plotted but you remove some so that only 4 remain, there
         # will be an error.
         site_names = []
-        min_row = np.Infinity
+        min_row = np.inf
         for site in self.siteList.selectedItems():
             min_row = min(min_row, self.siteList.row(site))
             name = site.text()
@@ -1974,7 +2061,7 @@ class DataMain(QMainWindow, Ui_MainWindow):
         # This method and the relevent methods in ws.data_structures are
         # not optimized. Adding many sites at once could be slow.
         site_names = []
-        min_row = np.Infinity
+        min_row = np.inf
         for site in self.rmSitesList.selectedItems():
             min_row = min(min_row, self.rmSitesList.row(site))
             name = site.text()
