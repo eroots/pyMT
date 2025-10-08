@@ -4,6 +4,7 @@ from matplotlib.colorbar import ColorbarBase
 from scipy.interpolate import griddata
 import matplotlib.patches as patches
 import matplotlib.colorbar as colorbar
+from matplotlib.path import Path
 from scipy.interpolate import RBFInterpolator
 import pyMT.utils as utils
 from pyMT.IO import debug_print
@@ -722,9 +723,9 @@ class MapView(object):
     COORD_SYSTEMS = ('local', 'utm', 'latlong', 'lambert')
 
     def __init__(self, figure=None, **kwargs):
-        self.window = {'figure': None, 'axes': None, 'canvas': None, 'colorbar': None}
+        self.window = {'figure': None, 'axes': None, 'canvas': None, 'colorbar': None, 'colorbar_twin': None}
         if figure:
-            self.window = {'figure': figure, 'axes': figure.axes, 'canvas': figure.canvas, 'colorbar': None}
+            self.window = {'figure': figure, 'axes': figure.axes, 'canvas': figure.canvas, 'colorbar': None, 'colorbar_twin': None}
         self.axis_padding = 0.1
         self.fake_im = []
         self.colour = 'k'
@@ -751,6 +752,15 @@ class MapView(object):
         self.artist_ref = {'raw_data': [], 'data': [], 'response': []}
         self.annotate_sites = 'active'
         self.colourmap = 'turbo'
+        self.cb_params = {'rotation': 270,
+                          'label_1': None,
+                          'label_2': None,
+                          'mappable_1': None,
+                          'mappable_2': None,
+                          'label_fontsize': 16,
+                          'tick_fontsize':  14,
+                          'labelpad': 20,
+                          'ticks': None}
         self.invert_cmap = True
         self.has_nn = has_nn
         if self.has_nn:
@@ -760,6 +770,7 @@ class MapView(object):
         self.rho_cax = [1, 5]
         self.phase_cax = [0, 90]
         self.phase_split_cax = [-40, 40]
+        self.delta_cax = [0, 100]
         self.diff_cax = [-15, 15]
         self.tipper_cax = [0, 0.5]
         self.skew_cax = [-10, 10]
@@ -775,8 +786,11 @@ class MapView(object):
         self.min_pt_ratio = 1 / 3
         self.pt_ratio_cutoff = 0
         self.pt_scale = 1
+        self.arc_scale = 0.8
+        self.pt_difference_definition = 'Booker'
         self.ellipse_VE = 1
         self.ellipse_linewidth = 1
+        self.pt_delta_scale = 2
         self.pt_rotation_axis = 'x'
         self.induction_scale = 5
         self.induction_cutoff = 2
@@ -786,7 +800,9 @@ class MapView(object):
         self.include_outliers = True
         self.allowed_std = 3
         self.spatial_units = 'm'
-        self.label_fontsize = 12
+        self.cb_fontsize = 14
+        self.label_fontsize = 16
+        self.tick_fontsize = 14
         self.mesh = False
         self.lut = 16
         self.linewidth = 0.005
@@ -979,7 +995,8 @@ class MapView(object):
                 ax.set_ylabel('Northing ({})'.format(self.data.spatial_units), fontsize=self.label_fontsize)
             else:
                 ax.set_ylabel(r'Latitude ($^{\circ}$)', fontsize=self.label_fontsize)
-
+        ax.tick_params(axis='both', which='major', labelsize=self.tick_fontsize)
+        
     def set_axis_limits(self, bounds=None, ax=None):
         if ax is None:
             ax = self.window['axes'][0]
@@ -995,6 +1012,75 @@ class MapView(object):
         else:
             ax.set_xlim(bounds[:2])
             ax.set_ylim(bounds[2:])
+
+    def set_colorbar(self, mappable, label='None', cb_slot=1):
+        if cb_slot == 1:
+            self.cb_params['label_1'] = label
+            self.cb_params['mappable_1'] = mappable
+            self.window['colorbar'] = self.window['figure'].colorbar(mappable=mappable)
+            self.window['colorbar'].set_label(label,
+                                              rotation=self.cb_params['rotation'],
+                                              labelpad=self.cb_params['labelpad'],
+                                              fontsize=self.cb_params['label_fontsize'])
+            self.window['colorbar'].ax.tick_params(labelsize=self.cb_params['tick_fontsize'])
+        elif cb_slot == 2 and label != self.cb_params['label_1']:
+            self.cb_params['label_2'] = label
+            self.cb_params['mappable_2'] = mappable
+            m1_min = np.min(self.cb_params['mappable_1'].get_array())
+            m1_max = np.max(self.cb_params['mappable_1'].get_array())
+            m2_min = np.min(self.cb_params['mappable_2'].get_array())
+            m2_max = np.max(self.cb_params['mappable_2'].get_array())
+            if ((m1_min == m2_min)
+            and (m1_max == m2_max)):
+                    # If the mappables are the same, just set one label
+                # print('Mappables are equal')
+                self.window['colorbar'].set_label('{}, {}'.format(self.cb_params['label_1'], self.cb_params['label_2']),
+                                          rotation=self.cb_params['rotation'],
+                                          labelpad=self.cb_params['labelpad'],
+                                          fontsize=self.cb_params['label_fontsize'])
+            else:
+                # Known bug here where for some reason the colorbar adds one extra label at the end that is out of bounds
+                # print('Mappables are not equal')
+                # Otherwise set up a double colorbar
+                # self.window['colorbar'] = self.window['colorbar'].ax
+                pos = self.window['colorbar'].ax.get_position()
+                map_1 = np.linspace(m1_min, m1_max, self.lut)
+                map_2 = np.linspace(m2_min, m2_max, self.lut)
+                self.window['colorbar'].ax.set_aspect('auto')
+                def fwd(x):
+                    # ret = np.interp(x, self.cb_params['mappable_1'].get_array(), self.cb_params['mappable_2'].get_array())
+                    ret = np.interp(x, map_1, map_2)
+                    ret[ret < m2_min] = m2_min
+                    ret[ret > m2_max] = m2_max
+                    # print([np.min(ret), np.max(ret)])
+                    return ret
+                def inv(x):
+                    # ret = np.interp(x, self.cb_params['mappable_2'].get_array(), self.cb_params['mappable_1'].get_array())
+                    ret = np.interp(x, map_2, map_1)
+                    ret[ret < m1_min] = m1_min
+                    ret[ret > m1_max] = m1_max
+                    # print([np.min(ret), np.max(ret)])
+                    return ret
+
+                self.window['colorbar_twin'] = self.window['colorbar'].ax.secondary_yaxis(location='left',
+                                                                                          functions=(fwd, inv))
+                pos.x0 += 0.05
+                pos.x1 += 0.05
+                self.window['colorbar'].ax.set_position(pos)
+                self.window['colorbar_twin'].set_position(pos)
+                self.window['colorbar'].ax.set_ylabel(self.cb_params['label_1'], fontsize=self.cb_params['label_fontsize'])
+                self.window['colorbar'].ax.yaxis.set_ticks_position('right')
+                self.window['colorbar'].ax.yaxis.set_label_position('right')
+                self.window['colorbar_twin'].set_ylabel(self.cb_params['label_2'], fontsize=self.cb_params['label_fontsize'])
+                # self.window['colorbar_twin'].yaxis.set_ticks_position('left')
+                # self.window['colorbar_twin'].yaxis.set_label_position('left')
+                # self.window['colorbar_twin'].set_ylim([m2_min, m2_max])
+                self.window['colorbar_twin'].tick_params(labelsize=self.cb_params['tick_fontsize'])
+                self.window['colorbar_twin'].set_ylim([m2_min, m2_max])
+        elif cb_slot > 2:
+            print('Three colorbar slots not implemented yet')
+            pass
+
 
     def interpolate(self, points, vals, n_interp):
         min_x = np.min(points[:, 0])
@@ -1032,7 +1118,7 @@ class MapView(object):
         
         return grid_vals, grid_x, grid_y, x_flat, y_flat
 
-    def plot_locations(self):
+    def plot_locations(self, cb_slot=1):
         marker_size = {'generic': [self.markersize ** 2], 'active': [self.markersize ** 2]}
         facecolour = {'generic': 'None', 'active': 'None'}
         edgecolour = deepcopy(self.site_exterior)
@@ -1109,12 +1195,15 @@ class MapView(object):
                                                               self.site_locations['all'][:, 0],
                                                               c=fake_vals, cmap=self.cmap)
                 self.fake_im.set_visible(False)
-                self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
                 label = 'R.M.S. Misfit'
-                self.window['colorbar'].set_label(label,
-                                                  rotation=270,
-                                                  labelpad=20,
-                                                  fontsize=18)
+                self.set_colorbar(mappable=self.fake_im, label=label, cb_slot=cb_slot)
+                
+                # self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
+                
+                # self.window['colorbar'].set_label(label,
+                                                  # rotation=270,
+                                                  # labelpad=20,
+                                                  # fontsize=18)
                 self.window['colorbar'].set_ticks(np.linspace(self.rms_cax[0], self.rms_cax[1], min(self.lut, 24) + 1))
             if 'labels' in self.rms_plot_style:
                 for ii, (xx, yy) in enumerate(self.site_locations['active']):
@@ -1242,7 +1331,9 @@ class MapView(object):
                 num_keys += 1
 
     def pt_fill_limits(self, fill_param, pt_type):
-        if fill_param in ['Lambda']:
+        if fill_param.startswith('diff') and 'delta' not in fill_param.lower():
+            lower, upper = self.diff_cax
+        elif fill_param in ['Lambda']:
             lower, upper = (0, 0.5)
         elif fill_param == 'beta':
             lower, upper = self.skew_cax
@@ -1251,8 +1342,8 @@ class MapView(object):
         elif fill_param in ['alpha', 'azimuth']:
             lower, upper = (-90, 90)
             # lower, upper = (0, 180)
-        elif fill_param in ('delta'):
-            lower, upper = (0, 100)
+        elif fill_param in ('delta', 'diff_delta'):
+            lower, upper = (self.delta_cax[0], self.delta_cax[1])
         elif fill_param in ('phi_split', 'phi_split_z', 'phi_split_pt'):
             if fill_param == 'phi_split_pt':
                 lower, upper = [0, self.phase_split_cax[1]]
@@ -1292,6 +1383,34 @@ class MapView(object):
             # phi_y = jy
             return phi_x, phi_y
 
+    def generate_arc(self, phi, azi_1, azi_2):
+        if np.abs(azi_1 - azi_2) < np.pi/60:
+            return None, None, False
+            # jx = np.cos(np.arange(0, 2 * np.pi + np.pi/180, np.pi/180))
+            # jy = np.sin(np.arange(0, 2 * np.pi + np.pi/180, np.pi/180))
+            # phi_x = phi[0, 0] * jx + phi[0, 1] * jy
+            # phi_y = phi[1, 0] * jx + phi[1, 1] * jy
+            # return phi_x, phi_y, True
+        if azi_2 > azi_1:
+            flip = -1
+            # flip = 1
+            jx = np.cos(np.arange(azi_1, azi_2 + np.pi/180, np.pi/180))
+            jy = np.sin(np.arange(azi_1, azi_2 + np.pi/180, np.pi/180))
+        else:
+            flip = 1
+            jx = np.cos(np.arange(azi_2, azi_1 + np.pi/180, np.pi/180))
+            jy = np.sin(np.arange(azi_2, azi_1 + np.pi/180, np.pi/180))
+        
+        # print(['azi:', azi_1, azi_2])
+        # jx = np.cos(np.arange(0, flip * (azi_1 - azi_2) + np.pi/60, np.pi/60))
+        # jy = np.sin(np.arange(0, flip * (azi_1 - azi_2) + np.pi/60, np.pi/60))
+        
+        # print(['js', jx, jy])
+        phi_x = phi[0, 0] * jx + phi[0, 1] * jy
+        phi_y = phi[1, 0] * jx + phi[1, 1] * jy
+        return phi_x[::flip], phi_y[::flip], True
+
+
     def get_tensor_params(self, pt_type, fill_param, site=None, tensor=None, period_idx=None):
         if pt_type == 'phi':
             if not tensor:
@@ -1324,7 +1443,8 @@ class MapView(object):
                     fill_val = np.sign(fill_val)*np.log10(abs(fill_val))
         return tensor, phi, phi_max, phi_min, azimuth, fill_val
 
-    def resize_ellipse(self, azimuth, phi_max):
+    def resize_ellipse_aspect(self, azimuth, phi_max):
+        # Rescales the ellipse so that the max and min axes are no smaller than a given amount
         R = np.array(((np.cos(azimuth), -np.sin(azimuth)),
                        (np.sin(azimuth), np.cos(azimuth))))
         max_element = np.abs(phi_max)
@@ -1335,16 +1455,23 @@ class MapView(object):
             phi_x[kk], phi_y[kk] = phi_new
         return phi_x, phi_y
 
-    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str, bostick_depth=float)
-    def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None, bostick_depth=0):
+    def rescale_ellipse(self, phi_x, phi_y, rescale_factor):
+        # Rescale the whole size of the ellipse
+        return [rescale_factor * x for x in (phi_x, phi_y)]
+
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str, bostick_depth=float, cb_slot=int)
+    def plot_phase_tensor(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None, bostick_depth=0, cb_slot=1):
         ellipses = []
         fill_vals = []
+        arcs = []
+        arc_fills = []
+        rescale_factor = 0
         if not pt_type:
             pt_type = 'phi'
         if fill_param != 'Lambda':
             fill_param = fill_param.lower()
         if len(data_type) == 2:
-            data_type = ['data', 'response']
+            data_type = ['data', 'response']            
         X_all, Y_all = self.site_locations['all'][:, 0], self.site_locations['all'][:, 1]
         scale = np.sqrt((np.max(X_all) - np.min(X_all)) ** 2 +
                         (np.max(Y_all) - np.min(Y_all)) ** 2)
@@ -1381,7 +1508,7 @@ class MapView(object):
                     if np.all(np.array([site.used_error[comp][period_idx] for comp in site.components]) == site.REMOVE_FLAG):
                         cont = 0
                     if np.min(radii) < np.max(radii) * self.min_pt_ratio:
-                        phi_x, phi_y = self.resize_ellipse(azimuth, phi_max)
+                        phi_x, phi_y = self.resize_ellipse_aspect(azimuth, phi_max)
 
                     norm_x, norm_y = (phi_x, phi_y)
                 else:
@@ -1390,6 +1517,8 @@ class MapView(object):
                     norm_x, norm_y = (phi_x, phi_y)
             else:
                 if True:  # Buffer for error tolerances at some point...
+                    # If one or both of the tensors is not defined (or the period is flagged), the subtraction should be removed
+                    cont = 1
                     tensor1 = self.get_tensor_params(pt_type,
                                                      fill_param,
                                                      site=self.site_data[data_type[0]].sites[site_name],
@@ -1398,19 +1527,41 @@ class MapView(object):
                                                      fill_param,
                                                      site=self.site_data[data_type[1]].sites[site_name],
                                                      period_idx=period_idx)[0]
-
+                    tensor1.difference_definition = self.pt_difference_definition
+                    tensor2.difference_definition = self.pt_difference_definition
                     residual_tensor = tensor1 - tensor2
-                    tensor, phi, phi_max, phi_min, azimuth, fill_val  = self.get_tensor_params(pt_type,
-                                                                                               fill_param, 
-                                                                                               tensor=residual_tensor)
-                    phi_x, phi_y = self.generate_ellipse(phi)
-                    radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
-                    if np.min(radii) < np.max(radii) * self.pt_ratio_cutoff:
-                        cont = 0
+                    azi_1, azi_2 = tensor1.azimuth, tensor2.azimuth
+                    # This makes sure that the ellipses are still generated using the proper methods, but the fill can be the differences
+                    if pt_type == 'phi':
+                        tensor, phi, phi_max, phi_min, azimuth, fill_val  = self.get_tensor_params(pt_type,
+                                                                                                   'diff_'+fill_param, 
+                                                                                                   tensor=residual_tensor)
                     else:
-                        cont = 1
+                        # If its not a phase tensor, I haven't defined fully what a subtraction is yet, so just do the default
+                        tensor, phi, phi_max, phi_min, azimuth, fill_val  = self.get_tensor_params(pt_type,
+                                                                                                   fill_param, 
+                                                                                                   tensor=residual_tensor)
+                    phi_x, phi_y = self.generate_ellipse(phi)
+                    
+                    # Rescale the ellipses so that those with small differences will vanish and large differences will get a bit bigger
+                    # Delta ranges from 0 to 100, but is typically quite small, so maybe multiply it by 5?
+                    if self.pt_difference_definition.lower() in ('booker', 'heise', 'hill', 'roots_1', 'roots_2'):
+                        rescale_factor = np.max((np.min((self.pt_delta_scale, residual_tensor.delta * self.pt_delta_scale / 100)), 0.01))
+                        # phi_x = np.array([x*residual_tensor.diff_delta/100*3 for x in phi_x])
+                        # phi_y = np.array([y*residual_tensor.diff_delta/100*3 for y in phi_y])
+                    # elif self.pt_difference_definition.lower() in ('hill', 'castro', 'roots_1', 'roots_2'):
+                    else:
+                        # For these ones we don't want collapsing tensors
+                        rescale_factor = 0
+                    radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
+                    # if (np.min(radii) < np.max(radii) * self.pt_ratio_cutoff) or (tensor1.remove_flag or tensor2.remove_flag):
+                    #     cont = 0
+                    #     bad_idx.append(ii)
                     if np.min(radii) < np.max(radii) * self.min_pt_ratio:
-                        phi_x, phi_y = self.resize_ellipse(phi_max, azimuth)
+                        phi_x, phi_y = self.resize_ellipse_aspect(azimuth, phi_max)                    
+                    # if tensor1.remove_flag or tensor2.remove_flag:
+                    #     cont = 0
+                    #     bad_idx.append(ii)
                                        
                     # norm_x, norm_y = generate_ellipse(self.site_data[data_type[0]].sites[site_name].phase_tensors[period_idx].phi)
                     
@@ -1421,12 +1572,33 @@ class MapView(object):
                                 1000 * phi_y / np.abs(phi_max))
                 radius = np.max(np.sqrt(phi_x ** 2 + phi_y ** 2))
                 # if radius > 1000:
-                phi_x, phi_y = [(self.pt_scale * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
+                # phi_x, phi_y = [(self.pt_scale * scale / (radius * 100)) * x for x in (phi_x, phi_y)]
+                # Fit the ellipse size to the size of the survey
+                phi_x, phi_y = self.rescale_ellipse(phi_x=phi_x, phi_y=phi_y, rescale_factor=(self.pt_scale * scale / (radius * 100)))
+                if rescale_factor:
+                    # Rescale the ellipse again if you want individual ones to shrink or grow    
+                    phi_x, phi_y = self.rescale_ellipse(phi_x=phi_x, phi_y=phi_y, rescale_factor=rescale_factor)
                 ellipses.append([Y - phi_x, X - phi_y])
                 # fill_vals.append(getattr(phase_tensor, fill_param))
                 fill_vals.append(fill_val)
+                if self.pt_difference_definition.lower() == 'castro' and len(data_type) == 2:
+                    arc_x, arc_y, ret = self.generate_arc(phi, azi_1, azi_2)
+
+                    # print([ii, arc_x, arc_y])
+                    if ret:
+                        arc_x, arc_y = (1000 * arc_x / np.abs(phi_max),
+                                        1000 * arc_y / np.abs(phi_max))
+                        arc_x, arc_y = [(self.arc_scale * scale / (radius * 100)) * x for x in (arc_x, arc_y)]
+                        arcs.append(Path(np.array([Y - arc_x, X - arc_y]).T))
+                        arc_fills.append([np.concatenate(([Y], Y - arc_x.T, [Y])), np.concatenate(([X], X - arc_y.T, [X]))])
+                    else:
+                        arcs.append(None)
+                        arc_fills.append(None)
         fill_vals = np.array(fill_vals)
-        lower, upper = self.pt_fill_limits(fill_param, pt_type)
+        if len(data_type) > 1:
+            lower, upper = self.pt_fill_limits('diff_' + fill_param, pt_type)
+        else:
+            lower, upper = self.pt_fill_limits(fill_param, pt_type)
         # Alpha, beta, and therefore azimuth are already arctan'ed in data_structures
         if fill_param not in ('delta', 'Lambda', 'alpha', 'azimuth', 'beta', 'phi_split', 'phi_split_z', 'phi_split_pt', 'dimensionality') and pt_type in ('phi', 'phi_a'):
             fill_vals = np.rad2deg(np.arctan(fill_vals))
@@ -1449,19 +1621,33 @@ class MapView(object):
             if self.ellipse_linewidth:
                 self.window['axes'][0].plot(ellipse[0], ellipse[1],
                                             'k-', linewidth=self.ellipse_linewidth, zorder=3)
+            if arcs:
+                # print([ii, arcs[ii]])
+                if arcs[ii]:
+                    arc = patches.FancyArrowPatch(path=arcs[ii],
+                                                  connectionstyle='arc3,rad=0.5',
+                                                  arrowstyle='<-',
+                                                  color='k', linewidth=1, #hatch='/',
+                                                  mutation_scale=5,
+                                                  zorder=5)
+                    # arc_fill = patches.Polygon(arc_fills[ii], closed=True, facecolor='grey', zorder=4)
+                    self.window['axes'][0].add_patch(arc)
+                    self.window['axes'][0].fill(arc_fills[ii][0], arc_fills[ii][1],
+                                                color='grey', zorder=4, linewidth=0)
         fake_vals = np.linspace(lower, upper, len(fill_vals))
         self.fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
                                                       self.site_locations['all'][good_idx, 0],
                                                       c=fake_vals, cmap=self.cmap)
         # fake_im.colorbar()
         self.fake_im.set_visible(False)
-        if not self.window['colorbar'] and self.use_colourbar:
-            self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
+        if self.use_colourbar and cb_slot:
+            # self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
             label = self.get_label(fill_param)
-            self.window['colorbar'].set_label(label,
-                                              rotation=270,
-                                              labelpad=20,
-                                              fontsize=18)
+            self.set_colorbar(mappable=self.fake_im, label=label, cb_slot=cb_slot)
+            # self.window['colorbar'].set_label(label,
+            #                                   rotation=270,
+            #                                   labelpad=20,
+            #                                   fontsize=18)
 
         if bad_idx:
             self.window['axes'][0].scatter(self.site_locations['all'][bad_idx, 1],
@@ -1475,8 +1661,8 @@ class MapView(object):
                                            zorder=9)
         self.set_axis_limits()
 
-    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str)
-    def plot_phase_bar(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None):
+    @utils.enforce_input(data_type=list, normalize=bool, fill_param=str, period_idx=int, pt_type=str, cb_slot=int)
+    def plot_phase_bar(self, data_type='data', normalize=True, fill_param='Beta', period_idx=1, pt_type=None, cb_slot=2):
         rectangles = []
         fill_vals = []
         if not pt_type:
@@ -1497,6 +1683,8 @@ class MapView(object):
                     (not site.phase_tensors) or site.phase_tensors[period_idx].remove_flag):
                 bad_idx.append(ii)
                 continue
+            else:
+                good_idx.append(ii)
             tensor, phi, phi_max, phi_min, azimuth, fill_val = self.get_tensor_params(pt_type,
                                                                                       fill_param,
                                                                                       site=site,
@@ -1539,10 +1727,20 @@ class MapView(object):
                                      color=self.cmap(norm_vals[ii]),
                                      zorder=4)
             self.window['axes'][0].add_patch(rect)
+
+        if self.use_colourbar:
+            fake_vals = np.linspace(lower, upper, len(fill_vals))
+            fake_im = self.window['axes'][0].scatter(self.site_locations['all'][good_idx, 1],
+                                                     self.site_locations['all'][good_idx, 0],
+                                                     c=fake_vals, cmap=self.cmap)
+            # fake_im.colorbar()
+            fake_im.set_visible(False)
+            label = self.get_label(fill_param)
+            self.set_colorbar(mappable=fake_im, label=label, cb_slot=cb_slot)
         self.set_axis_limits()
 
-    @utils.enforce_input(data_type=list, fill_param=str, n_interp=int, period_idx=int)
-    def plan_pseudosection(self, data_type='data', fill_param='rhoxy', n_interp=200, period_idx=0):
+    @utils.enforce_input(data_type=list, fill_param=str, n_interp=int, period_idx=int, cb_slot=int)
+    def plan_pseudosection(self, data_type='data', fill_param='rhoxy', n_interp=200, period_idx=0, cb_slot=1):
         vals = []
         #  Just make sure data is the first one
         if len(data_type) == 2:
@@ -1588,7 +1786,7 @@ class MapView(object):
                 vals.append([np.sqrt((data.sites[site].data['TZXR'][period_idx] ** 2 +
                                      data.sites[site].data['TZYR'][period_idx] ** 2)) for site in use_sites])
             elif 'absbeta' in fill_param.lower():
-                data_label = 'Skew'
+                data_label = '|Skew|'
                 use_log = False
                 use_sites = [site for site in data.site_names if set(data.IMPEDANCE_COMPONENTS).issubset(set(data.sites[site].real_components))]
                 vals.append([abs(np.rad2deg(data.sites[site].phase_tensors[period_idx].beta)) for site in use_sites])
@@ -1703,13 +1901,21 @@ class MapView(object):
                                            vmin=cax[0], vmax=cax[1],
                                            zorder=0)
                                            # shading='auto')
-        if self.window['colorbar'] and self.use_colourbar:
-            self.window['colorbar'].remove()
-            self.window['colorbar'] = self.window['figure'].colorbar(mappable=im)
-            self.window['colorbar'].set_label(fill_param,
-                                              rotation=270,
-                                              labelpad=20,
-                                              fontsize=18)
+        # if self.window['colorbar'] and self.use_colourbar:
+        if cb_slot and self.use_colourbar:
+            # self.window['colorbar'].remove()
+            fake_vals = np.linspace(cax[0], cax[1], self.lut)
+            fake_im = self.window['axes'][0].scatter(self.site_locations['all'][0:self.lut, 1],
+                                                     self.site_locations['all'][0:self.lut, 0],
+                                                     c=fake_vals, cmap=self.cmap)
+            # fake_im.colorbar()
+            fake_im.set_visible(False)
+            self.set_colorbar(mappable=fake_im, label=data_label, cb_slot=cb_slot)
+            # self.window['colorbar'] = self.window['figure'].colorbar(mappable=im)
+            # self.window['colorbar'].set_label(fill_param,
+            #                                   rotation=270,
+            #                                   labelpad=20,
+            #                                   fontsize=18)
         self.set_axis_limits()
         self.window['axes'][0].format_coord = format_model_coords(im,
                                               X=x_flat, Y=y_flat,
@@ -1737,11 +1943,13 @@ class MapView(object):
             label = r'$\phi_{max}$'
         elif param.lower() == 'phi_min':
             label = r'$\phi_{min}$'
+        elif param.lower() == 'phi_split_pt':
+            label = r'$\phi_{max} - \phi_{min}$'
         else:
             label = ''
         return label
 
-    def plot_plan_view(self, ax=None, z_slice=0, rho_axis='rho_x'):
+    def plot_plan_view(self, ax=None, z_slice=0, rho_axis='rho_x', cb_slot=0):
         rho_axis = rho_axis.lower()
         if not ax:
             ax = self.window['axes'][0]
@@ -1779,6 +1987,8 @@ class MapView(object):
                                               y_label='Northing ({})'.format(self.spatial_units),
                                               data_label='Resistivity',
                                               use_log=True)
+        if self.use_colorbar and cb_slot:
+            self.set_colorbar(mappable=im, label=rho_axis, cb_slot=cb_slot)
 
     def plot_x_slice(self, ax=None, x_slice=0, rho_axis='rho_x'):
         rho_axis = rho_axis.lower()
@@ -1925,7 +2135,7 @@ class MapView(object):
                         Y_all.pop()
                         continue
                     if np.min(radii) < np.max(radii) * self.min_pt_ratio:
-                        phi_x, phi_y = self.resize_ellipse(azimuth, phi_max)
+                        phi_x, phi_y = self.resize_ellipse_aspect(azimuth, phi_max)
                     current_x, current_y = X_all[-1], Y_all[-1]
                     phi_x, phi_y = (1000 * phi_x / np.abs(phi_max),
                                     1000 * phi_y / np.abs(phi_max))
@@ -1966,12 +2176,13 @@ class MapView(object):
         # fake_im.colorbar()
         self.fake_im.set_visible(False)
         if not self.window['colorbar'] and self.use_colourbar:
-            self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
+            # self.window['colorbar'] = self.window['figure'].colorbar(mappable=self.fake_im)
             label = self.get_label(fill_param)
-            self.window['colorbar'].set_label(label,
-                                              rotation=270,
-                                              labelpad=20,
-                                              fontsize=18)
+            self.set_colorbar(mappable=self.fake_im, label=label)
+            # self.window['colorbar'].set_label(label,
+                                              # rotation=270,
+                                              # labelpad=20,
+                                              # fontsize=18)
         x_diff = abs(max(X_all) - min(X_all))
         y_diff = abs(max(Y_all) - min(Y_all))
         x_min, x_max = min(X_all), max(X_all)

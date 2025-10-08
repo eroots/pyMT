@@ -478,6 +478,8 @@ def compute_longorigin(Long=0, long_origin=999):
     if Long == 0:
         origin = -3
     else:
+        # print(Long)
+        # origin = float(int(Long / 6) * 6) + 3 * int(Long / 6) / abs(int(np.max((Long / 6, 1))))
         origin = float(int(Long / 6) * 6) + 3 * int(Long / 6) / abs(int(Long / 6))
     return origin
 
@@ -1048,7 +1050,7 @@ def compute_bost1D(site, method='phase', comp=None, filter_width=1):
         comp = comp.lower().replace('bost', '')
     rho = compute_rho(site, calc_comp=comp)[0]
     # Flag bad points
-    idx = rho != 0
+    idx = np.array(rho != 0) * (site.used_error['ZXYR'] != site.REMOVE_FLAG)
     rho = rho[idx]
     periods = site.periods[idx]
     # coefs = np.polyfit(np.log10(periods), np.log10(rho), 4)

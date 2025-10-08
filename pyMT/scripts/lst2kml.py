@@ -9,11 +9,13 @@ from pyMT.WSExceptions import WSFileError
 
 # If you have multiple lists / lines that you want to keep seperate, add them all here. Otherwise, just rename the transect (but keep it in brackets as is)
 # transects = ['litho_bb', 'litho_lmt', 'metal_earth', 'usarray']
-transects = ['atha_mcarthir']
+transects = ['UND_BC']
 # Path to the list file
 # list_path = 'E:/Work/sync/Regions/Norway/GoFEM/data/edi_interpolated/'
-list_path = 'E:/Work/sync/Regions/ATHA/gofem/edi_interpolated/mcarthur/'
-transects = ['mcarthur']
+# list_path = 'E:/Work/sync/Regions/ATHA/gofem/edi_interpolated/mcarthur/'
+# transects = ['mcarthur']
+# list_path = r'C:/Users/eroots/phd/Nextcloud/data/Regions/MSH/MSH-EDI_2022-23/MSH_EDI_trueN/impedances/'
+# transects = ['msh-T2']
 # Path to the list file
 # list_path = 'D:/Work/ATHA/Atha_21_processed_EDI/impedances/'
 # dat_path = 'E:/phd/NextCloud/data/Regions/churchill/j2/mtpy/zero_azimuth/'
@@ -22,25 +24,30 @@ transects = ['mcarthur']
 # Name of the list file(s) - these would go with your list of transects above
 # lists = ['allsites.lst']
 # lists = ['litho_bb.lst', 'litho_lmt.lst', 'metal_earth.lst', 'usarray.lst']
-lists = ['allall.lst']
+lists = ['BC.lst']
 # Just a prefix for naming. Previously I had used it to separate AMT/BBMT/LMT data into separate files.
 # data_type = 'BB_'
 data_type = ''
-
+list_path = 'G:/Other computers/My Computer/sync/Regions/undercover/j2/'
 # Set the paths you want things to be saved to
 # shp_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/wst_cullmantle/'
-kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
-# csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
-shp_save_path = 'E:/phd/NextCloud/data/ArcMap/MT-locations/stations/'
+# kml_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 # kml_save_path = 'C:/Users/eroots/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
-csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+
+# csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+# shp_save_path = 'E:/phd/NextCloud/data/ArcMap/MT-locations/stations/'
+shp_save_path = 'G:/Other computers/My Computer/sync/GIS/Finland/MT-locations/SHP/'
+kml_save_path = 'G:/Other computers/My Computer/sync/GIS/Finland/MT-locations/KML/'
+csv_save_path = 'G:/Other computers/My Computer/sync/GIS/Finland/MT-locations/CSV/'
+# kml_save_path = 'C:/Users/eroots/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
+# csv_save_path = 'E:/phd/Nextcloud/data/ArcMap/MT-locations/KMLs/'
 
 # Set to true or false depending on what you want written
 write_kml = True
 write_csv = False
 write_shp = True
 # Whatever your UTM zone is
-UTM = 13
+UTM = 35
 
 for ii, lst in enumerate(lists):
     try:

@@ -100,6 +100,10 @@ class Dataset(object):
         self._spatial_units = 'm'
         if not self.data.site_names and self.raw_data.initialized:
             self.get_data_from_raw()
+        # Catching the edge case of data + response but no list, still need to make sure their lists are the same
+        if datafile and responsefile and not self.raw_data.initialized:
+            if set(self.data.site_names) == set(self.response.site_names):
+                self.response.site_names = deepcopy(self.data.site_names)
         azi = []
         num_dTypes = 0
         for dType in self.data_types:
@@ -477,16 +481,20 @@ class Dataset(object):
                     # Replace insane values with the nearest non-insane value
                     to_smooth *= scale
                     # Old method of outlier detection, based on just removing huge values
-                    # idx = np.abs(to_smooth) <= 10 * np.median(np.abs(to_smooth) + 0.000001)
-                    # if not np.all(idx):
-                    #     # print([site, comp])
-                    #     where = np.argwhere(idx)
-                    #     for ii in range(len(idx)):
-                    #         if not idx[ii]:
-                    #             if ii == 0:
-                    #                 to_smooth[0] = to_smooth[np.argmax(idx)]
-                    #             else:
-                    #                 to_smooth[ii] = to_smooth[where[np.argmin(np.abs(ii - where))]]
+                    # For K, the 'insane' values are really just those larger than 1
+                    if comp.lower().startswith('t'): 
+                        idx = np.abs(to_smooth) < 1.5
+                    else:
+                        idx = np.abs(to_smooth) <= 10 * np.median(np.abs(to_smooth) + 0.000001)
+                    if not np.all(idx):
+                        # print([site, comp])
+                        where = np.argwhere(idx)
+                        for ii in range(len(idx)):
+                            if not idx[ii]:
+                                if ii == 0:
+                                    to_smooth[0] = to_smooth[np.argmax(idx)]
+                                else:
+                                    to_smooth[ii] = to_smooth[where[np.argmin(np.abs(ii - where))]]
                     to_smooth = utils.remove_outliers(to_smooth, size=median_window, threshold=threshold)
                     # print(site)
                     # print(to_smooth.shape)
@@ -2270,6 +2278,10 @@ class Site(object):
     def spatial_units(self):
         return self._spatial_units
 
+    @property
+    def used_errors(self):
+        return self.used_error
+
     @spatial_units.setter
     def spatial_units(self, units):
         try:
@@ -2713,8 +2725,10 @@ class Site(object):
             errmap = self.generate_errmap(errmap)
 
         for comp in data.keys():
+            idx = np.where(errmap[comp] == self.NO_PERIOD_FLAG)
             self.data.update({comp: data[comp]})
             self.errors.update({comp: errors[comp]})
+            self.used_error.update({comp: errors[comp]})
             self.errmap.update({comp: errmap[comp]})
             self.components.append(comp)
 
@@ -3182,7 +3196,7 @@ class RawData(object):
         for site in self.site_names:
             for comp in self.sites[site].components:
                 for ii in range(self.sites[site].NP):
-                    if self.sites[site].data[comp][ii] == -9999:
+                    if (self.sites[site].data[comp][ii] == -9999 or self.sites[site].data[comp][ii] > 1e5):
                         self.sites[site].errors[comp][ii] = self.sites[site].REMOVE_FLAG
                         self.sites[site].used_error[comp][ii] = self.sites[site].REMOVE_FLAG
 
@@ -3418,6 +3432,7 @@ class PhaseTensor(object):
     def __init__(self, period, Z=None, Z_errors=None, rho=None, phase=None, phi=None, phi_error=None, remove_flag=False, calculate_errors=False, error_realizations=10000):
         # Are alpha, beta, azimuth considered clockwise from 'y', or counter-clockwise from 'x'
         self._rotation_axis = 'x' 
+        self.difference_definition = 'Booker' # Allowable values: Booker, Hill, Castro, Roots_1, Roots_2
         self.X, self.Y, self.phi = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         self.error_floor = np.tan(np.deg2rad(3))
         self.period = period
@@ -3669,6 +3684,10 @@ class PhaseTensor(object):
         # azimuth = 0.5 * np.pi - (alpha - beta)
         alpha, beta = self.calculate_rotation_parameters()
         azimuth = (alpha - beta)
+        # A bit of arithmetic to make sure that the azimuth is between -90 to 90 degrees
+        # azi_min = -np.pi / 2
+        # azi_max = np.pi / 2
+        # azimuth = (((azimuth - azi_min) % (azi_max - azi_min)) + (azi_max - azi_min)) % (azi_max - azi_min) + azi_min
         self.det_phi = (det_phi)
         self.skew_phi = skew_phi
         self.phi_1 = phi_1
@@ -3690,6 +3709,7 @@ class PhaseTensor(object):
                       # (self.X[0, 0] + 1j * self.Y[0, 0]))
 
     def __add__(self, y):
+        # Nothing fancy here, since I haven't seen any applications of adding phase tensors
         new_phi = PhaseTensor(self.period, None)
         new_phi.phi = self.phi + y.phi
         new_phi.calculate_phase_parameters()
@@ -3708,26 +3728,59 @@ class PhaseTensor(object):
 
     def __sub__(self, y):
         new_phi = PhaseTensor(self.period, None)
+        # Need to consider somehow that if one of the data points is flagged (doesn't exist), the subtraction should reduce to whatever the 'no difference' option is
         # new_phi.phi = np.abs((self.phi - y.phi)) / np.linalg.norm(self.phi)
         # inv_phi = np.linalg.inv(y.phi)
         # new_phi.phi = np.identity(2) - 0.5 * (np.matmul(inv_phi, self.phi) + np.matmul(self.phi, inv_phi))
-        inv_phi = np.linalg.inv(self.phi)
-        new_phi.phi = np.identity(2) - 0.5 * (np.matmul(inv_phi, y.phi) + np.matmul(y.phi, inv_phi))
-        new_phi.calculate_phase_parameters()
-        new_phi.phi = np.abs(self.phi - y.phi)
-        new_phi.delta = 100 * (np.linalg.norm(new_phi.phi) / np.linalg.norm(self.phi))
-        new_phi.phi /= np.linalg.norm(self.phi)
-        # new_phi.det_phi = self.det_phi - y.det_phi
-        # new_phi.skew_phi = self.skew_phi - y.skew_phi
-        # new_phi.phi_1 = self.phi_1 - y.phi_1
-        # new_phi.phi_2 = self.phi_2 - y.phi_2
-        # new_phi.phi_3 = self.phi_3 - y.phi_3
-        # new_phi.phi_max = self.phi_max - y.phi_max
-        # new_phi.phi_min = self.phi_min - y.phi_min
-        # new_phi.alpha = self.alpha - y.alpha
-        # new_phi.Lambda = self.Lambda - y.Lambda
-        # new_phi.beta = self.beta - y.beta
-        # new_phi.azimuth = self.azimuth - y.azimuth
+        ####################################
+        if self.difference_definition.lower() == 'booker':
+            # Definition proposed by Booker, 2014 - simply one minus the other
+            new_phi.phi = self.phi - y.phi
+            
+        elif self.difference_definition.lower() == 'heise':
+            # Definition used in Heise, 2009
+            inv_phi = np.linalg.inv(y.phi)
+            new_phi.phi = np.identity(2) - 0.5 * (np.matmul(inv_phi, self.phi) + np.matmul(self.phi, inv_phi))
+            
+        elif self.difference_definition.lower() == 'hill':
+            # Definition used by Hill (2015, 2020), which is Bookers definition plus a normalization factor
+            new_phi.phi = self.phi - (y.phi / np.sqrt(np.linalg.norm(self.phi)))
+        elif self.difference_definition.lower() == 'castro':
+            # Definition Cesar talked about - the ellipse itself is that of new_phi, but the fill parameters represent the differences
+            # Should add a line or some sort of indication as to how the new ellipse is rotated from the old one
+            # new_phi.phi = y.phi
+            new_phi = deepcopy(y)
+        elif self.difference_definition.lower() == 'roots_1':
+            # The 2*identity means that identical PTs will plot as circles.
+            # This is the Heise method but the reverse plotting philosophy (circles are zero change instead of lots of change)
+            # Removing the 2x makes them vanish (i.e., infinitely thin), and then thin ellipses represent minor changes
+            # The main problem with this is that the orientation of the difference ellipse doesn't make much sense
+            # i.e., in the case an ellipse only gets skinnier (no change in azimuth), the difference ellipse plots 90 degrees to the original
+            inv_phi = np.linalg.inv(y.phi)
+            new_phi.phi = 2*np.identity(2) - 0.5 * (np.matmul(inv_phi, self.phi) + np.matmul(self.phi, inv_phi))
+        elif self.difference_definition.lower() == 'roots_2':
+            new_phi.phi = np.identity(2) - (self.phi - y.phi)
+        if self.difference_definition.lower() != 'castro':
+            new_phi.calculate_phase_parameters()
+        # In all cases we should probably define the differences (color plottable values) as the actual differences
+        fact = -1 # -1 if  you want response - data, fact = 1 for data - response
+                  # Probably makes sense to do resp - data (so that a +ve value represents a +ve change)
+        new_phi.diff_phi_1 = fact * np.tan(np.arctan(self.phi_1) - np.arctan(y.phi_1))
+        new_phi.diff_phi_2 = fact * np.tan(np.arctan(self.phi_2) - np.arctan(y.phi_2))
+        new_phi.diff_phi_3 = fact * np.tan(np.arctan(self.phi_3) - np.arctan(y.phi_3))
+        new_phi.diff_phi_max = fact * np.tan(np.arctan(self.phi_max) - np.arctan(y.phi_max))
+        new_phi.diff_phi_min = fact * np.tan(np.arctan(self.phi_min) - np.arctan(y.phi_min))
+        new_phi.diff_phi_split_pt = fact * (self.phi_split_pt - y.phi_split_pt)
+        new_phi.diff_phi_split_z = fact * (self.phi_split_z - y.phi_split_z)
+        new_phi.diff_phi_split = fact * (self.phi_split - y.phi_split)
+        new_phi.diff_alpha = fact * (self.alpha - y.alpha)
+        new_phi.diff_Lambda = fact * (self.Lambda - y.Lambda)
+        new_phi.diff_beta = fact * (self.beta - y.beta)
+        new_phi.diff_azimuth = fact * (self.azimuth - y.azimuth)
+        new_phi.diff_delta = (100 * (np.linalg.norm(self.phi - y.phi) / np.linalg.norm(self.phi)))
+        new_phi.delta = (100 * (np.linalg.norm(self.phi - y.phi) / np.linalg.norm(self.phi)))
+        new_phi.diff_det_phi = fact * (self.det_phi - y.det_phi)
+        new_phi.diff_skew_phi = fact * (self.skew_phi - y.skew_phi)
         return new_phi
 
 class CART(PhaseTensor):
@@ -3833,7 +3886,7 @@ class CART(PhaseTensor):
             v, d = np.linalg.eig(PT_phi_new)
             eigs = d[1, 1], d[0, 0]
         else:
-            eigs = [np.NaN, np.NaN]
+            eigs = [np.nan, np.nan]
         maxind = np.argmax(np.abs(eigs))
         minind = np.argmin(np.abs(eigs))
         tensor_max = eigs[maxind]
@@ -3916,7 +3969,7 @@ class CART(PhaseTensor):
                 v, d = np.linalg.eig(PT_phi_new)
                 eigs = v[1], v[0]
             else:
-                eigs = [np.NaN, np.NaN]
+                eigs = [np.nan, np.nan]
             maxind = np.argmax(np.abs(eigs))
             minind = np.argmin(np.abs(eigs))
             phi_max = eigs[maxind]

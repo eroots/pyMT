@@ -15,9 +15,7 @@ pyMT.egg-info/PKG-INFO
 pyMT.egg-info/SOURCES.txt
 pyMT.egg-info/dependency_links.txt
 pyMT.egg-info/entry_points.txt
-pyMT.egg-info/entry_points_copy.txt
 pyMT.egg-info/requires.txt
-pyMT.egg-info/requires_copy.txt
 pyMT.egg-info/top_level.txt
 pyMT/scripts/autogen_report.py
 pyMT/scripts/f2l.py
@@ -107,5 +105,4 @@ pyMT/scripts/to_vtk_point-cloud.py
 pyMT/scripts/write_induction_arrows.py
 pyMT/scripts/write_phase_tensors.py
 pyMT/scripts/ws2modem.py
-pyMT/scripts/ztem-grd_to_edi.py
 pyMT/scripts/ztem_to_edi.py

@@ -798,7 +798,7 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
         data = {}
         errors = {}
         try:
-            # print('Reading file: {}'.format(file))
+            print('Reading file: {}'.format(file))
             with open(file, 'r') as f:
                 # Need to also read in INFO and DEFINEMEAS blocks to confirm that the location
                 # info is consistent
@@ -822,7 +822,10 @@ def read_raw_data(site_names, datpath='', edi_locs_from='definemeas', progress_b
                     pass
                     # print('Errors not properly specified in {}.'.format(file))
                     # print('Setting offending component errors to floor values.')
+                # try:    
                 Y, X, long_origin = utils.geo2utm(Lat, Long, long_origin=long_origin)
+                # except ZeroDivisionError:
+                #     Y, X, long_origin = Long, Lat, 999
                 location_dict = {'X': X, 'Y': Y, 'Lat': Lat, 'Long': Long, 'elev': elev}
                 site_dict = {'data': data,
                              'errors': errors,
@@ -2030,7 +2033,7 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
         return locations
 
 
-    def read_gofem(data_file, receiver_file=None):
+    def read_gofem(data_file, site_names=None, receiver_file=None):
 
         # This will need to be updated to allow phase tensor inversions later
         comp_dict = {'RealZxx': 'ZXXR',
@@ -2054,12 +2057,21 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
                 lines = f.readlines()
         except FileNotFoundError:
             raise(WSFileError(ID='fnf', offender=data_file)) from None
-        site_names = []
+
         data = {}
         errors = {}
         freq_order = {}
         all_freqs = []
         used_comps = []
+        if not site_names:
+            site_names = []
+        else:
+            # If site_names is initialized via a site list, keep that order and initalize the rest here
+            for site_name in site_names:
+                data.update({site_name: {comp : [] for comp in comp_dict.values()}})
+                errors.update({site_name: {comp : [] for comp in comp_dict.values()}})
+                freq_order.update({site_name: {comp : [] for comp in comp_dict.values()}})    
+
         for line in lines:
             if line[0] == '#':
                 continue
@@ -2757,6 +2769,9 @@ def write_data(data, outfile=None, to_write=None, file_format='ModEM', use_eleva
                                     X, Y, Z = (data.locations[ii, 0],
                                                data.locations[ii, 1],
                                                0)
+                                if data.spatial_units == 'km':
+                                    X = X * 1000
+                                    Y = Y * 1000
                                 # X, Y, Z = (data.locations[ii, 0],
                                 #            data.locations[ii, 1],
                                 #            site.locations.get('elev', 0))

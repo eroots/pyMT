@@ -15,7 +15,8 @@ cmap = cm.jet()
 if __name__ == '__main__':
     # local_path = 'C:/Users/eroots'
     # local_path = 'E:/phd/Nextcloud/'
-    local_path = 'E:/Work/sync/'
+    # local_path = 'E:/Work/sync/'
+    local_path = 'G:/Other computers/My Computer/sync/'
     # filename = local_path + 'data/Regions/MetalEarth/AG/AG_plotset.dat'
     # listfile = local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
