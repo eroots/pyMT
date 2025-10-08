@@ -383,6 +383,9 @@ def get_cmap(cmap, N=64, invert=True):
     elif cmap in ('turbo_mod'):
         idx = int(N / min(N,32)) * 3
         new_cmap =(colors.ListedColormap(turbo(N)[idx:-idx]))
+    elif cmap in ('turbo_r_mod'):
+        idx = int(N / min(N,32)) * 3
+        new_cmap = (colors.ListedColormap(turbo_r(N)[idx:-idx]))
     elif cmap in ('turbo_capped', 'turbo_capped_r'):
         purple = np.array([128 / 256, 0, 128 / 256])
         output = np.vstack([purple, turbo(N), purple])
