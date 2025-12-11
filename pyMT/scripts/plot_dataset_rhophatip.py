@@ -87,7 +87,7 @@ plot_options = {'marker_dict': {'data': {'Rxy':  'o',
                 'edgewidth': 1,
                 'x_limits': [1e-3, 1e4],
                 'y_limits':     {'R': [1e0, 1e5],
-                                 'P': [-180, 180],
+                                 'P': [0, 120],
                                  'T': [-0.75, 0.75]}
                                  }
 
@@ -114,17 +114,17 @@ def plot_sites(sites, fig, resp_sites=None, data_type=['data'], save_fig=False, 
         # if 'ZXYR' in site.components:
         to_plot.append('Rxy')   
         to_plot.append('Ryx')
-        to_plot.append('Rxx')
-        to_plot.append('Ryy')
-        to_plot.append('Pxx')
+        # to_plot.append('Rxx')
+        # to_plot.append('Ryy')
         to_plot.append('Pxy')
         to_plot.append('Pyx')
-        to_plot.append('Pyy')
+        # to_plot.append('Pxx')
+        # to_plot.append('Pyy')
         # if 'TZXR' in site.components:
-        to_plot.append('TZXR')
-        to_plot.append('TZYR')
-        to_plot.append('TZXI')
-        to_plot.append('TZYI')
+        # to_plot.append('TZXR')
+        # to_plot.append('TZYR')
+        # to_plot.append('TZXI')
+        # to_plot.append('TZYI')
 
         axes = {'rho': None,
                 'phase': None,
@@ -135,7 +135,7 @@ def plot_sites(sites, fig, resp_sites=None, data_type=['data'], save_fig=False, 
                 'tzr': None,
                 'tzi': None}
         # fig = plt.figure(figsize=(10, 12))
-        bottom_plot = 'tz'
+        bottom_plot = 'phase'
         top_plot = 'rho'
         # if len(to_plot) == 6:
         #     spec['rho'] = GridSpec(3, 3, figure=fig).new_subplotspec((0, 0), colspan=3, rowspan=2)
@@ -158,11 +158,11 @@ def plot_sites(sites, fig, resp_sites=None, data_type=['data'], save_fig=False, 
             col_number = (ss % plots_per_row) * 8 + (ss % plots_per_row)
         spec['rho'] = GridSpec(17, 17, figure=fig).new_subplotspec((row_number, col_number), colspan=8, rowspan=4)
         spec['phase'] = GridSpec(17, 17, figure=fig).new_subplotspec((row_number+4, col_number), colspan=8, rowspan=2)
-        spec['tz'] = GridSpec(17, 17, figure=fig).new_subplotspec((row_number+6, col_number), colspan=8, rowspan=2)
+        # spec['tz'] = GridSpec(17, 17, figure=fig).new_subplotspec((row_number+6, col_number), colspan=8, rowspan=2)
         # spec['tzi'] = GridSpec(6, 6, figure=fig).new_subplotspec((5, 0), colspan=2, rowspan=1)
         axes['rho'] = fig.add_subplot(spec['rho'])
         axes['phase'] = fig.add_subplot(spec['phase'])
-        axes['tz'] = fig.add_subplot(spec['tz'])
+        # axes['tz'] = fig.add_subplot(spec['tz'])
         # axes['tzi'] = fig.add_subplot(spec['tzi'])
         for dtype in data_type:
             site = sites[dtype][ss]
@@ -184,7 +184,7 @@ def plot_sites(sites, fig, resp_sites=None, data_type=['data'], save_fig=False, 
                     axes['rho'].set_xscale('log')
                     axes['rho'].set_yscale('log')
                 elif tp.startswith('P'):
-                    pha, e = utils.compute_phase(site, calc_comp=tp[1:], errtype='errors', wrap=False)
+                    pha, e = utils.compute_phase(site, calc_comp=tp[1:], errtype='errors', wrap=True)
                     axes['phase'].errorbar((site.periods), pha, xerr=None, yerr=e,
                                            marker=plot_options['marker_dict'][dtype][tp],
                                            linestyle=plot_options['linestyle'][dtype][tp],
@@ -260,24 +260,31 @@ def plot_sites(sites, fig, resp_sites=None, data_type=['data'], save_fig=False, 
 
 
 
-listfile = r'E:/Work/sync/Regions/ATHA/j2/all_wTHOT.lst'
-datafile = r'E:/Work/sync/Regions/ATHA/gofem/model6/atha5_gofem-ZK_rm-sites.gdat'
-respfile = r'E:/Work/sync/Regions/ATHA/gofem/model6/ZK2/inv_data_42.gdat'
+listfile = r'E:/Work/sync/Regions/ATHA/gofem/edi_interpolated/atha_mcarthur/allall.lst'
+datafile = r'E:/Work/sync/Regions/ATHA/gofem/model6/wMcArthur/combined/atha-mcarthur_ZK-spliced.gdat'
+respfile = r'E:/Work/sync/Regions/ATHA/gofem/model6/wMcArthur/combined/atha_combined_ub2_7.gdat'
+dataset = DS.Dataset(listfile=listfile, datafile=datafile, responsefile=respfile)
+out_path = 'E:/work/sync/Documents/ATHA/roughFigs/'
+
 # listfile = r'E:/Work/sync/Regions/ATHA/j2/tie_line.lst'
 # dataset = DS.Dataset(listfile=listfile)
-dataset = DS.Dataset(datafile=datafile, responsefile=respfile)
-out_path = 'E:/work/sync/Documents/ATHA/NRCAN_0001/'
+# listfile = 'E:/Work/sync/Regions/undercover/j2/allall.lst'
+# datafile = 'E:/Work/sync/Regions/undercover/und_plotset.dat'
+# dataset = DS.Dataset(datafile=datafile)
+# out_path = 'E:/work/sync/Documents/undercover/roughFigs/'
 
+# dataset.remove_sites(sites=[x for x in dataset.site_names if not 'UND' in x])
 
 sites_per_page = 4
-with PdfPages(''.join([out_path, 'atha_bb_misfit-plots.pdf'])) as pdf:
+with PdfPages(''.join([out_path, 'atha-final_misfit-plots.pdf'])) as pdf:
     for ii in range(0, dataset.data.NS, sites_per_page):
         fig = plt.figure(figsize=(12, 16))
         site_names = dataset.data.site_names[ii:ii + sites_per_page]
-        # data_sites = [dataset.raw_data.sites[site] for site in site_names]
-        data_sites = [dataset.data.sites[site] for site in site_names]
+        data_sites = [dataset.raw_data.sites[site] for site in site_names]
         resp_sites = [dataset.response.sites[site] for site in site_names]
         sites = {'data': data_sites, 'resp': resp_sites}
         plot_sites(sites, fig=fig, data_type=['data', 'resp'], save_fig=False, plots_per_row=2)
+        # sites = {'data': data_sites}
+        # plot_sites(sites, fig=fig, data_type=['data'], save_fig=False, plots_per_row=2)
         pdf.savefig()
-        # plt.close()
+plt.close()

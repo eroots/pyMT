@@ -21,80 +21,81 @@ def custom_formatter_y(y_val, pos):
     return f'{y_val/1000:4.0f}'  # Set to KM
 
 
-def normalize_ellipse(phi):
-    phi_min = abs(phi.phi_min)
-    phi_max = abs(phi.phi_max)
-    phi_min, phi_max = utils.normalize([phi_min, phi_max])
-    return phi_min, phi_max
+# def normalize_ellipse(phi):
+#     phi_min = abs(phi.phi_min)
+#     phi_max = abs(phi.phi_max)
+#     phi_min, phi_max = utils.normalize([phi_min, phi_max])
+#     return phi_min, phi_max
 
 
-def plot_ellipse(data, fill_param):
-    ells = []
-    # data.locations = data.get_locs(mode='latlong')
-    for site_name in data.site_names:
-        site = data.sites[site_name]
-        jx = np.cos(np.arange(0, 2 * np.pi, np.pi / 30))
-        jy = np.sin(np.arange(0, 2 * np.pi, np.pi / 30))
-        phi_x = site.phase_tensors[-6].phi[1, 1] * jx + site.phase_tensors[-6].phi[1, 0] * jy
-        phi_y = site.phase_tensors[-6].phi[0, 1] * jx + site.phase_tensors[-6].phi[0, 0] * jy
-        # radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
-        # phi_min, phi_max = [np.min(radii), np.max(radii)]
-        # phi_min, phi_max = [phi_min / phi_max, 1]
-        ells.append([site.locations['Y'] / 1000 - phi_x / site.phase_tensors[-6].phi_max,
-                     site.locations['X'] / 1000 - phi_y / site.phase_tensors[-6].phi_max])
-        # ells.append(Ellipse(xy=(site.locations['Y'], site.locations['X']),
-        #                     width=phi_max * 1000,
-        #                     height=phi_min * 1000,
-        #                     angle=90 - np.rad2deg(site.phase_tensors[-6].azimuth)))
-    # print([phi_min, phi_max])
-    # print(site.phase_tensors[-6].azimuth)
-    fig = Figure()
-    ax = fig.add_subplot(111, aspect='equal')
-    vals = np.array([getattr(data.sites[site].phase_tensors[-6], fill_param) for site in data.site_names])
-    vals = np.rad2deg(np.arctan(vals))
-    norm_vals = utils.normalize(vals, lower=0, upper=90, explicit_bounds=True)
-    for ii, e in enumerate(ells):
-        # ax.add_artist(e)
-        ax.fill(e[0], e[1], color=cmap(norm_vals[ii]))
-        ax.annotate(data.site_names[ii][-3:], xy=(e[0][0], e[1][0]))
-        # e.set_facecolor(cmap(norm_vals[ii]))
-        # e.set_clip_box(ax.bbox)
-    fake_im = ax.imshow(np.tile(np.arange(90), [2, 1]), cmap=cmap)
-    fake_im.set_visible(False)
-    fake_im.colorbar()
-    ax.set_xlim(min(data.locations[:, 1] / 1000) - 5,
-                max(data.locations[:, 1] / 1000) + 5)
-    ax.set_ylim(min(data.locations[:, 0] / 1000) - 5,
-                max(data.locations[:, 0] / 1000) + 5)
-    ax.set_aspect('equal')
+# def plot_ellipse(data, fill_param):
+#     ells = []
+#     # data.locations = data.get_locs(mode='latlong')
+#     for site_name in data.site_names:
+#         site = data.sites[site_name]
+#         jx = np.cos(np.arange(0, 2 * np.pi, np.pi / 30))
+#         jy = np.sin(np.arange(0, 2 * np.pi, np.pi / 30))
+#         phi_x = site.phase_tensors[-6].phi[1, 1] * jx + site.phase_tensors[-6].phi[1, 0] * jy
+#         phi_y = site.phase_tensors[-6].phi[0, 1] * jx + site.phase_tensors[-6].phi[0, 0] * jy
+#         # radii = np.sqrt(phi_x ** 2 + phi_y ** 2)
+#         # phi_min, phi_max = [np.min(radii), np.max(radii)]
+#         # phi_min, phi_max = [phi_min / phi_max, 1]
+#         ells.append([site.locations['Y'] / 1000 - phi_x / site.phase_tensors[-6].phi_max,
+#                      site.locations['X'] / 1000 - phi_y / site.phase_tensors[-6].phi_max])
+#         # ells.append(Ellipse(xy=(site.locations['Y'], site.locations['X']),
+#         #                     width=phi_max * 1000,
+#         #                     height=phi_min * 1000,
+#         #                     angle=90 - np.rad2deg(site.phase_tensors[-6].azimuth)))
+#     # print([phi_min, phi_max])
+#     # print(site.phase_tensors[-6].azimuth)
+#     fig = Figure()
+#     ax = fig.add_subplot(111, aspect='equal')
+#     vals = np.array([getattr(data.sites[site].phase_tensors[-6], fill_param) for site in data.site_names])
+#     vals = np.rad2deg(np.arctan(vals))
+#     norm_vals = utils.normalize(vals, lower=0, upper=90, explicit_bounds=True)
+#     for ii, e in enumerate(ells):
+#         # ax.add_artist(e)
+#         ax.fill(e[0], e[1], color=cmap(norm_vals[ii]))
+#         ax.annotate(data.site_names[ii][-3:], xy=(e[0][0], e[1][0]))
+#         # e.set_facecolor(cmap(norm_vals[ii]))
+#         # e.set_clip_box(ax.bbox)
+#     fake_im = ax.imshow(np.tile(np.arange(90), [2, 1]), cmap=cmap)
+#     fake_im.set_visible(False)
+#     fake_im.colorbar()
+#     ax.set_xlim(min(data.locations[:, 1] / 1000) - 5,
+#                 max(data.locations[:, 1] / 1000) + 5)
+#     ax.set_ylim(min(data.locations[:, 0] / 1000) - 5,
+#                 max(data.locations[:, 0] / 1000) + 5)
+#     ax.set_aspect('equal')
 
-    # cb = ax.colorbar(cmap)
-    # ax.set_xlim(-60000000, 10000000)
-    # ax.set_ylim(-10000000, 10000000)
-    return ells, vals, norm_vals
+#     # cb = ax.colorbar(cmap)
+#     # ax.set_xlim(-60000000, 10000000)
+#     # ax.set_ylim(-10000000, 10000000)
+#     return ells, vals, norm_vals
 
 
 if __name__ == '__main__':
     # local_path = 'C:/Users/eroots'
     # local_path = 'E:/phd/Nextcloud/'
-    # local_path = 'E:/Work/sync/'
-    local_path = 'G:/Other computers/My Computer/sync/'
+    local_path = 'E:/Work/sync/'
+    # local_path = 'G:/Other computers/My Computer/sync/'
     # filename = local_path + 'data/Regions/MetalEarth/AG/AG_plotset.dat'
     # listfile = local_path + 'data/Regions/MetalEarth/j2/upper_abitibi_hex.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # filename = local_path + 'data/Regions/MetalEarth/wst/fullmantle/cull/Z/ZK/wst_cullmantle3_LAMBERT_ZK_removed.dat'
     # listfile = local_path + 'data/Regions/MetalEarth/wst/j2/mantle/fullrun/wst_cullmantle.lst'
-    listfile = local_path + 'Regions/undercover/j2/allall.lst'
-    filename = local_path + 'Regions/undercover/und_plotset.dat'
-    out_path = local_path + 'Documents/undercover/roughFigs/PT_plots/'
+    listfile = local_path + 'Regions/Lanai/edis/allall.lst'
+    filename = local_path + 'Regions/Lanai/lanai_plotset.dat'
+    out_path = local_path + 'Documents/Lanai/roughFigs/PT_plots/beta/'
     # out_path = 'E:/phd/NextCloud/Documents/ME_Transects/wst/PTs/by_period/pt_only/phi2/'
     # filename = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # listfile = local_path + 'data/Regions/snorcle/j2/2020-collation-ian/grid_north.lst'
     # out_path = local_path + 'Documents/ME_transects/Upper_Abitibi/Paper/RoughFigures/PT/phi2_betaBack/betaCircle/'
     # jpg_file_name = local_path + 'ArcMap/AG/cio_georeferenced.jpg'
     # jpg_file_name = 'E:/phd/NextCloud/data/ArcMap/WST/WSBoundaries_Lambert_wMCR.jpg'
-    jpg_file_name = local_path + 'Regions/undercover/UND_boundaries.jpg'
-    out_file = 'UND_PT-phi2_'
+    # jpg_file_name = local_path + 'Regions/undercover/UND_boundaries.jpg'
+    jpg_file_name = ''
+    out_file = 'Lanai_PT-beta_'
     ext = ['.png', '.svg']
     dpi = 300
     padding = 10000
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     tick_fontsize  = 14
     # fill_param = ['phi_2', 'beta']
     # fill_param = ['phi_split_pt', None]
-    fill_param = ['phi_2', None]
+    fill_param = ['beta', None]
     data = WSDS.Data(filename, listfile=listfile)
     raw = WSDS.RawData(listfile)
     # data = deepcopy(raw)
@@ -152,9 +153,10 @@ if __name__ == '__main__':
     MV = gplot.MapView(fig=fig)
     MV.window['figure'] = fig
     MV.window['axes'] = [ax]
-    MV.colourmap = 'turbo_r'
-    MV.phase_cax = [30, 90]
-    MV.skew_cax = [-15, 15]
+    # MV.colourmap = 'turbo_r'
+    MV.colourmap = 'bwr'
+    MV.phase_cax = [0, 90]
+    MV.skew_cax = [-10, 10]
     MV.diff_cax = [-40, 40]
     # MV.interpolant = 'cubic'
     # MV.colourmap = 'bwr'
@@ -162,22 +164,22 @@ if __name__ == '__main__':
     MV.site_data['data'] = data
     MV.site_data['raw_data'] = raw
     MV.site_names = data.site_names
-    MV.padding_scale = 10
-    MV.pt_scale = .75
+    MV.padding_scale = 5
+    MV.pt_scale = 1.5
     MV.min_pt_ratio = 0.3
     MV.pt_ratio_cutoff = 0.01
     MV.phase_error_tol = 1000
     MV.rho_error_tol = 1000
     MV.include_outliers = True
     MV.allowed_std = 20
-    MV.lut = 16
+    MV.lut = 33
     # # MV.site_locations['generic'] = MV.get_locations(sites=MV.generic_sites)
     # MV.site_locations['active'] = MV.get_locations(
     #     sites=MV.active_sites)
     MV.site_locations['all'] = data.locations
     first_time = 0
     # for ii in range(len(data.periods)):
-    for ii in range(data.NP):
+    for ii in range(0, data.NP, 2):
     # for ii in range(0, len(data.periods), freq_skip + 1):
     # for ii in [0]:
     # for ii in range(len(data.periods)):   
@@ -213,28 +215,28 @@ if __name__ == '__main__':
             MV.ellipse_linewidth = 0
             MV.plot_phase_tensor(data_type='data', normalize=True,
                              fill_param=fill_param[1], period_idx=ii,
-                             bostick_depth=bostick_depth)
+                             bostick_depth=bostick_depth, cb_slot=1)
             # MV.colourmap = 'turbo'
             # MV.ellipse_linewidth = 1
             # MV.min_pt_ratio = 0.3
             # MV.pt_scale = 1.
             MV.plot_phase_tensor(data_type='data', normalize=True,
                              fill_param=fill_param[0], period_idx=ii,
-                             bostick_depth=bostick_depth)
+                             bostick_depth=bostick_depth, cb_slot=2)
             # MV.plot_phase_bar(data_type='data', normalize=True,
                               # fill_param='beta', period_idx=ii)
         else:
             two_param = 0
             MV.plot_phase_tensor(data_type='data', normalize=True,
                              fill_param=fill_param[0], period_idx=ii,
-                             bostick_depth=bostick_depth)
+                             bostick_depth=bostick_depth, cb_slot=1)
         # MV.plot_phase_bar2(data_type='data', normalize=True,
         #                    fill_param='phi_min', period_idx=ii)
-        MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - padding,
-                                   max(data.locations[:, 1]) + padding,
-                                   min(data.locations[:, 0]) - padding,
-                                   max(data.locations[:, 0]) + padding])
-        MV.window['axes'][0].set_aspect(1)
+        # MV.set_axis_limits(bounds=[min(data.locations[:, 1]) - padding,
+        #                            max(data.locations[:, 1]) + padding,
+        #                            min(data.locations[:, 0]) - padding,
+        #                            max(data.locations[:, 0]) + padding])
+        # MV.window['axes'][0].set_aspect(1)
         MV.window['axes'][0].xaxis.set_major_formatter(ticker.FuncFormatter(custom_formatter_x))
         MV.window['axes'][0].yaxis.set_major_formatter(ticker.FuncFormatter(custom_formatter_y))
         MV.window['axes'][0].set_xlabel('Easting (km)', fontsize=label_fontsize)

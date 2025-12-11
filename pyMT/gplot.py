@@ -1546,7 +1546,8 @@ class MapView(object):
                     # Rescale the ellipses so that those with small differences will vanish and large differences will get a bit bigger
                     # Delta ranges from 0 to 100, but is typically quite small, so maybe multiply it by 5?
                     if self.pt_difference_definition.lower() in ('booker', 'heise', 'hill', 'roots_1', 'roots_2'):
-                        rescale_factor = np.max((np.min((self.pt_delta_scale, residual_tensor.delta * self.pt_delta_scale / 100)), 0.01))
+                        # Threw a sqrt on it so that extremely large delta's wouldn't grow too much bigger than everything else
+                        rescale_factor = np.sqrt(np.max((np.min((self.pt_delta_scale, residual_tensor.delta * self.pt_delta_scale / 100)), 0.01)))
                         # phi_x = np.array([x*residual_tensor.diff_delta/100*3 for x in phi_x])
                         # phi_y = np.array([y*residual_tensor.diff_delta/100*3 for y in phi_y])
                     # elif self.pt_difference_definition.lower() in ('hill', 'castro', 'roots_1', 'roots_2'):
@@ -1855,7 +1856,9 @@ class MapView(object):
         else:
             good_idx = abs(vals) < 1e10
         loc_idx = [ii for ii, site in enumerate(data.site_names) if site in use_sites]
-        use_locations = self.site_locations['all'][loc_idx, :]
+        # Replace this with data.locations in case the 'data', 'response', and 'raw' have different site orders
+        # use_locations = self.site_locations['all'][loc_idx, :]
+        use_locations = data.locations[loc_idx, :]
         loc_x, loc_y = use_locations[good_idx, 1], use_locations[good_idx, 0]
         loc_z = np.zeros(loc_x.shape)
         points = np.transpose(np.array((loc_x, loc_y, loc_z)))
@@ -1987,7 +1990,7 @@ class MapView(object):
                                               y_label='Northing ({})'.format(self.spatial_units),
                                               data_label='Resistivity',
                                               use_log=True)
-        if self.use_colorbar and cb_slot:
+        if self.use_colourbar and cb_slot:
             self.set_colorbar(mappable=im, label=rho_axis, cb_slot=cb_slot)
 
     def plot_x_slice(self, ax=None, x_slice=0, rho_axis='rho_x'):

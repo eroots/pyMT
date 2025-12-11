@@ -1412,7 +1412,8 @@ def read_data(datafile='', site_names='', file_format='modem', invType=None):
             print('Site names specified in list file do not match those in {}\n'.format(datafile))
             if set(site_names) == set(new_site_names):
                 print('Looks like just the order of sites is different. Proceeding anyways, watch out for buggy behavior...')
-                site_names = new_site_names
+                # site_names = new_site_names
+                new_site_names = site_names
             else:
                 print('Proceeding with names set in list file.\n')
 
